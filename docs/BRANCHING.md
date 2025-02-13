@@ -1,17 +1,40 @@
 # Branching Strategy
 
-This document describes the current branching strategy used in the Pyx Julee project.
+This document describes how to use branches in the Pyx Julee project.
+It applies to the project repository itself,
+and also to all the component/ submodule repositories
 
-## Overview
-
-The project uses a branching model centered around releases, with each release having its own branch and associated tag.
+We uses a branching model centered around releases,
+with each release developed in a release branch and marked with a tag.
 
 ## Branch Types
 
-### Main Branch
-The repository maintains a master development branch.
+### Master Branch
+The repository maintains a master development branch,
+which is generally the focus of feature development efforts.
+We call this master (not "main") because that's what it's called.
+
+### Feature Branches
+New feature branches are usually forked from the master branch,
+then merged back into master branch when the work seems to be "done".
+From there, -test releases of new features (MAJOR or MINOR releases)
+or PATCH releases are created using SemVer of the feature set/patch level,
+while the HEAD of the feature branch follows feature development.
+
+The dicipline to create short-lived, frequently-released,
+narrowly-scoped features is encouraged. 
+
+### Maintenance Branches
+Maintainance branches may be maintained for semantic MAJOR.MINOR versions
+(i.e. feature sets). Hotfixes, backporting patches, etc occur here.
+
+Maintenance releases are tagged from these branches, rather
+than the main line of development (in the master branch).
 
 ### Release Branches
+
+These are created and ultimately destroyed by the release management process.
+
 - Named pattern: `release/vX.Y.Z`
 - Created during release preparation
 - Used to lock component versions for a specific release
@@ -25,13 +48,16 @@ The repository maintains a master development branch.
 - Named pattern: `vX.Y.Z`
 - Created on release branches
 - Contains metadata in tag message:
+  - Date the tag was created
   - List of component versions
   - Release notes
-  - Component compatibility information
 - Created via `tag-release.sh`
 - Published via `publish-release.sh`
 
 Tag messages follow a proscribed format (per `tag-release.sh`)
+
+There is work in progress to develop "component compatibility information"
+in `versions/`, see notes in bin/*.md for information about WIP.
 
 ## Version Numbering
 
@@ -41,13 +67,12 @@ All version numbers follow SemVer 2.0 (https://semver.org/):
 - Example: v2.1.0, v2.1.1-rc1, v2.0.0-test3
 
 ### Pre-release Tags
-- Alpha Testing: Use `-test<n>` suffix
+For internal (ALPHA) Testing: Use `-test<n>` suffix
   - Example: v2.1.0-test1, v2.1.0-test2
-  - Indicates internal testing versions
   - May have breaking changes
   - Not for production use
 
-- Beta/RC Testing: Use `-rc<n>` suffix
+For Release Candidate (BETA) Testing: Use `-rc<n>` suffix
   - Example: v2.1.0-rc1, v2.1.0-rc2
   - For external validation testing
   - Feature complete for the target release
