@@ -1,0 +1,12 @@
+[submodule "components/julee-orchestrator"]
+	path = components/julee-orchestrator
+	url = https://github.com/pyx-industries/julee-orchestrator.git
+[submodule "components/julee-knowledge-service"]
+	path = components/julee-knowledge-service
+	url = https://github.com/pyx-industries/julee-knowledge-service.git
+[submodule "components/julee-action-service"]
+	path = components/julee-action-service
+	url = https://github.com/pyx-industries/julee-action-service.git
+[submodule "components/julee-policy-service"]
+	path = components/julee-policy-service
+	url = https://github.com/pyx-industries/julee-policy-service.git
