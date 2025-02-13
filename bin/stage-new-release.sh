@@ -580,6 +580,16 @@ while true; do
             echo "Review the changes and press Enter to create the release tag, or Ctrl+C to abort"
             read
             
+            # Commit any submodule updates
+            if git status --porcelain | grep -q '^.M components/'; then
+                for pair in "$@"; do
+                    component="${pair%%=*}"
+                    version="${pair#*=}"
+                    git add "components/$component"
+                    git commit -m "build: Update $component submodule to $version"
+                done
+            fi
+
             # Create the tag
             git tag -F .git/TAG_MSG.tmp "$RELEASE_VERSION"
             rm -f .git/TAG_MSG.tmp
@@ -604,16 +614,6 @@ while true; do
             
             echo "Switching to $branch branch..."
             git checkout "$branch"
-            
-            echo "Delete release branch? [Y/n]"
-            read -r response
-            response=${response:-y}
-            if [[ $response =~ ^[Yy] ]]; then
-                git branch -D "$BRANCH"
-                echo "Release branch deleted"
-            else
-                echo "Release branch preserved"
-            fi
             
             break
             ;;
