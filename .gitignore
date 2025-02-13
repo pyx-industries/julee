@@ -8,3 +8,5 @@
 
 # misc
 .aider*
+__pycache__/*
+__build/*
