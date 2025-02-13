@@ -1,0 +1,12 @@
+#+TODO: TODO WIP | DONE CANCELLED
+* WIP lab-stack
+- full suite of micro-services with shared infrastructure.
+
+Designed to:
+- maximise developer convenience (local stack)
+- minimise dev/prod disparities
+- capable of full integration testing
+
+This is a single dockerfile that spins up all the component microservices,
+but only a single instance of the various backing services
+(relational database, object storage, message queue, graph database, etc).
