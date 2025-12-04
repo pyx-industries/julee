@@ -1,5 +1,5 @@
 from typing import Protocol, Optional, runtime_checkable
-from util.domain import FileMetadata, FileUploadArgs
+from julee.util.domain import FileMetadata, FileUploadArgs
 
 
 @runtime_checkable

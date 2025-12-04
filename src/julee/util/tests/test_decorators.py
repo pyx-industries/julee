@@ -10,13 +10,13 @@ import asyncio
 import inspect
 from typing import (
     Any,
-    Optional,
-    TypeVar,
-    Protocol,
-    runtime_checkable,
-    get_origin,
-    get_args,
     List,
+    Optional,
+    Protocol,
+    TypeVar,
+    get_args,
+    get_origin,
+    runtime_checkable,
 )
 from unittest.mock import patch
 
@@ -26,14 +26,14 @@ from pydantic import BaseModel
 from temporalio import activity
 
 # Project imports
-import util.temporal.decorators as decorators_module
-
-from util.temporal.decorators import (
+import julee.util.temporal.decorators as decorators_module
+from julee.domain.repositories.base import BaseRepository
+from julee.util.temporal.decorators import (
+    _extract_concrete_type_from_base,
+    _needs_pydantic_validation,
+    _substitute_typevar_with_concrete,
     temporal_activity_registration,
     temporal_workflow_proxy,
-    _extract_concrete_type_from_base,
-    _substitute_typevar_with_concrete,
-    _needs_pydantic_validation,
 )
 
 
@@ -246,7 +246,7 @@ def test_activity_names_with_different_prefixes() -> None:
         return original_activity_defn(name=name, **kwargs)
 
     with patch(
-        "util.repos.temporal.decorators.activity.defn",
+        "julee.util.temporal.decorators.activity.defn",
         side_effect=mock_activity_defn,
     ):
 
@@ -354,7 +354,7 @@ def test_decorator_handles_inheritance_correctly() -> None:
 def test_decorator_logs_wrapped_methods() -> None:
     """Test that the decorator logs which methods it wraps."""
 
-    with patch("util.repos.temporal.decorators.logger") as mock_logger:
+    with patch("julee.util.temporal.decorators.logger") as mock_logger:
 
         @temporal_activity_registration("test.logging")
         class DecoratedRepository(MockRepository):
@@ -363,8 +363,8 @@ def test_decorator_logs_wrapped_methods() -> None:
         # Check that debug logs were called for each method
         mock_logger.debug.assert_called()
 
-        # Should have two info calls: method discovery and decorator app
-        assert mock_logger.info.call_count == 2
+        # Should have one info call: decorator applied
+        assert mock_logger.info.call_count == 1
 
         # Check that the final info log contains the expected information
         final_info_call = mock_logger.info.call_args_list[-1]
@@ -445,17 +445,6 @@ class MockDocument(BaseModel):
 
 # Test repository protocols
 T = TypeVar("T", bound=BaseModel)
-
-
-@runtime_checkable
-class BaseRepository(Protocol[T]):
-    """Generic base repository protocol for testing."""
-
-    async def get(self, entity_id: str) -> Optional[T]: ...
-
-    async def save(self, entity: T) -> None: ...
-
-    async def generate_id(self) -> str: ...
 
 
 @runtime_checkable

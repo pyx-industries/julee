@@ -33,7 +33,7 @@ from julee.domain.repositories import (
     KnowledgeServiceQueryRepository,
 )
 from julee.services import KnowledgeService
-from util.validation import ensure_repository_protocol, validate_parameter_types
+from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
 

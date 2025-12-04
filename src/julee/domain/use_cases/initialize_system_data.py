@@ -12,35 +12,34 @@ The use case follows clean architecture principles:
 - Can be tested independently of infrastructure concerns
 """
 
-import logging
-import yaml
 import hashlib
-from pathlib import Path
+import logging
 from datetime import datetime, timezone
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import Any, Dict, List
 
+import yaml
+
+from julee.domain.models.assembly_specification import (
+    AssemblySpecification,
+    AssemblySpecificationStatus,
+    KnowledgeServiceQuery,
+)
+from julee.domain.models.document import Document, DocumentStatus
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.domain.models.assembly_specification import (
-    KnowledgeServiceQuery,
+from julee.domain.repositories.assembly_specification import (
+    AssemblySpecificationRepository,
 )
-from julee.domain.models.assembly_specification import (
-    AssemblySpecification,
-    AssemblySpecificationStatus,
-)
-from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.repositories.document import DocumentRepository
 from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
 from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee.domain.repositories.assembly_specification import (
-    AssemblySpecificationRepository,
-)
-from julee.domain.repositories.document import DocumentRepository
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +123,7 @@ class InitializeSystemDataUseCase:
         """
         current_file = Path(__file__)
         julee_dir = current_file.parent.parent.parent
-        return julee_dir / "demo_fixtures" / filename
+        return julee_dir / "fixtures" / filename
 
     async def _ensure_knowledge_service_configs_exist(self) -> None:
         """
@@ -385,7 +384,7 @@ class InitializeSystemDataUseCase:
 
         if not fixture_path.exists():
             raise FileNotFoundError(
-                f"Knowledge service queries fixture file not found: " f"{fixture_path}"
+                f"Knowledge service queries fixture file not found: {fixture_path}"
             )
 
         try:
@@ -394,14 +393,13 @@ class InitializeSystemDataUseCase:
 
             if not fixture_data or "knowledge_service_queries" not in fixture_data:
                 raise KeyError(
-                    "Fixture file must contain 'knowledge_service_queries' " "key"
+                    "Fixture file must contain 'knowledge_service_queries' key"
                 )
 
             queries = fixture_data["knowledge_service_queries"]
             if not isinstance(queries, list):
                 raise ValueError(
-                    "'knowledge_service_queries' must be a list of query "
-                    "configurations"
+                    "'knowledge_service_queries' must be a list of query configurations"
                 )
 
             self.logger.debug(
@@ -556,7 +554,7 @@ class InitializeSystemDataUseCase:
 
         if not fixture_path.exists():
             raise FileNotFoundError(
-                f"Assembly specifications fixture file not found: " f"{fixture_path}"
+                f"Assembly specifications fixture file not found: {fixture_path}"
             )
 
         try:
@@ -614,7 +612,7 @@ class InitializeSystemDataUseCase:
         for field in required_fields:
             if field not in spec_data:
                 raise KeyError(
-                    f"Required field '{field}' missing from assembly " "specification"
+                    f"Required field '{field}' missing from assembly specification"
                 )
 
         # Parse status
@@ -624,7 +622,7 @@ class InitializeSystemDataUseCase:
                 status = AssemblySpecificationStatus(spec_data["status"])
             except ValueError:
                 self.logger.warning(
-                    f"Invalid status '{spec_data['status']}', " "using default 'active'"
+                    f"Invalid status '{spec_data['status']}', using default 'active'"
                 )
 
         # Get optional fields
@@ -808,8 +806,7 @@ class InitializeSystemDataUseCase:
                 status = DocumentStatus(doc_data["status"])
             except ValueError:
                 self.logger.warning(
-                    f"Invalid status '{doc_data['status']}', "
-                    "using default 'captured'"
+                    f"Invalid status '{doc_data['status']}', using default 'captured'"
                 )
 
         # Get optional fields

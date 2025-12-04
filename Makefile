@@ -6,7 +6,7 @@ quality-fast:
 	@echo "Running fast quality checks..."
 	black --check src/julee/
 	ruff check src/julee/
-	pytest -x -m "not e2e" --no-cov -q
+	pytest --asyncio-mode=auto -x -m "not e2e" --no-cov -q
 
 # Full quality suite (for post-commit/CI)
 quality-full: reports quality-types quality-security test-unit test-e2e
@@ -32,7 +32,7 @@ quality-security: reports
 # Unit tests with coverage
 test-unit: reports
 	@echo "Running unit tests with coverage..."
-	pytest --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e"
+	pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e"
 
 # E2E test setup (starts ephemeral infrastructure)
 e2e-test-setup: reports
@@ -46,14 +46,14 @@ e2e-test-setup: reports
 # E2E test run (runs pytest against running infrastructure)
 e2e-test-run: reports
 	@echo "Running E2E tests..."
-	@pytest -m e2e --junitxml=reports/e2e-results.xml
+	@pytest --asyncio-mode=auto -m e2e --junitxml=reports/e2e-results.xml
 	@echo "Capturing infrastructure logs for debugging..."
 	@docker compose -f docker-compose.test.yml logs > reports/e2e-infrastructure.log 2>&1
 
 # like e2e-test-run but stop on first failure
 e2e-test-run-x: reports
 	@echo "Running E2E tests..."
-	@pytest -m e2e --junitxml=reports/e2e-results.xml -x
+	@pytest --asyncio-mode=auto -m e2e --junitxml=reports/e2e-results.xml -x
 	@echo "Capturing infrastructure logs for debugging..."
 	@docker compose -f docker-compose.test.yml logs > reports/e2e-infrastructure.log 2>&1
 

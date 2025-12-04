@@ -3,8 +3,8 @@ from typing import Optional
 
 from temporalio import workflow
 
-from util.domain import FileMetadata, FileUploadArgs
-from util.repositories import FileStorageRepository
+from julee.util.domain import FileMetadata, FileUploadArgs
+from julee.util.repositories import FileStorageRepository
 
 logger = logging.getLogger(__name__)
 

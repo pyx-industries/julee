@@ -15,7 +15,7 @@ import io
 import logging
 from typing_extensions import override
 
-from util.temporal.decorators import temporal_activity_registration
+from julee.util.temporal.decorators import temporal_activity_registration
 from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )

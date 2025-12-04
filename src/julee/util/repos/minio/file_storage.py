@@ -6,8 +6,8 @@ from typing import Optional
 from minio import Minio  # type: ignore[import-untyped]
 from minio.error import S3Error  # type: ignore[import-untyped]
 
-from util.domain import FileMetadata, FileUploadArgs
-from util.repositories import FileStorageRepository
+from julee.util.domain import FileMetadata, FileUploadArgs
+from julee.util.repositories import FileStorageRepository
 
 logger = logging.getLogger(__name__)
 

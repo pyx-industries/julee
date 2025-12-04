@@ -9,14 +9,18 @@ These tests use the actual YAML fixture file to validate the real
 integration rather than mocking the file system operations.
 """
 
+from datetime import datetime, timezone
+from pathlib import Path
+
 import pytest
 import yaml
-from pathlib import Path
-from julee.repositories.memory.knowledge_service_config import (
-    MemoryKnowledgeServiceConfigRepository,
+
+from julee.domain.models.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
 )
-from julee.repositories.memory.knowledge_service_query import (
-    MemoryKnowledgeServiceQueryRepository,
+from julee.domain.use_cases.initialize_system_data import (
+    InitializeSystemDataUseCase,
 )
 from julee.repositories.memory.assembly_specification import (
     MemoryAssemblySpecificationRepository,
@@ -24,14 +28,11 @@ from julee.repositories.memory.assembly_specification import (
 from julee.repositories.memory.document import (
     MemoryDocumentRepository,
 )
-from datetime import datetime, timezone
-
-from julee.domain.use_cases.initialize_system_data import (
-    InitializeSystemDataUseCase,
+from julee.repositories.memory.knowledge_service_config import (
+    MemoryKnowledgeServiceConfigRepository,
 )
-from julee.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-    ServiceApi,
+from julee.repositories.memory.knowledge_service_query import (
+    MemoryKnowledgeServiceQueryRepository,
 )
 
 
@@ -81,7 +82,7 @@ def fixture_configs() -> list[dict]:
     # Get the fixture file path
     current_file = Path(__file__)
     julee_dir = current_file.parent.parent.parent.parent
-    fixture_path = julee_dir / "demo_fixtures" / "knowledge_service_configs.yaml"
+    fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
 
     assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
@@ -313,7 +314,7 @@ class TestYamlFixtureIntegration:
         # Get the fixture file path
         current_file = Path(__file__)
         julee_dir = current_file.parent.parent.parent.parent
-        fixture_path = julee_dir / "demo_fixtures" / "knowledge_service_configs.yaml"
+        fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
 
         # Verify file exists
         assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
