@@ -1,7 +1,0 @@
-#+TODO: TODO WIP | DONE CANCELLED
-* TODO full-soverigty
-Like full-stack, but zero shared infrastructure.
-Includes self-hosted LLM and W3C-VC services.
-Designed to:
-- simulate a "rich service ecosystem" (of self-soverign services)
-- model for studying defensive security postures
