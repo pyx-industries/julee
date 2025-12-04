@@ -1,0 +1,24 @@
+# Include base runtime requirements
+-r requirements.txt
+
+# Testing
+pytest-cov>=4.1.0
+pytest-asyncio>=1.0.0
+hypothesis>=6.0.0
+factory-boy>=3.2.0
+
+# Type Checking
+mypy>=1.0.0
+types-PyYAML
+types-jsonschema>=4.0.0
+
+# Code Formatting and Linting
+black>=24.0.0
+ruff>=0.5.0
+pre-commit>=3.0.0
+
+# Security Analysis
+bandit
+
+# Database (for development/testing)
+asyncpg
