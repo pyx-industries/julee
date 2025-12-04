@@ -7,25 +7,26 @@ This module provides decorators that automatically:
 Both reduce boilerplate and ensure consistent patterns.
 """
 
-import inspect
 import functools
+import inspect
 import logging
 from datetime import timedelta
 from typing import (
     Any,
     Callable,
+    Optional,
     Type,
     TypeVar,
-    Optional,
-    get_origin,
     get_args,
+    get_origin,
 )
 
+from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
-from pydantic import BaseModel
 
-from julee_example.domain.repositories.base import BaseRepository
+from julee.domain.repositories.base import BaseRepository
+
 from .activities import discover_protocol_methods
 
 logger = logging.getLogger(__name__)
@@ -68,9 +69,7 @@ def _extract_concrete_type_from_base(cls: type) -> Optional[type]:
     return None
 
 
-def _substitute_typevar_with_concrete(
-    annotation: Any, concrete_type: type
-) -> Any:
+def _substitute_typevar_with_concrete(annotation: Any, concrete_type: type) -> Any:
     """
     Substitute TypeVar instances with concrete type in type annotations.
 
@@ -93,8 +92,7 @@ def _substitute_typevar_with_concrete(
         if args:
             # Recursively substitute in generic arguments
             new_args = tuple(
-                _substitute_typevar_with_concrete(arg, concrete_type)
-                for arg in args
+                _substitute_typevar_with_concrete(arg, concrete_type) for arg in args
             )
             # Reconstruct the generic type with substituted arguments
             try:
@@ -149,8 +147,7 @@ def temporal_activity_registration(
 
     def decorator(cls: Type[T]) -> Type[T]:
         logger.debug(
-            f"Applying temporal_activity_registration decorator to "
-            f"{cls.__name__}"
+            f"Applying temporal_activity_registration decorator to {cls.__name__}"
         )
 
         # Track which methods we wrap for logging
@@ -164,9 +161,7 @@ def temporal_activity_registration(
             # Create activity name by combining prefix and method name
             activity_name = f"{activity_prefix}.{name}"
 
-            logger.debug(
-                f"Wrapping method {name} as activity {activity_name}"
-            )
+            logger.debug(f"Wrapping method {name} as activity {activity_name}")
 
             # Create a new method that calls the original to avoid decorator
             # conflicts while preserving the exact signature for Pydantic
@@ -200,8 +195,7 @@ def temporal_activity_registration(
             wrapped_methods.append(name)
 
         logger.info(
-            f"Temporal activity registration decorator applied to "
-            f"{cls.__name__}",
+            f"Temporal activity registration decorator applied to {cls.__name__}",
             extra={
                 "wrapped_methods": wrapped_methods,
                 "activity_prefix": activity_prefix,
@@ -252,9 +246,7 @@ def temporal_workflow_proxy(
     """
 
     def decorator(cls: Type[T]) -> Type[T]:
-        logger.debug(
-            f"Applying temporal_workflow_proxy decorator to {cls.__name__}"
-        )
+        logger.debug(f"Applying temporal_workflow_proxy decorator to {cls.__name__}")
 
         retry_methods_set = set(retry_methods or [])
 
@@ -321,16 +313,12 @@ def temporal_workflow_proxy(
                 original_method: Any,
             ) -> Callable[..., Any]:
                 @functools.wraps(original_method)
-                async def workflow_method(
-                    self: Any, *args: Any, **kwargs: Any
-                ) -> Any:
+                async def workflow_method(self: Any, *args: Any, **kwargs: Any) -> Any:
                     # Create activity name
                     activity_name = f"{activity_base}.{method_name}"
 
                     # Set up activity options
-                    activity_timeout = timedelta(
-                        seconds=default_timeout_seconds
-                    )
+                    activity_timeout = timedelta(seconds=default_timeout_seconds)
                     retry_policy = None
 
                     # Add retry policy if this method needs it
@@ -424,12 +412,8 @@ def temporal_workflow_proxy(
             # Call parent __init__ to preserve any existing init logic
             super(cls, proxy_self).__init__()
             # Set instance variables for consistency with manual pattern
-            proxy_self.activity_timeout = timedelta(
-                seconds=default_timeout_seconds
-            )
-            proxy_self.activity_fail_fast_retry_policy = (
-                fail_fast_retry_policy
-            )
+            proxy_self.activity_timeout = timedelta(seconds=default_timeout_seconds)
+            proxy_self.activity_fail_fast_retry_policy = fail_fast_retry_policy
             logger.debug(f"Initialized {cls.__name__}")
 
         setattr(cls, "__init__", __init__)
@@ -475,12 +459,8 @@ def _is_optional_type(annotation: Any) -> bool:
     if origin is not None:
         args = get_args(annotation)
         # Optional[T] is Union[T, None]
-        return (
-            hasattr(origin, "__name__") and origin.__name__ == "UnionType"
-        ) or (
-            str(origin) == "typing.Union"
-            and len(args) == 2
-            and type(None) in args
+        return (hasattr(origin, "__name__") and origin.__name__ == "UnionType") or (
+            str(origin) == "typing.Union" and len(args) == 2 and type(None) in args
         )
     return False
 
