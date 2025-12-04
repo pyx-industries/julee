@@ -35,6 +35,7 @@ class MemoryKnowledgeServiceQueryRepository(
     dictionaries.
 
     This implementation stores knowledge service queries in memory:
+
     - Queries: Dictionary keyed by query_id containing KnowledgeServiceQuery
       objects
 

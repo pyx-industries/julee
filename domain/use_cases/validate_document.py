@@ -56,6 +56,7 @@ class ValidateDocumentUseCase:
     methods and expects them to work correctly.
 
     Architectural Notes:
+
     - This class contains pure business logic with no framework dependencies
     - Repository dependencies are injected via constructor
       (dependency inversion)
@@ -63,6 +64,7 @@ class ValidateDocumentUseCase:
     - The use case works with domain objects exclusively
     - Deterministic execution is guaranteed by avoiding
       non-deterministic operations
+
     """
 
     def __init__(
@@ -91,7 +93,8 @@ class ValidateDocumentUseCase:
             now_fn: Function to get current time (e.g., workflow.now for
                 Temporal workflows)
 
-        Note:
+        .. note::
+
             The repositories passed here may be concrete implementations
             (for testing or direct execution) or workflow stubs (for
             Temporal workflow execution). The use case doesn't know or care
@@ -99,6 +102,7 @@ class ValidateDocumentUseCase:
 
             Repositories are validated at construction time to catch
             configuration errors early in the application lifecycle.
+
         """
         # Validate at construction time for early error detection
         self.document_repo = ensure_repository_protocol(
@@ -131,6 +135,7 @@ class ValidateDocumentUseCase:
         Validate a document against a policy and return the validation result.
 
         This method orchestrates the core validation workflow:
+
         1. Generates a unique validation ID
         2. Retrieves the document and policy
         3. Creates and stores the initial validation record
@@ -150,6 +155,7 @@ class ValidateDocumentUseCase:
         Raises:
             ValueError: If required entities are not found or invalid
             RuntimeError: If validation processing fails
+
         """
         logger.debug(
             "Starting document validation use case",
@@ -445,6 +451,7 @@ class ValidateDocumentUseCase:
 
         Returns:
             Dict mapping knowledge_service_id to service_file_id
+
         """
         registrations = {}
         required_service_ids = {
@@ -490,6 +497,7 @@ class ValidateDocumentUseCase:
 
         Returns:
             List of (query_id, actual_score) tuples
+
         """
         validation_scores = []
 
@@ -582,6 +590,7 @@ class ValidateDocumentUseCase:
 
         Returns:
             True if all required scores were met or exceeded, False otherwise
+
         """
         # Convert to dictionaries for easier lookup
         actual_scores_dict = dict(actual_scores)
@@ -627,6 +636,7 @@ class ValidateDocumentUseCase:
         Raises:
             ValueError: If transformation queries are not found or fail
             RuntimeError: If document transformation fails
+
         """
         if not policy.transformation_queries:
             raise ValueError("No transformation queries provided")
@@ -751,6 +761,7 @@ class ValidateDocumentUseCase:
 
         Raises:
             ValueError: If no valid JSON content can be extracted from result
+
         """
         response_text = result_data.get("response", "")
         if not response_text:

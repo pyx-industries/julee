@@ -96,6 +96,11 @@ plantuml_output_format = 'svg'
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 
+# Suppress warnings for ambiguous cross-references caused by re-exports in __init__.py
+suppress_warnings = [
+    'ref.python',  # Suppress "more than one target found for cross-reference" warnings
+]
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 

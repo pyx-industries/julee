@@ -36,6 +36,7 @@ class MemoryAssemblySpecificationRepository(
     dictionaries.
 
     This implementation stores assembly specifications in memory:
+
     - Specifications: Dictionary keyed by assembly_specification_id containing
       AssemblySpecification objects
 

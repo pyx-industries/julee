@@ -56,6 +56,7 @@ class ExtractAssembleDataUseCase:
     methods and expects them to work correctly.
 
     Architectural Notes:
+
     - This class contains pure business logic with no framework dependencies
     - Repository dependencies are injected via constructor
       (dependency inversion)
@@ -63,6 +64,7 @@ class ExtractAssembleDataUseCase:
     - The use case works with domain objects exclusively
     - Deterministic execution is guaranteed by avoiding
       non-deterministic operations
+
     """
 
     def __init__(
@@ -90,7 +92,8 @@ class ExtractAssembleDataUseCase:
                 operations
             now_fn: Function to get current time (for workflow compatibility)
 
-        Note:
+        .. note::
+
             The repositories passed here may be concrete implementations
             (for testing or direct execution) or workflow stubs (for
             Temporal workflow execution). The use case doesn't know or care
@@ -98,6 +101,7 @@ class ExtractAssembleDataUseCase:
 
             Repositories are validated at construction time to catch
             configuration errors early in the application lifecycle.
+
         """
         # Validate at construction time for early error detection
         self.document_repo = ensure_repository_protocol(
@@ -134,6 +138,7 @@ class ExtractAssembleDataUseCase:
         assembly.
 
         This method orchestrates the core assembly workflow:
+
         1. Generates a unique assembly ID
         2. Retrieves the assembly specification
         3. Stores the initial assembly in the repository
@@ -155,6 +160,7 @@ class ExtractAssembleDataUseCase:
         Raises:
             ValueError: If required entities are not found or invalid
             RuntimeError: If assembly processing fails
+
         """
         logger.debug(
             "Starting data assembly use case",
@@ -266,6 +272,7 @@ class ExtractAssembleDataUseCase:
 
         Raises:
             RuntimeError: If registration fails
+
         """
         registrations = {}
 
@@ -357,6 +364,7 @@ class ExtractAssembleDataUseCase:
         Perform a single assembly iteration using knowledge services.
 
         This method:
+
         1. Executes all knowledge service queries defined in the specification
         2. Stitches together the query results into a complete JSON document
         3. Creates and stores the assembled document
@@ -374,6 +382,7 @@ class ExtractAssembleDataUseCase:
         Raises:
             ValueError: If required entities are not found
             RuntimeError: If knowledge service operations fail
+
         """
         # Initialize the result data structure
         assembled_data: Dict[str, Any] = {}

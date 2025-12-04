@@ -98,17 +98,20 @@ class KnowledgeService(Protocol):
             FileRegistrationResult containing registration details and the
             service's internal file identifier
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: re-registering same document returns same result
         - Should handle service unavailability gracefully
         - Must return the service's internal file ID for future queries
         - Document content is accessed directly from the Document object
         - Should handle various document formats and sizes
 
-        Workflow Context:
+        .. rubric:: Workflow Context
+
         In Temporal workflows, this method is implemented as an activity
         to ensure registration results are durably stored and consistent
         across workflow replays.
+
         """
         ...
 
@@ -147,7 +150,8 @@ class KnowledgeService(Protocol):
         Returns:
             QueryResult containing query results and execution metadata
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: same query returns consistent results
         - Service file IDs are provided as context to enhance query responses
         - Should handle service unavailability gracefully
@@ -158,9 +162,11 @@ class KnowledgeService(Protocol):
         - Should validate that service_file_ids exist in the service before
           including them in the query context
 
-        Workflow Context:
+        .. rubric:: Workflow Context
+
         In Temporal workflows, this method is implemented as an activity
         to ensure query results are durably stored and can be replayed
         consistently.
+
         """
         ...
