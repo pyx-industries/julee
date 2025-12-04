@@ -137,9 +137,7 @@ class TestKnowledgeServiceQueryInstantiation:
             assert query.prompt == prompt.strip()
         else:
             # Should raise validation error
-            with pytest.raises(
-                Exception
-            ):  # Could be ValueError or ValidationError
+            with pytest.raises(Exception):  # Could be ValueError or ValidationError
                 KnowledgeServiceQuery(
                     query_id=query_id,
                     name=name,
@@ -282,9 +280,7 @@ class TestKnowledgeServiceQueryMetadata:
 
         assert json_data["query_metadata"] == metadata
         assert json_data["query_metadata"]["model"] == "gpt-4"
-        assert (
-            json_data["query_metadata"]["custom_config"]["endpoint"] == "v2"
-        )
+        assert json_data["query_metadata"]["custom_config"]["endpoint"] == "v2"
 
     def test_query_metadata_roundtrip_serialization(self) -> None:
         """Test query_metadata survives JSON roundtrip serialization."""

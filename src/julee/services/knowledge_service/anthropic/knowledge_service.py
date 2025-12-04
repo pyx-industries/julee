@@ -109,9 +109,7 @@ class AnthropicKnowledgeService(KnowledgeService):
             # Upload file using Anthropic beta Files API
             # Use tuple format: (filename, file_stream, media_type)
             if not document.content:
-                raise ValueError(
-                    "Document content stream is required for upload"
-                )
+                raise ValueError("Document content stream is required for upload")
 
             # Anthropic only supports PDF and plaintext files
             # Convert JSON content type to text/plain for compatibility
@@ -197,12 +195,8 @@ class AnthropicKnowledgeService(KnowledgeService):
             extra={
                 "knowledge_service_id": config.knowledge_service_id,
                 "query_text": query_text,
-                "document_count": (
-                    len(service_file_ids) if service_file_ids else 0
-                ),
-                "file_count": (
-                    len(service_file_ids) if service_file_ids else 0
-                ),
+                "document_count": (len(service_file_ids) if service_file_ids else 0),
+                "file_count": (len(service_file_ids) if service_file_ids else 0),
             },
         )
 
@@ -240,9 +234,7 @@ class AnthropicKnowledgeService(KnowledgeService):
 
             # Add assistant message if provided to constrain response
             if assistant_prompt:
-                messages.append(
-                    {"role": "assistant", "content": assistant_prompt}
-                )
+                messages.append({"role": "assistant", "content": assistant_prompt})
 
             create_params = {
                 "model": model,
@@ -262,25 +254,19 @@ class AnthropicKnowledgeService(KnowledgeService):
             # Validate response has exactly one content block of type 'text'
             if len(response.content) != 1:
                 raise ValueError(
-                    f"Expected exactly 1 content block, got "
-                    f"{len(response.content)}"
+                    f"Expected exactly 1 content block, got " f"{len(response.content)}"
                 )
 
             content_block = response.content[0]
 
-            if (
-                not hasattr(content_block, "type")
-                or content_block.type != "text"
-            ):
+            if not hasattr(content_block, "type") or content_block.type != "text":
                 block_type = getattr(content_block, "type", "unknown")
                 raise ValueError(
                     f"Expected content block type 'text', got '{block_type}'"
                 )
 
             if not hasattr(content_block, "text"):
-                raise ValueError(
-                    "Text content block missing 'text' attribute"
-                )
+                raise ValueError("Text content block missing 'text' attribute")
 
             response_text = str(content_block.text)
 
@@ -322,9 +308,7 @@ class AnthropicKnowledgeService(KnowledgeService):
                     "execution_time_ms": execution_time_ms,
                     "input_tokens": response.usage.input_tokens,
                     "output_tokens": response.usage.output_tokens,
-                    "file_count": (
-                        len(service_file_ids) if service_file_ids else 0
-                    ),
+                    "file_count": (len(service_file_ids) if service_file_ids else 0),
                 },
             )
 
@@ -339,9 +323,7 @@ class AnthropicKnowledgeService(KnowledgeService):
                     "query_id": query_id,
                     "query_text": query_text,
                     "execution_time_ms": execution_time_ms,
-                    "file_count": (
-                        len(service_file_ids) if service_file_ids else 0
-                    ),
+                    "file_count": (len(service_file_ids) if service_file_ids else 0),
                     "error": str(e),
                 },
                 exc_info=True,

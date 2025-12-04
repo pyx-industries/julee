@@ -37,9 +37,7 @@ from .base import BaseRepository
 
 
 @runtime_checkable
-class AssemblySpecificationRepository(
-    BaseRepository[AssemblySpecification], Protocol
-):
+class AssemblySpecificationRepository(BaseRepository[AssemblySpecification], Protocol):
     """Handles assembly specification storage and retrieval operations.
 
     This repository manages AssemblySpecification entities within the Capture,

@@ -51,9 +51,7 @@ class MemoryKnowledgeServiceConfigRepository(
 
         logger.debug("Initializing MemoryKnowledgeServiceConfigRepository")
 
-    async def get(
-        self, knowledge_service_id: str
-    ) -> Optional[KnowledgeServiceConfig]:
+    async def get(self, knowledge_service_id: str) -> Optional[KnowledgeServiceConfig]:
         """Retrieve a knowledge service configuration by ID.
 
         Args:

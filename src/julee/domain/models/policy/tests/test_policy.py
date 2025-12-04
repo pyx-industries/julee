@@ -29,9 +29,7 @@ class TestPolicy:
 
         assert policy.policy_id == "policy-001"
         assert policy.title == "Content Quality Policy"
-        assert (
-            policy.description == "Validates content meets quality standards"
-        )
+        assert policy.description == "Validates content meets quality standards"
         assert policy.validation_scores == [("quality-check-query", 80)]
         assert policy.transformation_queries is None
         assert policy.status == PolicyStatus.ACTIVE
@@ -238,9 +236,8 @@ class TestPolicy:
                 description="Test description",
                 validation_scores=[("", 80)],
             )
-        assert (
-            "Query ID in validation scores must be a non-empty string"
-            in str(exc_info.value)
+        assert "Query ID in validation scores must be a non-empty string" in str(
+            exc_info.value
         )
 
         # Non-integer score should fail
@@ -261,9 +258,7 @@ class TestPolicy:
                 description="Test description",
                 validation_scores=[("query-id", -1)],
             )
-        assert "Required score -1 must be between 0 and 100" in str(
-            exc_info.value
-        )
+        assert "Required score -1 must be between 0 and 100" in str(exc_info.value)
 
         # Score above 100 should fail
         with pytest.raises(ValidationError) as exc_info:
@@ -273,9 +268,7 @@ class TestPolicy:
                 description="Test description",
                 validation_scores=[("query-id", 101)],
             )
-        assert "Required score 101 must be between 0 and 100" in str(
-            exc_info.value
-        )
+        assert "Required score 101 must be between 0 and 100" in str(exc_info.value)
 
         # Duplicate query IDs should fail
         with pytest.raises(ValidationError) as exc_info:
@@ -371,9 +364,8 @@ class TestPolicy:
                 validation_scores=[("test-query", 80)],
                 transformation_queries=[""],
             )
-        assert (
-            "Each transformation query ID must be a non-empty string"
-            in str(exc_info.value)
+        assert "Each transformation query ID must be a non-empty string" in str(
+            exc_info.value
         )
 
         # Duplicate query IDs should fail
@@ -385,9 +377,8 @@ class TestPolicy:
                 validation_scores=[("test-query", 80)],
                 transformation_queries=["query-1", "query-1"],
             )
-        assert (
-            "Duplicate query ID 'query-1' in transformation queries"
-            in str(exc_info.value)
+        assert "Duplicate query ID 'query-1' in transformation queries" in str(
+            exc_info.value
         )
 
         # Valid queries with whitespace should be stripped
@@ -523,10 +514,7 @@ class TestPolicy:
         assert restored_policy.policy_id == original_policy.policy_id
         assert restored_policy.title == original_policy.title
         assert restored_policy.description == original_policy.description
-        assert (
-            restored_policy.validation_scores
-            == original_policy.validation_scores
-        )
+        assert restored_policy.validation_scores == original_policy.validation_scores
         assert (
             restored_policy.transformation_queries
             == original_policy.transformation_queries
@@ -555,7 +543,4 @@ class TestPolicy:
         assert restored_policy.policy_id == original_policy.policy_id
         assert restored_policy.title == original_policy.title
         assert restored_policy.description == original_policy.description
-        assert (
-            restored_policy.validation_scores
-            == original_policy.validation_scores
-        )
+        assert restored_policy.validation_scores == original_policy.validation_scores

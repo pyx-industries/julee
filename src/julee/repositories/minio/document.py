@@ -104,9 +104,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                     extra={
                         "document_id": document_id,
                         "content_multihash": content_multihash,
-                        "retrieved_at": datetime.now(
-                            timezone.utc
-                        ).isoformat(),
+                        "retrieved_at": datetime.now(timezone.utc).isoformat(),
                     },
                 )
 
@@ -205,8 +203,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             # Verify and update multihash if needed
             if document.content_multihash != calculated_multihash:
                 self.logger.warning(
-                    "Provided multihash differs from calculated, using "
-                    "calculated",
+                    "Provided multihash differs from calculated, using " "calculated",
                     extra={
                         "document_id": document.document_id,
                         "provided_multihash": document.content_multihash,
@@ -237,9 +234,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
             raise
 
-    async def get_many(
-        self, document_ids: List[str]
-    ) -> Dict[str, Optional[Document]]:
+    async def get_many(self, document_ids: List[str]) -> Dict[str, Optional[Document]]:
         """Retrieve multiple documents by ID using batch operations.
 
         Args:
@@ -276,9 +271,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         )
 
         # Use RawMetadata objects directly
-        metadata_results: Dict[str, Optional[RawMetadata]] = (
-            raw_metadata_results
-        )
+        metadata_results: Dict[str, Optional[RawMetadata]] = raw_metadata_results
 
         # Step 2: Extract unique content multihashes from found metadata
         content_hashes = set()
@@ -363,9 +356,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             document_results = await self.get_many(document_ids)
 
             # Filter out None results and sort by document_id
-            documents = [
-                doc for doc in document_results.values() if doc is not None
-            ]
+            documents = [doc for doc in document_results.values() if doc is not None]
             documents.sort(key=lambda x: x.document_id)
 
             self.logger.debug(
@@ -394,14 +385,10 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         """Store document content to content-addressable storage and return
         multihash."""
         if not document.content:
-            raise ValueError(
-                f"Document {document.document_id} has no content"
-            )
+            raise ValueError(f"Document {document.document_id} has no content")
 
         # Calculate multihash from the content stream
-        calculated_multihash = self._calculate_multihash_from_stream(
-            document.content
-        )
+        calculated_multihash = self._calculate_multihash_from_stream(document.content)
         object_name = calculated_multihash
 
         try:
@@ -434,8 +421,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                 object_name=object_name,
                 data=io.BytesIO(content_data),
                 length=len(content_data),
-                content_type=document.content_type
-                or "application/octet-stream",
+                content_type=document.content_type or "application/octet-stream",
                 metadata={
                     "document_id": document.document_id,
                     "original_filename": document.original_filename or "",
@@ -463,9 +449,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
             raise
 
-    def _calculate_multihash_from_stream(
-        self, content_stream: ContentStream
-    ) -> str:
+    def _calculate_multihash_from_stream(self, content_stream: ContentStream) -> str:
         """Calculate multihash from content stream."""
         if not content_stream:
             raise ValueError("Content stream is required")

@@ -166,9 +166,7 @@ class TestGetKnowledgeServiceConfigs:
     ) -> None:
         """Test handling of repository errors."""
         # Setup mock to raise exception
-        mock_repository.list_all.side_effect = Exception(
-            "Database connection failed"
-        )
+        mock_repository.list_all.side_effect = Exception("Database connection failed")
 
         # Make request
         response = client.get("/knowledge_service_configs/")

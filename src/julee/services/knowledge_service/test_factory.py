@@ -29,9 +29,7 @@ from datetime import datetime, timezone
 @pytest.fixture
 def test_document() -> Document:
     """Create a test Document for testing."""
-    content_text = (
-        "This is test document content for knowledge service testing."
-    )
+    content_text = "This is test document content for knowledge service testing."
     content_bytes = content_text.encode("utf-8")
     content_stream = ContentStream(io.BytesIO(content_bytes))
 

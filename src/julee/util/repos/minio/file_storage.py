@@ -153,9 +153,7 @@ class MinioFileStorageRepository(FileStorageRepository):
             return file_data
         except S3Error as e:
             if e.code == "NoSuchKey":
-                logger.warning(
-                    "File not found in Minio", extra={"file_id": file_id}
-                )
+                logger.warning("File not found in Minio", extra={"file_id": file_id})
                 return None
             logger.error(
                 f"Error downloading file from Minio: {e}",
@@ -185,15 +183,10 @@ class MinioFileStorageRepository(FileStorageRepository):
             )
             # Extract filename and metadata more explicitly
             filename = (
-                stat.metadata.get("X-Amz-Meta-Filename")
-                if stat.metadata
-                else None
+                stat.metadata.get("X-Amz-Meta-Filename") if stat.metadata else None
             )
             metadata = (
-                {
-                    k.replace("X-Amz-Meta-", ""): v
-                    for k, v in stat.metadata.items()
-                }
+                {k.replace("X-Amz-Meta-", ""): v for k, v in stat.metadata.items()}
                 if stat.metadata
                 else {}
             )
@@ -203,8 +196,7 @@ class MinioFileStorageRepository(FileStorageRepository):
                 filename=filename,  # Minio prepends X-Amz-Meta-
                 content_type=stat.content_type,
                 size_bytes=stat.size,
-                uploaded_at=uploaded_at_str
-                or "",  # Provide empty string if None
+                uploaded_at=uploaded_at_str or "",  # Provide empty string if None
                 metadata=metadata,
             )
         except S3Error as e:

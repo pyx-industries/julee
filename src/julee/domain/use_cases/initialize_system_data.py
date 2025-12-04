@@ -99,9 +99,7 @@ class InitializeSystemDataUseCase:
             await self._ensure_example_documents_exist()
             await self._ensure_assembly_specifications_exist()
 
-            self.logger.info(
-                "System data initialization completed successfully"
-            )
+            self.logger.info("System data initialization completed successfully")
 
         except Exception as e:
             self.logger.error(
@@ -136,9 +134,7 @@ class InitializeSystemDataUseCase:
         any that don't already exist in the repository. The operation is
         idempotent - existing configurations are not modified.
         """
-        self.logger.info(
-            "Loading knowledge service configurations from fixture"
-        )
+        self.logger.info("Loading knowledge service configurations from fixture")
 
         try:
             # Load configurations from YAML fixture
@@ -209,9 +205,7 @@ class InitializeSystemDataUseCase:
             yaml.YAMLError: If the fixture file is invalid YAML
             KeyError: If required fields are missing from the fixture
         """
-        fixture_path = self._get_demo_fixture_path(
-            "knowledge_service_configs.yaml"
-        )
+        fixture_path = self._get_demo_fixture_path("knowledge_service_configs.yaml")
 
         self.logger.debug(
             "Loading fixture file",
@@ -228,9 +222,7 @@ class InitializeSystemDataUseCase:
                 fixture_data = yaml.safe_load(f)
 
             if not fixture_data or "knowledge_services" not in fixture_data:
-                raise KeyError(
-                    "Fixture file must contain 'knowledge_services' key"
-                )
+                raise KeyError("Fixture file must contain 'knowledge_services' key")
 
             configs = fixture_data["knowledge_services"]
             if not isinstance(configs, list):
@@ -274,9 +266,7 @@ class InitializeSystemDataUseCase:
         # Validate required fields
         for field in required_fields:
             if field not in config_data:
-                raise KeyError(
-                    f"Required field '{field}' missing from config"
-                )
+                raise KeyError(f"Required field '{field}' missing from config")
 
         # Parse service API enum
         try:
@@ -386,9 +376,7 @@ class InitializeSystemDataUseCase:
             yaml.YAMLError: If the fixture file is invalid YAML
             KeyError: If required fields are missing from the fixture
         """
-        fixture_path = self._get_demo_fixture_path(
-            "knowledge_service_queries.yaml"
-        )
+        fixture_path = self._get_demo_fixture_path("knowledge_service_queries.yaml")
 
         self.logger.debug(
             "Loading queries fixture file",
@@ -397,21 +385,16 @@ class InitializeSystemDataUseCase:
 
         if not fixture_path.exists():
             raise FileNotFoundError(
-                f"Knowledge service queries fixture file not found: "
-                f"{fixture_path}"
+                f"Knowledge service queries fixture file not found: " f"{fixture_path}"
             )
 
         try:
             with open(fixture_path, "r", encoding="utf-8") as f:
                 fixture_data = yaml.safe_load(f)
 
-            if (
-                not fixture_data
-                or "knowledge_service_queries" not in fixture_data
-            ):
+            if not fixture_data or "knowledge_service_queries" not in fixture_data:
                 raise KeyError(
-                    "Fixture file must contain 'knowledge_service_queries' "
-                    "key"
+                    "Fixture file must contain 'knowledge_service_queries' " "key"
                 )
 
             queries = fixture_data["knowledge_service_queries"]
@@ -564,9 +547,7 @@ class InitializeSystemDataUseCase:
             yaml.YAMLError: If the fixture file is invalid YAML
             KeyError: If required fields are missing from the fixture
         """
-        fixture_path = self._get_demo_fixture_path(
-            "assembly_specifications.yaml"
-        )
+        fixture_path = self._get_demo_fixture_path("assembly_specifications.yaml")
 
         self.logger.debug(
             "Loading assembly specifications fixture file",
@@ -575,18 +556,14 @@ class InitializeSystemDataUseCase:
 
         if not fixture_path.exists():
             raise FileNotFoundError(
-                f"Assembly specifications fixture file not found: "
-                f"{fixture_path}"
+                f"Assembly specifications fixture file not found: " f"{fixture_path}"
             )
 
         try:
             with open(fixture_path, "r", encoding="utf-8") as f:
                 fixture_data = yaml.safe_load(f)
 
-            if (
-                not fixture_data
-                or "assembly_specifications" not in fixture_data
-            ):
+            if not fixture_data or "assembly_specifications" not in fixture_data:
                 raise KeyError(
                     "Fixture file must contain 'assembly_specifications' key"
                 )
@@ -637,8 +614,7 @@ class InitializeSystemDataUseCase:
         for field in required_fields:
             if field not in spec_data:
                 raise KeyError(
-                    f"Required field '{field}' missing from assembly "
-                    "specification"
+                    f"Required field '{field}' missing from assembly " "specification"
                 )
 
         # Parse status
@@ -648,15 +624,12 @@ class InitializeSystemDataUseCase:
                 status = AssemblySpecificationStatus(spec_data["status"])
             except ValueError:
                 self.logger.warning(
-                    f"Invalid status '{spec_data['status']}', "
-                    "using default 'active'"
+                    f"Invalid status '{spec_data['status']}', " "using default 'active'"
                 )
 
         # Get optional fields
         version = spec_data.get("version", "1.0")
-        knowledge_service_queries = spec_data.get(
-            "knowledge_service_queries", {}
-        )
+        knowledge_service_queries = spec_data.get("knowledge_service_queries", {})
 
         # Create specification
         spec = AssemblySpecification(
@@ -708,9 +681,7 @@ class InitializeSystemDataUseCase:
                         "Document already exists, skipping",
                         extra={
                             "document_id": doc_id,
-                            "original_filename": (
-                                existing_doc.original_filename
-                            ),
+                            "original_filename": (existing_doc.original_filename),
                         },
                     )
                     skipped_count += 1
@@ -770,9 +741,7 @@ class InitializeSystemDataUseCase:
         )
 
         if not fixture_path.exists():
-            raise FileNotFoundError(
-                f"Documents fixture file not found: {fixture_path}"
-            )
+            raise FileNotFoundError(f"Documents fixture file not found: {fixture_path}")
 
         try:
             with open(fixture_path, "r", encoding="utf-8") as f:
@@ -795,13 +764,9 @@ class InitializeSystemDataUseCase:
             return documents
 
         except yaml.YAMLError as e:
-            raise yaml.YAMLError(
-                f"Invalid YAML in documents fixture file: {e}"
-            )
+            raise yaml.YAMLError(f"Invalid YAML in documents fixture file: {e}")
 
-    def _create_document_from_fixture_data(
-        self, doc_data: Dict[str, Any]
-    ) -> Document:
+    def _create_document_from_fixture_data(self, doc_data: Dict[str, Any]) -> Document:
         """
         Create a Document from fixture data.
 
@@ -825,9 +790,7 @@ class InitializeSystemDataUseCase:
         # Validate required fields
         for field in required_fields:
             if field not in doc_data:
-                raise KeyError(
-                    f"Required field '{field}' missing from document"
-                )
+                raise KeyError(f"Required field '{field}' missing from document")
 
         # Get content and calculate hash
         content = doc_data["content"]

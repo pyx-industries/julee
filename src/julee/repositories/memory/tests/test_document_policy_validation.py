@@ -75,9 +75,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
     ) -> None:
         """Test that entity-specific logging data is added correctly."""
         log_data: dict[str, Any] = {}
-        validation_repo._add_entity_specific_log_data(
-            sample_validation, log_data
-        )
+        validation_repo._add_entity_specific_log_data(sample_validation, log_data)
 
         # Check validation-specific fields are added
         assert log_data["input_document_id"] == "doc-123"
@@ -104,9 +102,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
         )
 
         log_data: dict[str, Any] = {}
-        validation_repo._add_entity_specific_log_data(
-            validation_with_error, log_data
-        )
+        validation_repo._add_entity_specific_log_data(validation_with_error, log_data)
 
         assert log_data["has_error"] is True
         assert log_data["passed"] is False
@@ -128,9 +124,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
         )
 
         log_data: dict[str, Any] = {}
-        validation_repo._add_entity_specific_log_data(
-            validation_no_transform, log_data
-        )
+        validation_repo._add_entity_specific_log_data(validation_no_transform, log_data)
 
         assert log_data["has_transformations"] is False
         assert log_data["validation_scores_count"] == 1
@@ -150,9 +144,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
         )
 
         log_data: dict[str, Any] = {}
-        validation_repo._add_entity_specific_log_data(
-            validation_in_progress, log_data
-        )
+        validation_repo._add_entity_specific_log_data(validation_in_progress, log_data)
 
         # passed field should not be added when None
         assert "passed" not in log_data

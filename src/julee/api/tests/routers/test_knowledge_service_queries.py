@@ -226,9 +226,7 @@ class TestCreateKnowledgeServiceQuery:
             "assistant_prompt": "Please format as JSON",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
@@ -236,10 +234,7 @@ class TestCreateKnowledgeServiceQuery:
         # Verify response structure
         assert "query_id" in data
         assert data["name"] == request_data["name"]
-        assert (
-            data["knowledge_service_id"]
-            == request_data["knowledge_service_id"]
-        )
+        assert data["knowledge_service_id"] == request_data["knowledge_service_id"]
         assert data["prompt"] == request_data["prompt"]
         assert data["query_metadata"] == request_data["query_metadata"]
         assert data["assistant_prompt"] == request_data["assistant_prompt"]
@@ -263,9 +258,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "List all action items from this meeting",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 200
 
         query_id = response.json()["query_id"]
@@ -274,10 +267,7 @@ class TestCreateKnowledgeServiceQuery:
         saved_query = await memory_repo.get(query_id)
         assert saved_query is not None
         assert saved_query.name == request_data["name"]
-        assert (
-            saved_query.knowledge_service_id
-            == request_data["knowledge_service_id"]
-        )
+        assert saved_query.knowledge_service_id == request_data["knowledge_service_id"]
         assert saved_query.prompt == request_data["prompt"]
 
     def test_create_knowledge_service_query_minimal_fields(
@@ -292,18 +282,13 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Test prompt",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
 
         assert data["name"] == request_data["name"]
-        assert (
-            data["knowledge_service_id"]
-            == request_data["knowledge_service_id"]
-        )
+        assert data["knowledge_service_id"] == request_data["knowledge_service_id"]
         assert data["prompt"] == request_data["prompt"]
         assert data["query_metadata"] == {}
         assert data["assistant_prompt"] is None
@@ -321,9 +306,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Test prompt",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
         # Test empty knowledge_service_id
@@ -333,9 +316,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Test prompt",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
         # Test empty prompt
@@ -345,9 +326,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
     def test_create_knowledge_service_query_missing_required_fields(
@@ -362,9 +341,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Test prompt",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
         # Missing knowledge_service_id
@@ -373,9 +350,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Test prompt",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
         # Missing prompt
@@ -384,9 +359,7 @@ class TestCreateKnowledgeServiceQuery:
             "knowledge_service_id": "test-service",
         }
 
-        response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        response = client.post("/knowledge_service_queries/", json=request_data)
         assert response.status_code == 422
 
     def test_post_and_get_integration(
@@ -404,9 +377,7 @@ class TestCreateKnowledgeServiceQuery:
             "assistant_prompt": "Integration test response format",
         }
 
-        post_response = client.post(
-            "/knowledge_service_queries/", json=request_data
-        )
+        post_response = client.post("/knowledge_service_queries/", json=request_data)
         assert post_response.status_code == 200
         created_query = post_response.json()
 
@@ -427,13 +398,8 @@ class TestCreateKnowledgeServiceQuery:
             == request_data["knowledge_service_id"]
         )
         assert returned_query["prompt"] == request_data["prompt"]
-        assert (
-            returned_query["query_metadata"] == request_data["query_metadata"]
-        )
-        assert (
-            returned_query["assistant_prompt"]
-            == request_data["assistant_prompt"]
-        )
+        assert returned_query["query_metadata"] == request_data["query_metadata"]
+        assert returned_query["assistant_prompt"] == request_data["assistant_prompt"]
 
         # Create another query to test multiple items
         request_data2 = {
@@ -442,9 +408,7 @@ class TestCreateKnowledgeServiceQuery:
             "prompt": "Another test prompt",
         }
 
-        post_response2 = client.post(
-            "/knowledge_service_queries/", json=request_data2
-        )
+        post_response2 = client.post("/knowledge_service_queries/", json=request_data2)
         assert post_response2.status_code == 200
 
         # Verify both queries appear in GET response
@@ -598,9 +562,7 @@ class TestBulkGetKnowledgeServiceQueries:
         ]
 
         for ids_param in test_cases:
-            response = client.get(
-                f"/knowledge_service_queries/?ids={ids_param}"
-            )
+            response = client.get(f"/knowledge_service_queries/?ids={ids_param}")
             assert response.status_code == 200
             data = response.json()
             assert data["total"] == 2

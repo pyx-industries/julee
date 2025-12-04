@@ -177,9 +177,7 @@ class TestGetAssemblySpecifications:
         assert len(data["items"]) == 2
 
         # Verify the specifications are returned (order may vary)
-        returned_ids = {
-            item["assembly_specification_id"] for item in data["items"]
-        }
+        returned_ids = {item["assembly_specification_id"] for item in data["items"]}
         expected_ids = {
             sample_assembly_specification.assembly_specification_id,
             spec2.assembly_specification_id,
@@ -259,10 +257,7 @@ class TestGetAssemblySpecification:
             == sample_assembly_specification.assembly_specification_id
         )
         assert data["name"] == sample_assembly_specification.name
-        assert (
-            data["applicability"]
-            == sample_assembly_specification.applicability
-        )
+        assert data["applicability"] == sample_assembly_specification.applicability
         assert data["jsonschema"] == sample_assembly_specification.jsonschema
         assert (
             data["knowledge_service_queries"]
@@ -673,12 +668,8 @@ class TestCreateAssemblySpecification:
                 "required": ["metadata", "attendees"],
             },
             "knowledge_service_queries": {
-                "/properties/metadata/properties/meeting_date": (
-                    "date-extractor"
-                ),
-                "/properties/metadata/properties/location": (
-                    "location-extractor"
-                ),
+                "/properties/metadata/properties/meeting_date": ("date-extractor"),
+                "/properties/metadata/properties/location": ("location-extractor"),
                 "/properties/attendees": "attendee-extractor",
                 "/properties/agenda_items": "agenda-extractor",
                 "/properties/decisions": "decision-extractor",
@@ -720,9 +711,7 @@ class TestCreateAssemblySpecification:
             },
         }
 
-        post_response = client.post(
-            "/assembly_specifications/", json=request_data
-        )
+        post_response = client.post("/assembly_specifications/", json=request_data)
         assert post_response.status_code == 200
         created_spec = post_response.json()
 
@@ -753,9 +742,7 @@ class TestCreateAssemblySpecification:
             == created_spec["assembly_specification_id"]
         )
         assert retrieved_spec["name"] == request_data["name"]
-        assert (
-            retrieved_spec["applicability"] == request_data["applicability"]
-        )
+        assert retrieved_spec["applicability"] == request_data["applicability"]
         assert (
             retrieved_spec["knowledge_service_queries"]
             == request_data["knowledge_service_queries"]

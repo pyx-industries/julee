@@ -43,9 +43,7 @@ def discover_protocol_methods(
         has_is_protocol = getattr(base_class, "_is_protocol", False)
         has_protocol_in_str = "Protocol" in str(base_class)
 
-        is_protocol = (
-            has_protocol_attr or has_is_protocol or has_protocol_in_str
-        )
+        is_protocol = has_protocol_attr or has_is_protocol or has_protocol_in_str
 
         # Only process protocol classes for architectural compliance
         if is_protocol:
@@ -57,9 +55,9 @@ def discover_protocol_methods(
 
                 base_method = getattr(base_class, name)
                 # Only wrap async methods that don't start with underscore
-                if inspect.iscoroutinefunction(
-                    base_method
-                ) and not name.startswith("_"):
+                if inspect.iscoroutinefunction(base_method) and not name.startswith(
+                    "_"
+                ):
                     # Get the concrete implementation from the actual class
                     if hasattr(concrete_class, name):
                         concrete_method = getattr(concrete_class, name)
@@ -67,9 +65,7 @@ def discover_protocol_methods(
 
     # Log final results
     final_method_names = list(methods_to_wrap.keys())
-    logger.debug(
-        f"Method discovery found {len(methods_to_wrap)}: {final_method_names}"
-    )
+    logger.debug(f"Method discovery found {len(methods_to_wrap)}: {final_method_names}")
     return methods_to_wrap
 
 
@@ -108,9 +104,7 @@ def collect_activities_from_instances(*instances: Any) -> list[Any]:
 
     for instance in instances:
         # Use the same discovery logic as the decorator
-        methods_to_collect = discover_protocol_methods(
-            instance.__class__.__mro__
-        )
+        methods_to_collect = discover_protocol_methods(instance.__class__.__mro__)
 
         # Get the actual bound methods from the instance
         for method_name in methods_to_collect:
@@ -123,8 +117,7 @@ def collect_activities_from_instances(*instances: Any) -> list[Any]:
                 )
 
     logger.info(
-        f"Collected {len(activities)} activities from "
-        f"{len(instances)} instances"
+        f"Collected {len(activities)} activities from " f"{len(instances)} instances"
     )
 
     return activities

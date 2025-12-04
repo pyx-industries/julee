@@ -49,15 +49,11 @@ class MinioKnowledgeServiceConfigRepository(
             client: MinioClient protocol implementation (real or fake)
         """
         self.client = client
-        self.logger = logging.getLogger(
-            "MinioKnowledgeServiceConfigRepository"
-        )
+        self.logger = logging.getLogger("MinioKnowledgeServiceConfigRepository")
         self.bucket_name = "knowledge-service-configs"
         self.ensure_buckets_exist(self.bucket_name)
 
-    async def get(
-        self, knowledge_service_id: str
-    ) -> Optional[KnowledgeServiceConfig]:
+    async def get(self, knowledge_service_id: str) -> Optional[KnowledgeServiceConfig]:
         """Retrieve a knowledge service configuration by ID.
 
         Args:
@@ -95,9 +91,7 @@ class MinioKnowledgeServiceConfigRepository(
             success_log_message="Knowledge service config saved successfully",
             error_log_message="Error saving knowledge service config",
             extra_log_data={
-                "knowledge_service_id": (
-                    knowledge_service.knowledge_service_id
-                ),
+                "knowledge_service_id": (knowledge_service.knowledge_service_id),
                 "service_name": knowledge_service.name,
                 "service_api": knowledge_service.service_api.value,
             },
@@ -117,9 +111,7 @@ class MinioKnowledgeServiceConfigRepository(
             None if not found)
         """
         # Convert knowledge service IDs to object names
-        object_names = [
-            f"config/{service_id}" for service_id in knowledge_service_ids
-        ]
+        object_names = [f"config/{service_id}" for service_id in knowledge_service_ids]
 
         # Get objects from Minio using batch method
         object_results = self.get_many_json_objects(
@@ -170,9 +162,7 @@ class MinioKnowledgeServiceConfigRepository(
 
             # Filter out None results and sort by knowledge_service_id
             configs = [
-                config
-                for config in config_results.values()
-                if config is not None
+                config for config in config_results.values() if config is not None
             ]
             configs.sort(key=lambda x: x.knowledge_service_id)
 

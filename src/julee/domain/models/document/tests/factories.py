@@ -30,16 +30,12 @@ class ContentStreamFactory(Factory):
 
     # Create ContentStream with BytesIO containing test content
     @classmethod
-    def _create(
-        cls, model_class: type[ContentStream], **kwargs: Any
-    ) -> ContentStream:
+    def _create(cls, model_class: type[ContentStream], **kwargs: Any) -> ContentStream:
         content = kwargs.get("content", b"Test stream content")
         return model_class(io.BytesIO(content))
 
     @classmethod
-    def _build(
-        cls, model_class: type[ContentStream], **kwargs: Any
-    ) -> ContentStream:
+    def _build(cls, model_class: type[ContentStream], **kwargs: Any) -> ContentStream:
         content = kwargs.get("content", b"Test stream content")
         return model_class(io.BytesIO(content))
 

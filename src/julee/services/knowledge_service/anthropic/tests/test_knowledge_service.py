@@ -30,9 +30,7 @@ from julee.services.knowledge_service.anthropic import (
 @pytest.fixture
 def test_document() -> Document:
     """Create a test Document for testing."""
-    content_text = (
-        "This is test document content for knowledge service testing."
-    )
+    content_text = "This is test document content for knowledge service testing."
     content_bytes = content_text.encode("utf-8")
     content_stream = ContentStream(io.BytesIO(content_bytes))
 
@@ -98,9 +96,7 @@ class TestAnthropicKnowledgeService:
             service = anthropic_ks.AnthropicKnowledgeService()
 
             query_text = "What is machine learning?"
-            result = await service.execute_query(
-                knowledge_service_config, query_text
-            )
+            result = await service.execute_query(knowledge_service_config, query_text)
 
             # Verify the result structure
             assert result.query_text == query_text
@@ -108,10 +104,7 @@ class TestAnthropicKnowledgeService:
                 result.result_data["response"]
                 == "This is a test response from Anthropic."
             )
-            assert (
-                result.result_data["model"]
-                == anthropic_ks_module.DEFAULT_MODEL
-            )
+            assert result.result_data["model"] == anthropic_ks_module.DEFAULT_MODEL
             assert result.result_data["service"] == "anthropic"
             assert result.result_data["sources"] == []
             assert result.result_data["usage"]["input_tokens"] == 150
@@ -125,10 +118,7 @@ class TestAnthropicKnowledgeService:
             mock_anthropic_client.messages.create.assert_called_once()
             call_args = mock_anthropic_client.messages.create.call_args
             assert call_args[1]["model"] == anthropic_ks_module.DEFAULT_MODEL
-            assert (
-                call_args[1]["max_tokens"]
-                == anthropic_ks_module.DEFAULT_MAX_TOKENS
-            )
+            assert call_args[1]["max_tokens"] == anthropic_ks_module.DEFAULT_MAX_TOKENS
             assert len(call_args[1]["messages"]) == 1
             assert call_args[1]["messages"][0]["role"] == "user"
 
@@ -194,9 +184,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query handles API errors gracefully."""
         mock_client = MagicMock()
-        mock_client.messages.create = AsyncMock(
-            side_effect=Exception("API Error")
-        )
+        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
 
         with patch(
             "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
@@ -206,9 +194,7 @@ class TestAnthropicKnowledgeService:
             service = anthropic_ks.AnthropicKnowledgeService()
 
             with pytest.raises(Exception):
-                await service.execute_query(
-                    knowledge_service_config, "Test query"
-                )
+                await service.execute_query(knowledge_service_config, "Test query")
 
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
     async def test_query_id_generation(
@@ -236,9 +222,7 @@ class TestAnthropicKnowledgeService:
             assert result1.query_id != result2.query_id
             assert result1.query_id.startswith("anthropic_")
             assert result2.query_id.startswith("anthropic_")
-            assert (
-                len(result1.query_id) == len("anthropic_") + 12
-            )  # UUID hex[:12]
+            assert len(result1.query_id) == len("anthropic_") + 12  # UUID hex[:12]
             assert len(result2.query_id) == len("anthropic_") + 12
 
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
@@ -325,16 +309,10 @@ class TestAnthropicKnowledgeService:
             )
 
             # Verify defaults are used
-            assert (
-                result.result_data["model"]
-                == anthropic_ks_module.DEFAULT_MODEL
-            )
+            assert result.result_data["model"] == anthropic_ks_module.DEFAULT_MODEL
 
             # Verify API call used defaults
             call_args = mock_anthropic_client.messages.create.call_args
             assert call_args[1]["model"] == anthropic_ks_module.DEFAULT_MODEL
-            assert (
-                call_args[1]["max_tokens"]
-                == anthropic_ks_module.DEFAULT_MAX_TOKENS
-            )
+            assert call_args[1]["max_tokens"] == anthropic_ks_module.DEFAULT_MAX_TOKENS
             assert "temperature" not in call_args[1]  # Not set by default

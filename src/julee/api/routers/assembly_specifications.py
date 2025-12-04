@@ -70,14 +70,11 @@ async def get_assembly_specifications(
         )
         raise HTTPException(
             status_code=500,
-            detail="Failed to retrieve specifications due to an internal "
-            "error.",
+            detail="Failed to retrieve specifications due to an internal " "error.",
         )
 
 
-@router.get(
-    "/{assembly_specification_id}", response_model=AssemblySpecification
-)
+@router.get("/{assembly_specification_id}", response_model=AssemblySpecification)
 async def get_assembly_specification(
     assembly_specification_id: str = Path(
         description="The ID of the assembly specification to retrieve"
@@ -114,9 +111,7 @@ async def get_assembly_specification(
         if specification is None:
             logger.warning(
                 "Assembly specification not found",
-                extra={
-                    "assembly_specification_id": assembly_specification_id
-                },
+                extra={"assembly_specification_id": assembly_specification_id},
             )
             raise HTTPException(
                 status_code=404,
@@ -149,8 +144,7 @@ async def get_assembly_specification(
         )
         raise HTTPException(
             status_code=500,
-            detail="Failed to retrieve specification due to an internal "
-            "error.",
+            detail="Failed to retrieve specification due to an internal " "error.",
         )
 
 
@@ -194,9 +188,7 @@ async def create_assembly_specification(
         logger.info(
             "Assembly specification created successfully",
             extra={
-                "assembly_specification_id": (
-                    specification.assembly_specification_id
-                ),
+                "assembly_specification_id": (specification.assembly_specification_id),
                 "specification_name": specification.name,
                 "version": specification.version,
             },

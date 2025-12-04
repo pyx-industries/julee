@@ -58,9 +58,7 @@ class ExtractAssembleWorkflow:
         return self.assembly_id
 
     @workflow.run
-    async def run(
-        self, document_id: str, assembly_specification_id: str
-    ) -> Assembly:
+    async def run(self, document_id: str, assembly_specification_id: str) -> Assembly:
         """
         Execute the extract and assemble workflow.
 

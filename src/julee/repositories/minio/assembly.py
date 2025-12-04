@@ -69,9 +69,7 @@ class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):
             },
         )
 
-    async def get_many(
-        self, assembly_ids: List[str]
-    ) -> Dict[str, Optional[Assembly]]:
+    async def get_many(self, assembly_ids: List[str]) -> Dict[str, Optional[Assembly]]:
         """Retrieve multiple assemblies by ID.
 
         Args:

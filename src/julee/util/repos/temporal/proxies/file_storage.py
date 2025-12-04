@@ -25,9 +25,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
 
     async def upload_file(self, args: FileUploadArgs) -> FileMetadata:
         """Upload a file to storage via Temporal activity."""
-        logger.debug(
-            f"Workflow calling activity to upload file: {args.file_id}"
-        )
+        logger.debug(f"Workflow calling activity to upload file: {args.file_id}")
         # The activity name follows the general util pattern:
         # {domain}.{subdomain}.{implementation}.{method}
         result = await workflow.execute_activity(
@@ -49,9 +47,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
 
     async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
         """Retrieve file metadata via Temporal activity."""
-        logger.debug(
-            f"Workflow calling activity to get file metadata: {file_id}"
-        )
+        logger.debug(f"Workflow calling activity to get file metadata: {file_id}")
         result = await workflow.execute_activity(
             "util.file_storage.minio.get_file_metadata",
             file_id,

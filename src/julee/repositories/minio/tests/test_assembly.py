@@ -63,9 +63,7 @@ class TestMinioAssemblyRepositoryBasicOperations:
             retrieved.assembly_specification_id
             == sample_assembly.assembly_specification_id
         )
-        assert (
-            retrieved.input_document_id == sample_assembly.input_document_id
-        )
+        assert retrieved.input_document_id == sample_assembly.input_document_id
         assert retrieved.status == sample_assembly.status
         assert retrieved.assembled_document_id is None
 
@@ -78,9 +76,7 @@ class TestMinioAssemblyRepositoryBasicOperations:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_generate_id(
-        self, assembly_repo: MinioAssemblyRepository
-    ) -> None:
+    async def test_generate_id(self, assembly_repo: MinioAssemblyRepository) -> None:
         """Test generating unique assembly IDs."""
         id1 = await assembly_repo.generate_id()
         id2 = await assembly_repo.generate_id()
@@ -257,9 +253,7 @@ class TestMinioAssemblyRepositoryEdgeCases:
         await assembly_repo.save(sample_assembly)
 
         # Verify final state
-        updated_assembly = await assembly_repo.get(
-            sample_assembly.assembly_id
-        )
+        updated_assembly = await assembly_repo.get(sample_assembly.assembly_id)
         assert updated_assembly is not None
 
         # Verify final state

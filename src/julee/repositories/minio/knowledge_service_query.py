@@ -50,9 +50,7 @@ class MinioKnowledgeServiceQueryRepository(
             client: MinioClient protocol implementation (real or fake)
         """
         self.client = client
-        self.logger = logging.getLogger(
-            "MinioKnowledgeServiceQueryRepository"
-        )
+        self.logger = logging.getLogger("MinioKnowledgeServiceQueryRepository")
         self.bucket_name = "knowledge-service-queries"
         self.ensure_buckets_exist(self.bucket_name)
 
@@ -66,8 +64,7 @@ class MinioKnowledgeServiceQueryRepository(
             KnowledgeServiceQuery object if found, None otherwise
         """
         logger.debug(
-            "MinioKnowledgeServiceQueryRepository: Attempting to retrieve "
-            "query",
+            "MinioKnowledgeServiceQueryRepository: Attempting to retrieve " "query",
             extra={"query_id": query_id, "bucket": self.bucket_name},
         )
 
@@ -190,9 +187,7 @@ class MinioKnowledgeServiceQueryRepository(
             query_results = await self.get_many(query_ids)
 
             # Filter out None results and sort by query_id
-            queries = [
-                query for query in query_results.values() if query is not None
-            ]
+            queries = [query for query in query_results.values() if query is not None]
             queries.sort(key=lambda x: x.query_id)
 
             logger.debug(

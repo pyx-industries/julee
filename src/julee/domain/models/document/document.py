@@ -25,15 +25,11 @@ def delegate_to_content(*method_names: str) -> Callable[[type], type]:
         for method_name in method_names:
 
             def make_delegated_method(name: str) -> Callable[..., Any]:
-                def delegated_method(
-                    self: Any, *args: Any, **kwargs: Any
-                ) -> Any:
+                def delegated_method(self: Any, *args: Any, **kwargs: Any) -> Any:
                     return getattr(self.content, name)(*args, **kwargs)
 
                 delegated_method.__name__ = name
-                delegated_method.__doc__ = (
-                    f"Delegate {name} to content stream."
-                )
+                delegated_method.__doc__ = f"Delegate {name} to content stream."
                 return delegated_method
 
             setattr(cls, method_name, make_delegated_method(method_name))
@@ -149,7 +145,6 @@ class Document(BaseModel):
             )
         elif not has_content and not has_content_string:
             raise ValueError(
-                "Document must have either content or content_string. "
-                "Provide one."
+                "Document must have either content or content_string. " "Provide one."
             )
         return self

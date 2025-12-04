@@ -109,8 +109,7 @@ class TestDocumentPolicyValidationFieldValidation:
 
             errors = exc_info.value.errors()
             assert any(
-                "Input document ID cannot be empty" in str(error)
-                for error in errors
+                "Input document ID cannot be empty" in str(error) for error in errors
             )
 
     def test_input_document_id_strips_whitespace(self) -> None:
@@ -135,9 +134,7 @@ class TestDocumentPolicyValidationFieldValidation:
                 )
 
             errors = exc_info.value.errors()
-            assert any(
-                "Policy ID cannot be empty" in str(error) for error in errors
-            )
+            assert any("Policy ID cannot be empty" in str(error) for error in errors)
 
     def test_policy_id_strips_whitespace(self) -> None:
         """Test that policy_id strips whitespace."""
@@ -179,8 +176,7 @@ class TestDocumentPolicyValidationFieldValidation:
 
         errors = exc_info.value.errors()
         assert any(
-            "must be a non-empty string or None" in str(error)
-            for error in errors
+            "must be a non-empty string or None" in str(error) for error in errors
         )
 
     def test_error_message_validation(self) -> None:
@@ -262,9 +258,7 @@ class TestValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "must be a non-empty string" in str(error) for error in errors
-        )
+        assert any("must be a non-empty string" in str(error) for error in errors)
 
         # Whitespace-only query_id should fail
         with pytest.raises(ValidationError) as exc_info:
@@ -276,9 +270,7 @@ class TestValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "must be a non-empty string" in str(error) for error in errors
-        )
+        assert any("must be a non-empty string" in str(error) for error in errors)
 
     def test_validation_scores_score_range(self) -> None:
         """Test validation_scores score range validation."""
@@ -292,9 +284,7 @@ class TestValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "must be between 0 and 100" in str(error) for error in errors
-        )
+        assert any("must be between 0 and 100" in str(error) for error in errors)
 
         # Score too high
         with pytest.raises(ValidationError) as exc_info:
@@ -306,9 +296,7 @@ class TestValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "must be between 0 and 100" in str(error) for error in errors
-        )
+        assert any("must be between 0 and 100" in str(error) for error in errors)
 
         # Valid edge cases
         validation = DocumentPolicyValidation(
@@ -333,9 +321,7 @@ class TestValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "Duplicate query ID 'query1'" in str(error) for error in errors
-        )
+        assert any("Duplicate query ID 'query1'" in str(error) for error in errors)
 
 
 class TestPostTransformValidationScores:
@@ -385,9 +371,7 @@ class TestPostTransformValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "must be between 0 and 100" in str(error) for error in errors
-        )
+        assert any("must be between 0 and 100" in str(error) for error in errors)
 
         # Same duplicate detection
         with pytest.raises(ValidationError) as exc_info:
@@ -402,9 +386,7 @@ class TestPostTransformValidationScores:
             )
 
         errors = exc_info.value.errors()
-        assert any(
-            "Duplicate query ID 'query1'" in str(error) for error in errors
-        )
+        assert any("Duplicate query ID 'query1'" in str(error) for error in errors)
 
 
 class TestDocumentPolicyValidationStatusEnum:

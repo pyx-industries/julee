@@ -107,14 +107,10 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
 
         assert retrieved is not None
         assert retrieved.validation_id == sample_validation.validation_id
-        assert (
-            retrieved.input_document_id == sample_validation.input_document_id
-        )
+        assert retrieved.input_document_id == sample_validation.input_document_id
         assert retrieved.policy_id == sample_validation.policy_id
         assert retrieved.status == sample_validation.status
-        assert (
-            retrieved.validation_scores == sample_validation.validation_scores
-        )
+        assert retrieved.validation_scores == sample_validation.validation_scores
         assert (
             retrieved.transformed_document_id
             == sample_validation.transformed_document_id
@@ -182,9 +178,7 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
         # Verify transformation data is preserved
         assert retrieved is not None
         assert retrieved.transformed_document_id == "doc-transformed"
-        assert retrieved.post_transform_validation_scores == [
-            ("final-check", 85)
-        ]
+        assert retrieved.post_transform_validation_scores == [("final-check", 85)]
         assert retrieved.passed is True
         assert retrieved.validation_scores == [("initial-check", 70)]
 
@@ -195,7 +189,4 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
         """Test that repository logger is configured correctly."""
         assert validation_repo.logger is not None
         # Logger name should reflect the repository class
-        assert (
-            "MinioDocumentPolicyValidationRepository"
-            in validation_repo.logger.name
-        )
+        assert "MinioDocumentPolicyValidationRepository" in validation_repo.logger.name

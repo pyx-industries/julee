@@ -113,9 +113,7 @@ class TestExtractAssembleDataUseCase:
                     query_id="result-2",
                     query_text="Extract a summary from this document",
                     result_data={
-                        "response": (
-                            '"This was a test meeting about important topics"'
-                        )
+                        "response": ('"This was a test meeting about important topics"')
                     },
                     execution_time_ms=150,
                     created_at=datetime.now(timezone.utc),
@@ -176,9 +174,7 @@ class TestExtractAssembleDataUseCase:
         assembly_specification_id = "spec-789"
 
         # Act & Assert
-        with pytest.raises(
-            ValueError, match="Assembly specification not found"
-        ):
+        with pytest.raises(ValueError, match="Assembly specification not found"):
             await use_case.assemble_data(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
@@ -365,9 +361,7 @@ class TestExtractAssembleDataUseCase:
     ) -> None:
         """Test that assembly fails when specification is not found."""
         # Act & Assert
-        with pytest.raises(
-            ValueError, match="Assembly specification not found"
-        ):
+        with pytest.raises(ValueError, match="Assembly specification not found"):
             await use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="nonexistent-spec",
@@ -435,18 +429,14 @@ class TestExtractAssembleDataUseCase:
                 "properties": {"title": {"type": "string"}},
             },
             status=AssemblySpecificationStatus.ACTIVE,
-            knowledge_service_queries={
-                "/properties/title": "nonexistent-query"
-            },
+            knowledge_service_queries={"/properties/title": "nonexistent-query"},
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         await assembly_specification_repo.save(assembly_spec)
 
         # Act & Assert
-        with pytest.raises(
-            ValueError, match="Knowledge service query not found"
-        ):
+        with pytest.raises(ValueError, match="Knowledge service query not found"):
             await use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="spec-123",

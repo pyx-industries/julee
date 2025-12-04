@@ -56,9 +56,7 @@ class ValidateDocumentWorkflow:
         return self.validation_id
 
     @workflow.run
-    async def run(
-        self, document_id: str, policy_id: str
-    ) -> DocumentPolicyValidation:
+    async def run(self, document_id: str, policy_id: str) -> DocumentPolicyValidation:
         """
         Execute the document validation workflow.
 
@@ -126,8 +124,7 @@ class ValidateDocumentWorkflow:
                     "Policy repository proxies not found, workflow may fail"
                 )
                 raise ValueError(
-                    "Policy repository proxies required for validation "
-                    "workflow"
+                    "Policy repository proxies required for validation " "workflow"
                 )
 
             # Create the use case with workflow-safe repositories

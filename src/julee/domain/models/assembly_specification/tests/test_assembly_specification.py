@@ -149,21 +149,16 @@ class TestAssemblyInstantiation:
                 jsonschema=jsonschema,
             )
             assert (
-                assembly.assembly_specification_id
-                == assembly_specification_id.strip()
+                assembly.assembly_specification_id == assembly_specification_id.strip()
             )
             assert assembly.name == name.strip()
             assert assembly.applicability == applicability.strip()
             assert assembly.jsonschema == jsonschema
-            assert (
-                assembly.status == AssemblySpecificationStatus.ACTIVE
-            )  # Default
+            assert assembly.status == AssemblySpecificationStatus.ACTIVE  # Default
             assert assembly.version == "0.1.0"  # Default
         else:
             # Should raise validation error
-            with pytest.raises(
-                Exception
-            ):  # Could be ValueError or ValidationError
+            with pytest.raises(Exception):  # Could be ValueError or ValidationError
                 AssemblySpecification(
                     assembly_specification_id=assembly_specification_id,
                     name=name,
@@ -215,10 +210,7 @@ class TestAssemblyKnowledgeServiceQueriesValidation:
                 },
                 knowledge_service_queries=knowledge_service_queries,
             )
-            assert (
-                assembly.knowledge_service_queries
-                == knowledge_service_queries
-            )
+            assert assembly.knowledge_service_queries == knowledge_service_queries
         else:
             # Should raise validation error
             with pytest.raises(Exception):
@@ -380,8 +372,7 @@ class TestAssemblySerialization:
 
         # All fields should be present in JSON
         assert (
-            json_data["assembly_specification_id"]
-            == assembly.assembly_specification_id
+            json_data["assembly_specification_id"] == assembly.assembly_specification_id
         )
         assert json_data["name"] == assembly.name
         assert json_data["applicability"] == assembly.applicability
@@ -412,13 +403,8 @@ class TestAssemblySerialization:
             == original_assembly.assembly_specification_id
         )
         assert reconstructed_assembly.name == original_assembly.name
-        assert (
-            reconstructed_assembly.applicability
-            == original_assembly.applicability
-        )
-        assert (
-            reconstructed_assembly.jsonschema == original_assembly.jsonschema
-        )
+        assert reconstructed_assembly.applicability == original_assembly.applicability
+        assert reconstructed_assembly.jsonschema == original_assembly.jsonschema
         assert reconstructed_assembly.status == original_assembly.status
         assert reconstructed_assembly.version == original_assembly.version
 
@@ -455,9 +441,7 @@ class TestAssemblyDefaults:
             },
             status=AssemblySpecificationStatus.DRAFT,
             version="2.0.0",
-            knowledge_service_queries={
-                "/properties/custom": "custom-query-1"
-            },
+            knowledge_service_queries={"/properties/custom": "custom-query-1"},
         )
 
         assert custom_assembly.status == AssemblySpecificationStatus.DRAFT
@@ -475,9 +459,7 @@ class TestAssemblyDefaults:
             AssemblySpecificationStatus.DEPRECATED,
         ],
     )
-    def test_assembly_status_values(
-        self, status: AssemblySpecificationStatus
-    ) -> None:
+    def test_assembly_status_values(self, status: AssemblySpecificationStatus) -> None:
         """Test AssemblySpecification with different status values."""
         assembly = AssemblyFactory.build(status=status)
         assert assembly.status == status
@@ -497,9 +479,7 @@ class TestAssemblyVersionValidation:
             ("   ", False),  # Whitespace only
         ],
     )
-    def test_version_validation(
-        self, version: str, expected_success: bool
-    ) -> None:
+    def test_version_validation(self, version: str, expected_success: bool) -> None:
         """Test version field validation - we can add semver checks later, not
         needed yet (if at all)."""
         if expected_success:

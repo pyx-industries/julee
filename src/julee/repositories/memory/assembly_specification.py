@@ -64,9 +64,7 @@ class MemoryAssemblySpecificationRepository(
         """
         return self.get_entity(assembly_specification_id)
 
-    async def save(
-        self, assembly_specification: AssemblySpecification
-    ) -> None:
+    async def save(self, assembly_specification: AssemblySpecification) -> None:
         """Save an assembly specification.
 
         Args:

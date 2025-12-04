@@ -67,9 +67,7 @@ class DocumentPolicyValidation(BaseModel):
     )
 
     # Validation process status
-    status: DocumentPolicyValidationStatus = (
-        DocumentPolicyValidationStatus.PENDING
-    )
+    status: DocumentPolicyValidationStatus = DocumentPolicyValidationStatus.PENDING
 
     # Initial validation results
     validation_scores: List[Tuple[str, int]] = Field(
@@ -150,17 +148,13 @@ class DocumentPolicyValidation(BaseModel):
             return v
 
         if not isinstance(v, list):
-            raise ValueError(
-                "Post-transform validation scores must be a list or None"
-            )
+            raise ValueError("Post-transform validation scores must be a list or None")
 
         # Empty list is valid
         if not v:
             return v
 
-        return cls._validate_score_tuples(
-            v, "post_transform_validation_scores"
-        )
+        return cls._validate_score_tuples(v, "post_transform_validation_scores")
 
     @field_validator("error_message")
     @classmethod
@@ -173,9 +167,7 @@ class DocumentPolicyValidation(BaseModel):
 
     @field_validator("transformed_document_id")
     @classmethod
-    def transformed_document_id_must_be_valid(
-        cls, v: Optional[str]
-    ) -> Optional[str]:
+    def transformed_document_id_must_be_valid(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
         if not isinstance(v, str) or not v.strip():
@@ -203,16 +195,12 @@ class DocumentPolicyValidation(BaseModel):
 
             # Validate query ID
             if not isinstance(query_id, str) or not query_id.strip():
-                raise ValueError(
-                    f"Query ID in {field_name} must be a non-empty string"
-                )
+                raise ValueError(f"Query ID in {field_name} must be a non-empty string")
             query_id = query_id.strip()
 
             # Check for duplicate query IDs within this field
             if query_id in query_ids_seen:
-                raise ValueError(
-                    f"Duplicate query ID '{query_id}' in {field_name}"
-                )
+                raise ValueError(f"Duplicate query ID '{query_id}' in {field_name}")
             query_ids_seen.add(query_id)
 
             # Validate actual score

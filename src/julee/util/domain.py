@@ -66,9 +66,7 @@ class FileUploadArgs(BaseModel):
         ]
         for pattern in dangerous_patterns:
             if pattern in sanitized:
-                raise ValueError(
-                    f"Filename contains dangerous pattern: {pattern}"
-                )
+                raise ValueError(f"Filename contains dangerous pattern: {pattern}")
 
         # Ensure filename has reasonable length
         if len(sanitized) > 255:

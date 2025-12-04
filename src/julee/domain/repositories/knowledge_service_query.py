@@ -29,9 +29,7 @@ from .base import BaseRepository
 
 
 @runtime_checkable
-class KnowledgeServiceQueryRepository(
-    BaseRepository[KnowledgeServiceQuery], Protocol
-):
+class KnowledgeServiceQueryRepository(BaseRepository[KnowledgeServiceQuery], Protocol):
     """Handles knowledge service query persistence and retrieval.
 
     This repository manages the storage and retrieval of

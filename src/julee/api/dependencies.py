@@ -77,9 +77,7 @@ class DependencyContainer:
 
     async def _create_temporal_client(self) -> Client:
         """Create Temporal client with proper configuration."""
-        temporal_endpoint = os.environ.get(
-            "TEMPORAL_ENDPOINT", "temporal:7233"
-        )
+        temporal_endpoint = os.environ.get("TEMPORAL_ENDPOINT", "temporal:7233")
         logger.debug(
             "Creating Temporal client",
             extra={"endpoint": temporal_endpoint, "namespace": "default"},
@@ -102,9 +100,7 @@ class DependencyContainer:
 
     async def get_minio_client(self) -> MinioClient:
         """Get or create Minio client."""
-        client = await self.get_or_create(
-            "minio_client", self._create_minio_client
-        )
+        client = await self.get_or_create("minio_client", self._create_minio_client)
         return client  # type: ignore[no-any-return]
 
     async def _create_minio_client(self) -> MinioClient:
@@ -238,9 +234,7 @@ class StartupDependenciesProvider:
         config_repo = await self.get_knowledge_service_config_repository()
         document_repo = await self.get_document_repository()
         query_repo = await self.get_knowledge_service_query_repository()
-        assembly_spec_repo = (
-            await self.get_assembly_specification_repository()
-        )
+        assembly_spec_repo = await self.get_assembly_specification_repository()
         use_case = InitializeSystemDataUseCase(
             config_repo, document_repo, query_repo, assembly_spec_repo
         )

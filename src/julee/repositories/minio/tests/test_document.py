@@ -144,9 +144,7 @@ class TestMinioDocumentRepositoryStore:
         assert fake_minio_client.get_object_count("documents-content") == 1
 
         # Verify content was stored with calculated multihash as key
-        content_objects = fake_minio_client.get_stored_objects(
-            "documents-content"
-        )
+        content_objects = fake_minio_client.get_stored_objects("documents-content")
         calculated_multihash = sample_document.content_multihash
         assert calculated_multihash in content_objects
 
@@ -190,13 +188,9 @@ class TestMinioDocumentRepositoryStore:
         assert fake_minio_client.get_object_count("documents-content") == 1
 
         # Verify deduplication: both documents reference same content object
-        content_objects = fake_minio_client.get_stored_objects(
-            "documents-content"
-        )
+        content_objects = fake_minio_client.get_stored_objects("documents-content")
         assert len(content_objects) == 1  # Only one content object stored
-        assert (
-            stored_multihash in content_objects
-        )  # Stored under the correct hash key
+        assert stored_multihash in content_objects  # Stored under the correct hash key
 
         # Verify both documents have the same multihash (share content)
         assert sample_document.content_multihash == stored_multihash
@@ -220,9 +214,7 @@ class TestMinioDocumentRepositoryStore:
         assert sample_document.content_multihash != "incorrect_hash_12345"
 
         # Verify content is stored under the calculated multihash
-        content_objects = fake_minio_client.get_stored_objects(
-            "documents-content"
-        )
+        content_objects = fake_minio_client.get_stored_objects("documents-content")
         assert correct_multihash in content_objects
         assert "incorrect_hash_12345" not in content_objects
 
@@ -251,9 +243,7 @@ class TestMinioDocumentRepositoryStore:
                     host_id="host123",
                     response=Mock(),
                 )
-            return original_put_object(
-                bucket_name, object_name, data, length, **kwargs
-            )
+            return original_put_object(bucket_name, object_name, data, length, **kwargs)
 
         repository.client.put_object = failing_put_object  # type: ignore[method-assign, assignment]
 
@@ -388,9 +378,7 @@ class TestMinioDocumentRepositoryUpdate:
 class TestMinioDocumentRepositoryGenerateId:
     """Test ID generation."""
 
-    async def test_generate_id(
-        self, repository: MinioDocumentRepository
-    ) -> None:
+    async def test_generate_id(self, repository: MinioDocumentRepository) -> None:
         """Test that generate_id returns a unique string."""
         # Act
         doc_id_1 = await repository.generate_id()
@@ -423,9 +411,7 @@ class TestMinioDocumentRepositoryMultihash:
 
         # Test deterministic - same content should produce same hash
         stream.seek(0)
-        multihash_result_2 = repository._calculate_multihash_from_stream(
-            stream
-        )
+        multihash_result_2 = repository._calculate_multihash_from_stream(stream)
         assert multihash_result == multihash_result_2
 
     def test_calculate_multihash_from_empty_stream(
@@ -468,9 +454,7 @@ class TestMinioDocumentRepositoryContentString:
         # Assert document was saved successfully
         retrieved = await repository.get(document.document_id)
         assert retrieved is not None
-        assert (
-            retrieved.content_multihash != "placeholder"
-        )  # Hash was calculated
+        assert retrieved.content_multihash != "placeholder"  # Hash was calculated
         assert retrieved.size_bytes == len(content.encode("utf-8"))
 
         # Verify content can be read
@@ -574,9 +558,7 @@ class TestMinioDocumentRepositoryErrorHandling:
                     host_id="host123",
                     response=Mock(),
                 )
-            return original_put_object(
-                bucket_name, object_name, data, length, **kwargs
-            )
+            return original_put_object(bucket_name, object_name, data, length, **kwargs)
 
         repository.client.put_object = failing_put_object  # type: ignore[method-assign, assignment]
 

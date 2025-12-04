@@ -164,9 +164,7 @@ class TestDocumentInstantiation:
             assert doc.content_multihash.strip() == multihash.strip()
         else:
             # Should raise validation error
-            with pytest.raises(
-                Exception
-            ):  # Could be ValueError or ValidationError
+            with pytest.raises(Exception):  # Could be ValueError or ValidationError
                 Document(
                     document_id=document_id,
                     original_filename=original_filename,
@@ -184,9 +182,7 @@ class TestDocumentSerialization:
         """Test that content stream is excluded from JSON serialization."""
         content = b"Secret content not for JSON"
         content_stream = ContentStreamFactory.build(content=content)
-        doc = DocumentFactory.build(
-            content=content_stream, size_bytes=len(content)
-        )
+        doc = DocumentFactory.build(content=content_stream, size_bytes=len(content))
 
         json_str = doc.model_dump_json()
         json_data = json.loads(json_str)

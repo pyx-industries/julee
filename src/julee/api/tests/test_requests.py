@@ -154,10 +154,7 @@ class TestCreateKnowledgeServiceQueryRequest:
 
         assert request.name == "Extract Meeting Summary"
         assert request.knowledge_service_id == "anthropic-claude"
-        assert (
-            request.prompt
-            == "Extract the main summary from this meeting transcript"
-        )
+        assert request.prompt == "Extract the main summary from this meeting transcript"
         assert request.query_metadata == {}  # Default empty dict
         assert request.assistant_prompt is None  # Default None
 

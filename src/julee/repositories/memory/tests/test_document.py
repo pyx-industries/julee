@@ -70,9 +70,7 @@ class TestMemoryDocumentRepositoryContentString:
         # Assert document was saved successfully
         retrieved = await repository.get(document.document_id)
         assert retrieved is not None
-        assert (
-            retrieved.content_multihash != "placeholder"
-        )  # Hash was calculated
+        assert retrieved.content_multihash != "placeholder"  # Hash was calculated
         assert retrieved.size_bytes == len(content.encode("utf-8"))
 
         # Verify content can be read
@@ -126,9 +124,7 @@ class TestMemoryDocumentRepositoryContentString:
         await repository.save(document)
 
         # Check stored document directly from internal storage
-        stored_document = repository.storage_dict.get(
-            "test-storage-exclusion"
-        )
+        stored_document = repository.storage_dict.get("test-storage-exclusion")
         assert stored_document is not None
 
         # Verify content_string is not in stored document
@@ -161,9 +157,7 @@ class TestMemoryDocumentRepositoryBasicOperations:
         # Assert
         assert retrieved is not None
         assert retrieved.document_id == sample_document.document_id
-        assert (
-            retrieved.original_filename == sample_document.original_filename
-        )
+        assert retrieved.original_filename == sample_document.original_filename
 
     async def test_get_nonexistent_document(
         self, repository: MemoryDocumentRepository
@@ -172,9 +166,7 @@ class TestMemoryDocumentRepositoryBasicOperations:
         result = await repository.get("nonexistent-123")
         assert result is None
 
-    async def test_generate_id(
-        self, repository: MemoryDocumentRepository
-    ) -> None:
+    async def test_generate_id(self, repository: MemoryDocumentRepository) -> None:
         """Test that generate_id returns a unique string."""
         doc_id_1 = await repository.generate_id()
         doc_id_2 = await repository.generate_id()
@@ -208,9 +200,7 @@ class TestMemoryDocumentRepositoryErrorHandling:
         self, repository: MemoryDocumentRepository
     ) -> None:
         """Test error handling for empty filename."""
-        with pytest.raises(
-            ValueError, match="Original filename cannot be empty"
-        ):
+        with pytest.raises(ValueError, match="Original filename cannot be empty"):
             Document(
                 document_id="test-123",
                 original_filename="",

@@ -132,13 +132,10 @@ class Policy(BaseModel):
 
             # Validate required score
             if not isinstance(required_score, int):
-                raise ValueError(
-                    "Required score must be an integer between 0 and 100"
-                )
+                raise ValueError("Required score must be an integer between 0 and 100")
             if required_score < 0 or required_score > 100:
                 raise ValueError(
-                    f"Required score {required_score} must be between "
-                    f"0 and 100"
+                    f"Required score {required_score} must be between " f"0 and 100"
                 )
 
             validated_scores.append((query_id, required_score))
@@ -173,8 +170,7 @@ class Policy(BaseModel):
             # Check for duplicate query IDs
             if query_id in query_ids_seen:
                 raise ValueError(
-                    f"Duplicate query ID '{query_id}' in transformation "
-                    f"queries"
+                    f"Duplicate query ID '{query_id}' in transformation " f"queries"
                 )
             query_ids_seen.add(query_id)
 

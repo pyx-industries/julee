@@ -54,8 +54,7 @@ def validate_type(
         if allow_none:
             return
         raise TypeValidationError(
-            f"{context_name}: Expected {_format_type(expected_type)}, "
-            f"got None"
+            f"{context_name}: Expected {_format_type(expected_type)}, " f"got None"
         )
 
     # Get the origin type for generic types (List[X] -> list, Dict -> dict)
@@ -71,9 +70,7 @@ def validate_type(
         )
 
 
-def _validate_simple_type(
-    value: Any, expected_type: Any, context_name: str
-) -> None:
+def _validate_simple_type(value: Any, expected_type: Any, context_name: str) -> None:
     """Validate simple (non-generic) types."""
     actual_type = type(value)
 
@@ -172,17 +169,13 @@ def _validate_dict_contents(
             ) from e
 
 
-def _validate_union_type(
-    value: Any, type_args: tuple, context_name: str
-) -> None:
+def _validate_union_type(value: Any, type_args: tuple, context_name: str) -> None:
     """Validate Union types (including Optional)."""
     # Try each type in the union
     for union_type in type_args:
         try:
             allow_none = union_type is type(None)
-            validate_type(
-                value, union_type, context_name, allow_none=allow_none
-            )
+            validate_type(value, union_type, context_name, allow_none=allow_none)
             return  # If any type matches, we're good
         except TypeValidationError:
             continue  # Try the next type
@@ -307,9 +300,7 @@ def validate_parameter_types(
                 try:
                     types_to_check = get_type_hints(func)
                 except Exception as e:
-                    logger.warning(
-                        f"Could not get type hints for {func.__name__}: {e}"
-                    )
+                    logger.warning(f"Could not get type hints for {func.__name__}: {e}")
                     return func(*args, **kwargs)
 
             # Get parameter names
@@ -317,9 +308,7 @@ def validate_parameter_types(
             param_names = list(sig.parameters.keys())
 
             # Validate positional arguments
-            for i, (param_name, arg_value) in enumerate(
-                zip(param_names, args)
-            ):
+            for i, (param_name, arg_value) in enumerate(zip(param_names, args)):
                 if param_name in types_to_check and param_name != "self":
                     try:
                         validate_type(
@@ -364,9 +353,7 @@ def validate_parameter_types(
     return decorator
 
 
-def guard_check(
-    value: Any, expected_type: Any, context_name: str = "value"
-) -> None:
+def guard_check(value: Any, expected_type: Any, context_name: str = "value") -> None:
     """
     Simple guard check function for manual validation.
 

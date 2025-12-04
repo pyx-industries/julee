@@ -78,10 +78,7 @@ class TestMemoryPolicyRepositoryBasicOperations:
         assert retrieved.description == sample_policy.description
         assert retrieved.status == sample_policy.status
         assert retrieved.validation_scores == sample_policy.validation_scores
-        assert (
-            retrieved.transformation_queries
-            == sample_policy.transformation_queries
-        )
+        assert retrieved.transformation_queries == sample_policy.transformation_queries
         assert retrieved.version == sample_policy.version
 
     @pytest.mark.asyncio
@@ -93,9 +90,7 @@ class TestMemoryPolicyRepositoryBasicOperations:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_generate_id(
-        self, policy_repo: MemoryPolicyRepository
-    ) -> None:
+    async def test_generate_id(self, policy_repo: MemoryPolicyRepository) -> None:
         """Test generating unique policy IDs."""
         id1 = await policy_repo.generate_id()
         id2 = await policy_repo.generate_id()

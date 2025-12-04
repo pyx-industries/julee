@@ -24,9 +24,7 @@ def requires_bucket(func: Callable) -> Callable:
     """Decorator to check if bucket exists before method execution."""
 
     @wraps(func)
-    def wrapper(
-        self: Any, bucket_name: str, *args: Any, **kwargs: Any
-    ) -> Any:
+    def wrapper(self: Any, bucket_name: str, *args: Any, **kwargs: Any) -> Any:
         if bucket_name not in self._buckets:
             raise S3Error(
                 code="NoSuchBucket",
@@ -114,9 +112,7 @@ class FakeMinioClient(MinioClient):
         data: BinaryIO,
         length: int,
         content_type: str = "application/octet-stream",
-        metadata: Optional[
-            Dict[str, Union[str, List[str], tuple[str]]]
-        ] = None,
+        metadata: Optional[Dict[str, Union[str, List[str], tuple[str]]]] = None,
     ) -> ObjectWriteResult:
         """Store an object in the bucket."""
 
@@ -128,9 +124,7 @@ class FakeMinioClient(MinioClient):
             if hasattr(data, "seek"):
                 data.seek(0)  # Reset for potential re-use
         else:
-            content = (
-                data if isinstance(data, bytes) else str(data).encode("utf-8")
-            )
+            content = data if isinstance(data, bytes) else str(data).encode("utf-8")
 
         self._objects[bucket_name][object_name] = {
             "data": content,
@@ -151,9 +145,7 @@ class FakeMinioClient(MinioClient):
         )
 
     @requires_object
-    def get_object(
-        self, bucket_name: str, object_name: str
-    ) -> BaseHTTPResponse:
+    def get_object(self, bucket_name: str, object_name: str) -> BaseHTTPResponse:
         """Retrieve an object from the bucket."""
 
         obj_info = self._objects[bucket_name][object_name]
@@ -203,9 +195,7 @@ class FakeMinioClient(MinioClient):
         del self._objects[bucket_name][object_name]
 
     # Inspection methods for testing
-    def get_stored_objects(
-        self, bucket_name: str
-    ) -> Dict[str, Dict[str, Any]]:
+    def get_stored_objects(self, bucket_name: str) -> Dict[str, Dict[str, Any]]:
         """Get all stored objects in a bucket (for testing purposes)."""
         return self._objects.get(bucket_name, {}).copy()
 

@@ -48,9 +48,7 @@ class AssemblySpecification(BaseModel):
     assembly_specification_id: str = Field(
         description="Unique identifier for this assembly specification"
     )
-    name: str = Field(
-        description="Human-readable name like 'meeting minutes'"
-    )
+    name: str = Field(description="Human-readable name like 'meeting minutes'")
     applicability: str = Field(
         description="Text description identifying to what type of "
         "information this assembly applies, such as an online transcript "
@@ -74,9 +72,7 @@ class AssemblySpecification(BaseModel):
     )
 
     # AssemblySpecification metadata
-    version: str = Field(
-        default="0.1.0", description="Assembly definition version"
-    )
+    version: str = Field(default="0.1.0", description="Assembly definition version")
     created_at: Optional[datetime] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -104,9 +100,7 @@ class AssemblySpecification(BaseModel):
     @classmethod
     def applicability_must_not_be_empty(cls, v: str) -> str:
         if not v or not v.strip():
-            raise ValueError(
-                "AssemblySpecification applicability cannot be empty"
-            )
+            raise ValueError("AssemblySpecification applicability cannot be empty")
         return v.strip()
 
     @field_validator("jsonschema")
@@ -138,9 +132,7 @@ class AssemblySpecification(BaseModel):
         # Get the jsonschema field value to validate pointers against it
         jsonschema_value = info.data.get("jsonschema")
         if not jsonschema_value:
-            raise ValueError(
-                "Cannot validate schema pointers without jsonschema field"
-            )
+            raise ValueError("Cannot validate schema pointers without jsonschema field")
 
         cleaned_queries = {}
         for schema_pointer, query_id in v.items():
@@ -158,13 +150,10 @@ class AssemblySpecification(BaseModel):
                     ptr = jsonpointer.JsonPointer(schema_pointer)
                     ptr.resolve(jsonschema_value)
             except jsonpointer.JsonPointerException as e:
-                raise ValueError(
-                    f"Invalid JSON Pointer '{schema_pointer}': {e}"
-                )
+                raise ValueError(f"Invalid JSON Pointer '{schema_pointer}': {e}")
             except (KeyError, IndexError, TypeError):
                 raise ValueError(
-                    f"JSON Pointer '{schema_pointer}' does not exist in "
-                    f"schema"
+                    f"JSON Pointer '{schema_pointer}' does not exist in " f"schema"
                 )
 
             # Validate query ID values

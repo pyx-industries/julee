@@ -100,9 +100,7 @@ def knowledge_service_factory(
     logger.debug(
         "Creating KnowledgeService via factory",
         extra={
-            "knowledge_service_id": (
-                knowledge_service_config.knowledge_service_id
-            ),
+            "knowledge_service_id": (knowledge_service_config.knowledge_service_id),
             "service_api": knowledge_service_config.service_api.value,
         },
     )
@@ -124,9 +122,7 @@ def knowledge_service_factory(
     logger.info(
         "KnowledgeService created successfully",
         extra={
-            "knowledge_service_id": (
-                knowledge_service_config.knowledge_service_id
-            ),
+            "knowledge_service_id": (knowledge_service_config.knowledge_service_id),
             "service_api": knowledge_service_config.service_api.value,
             "implementation": type(validated_service).__name__,
         },

@@ -67,8 +67,7 @@ class MemoryRepositoryMixin(Generic[T]):
         entity = self.storage_dict.get(entity_id)
         if entity is None:
             self.logger.debug(
-                f"Memory{self.entity_name}Repository: {self.entity_name} "
-                f"not found",
+                f"Memory{self.entity_name}Repository: {self.entity_name} " f"not found",
                 extra={f"{self.entity_name.lower()}_id": entity_id},
             )
             return None
@@ -85,9 +84,7 @@ class MemoryRepositoryMixin(Generic[T]):
 
         return entity
 
-    def get_many_entities(
-        self, entity_ids: List[str]
-    ) -> Dict[str, Optional[T]]:
+    def get_many_entities(self, entity_ids: List[str]) -> Dict[str, Optional[T]]:
         """Get multiple entities from memory storage with standardized
         logging.
 

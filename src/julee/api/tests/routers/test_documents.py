@@ -111,9 +111,7 @@ class TestListDocuments:
         assert "doc-2" in doc_ids
 
         # Find doc-1 and verify its details
-        doc1 = next(
-            item for item in data["items"] if item["document_id"] == "doc-1"
-        )
+        doc1 = next(item for item in data["items"] if item["document_id"] == "doc-1")
         assert doc1["original_filename"] == "test-document-1.txt"
         assert doc1["content_type"] == "text/plain"
         assert doc1["size_bytes"] == 12  # Length of "test content"
@@ -219,9 +217,7 @@ class TestGetDocument:
         data = response.json()
         assert "not found" in data["detail"].lower()
 
-    def test_get_document_metadata_invalid_id_format(
-        self, client: TestClient
-    ) -> None:
+    def test_get_document_metadata_invalid_id_format(self, client: TestClient) -> None:
         """Test document metadata retrieval with invalid ID format."""
         # Test with empty ID (should be handled by FastAPI path validation)
         response = client.get("/documents/")
@@ -256,9 +252,7 @@ class TestGetDocumentContent:
         assert response.status_code == 200
         assert response.content.decode("utf-8") == "test content"
         assert response.headers["content-type"].startswith(doc.content_type)
-        assert (
-            doc.original_filename in response.headers["content-disposition"]
-        )
+        assert doc.original_filename in response.headers["content-disposition"]
 
     @pytest.mark.asyncio
     async def test_get_document_content_not_found(

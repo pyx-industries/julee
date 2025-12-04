@@ -97,9 +97,7 @@ class MemoryKnowledgeServiceQueryRepository(
         Returns:
             List of all knowledge service queries, sorted by query_id
         """
-        self.logger.debug(
-            "MemoryKnowledgeServiceQueryRepository: Listing all queries"
-        )
+        self.logger.debug("MemoryKnowledgeServiceQueryRepository: Listing all queries")
 
         # Get all entities and sort by query_id
         entities = list(self.storage_dict.values())

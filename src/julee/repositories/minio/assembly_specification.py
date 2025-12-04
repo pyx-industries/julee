@@ -44,9 +44,7 @@ class MinioAssemblySpecificationRepository(
             client: MinioClient protocol implementation (real or fake)
         """
         self.client = client
-        self.logger = logging.getLogger(
-            "MinioAssemblySpecificationRepository"
-        )
+        self.logger = logging.getLogger("MinioAssemblySpecificationRepository")
         self.specifications_bucket = "assembly-specifications"
         self.ensure_buckets_exist(self.specifications_bucket)
 
@@ -62,21 +60,15 @@ class MinioAssemblySpecificationRepository(
             model_class=AssemblySpecification,
             not_found_log_message="Specification not found",
             error_log_message="Error retrieving specification",
-            extra_log_data={
-                "assembly_specification_id": assembly_specification_id
-            },
+            extra_log_data={"assembly_specification_id": assembly_specification_id},
         )
 
-    async def save(
-        self, assembly_specification: AssemblySpecification
-    ) -> None:
+    async def save(self, assembly_specification: AssemblySpecification) -> None:
         """Save an assembly specification to Minio."""
         # Update timestamps
         self.update_timestamps(assembly_specification)
 
-        object_name = (
-            f"spec/{assembly_specification.assembly_specification_id}"
-        )
+        object_name = f"spec/{assembly_specification.assembly_specification_id}"
 
         self.put_json_object(
             bucket_name=self.specifications_bucket,
@@ -108,9 +100,7 @@ class MinioAssemblySpecificationRepository(
             not found)
         """
         # Convert specification IDs to object names
-        object_names = [
-            f"spec/{spec_id}" for spec_id in assembly_specification_ids
-        ]
+        object_names = [f"spec/{spec_id}" for spec_id in assembly_specification_ids]
 
         # Get objects from Minio using batch method
         object_results = self.get_many_json_objects(
@@ -119,9 +109,7 @@ class MinioAssemblySpecificationRepository(
             model_class=AssemblySpecification,
             not_found_log_message="Specification not found",
             error_log_message="Error retrieving specification",
-            extra_log_data={
-                "assembly_specification_ids": assembly_specification_ids
-            },
+            extra_log_data={"assembly_specification_ids": assembly_specification_ids},
         )
 
         # Convert object names back to specification IDs for the result
@@ -158,9 +146,7 @@ class MinioAssemblySpecificationRepository(
             spec_results = await self.get_many(spec_ids)
 
             # Filter out None results and sort by assembly_specification_id
-            specs = [
-                spec for spec in spec_results.values() if spec is not None
-            ]
+            specs = [spec for spec in spec_results.values() if spec is not None]
             specs.sort(key=lambda x: x.assembly_specification_id)
 
             self.logger.debug(

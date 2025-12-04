@@ -63,9 +63,7 @@ def setup_logging() -> None:
 setup_logging()
 
 
-def resolve_dependency(
-    app: FastAPI, dependency_func: Callable[[], Any]
-) -> Any:
+def resolve_dependency(app: FastAPI, dependency_func: Callable[[], Any]) -> Any:
     """Resolve a dependency, respecting test overrides."""
     override = app.dependency_overrides.get(dependency_func)
     return override() if override else dependency_func()
@@ -79,16 +77,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     try:
         # Check if we're in test mode by looking for repository overrides
-        if (
-            get_knowledge_service_config_repository
-            in app.dependency_overrides
-        ):
+        if get_knowledge_service_config_repository in app.dependency_overrides:
             logger.info("Test mode detected, skipping system initialization")
         else:
             # Normal production initialization
-            startup_deps = await resolve_dependency(
-                app, get_startup_dependencies
-            )
+            startup_deps = await resolve_dependency(app, get_startup_dependencies)
             service = await startup_deps.get_system_initialization_service()
 
             # Execute initialization

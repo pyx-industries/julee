@@ -72,9 +72,7 @@ class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):
             },
         )
 
-    async def get_many(
-        self, policy_ids: List[str]
-    ) -> Dict[str, Optional[Policy]]:
+    async def get_many(self, policy_ids: List[str]) -> Dict[str, Optional[Policy]]:
         """Retrieve multiple policies by ID.
 
         Args:

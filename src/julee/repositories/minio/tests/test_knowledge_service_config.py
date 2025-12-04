@@ -57,9 +57,7 @@ class TestMinioKnowledgeServiceConfigRepositoryBasicOperations:
     ) -> None:
         """Test saving and retrieving a knowledge service configuration."""
         # Save knowledge service config
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Retrieve knowledge service config
         retrieved = await knowledge_service_config_repo.get(
@@ -72,14 +70,8 @@ class TestMinioKnowledgeServiceConfigRepositoryBasicOperations:
             == sample_knowledge_service_config.knowledge_service_id
         )
         assert retrieved.name == sample_knowledge_service_config.name
-        assert (
-            retrieved.description
-            == sample_knowledge_service_config.description
-        )
-        assert (
-            retrieved.service_api
-            == sample_knowledge_service_config.service_api
-        )
+        assert retrieved.description == sample_knowledge_service_config.description
+        assert retrieved.service_api == sample_knowledge_service_config.service_api
         assert retrieved.created_at is not None
         assert retrieved.updated_at is not None
 
@@ -90,9 +82,7 @@ class TestMinioKnowledgeServiceConfigRepositoryBasicOperations:
     ) -> None:
         """Test retrieving a non-existent knowledge service config returns
         None."""
-        result = await knowledge_service_config_repo.get(
-            "nonexistent-ks-config"
-        )
+        result = await knowledge_service_config_repo.get("nonexistent-ks-config")
         assert result is None
 
     @pytest.mark.asyncio
@@ -124,18 +114,14 @@ class TestMinioKnowledgeServiceConfigRepositoryUpdates:
     ) -> None:
         """Test updating a knowledge service configuration."""
         # Save initial config
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Update the config
         sample_knowledge_service_config.name = "Updated Test Service"
         sample_knowledge_service_config.description = (
             "Updated description for the test service"
         )
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Verify update
         retrieved = await knowledge_service_config_repo.get(
@@ -143,14 +129,8 @@ class TestMinioKnowledgeServiceConfigRepositoryUpdates:
         )
         assert retrieved is not None
         assert retrieved.name == "Updated Test Service"
-        assert (
-            retrieved.description
-            == "Updated description for the test service"
-        )
-        assert (
-            retrieved.service_api
-            == sample_knowledge_service_config.service_api
-        )
+        assert retrieved.description == "Updated description for the test service"
+        assert retrieved.service_api == sample_knowledge_service_config.service_api
 
     @pytest.mark.asyncio
     async def test_save_updates_timestamp(
@@ -162,9 +142,7 @@ class TestMinioKnowledgeServiceConfigRepositoryUpdates:
         original_updated_at = sample_knowledge_service_config.updated_at
 
         # Save config
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Retrieve and check timestamp was updated
         retrieved = await knowledge_service_config_repo.get(
@@ -212,9 +190,7 @@ class TestMinioKnowledgeServiceConfigRepositoryIdempotency:
     ) -> None:
         """Test that saving the same config multiple times is idempotent."""
         # Save config first time
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Get the config to check initial state
         retrieved1 = await knowledge_service_config_repo.get(
@@ -225,9 +201,7 @@ class TestMinioKnowledgeServiceConfigRepositoryIdempotency:
 
         # Save same config again (should update timestamp but maintain other
         # data)
-        await knowledge_service_config_repo.save(
-            sample_knowledge_service_config
-        )
+        await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Verify config is still there with updated timestamp
         retrieved2 = await knowledge_service_config_repo.get(
@@ -239,14 +213,8 @@ class TestMinioKnowledgeServiceConfigRepositoryIdempotency:
             == sample_knowledge_service_config.knowledge_service_id
         )
         assert retrieved2.name == sample_knowledge_service_config.name
-        assert (
-            retrieved2.description
-            == sample_knowledge_service_config.description
-        )
-        assert (
-            retrieved2.service_api
-            == sample_knowledge_service_config.service_api
-        )
+        assert retrieved2.description == sample_knowledge_service_config.description
+        assert retrieved2.service_api == sample_knowledge_service_config.service_api
         assert retrieved2.updated_at is not None
         assert first_updated_at is not None
         assert retrieved2.updated_at > first_updated_at
@@ -269,9 +237,7 @@ class TestMinioKnowledgeServiceConfigRepositoryServiceApiTypes:
         )
 
         await knowledge_service_config_repo.save(config)
-        retrieved = await knowledge_service_config_repo.get(
-            "ks-anthropic-test"
-        )
+        retrieved = await knowledge_service_config_repo.get("ks-anthropic-test")
 
         assert retrieved is not None
         assert retrieved.service_api == ServiceApi.ANTHROPIC
@@ -314,10 +280,7 @@ class TestMinioKnowledgeServiceConfigRepositoryRoundtrip:
         final_config = await knowledge_service_config_repo.get(config_id)
         assert final_config is not None
         assert final_config.name == "Updated Lifecycle Service"
-        assert (
-            final_config.description
-            == "Updated description after lifecycle test"
-        )
+        assert final_config.description == "Updated description after lifecycle test"
         assert final_config.service_api == ServiceApi.ANTHROPIC
         assert final_config.created_at is not None
         assert final_config.updated_at is not None
@@ -365,19 +328,13 @@ class TestMinioKnowledgeServiceConfigRepositoryRoundtrip:
         config1.name = "Updated Service One"
         await knowledge_service_config_repo.save(config1)
 
-        retrieved1_updated = await knowledge_service_config_repo.get(
-            "ks-test-1"
-        )
-        retrieved2_unchanged = await knowledge_service_config_repo.get(
-            "ks-test-2"
-        )
+        retrieved1_updated = await knowledge_service_config_repo.get("ks-test-1")
+        retrieved2_unchanged = await knowledge_service_config_repo.get("ks-test-2")
 
         assert retrieved1_updated is not None
         assert retrieved2_unchanged is not None
         assert retrieved1_updated.name == "Updated Service One"
-        assert (
-            retrieved2_unchanged.name == "Service Two"
-        )  # Should be unchanged
+        assert retrieved2_unchanged.name == "Service Two"  # Should be unchanged
 
 
 class TestMinioKnowledgeServiceConfigRepositoryEdgeCases:

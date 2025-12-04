@@ -24,8 +24,7 @@ class ContentStream:
     def __init__(self, stream: io.IOBase):
         if not isinstance(stream, io.IOBase):
             raise ValueError(
-                "ContentStream requires an io.IOBase instance, "
-                + f"got {type(stream)}"
+                "ContentStream requires an io.IOBase instance, " + f"got {type(stream)}"
             )
         self._stream = stream
 
@@ -66,6 +65,4 @@ class ContentStream:
             return value
         if isinstance(value, io.IOBase):
             return cls(value)
-        raise ValueError(
-            f"ContentStream expects io.IOBase, got {type(value)}"
-        )
+        raise ValueError(f"ContentStream expects io.IOBase, got {type(value)}")

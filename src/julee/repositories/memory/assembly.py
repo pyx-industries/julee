@@ -21,9 +21,7 @@ from .base import MemoryRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class MemoryAssemblyRepository(
-    AssemblyRepository, MemoryRepositoryMixin[Assembly]
-):
+class MemoryAssemblyRepository(AssemblyRepository, MemoryRepositoryMixin[Assembly]):
     """
     Memory implementation of AssemblyRepository using Python dictionaries.
 
@@ -67,9 +65,7 @@ class MemoryAssemblyRepository(
         """
         return self.generate_entity_id("assembly")
 
-    async def get_many(
-        self, assembly_ids: List[str]
-    ) -> Dict[str, Optional[Assembly]]:
+    async def get_many(self, assembly_ids: List[str]) -> Dict[str, Optional[Assembly]]:
         """Retrieve multiple assemblies by ID.
 
         Args:

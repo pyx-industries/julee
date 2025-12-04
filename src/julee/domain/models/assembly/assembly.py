@@ -39,9 +39,7 @@ class Assembly(BaseModel):
     """
 
     # Core assembly identification
-    assembly_id: str = Field(
-        description="Unique identifier for this assembly instance"
-    )
+    assembly_id: str = Field(description="Unique identifier for this assembly instance")
     assembly_specification_id: str = Field(
         description="ID of the AssemblySpecification defining how to assemble"
     )

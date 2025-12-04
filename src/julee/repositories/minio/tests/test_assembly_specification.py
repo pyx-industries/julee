@@ -226,9 +226,7 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
                 "required": ["test_field"],
             },
             status=AssemblySpecificationStatus.DRAFT,
-            knowledge_service_queries={
-                "/properties/test_field": "test-query"
-            },
+            knowledge_service_queries={"/properties/test_field": "test-query"},
             version="0.1.0",
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
@@ -325,12 +323,8 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
 
         complex_queries = {
             "/properties/metadata/properties/title": "extract-title",
-            "/properties/metadata/properties/participants": (
-                "extract-participants"
-            ),
-            "/properties/content/properties/action_items": (
-                "extract-action-items"
-            ),
+            "/properties/metadata/properties/participants": ("extract-participants"),
+            "/properties/content/properties/action_items": ("extract-action-items"),
             "/properties/content/properties/summary": "extract-summary",
         }
 

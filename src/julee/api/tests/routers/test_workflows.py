@@ -31,9 +31,7 @@ def app_with_router(mock_temporal_client: MagicMock) -> FastAPI:
     app = FastAPI()
 
     # Override the dependency with our mock temporal client
-    app.dependency_overrides[get_temporal_client] = (
-        lambda: mock_temporal_client
-    )
+    app.dependency_overrides[get_temporal_client] = lambda: mock_temporal_client
 
     # Add pagination support (required for potential future endpoints)
     add_pagination(app)
@@ -71,9 +69,7 @@ class TestStartExtractAssembleWorkflow:
             "document_id": "doc-123",
             "assembly_specification_id": "spec-456",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         # Assertions
         assert response.status_code == 200
@@ -110,9 +106,7 @@ class TestStartExtractAssembleWorkflow:
             "assembly_specification_id": "spec-101",
             "workflow_id": "my-custom-workflow-id",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         # Assertions
         assert response.status_code == 200
@@ -127,16 +121,12 @@ class TestStartExtractAssembleWorkflow:
         call_args = mock_temporal_client.start_workflow.call_args
         assert call_args[1]["id"] == "my-custom-workflow-id"
 
-    def test_start_workflow_missing_document_id(
-        self, client: TestClient
-    ) -> None:
+    def test_start_workflow_missing_document_id(self, client: TestClient) -> None:
         """Test workflow start with missing document_id."""
         request_data = {
             "assembly_specification_id": "spec-456",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         assert response.status_code == 422  # Validation error
         data = response.json()
@@ -149,9 +139,7 @@ class TestStartExtractAssembleWorkflow:
         request_data = {
             "document_id": "doc-123",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         assert response.status_code == 422  # Validation error
         data = response.json()
@@ -172,9 +160,7 @@ class TestStartExtractAssembleWorkflow:
             "document_id": "",
             "assembly_specification_id": "",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         assert response.status_code == 422  # Validation error
 
@@ -194,9 +180,7 @@ class TestStartExtractAssembleWorkflow:
             "document_id": "doc-123",
             "assembly_specification_id": "spec-456",
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         # Assertions
         assert response.status_code == 500
@@ -296,9 +280,7 @@ class TestGetWorkflowStatus:
         mock_description.status.name = "RUNNING"
 
         mock_handle.describe = AsyncMock(return_value=mock_description)
-        mock_handle.query = AsyncMock(
-            side_effect=Exception("Query not supported")
-        )
+        mock_handle.query = AsyncMock(side_effect=Exception("Query not supported"))
 
         mock_temporal_client.get_workflow_handle.return_value = mock_handle
 
@@ -360,9 +342,7 @@ class TestGetWorkflowStatus:
         """Test workflow status when describe fails."""
         # Setup mocks
         mock_handle = MagicMock()
-        mock_handle.describe = AsyncMock(
-            side_effect=Exception("Describe failed")
-        )
+        mock_handle.describe = AsyncMock(side_effect=Exception("Describe failed"))
         mock_temporal_client.get_workflow_handle.return_value = mock_handle
 
         # Make request
@@ -405,9 +385,7 @@ class TestWorkflowValidation:
             "extra_field": "should_be_ignored",
             "another_extra": 42,
         }
-        response = client.post(
-            "/workflows/extract-assemble", json=request_data
-        )
+        response = client.post("/workflows/extract-assemble", json=request_data)
 
         # Should succeed and ignore extra fields
         assert response.status_code == 200

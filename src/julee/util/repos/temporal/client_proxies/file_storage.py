@@ -27,9 +27,7 @@ class TemporalFileStorageRepository(FileStorageRepository):
 
     async def upload_file(self, args: FileUploadArgs) -> FileMetadata:
         """Upload a file via Temporal activity."""
-        logger.debug(
-            f"Client calling activity to upload file: {args.file_id}"
-        )
+        logger.debug(f"Client calling activity to upload file: {args.file_id}")
 
         handle = await self.client.start_workflow(
             "util.file_storage.minio.upload_file",
@@ -57,9 +55,7 @@ class TemporalFileStorageRepository(FileStorageRepository):
 
     async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
         """Retrieve file metadata via Temporal activity."""
-        logger.debug(
-            f"Client calling activity to get file metadata: {file_id}"
-        )
+        logger.debug(f"Client calling activity to get file metadata: {file_id}")
 
         handle = await self.client.start_workflow(
             "util.file_storage.minio.get_file_metadata",

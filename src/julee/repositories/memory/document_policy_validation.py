@@ -45,9 +45,7 @@ class MemoryDocumentPolicyValidationRepository(
 
         logger.debug("Initializing MemoryDocumentPolicyValidationRepository")
 
-    async def get(
-        self, validation_id: str
-    ) -> Optional[DocumentPolicyValidation]:
+    async def get(self, validation_id: str) -> Optional[DocumentPolicyValidation]:
         """Retrieve a document policy validation by ID.
 
         Args:

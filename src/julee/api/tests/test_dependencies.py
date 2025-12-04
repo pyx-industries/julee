@@ -58,9 +58,7 @@ class TestStartupDependenciesProvider:
         mock_container.get_minio_client.return_value = mock_minio_client
 
         # Get repository
-        repo = (
-            await startup_provider.get_knowledge_service_config_repository()
-        )
+        repo = await startup_provider.get_knowledge_service_config_repository()
 
         # Verify container was called
         mock_container.get_minio_client.assert_called_once()
@@ -130,9 +128,7 @@ class TestStartupDependenciesProvider:
     ) -> None:
         """Test that container errors are properly propagated."""
         # Setup mock to raise error
-        mock_container.get_minio_client.side_effect = Exception(
-            "Container error"
-        )
+        mock_container.get_minio_client.side_effect = Exception("Container error")
 
         # Verify error is propagated
         with pytest.raises(Exception, match="Container error"):
@@ -202,12 +198,8 @@ class TestStartupDependenciesProviderEdgeCases:
         mock_container.get_minio_client.return_value = mock_minio_client
 
         # Get repository multiple times
-        repo1 = (
-            await startup_provider.get_knowledge_service_config_repository()
-        )
-        repo2 = (
-            await startup_provider.get_knowledge_service_config_repository()
-        )
+        repo1 = await startup_provider.get_knowledge_service_config_repository()
+        repo2 = await startup_provider.get_knowledge_service_config_repository()
 
         # Each call should create a new repository instance
         assert repo1 is not None
@@ -230,9 +222,7 @@ class TestStartupDependenciesProviderEdgeCases:
         mock_container.get_minio_client.return_value = mock_minio_client
 
         # Get repository first
-        repo = (
-            await startup_provider.get_knowledge_service_config_repository()
-        )
+        repo = await startup_provider.get_knowledge_service_config_repository()
 
         # Then get service
         service = await startup_provider.get_system_initialization_service()

@@ -95,9 +95,7 @@ class TestValidateDocumentUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         policy_repo: MemoryPolicyRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
         knowledge_service: MemoryKnowledgeService,
     ) -> ValidateDocumentUseCase:
         """Create ValidateDocumentUseCase with memory repository
@@ -118,9 +116,7 @@ class TestValidateDocumentUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         policy_repo: MemoryPolicyRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
         memory_service: MemoryKnowledgeService,
     ) -> ValidateDocumentUseCase:
         """Helper to create ValidateDocumentUseCase with configured memory
@@ -186,9 +182,7 @@ class TestValidateDocumentUseCase:
     async def test_validate_document_propagates_id_generation_error(
         self,
         use_case: ValidateDocumentUseCase,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test that ID generation errors are properly propagated."""
         # Arrange
@@ -256,9 +250,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test that validation fails when score cannot be parsed."""
         # Arrange - Create test document
@@ -316,9 +308,7 @@ class TestValidateDocumentUseCase:
             QueryResult(
                 query_id="result-1",
                 query_text="Rate the quality of this document",
-                result_data={
-                    "response": "not a number"
-                },  # Invalid score format
+                result_data={"response": "not a number"},  # Invalid score format
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
             )
@@ -351,9 +341,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test complete validation workflow that passes validation."""
         # Arrange - Create test document
@@ -428,9 +416,7 @@ class TestValidateDocumentUseCase:
                     query_id="result-1",
                     query_text="Rate the quality of this document on a "
                     "scale of 0-100",
-                    result_data={
-                        "response": "85"
-                    },  # Passes requirement of 80
+                    result_data={"response": "85"},  # Passes requirement of 80
                     execution_time_ms=100,
                     created_at=datetime.now(timezone.utc),
                 ),
@@ -438,9 +424,7 @@ class TestValidateDocumentUseCase:
                     query_id="result-2",
                     query_text="Rate the clarity of this document on a "
                     "scale of 0-100",
-                    result_data={
-                        "response": "75"
-                    },  # Passes requirement of 70
+                    result_data={"response": "75"},  # Passes requirement of 70
                     execution_time_ms=150,
                     created_at=datetime.now(timezone.utc),
                 ),
@@ -478,9 +462,7 @@ class TestValidateDocumentUseCase:
             result.validation_id
         )
         assert saved_validation is not None
-        assert (
-            saved_validation.status == DocumentPolicyValidationStatus.PASSED
-        )
+        assert saved_validation.status == DocumentPolicyValidationStatus.PASSED
         assert saved_validation.passed is True
 
     @pytest.mark.asyncio
@@ -491,9 +473,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test complete validation workflow that fails validation."""
         # Arrange - Create test document
@@ -550,8 +530,7 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="result-1",
-                query_text="Rate the quality of this document on a "
-                "scale of 0-100",
+                query_text="Rate the quality of this document on a " "scale of 0-100",
                 result_data={"response": "60"},  # Fails requirement of 90
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
@@ -581,9 +560,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test validation with transformation that results in passing."""
         # Arrange - Create test document
@@ -653,8 +630,7 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="initial-validation",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
+                query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "60"},  # Initial score fails
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
@@ -680,8 +656,7 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="post-transform-validation",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
+                query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "85"},  # Post-transform score passes
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
@@ -707,9 +682,7 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.PASSED
         assert result.passed is True
-        assert result.validation_scores == [
-            ("quality-query", 60)
-        ]  # Initial scores
+        assert result.validation_scores == [("quality-query", 60)]  # Initial scores
         assert result.post_transform_validation_scores == [
             ("quality-query", 85)
         ]  # Final scores
@@ -717,13 +690,9 @@ class TestValidateDocumentUseCase:
         assert result.completed_at is not None
 
         # Verify transformed document was created and saved
-        transformed_document = await document_repo.get(
-            result.transformed_document_id
-        )
+        transformed_document = await document_repo.get(result.transformed_document_id)
         assert transformed_document is not None
-        assert transformed_document.original_filename.startswith(
-            "transformed_"
-        )
+        assert transformed_document.original_filename.startswith("transformed_")
         assert transformed_document.content_type == "text/plain"
 
         # Verify validation was saved to repository
@@ -731,9 +700,7 @@ class TestValidateDocumentUseCase:
             result.validation_id
         )
         assert saved_validation is not None
-        assert (
-            saved_validation.status == DocumentPolicyValidationStatus.PASSED
-        )
+        assert saved_validation.status == DocumentPolicyValidationStatus.PASSED
         assert saved_validation.transformed_document_id is not None
 
     @pytest.mark.asyncio
@@ -744,9 +711,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test validation with transformation that still fails after
         transformation."""
@@ -770,12 +735,9 @@ class TestValidateDocumentUseCase:
         policy = Policy(
             policy_id="policy-transform-2",
             title="High Standards Transform Policy",
-            description="Policy with very high standards even after "
-            "transformation",
+            description="Policy with very high standards even after " "transformation",
             status=PolicyStatus.ACTIVE,
-            validation_scores=[
-                ("quality-query", 95)
-            ],  # Very high requirement
+            validation_scores=[("quality-query", 95)],  # Very high requirement
             transformation_queries=["improvement-query"],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
@@ -820,8 +782,7 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="initial-validation",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
+                query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "40"},  # Initial score fails
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
@@ -846,11 +807,8 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="post-transform-validation",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
-                result_data={
-                    "response": "70"
-                },  # Still fails requirement of 95
+                query_text="Rate the quality of this document on a scale " "of 0-100",
+                result_data={"response": "70"},  # Still fails requirement of 95
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
             )
@@ -875,9 +833,7 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.FAILED
         assert result.passed is False
-        assert result.validation_scores == [
-            ("quality-query", 40)
-        ]  # Initial scores
+        assert result.validation_scores == [("quality-query", 40)]  # Initial scores
         assert result.post_transform_validation_scores == [
             ("quality-query", 70)
         ]  # Final scores still fail
@@ -892,9 +848,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test that transformation is skipped when initial validation
         passes."""
@@ -921,9 +875,7 @@ class TestValidateDocumentUseCase:
             description="Policy with transformation that won't be used",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
-            transformation_queries=[
-                "improvement-query"
-            ],  # Available but unused
+            transformation_queries=["improvement-query"],  # Available but unused
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -966,8 +918,7 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="validation-only",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
+                query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "90"},  # Passes initial validation
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
@@ -994,9 +945,7 @@ class TestValidateDocumentUseCase:
         assert result.status == DocumentPolicyValidationStatus.PASSED
         assert result.passed is True
         assert result.validation_scores == [("quality-query", 90)]
-        assert (
-            result.post_transform_validation_scores is None
-        )  # No transformation
+        assert result.post_transform_validation_scores is None  # No transformation
         assert result.transformed_document_id is None  # No transformation
         assert result.completed_at is not None
 
@@ -1008,9 +957,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test that transformation fails when result is not valid JSON."""
         # Arrange - Create test document
@@ -1033,8 +980,7 @@ class TestValidateDocumentUseCase:
         policy = Policy(
             policy_id="policy-invalid-json",
             title="Invalid JSON Transform Policy",
-            description="Policy that will get invalid JSON from "
-            "transformation",
+            description="Policy that will get invalid JSON from " "transformation",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
             transformation_queries=["bad-transform-query"],
@@ -1081,11 +1027,8 @@ class TestValidateDocumentUseCase:
         memory_service.add_canned_query_result(
             QueryResult(
                 query_id="initial-validation",
-                query_text="Rate the quality of this document on a scale "
-                "of 0-100",
-                result_data={
-                    "response": "50"
-                },  # Fails, triggers transformation
+                query_text="Rate the quality of this document on a scale " "of 0-100",
+                result_data={"response": "50"},  # Fails, triggers transformation
                 execution_time_ms=100,
                 created_at=datetime.now(timezone.utc),
             )
@@ -1186,9 +1129,7 @@ class TestValidateDocumentUseCase:
         # Note: NOT saving the transformation query
 
         # Act & Assert
-        with pytest.raises(
-            ValueError, match="Transformation query not found"
-        ):
+        with pytest.raises(ValueError, match="Transformation query not found"):
             await use_case.validate_document(
                 document_id="doc-missing-query",
                 policy_id="policy-missing-query",
@@ -1202,9 +1143,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
-        document_policy_validation_repo: (
-            MemoryDocumentPolicyValidationRepository
-        ),
+        document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
     ) -> None:
         """Test that validation fails when domain model rejects out-of-range
         scores."""

@@ -61,9 +61,7 @@ class KnowledgeServiceQuery(BaseModel):
 
     # Core query identification
     query_id: str = Field(description="Unique identifier for this query")
-    name: str = Field(
-        description="Human-readable name describing the query purpose"
-    )
+    name: str = Field(description="Human-readable name describing the query purpose")
 
     # Knowledge service configuration
     knowledge_service_id: str = Field(

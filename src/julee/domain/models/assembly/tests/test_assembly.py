@@ -70,8 +70,7 @@ class TestAssemblyInstantiation:
             )
             assert assembly.assembly_id == assembly_id.strip()
             assert (
-                assembly.assembly_specification_id
-                == assembly_specification_id.strip()
+                assembly.assembly_specification_id == assembly_specification_id.strip()
             )
             assert assembly.input_document_id == input_document_id.strip()
             assert assembly.status == AssemblyStatus.PENDING  # Default
@@ -80,9 +79,7 @@ class TestAssemblyInstantiation:
             assert assembly.updated_at is not None
         else:
             # Should raise validation error
-            with pytest.raises(
-                Exception
-            ):  # Could be ValueError or ValidationError
+            with pytest.raises(Exception):  # Could be ValueError or ValidationError
                 Assembly(
                     assembly_id=assembly_id,
                     assembly_specification_id=assembly_specification_id,
@@ -110,18 +107,14 @@ class TestAssemblySerialization:
         # All fields should be present in JSON
         assert json_data["assembly_id"] == assembly.assembly_id
         assert (
-            json_data["assembly_specification_id"]
-            == assembly.assembly_specification_id
+            json_data["assembly_specification_id"] == assembly.assembly_specification_id
         )
         assert json_data["input_document_id"] == assembly.input_document_id
         assert json_data["workflow_id"] == assembly.workflow_id
         assert json_data["status"] == assembly.status.value
         assert "created_at" in json_data
         assert "updated_at" in json_data
-        assert (
-            json_data["assembled_document_id"]
-            == assembly.assembled_document_id
-        )
+        assert json_data["assembled_document_id"] == assembly.assembled_document_id
 
     def test_assembly_json_roundtrip(self) -> None:
         """Test that Assembly can be serialized to JSON and deserialized
@@ -138,10 +131,7 @@ class TestAssemblySerialization:
         reconstructed_assembly = Assembly(**json_data)
 
         # Should be equivalent
-        assert (
-            reconstructed_assembly.assembly_id
-            == original_assembly.assembly_id
-        )
+        assert reconstructed_assembly.assembly_id == original_assembly.assembly_id
         assert (
             reconstructed_assembly.assembly_specification_id
             == original_assembly.assembly_specification_id
@@ -150,10 +140,7 @@ class TestAssemblySerialization:
             reconstructed_assembly.input_document_id
             == original_assembly.input_document_id
         )
-        assert (
-            reconstructed_assembly.workflow_id
-            == original_assembly.workflow_id
-        )
+        assert reconstructed_assembly.workflow_id == original_assembly.workflow_id
         assert reconstructed_assembly.status == original_assembly.status
         assert (
             reconstructed_assembly.assembled_document_id
@@ -185,12 +172,8 @@ class TestAssemblyDefaults:
 
     def test_assembly_custom_values(self) -> None:
         """Test Assembly with custom non-default values."""
-        custom_created_at = datetime(
-            2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc
-        )
-        custom_updated_at = datetime(
-            2023, 1, 2, 12, 0, 0, tzinfo=timezone.utc
-        )
+        custom_created_at = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        custom_updated_at = datetime(2023, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
 
         custom_assembly = Assembly(
             assembly_id="custom-id",
@@ -336,9 +319,7 @@ class TestAssemblyDocumentManagement:
 
     def test_valid_assembled_document_id(self) -> None:
         """Test Assembly with valid assembled document ID."""
-        assembly = AssemblyFactory.build(
-            assembled_document_id="output-doc-123"
-        )
+        assembly = AssemblyFactory.build(assembled_document_id="output-doc-123")
         assert assembly.assembled_document_id == "output-doc-123"
 
     def test_assembled_document_id_validation(self) -> None:

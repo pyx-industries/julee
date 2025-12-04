@@ -39,9 +39,7 @@ class KnowledgeServiceConfig(BaseModel):
     knowledge_service_id: str = Field(
         description="Unique identifier for this knowledge service"
     )
-    name: str = Field(
-        description="Human-readable name for the knowledge service"
-    )
+    name: str = Field(description="Human-readable name for the knowledge service")
     description: str = Field(
         description="Description of what this knowledge service does"
     )

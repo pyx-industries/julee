@@ -78,9 +78,7 @@ class MinioClient(Protocol):
         data: BinaryIO,
         length: int,
         content_type: str = "application/octet-stream",
-        metadata: Optional[
-            Dict[str, Union[str, List[str], tuple[str]]]
-        ] = None,
+        metadata: Optional[Dict[str, Union[str, List[str], tuple[str]]]] = None,
     ) -> ObjectWriteResult:
         """Store an object in the bucket.
 
@@ -100,9 +98,7 @@ class MinioClient(Protocol):
         """
         ...
 
-    def get_object(
-        self, bucket_name: str, object_name: str
-    ) -> BaseHTTPResponse:
+    def get_object(self, bucket_name: str, object_name: str) -> BaseHTTPResponse:
         """Retrieve an object from the bucket.
 
         Args:
@@ -171,9 +167,7 @@ class MinioRepositoryMixin:
     client: MinioClient
     logger: Any  # logging.Logger, but avoiding import
 
-    def ensure_buckets_exist(
-        self, bucket_names: Union[str, List[str]]
-    ) -> None:
+    def ensure_buckets_exist(self, bucket_names: Union[str, List[str]]) -> None:
         """Ensure one or more buckets exist, creating them if necessary.
 
         Args:
@@ -499,10 +493,7 @@ class MinioRepositoryMixin:
         now = datetime.now(timezone.utc)
 
         # Set created_at if it's None (for new objects)
-        if (
-            hasattr(model, "created_at")
-            and getattr(model, "created_at", None) is None
-        ):
+        if hasattr(model, "created_at") and getattr(model, "created_at", None) is None:
             setattr(model, "created_at", now)
 
         # Always update updated_at
@@ -562,9 +553,7 @@ class MinioRepositoryMixin:
         )
 
         # List all objects with the specified prefix
-        objects = self.client.list_objects(
-            bucket_name=bucket_name, prefix=prefix
-        )
+        objects = self.client.list_objects(bucket_name=bucket_name, prefix=prefix)
 
         # Extract IDs from object names by removing the prefix
         entity_ids = []

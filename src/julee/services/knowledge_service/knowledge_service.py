@@ -34,12 +34,8 @@ from julee.domain.models.document import Document
 class QueryResult(BaseModel):
     """Result of a knowledge service query execution."""
 
-    query_id: str = Field(
-        description="Unique identifier for this query execution"
-    )
-    query_text: str = Field(
-        description="The original query text that was executed"
-    )
+    query_id: str = Field(description="Unique identifier for this query execution")
+    query_text: str = Field(description="The original query text that was executed")
     result_data: Dict[str, Any] = Field(
         default_factory=dict,
         description="The structured result data from the query",
@@ -56,9 +52,7 @@ class QueryResult(BaseModel):
 class FileRegistrationResult(BaseModel):
     """Result of registering a file with a knowledge service."""
 
-    document_id: str = Field(
-        description="The original document ID from our system"
-    )
+    document_id: str = Field(description="The original document ID from our system")
     knowledge_service_file_id: str = Field(
         description="The file identifier assigned by the knowledge service"
     )

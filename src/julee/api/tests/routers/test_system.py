@@ -34,12 +34,8 @@ def client(
 ) -> Generator[TestClient, None, None]:
     """Create a test client with the system router app."""
     with (
-        patch(
-            "julee.api.routers.system.check_temporal_health"
-        ) as mock_temporal,
-        patch(
-            "julee.api.routers.system.check_storage_health"
-        ) as mock_storage,
+        patch("julee.api.routers.system.check_temporal_health") as mock_temporal,
+        patch("julee.api.routers.system.check_storage_health") as mock_storage,
     ):
         # Mock health checks to return UP status
         mock_temporal.return_value = ServiceStatus.UP
@@ -62,9 +58,7 @@ class TestHealthEndpoint:
         assert "timestamp" in data
         assert "services" in data
 
-    def test_health_check_response_structure(
-        self, client: TestClient
-    ) -> None:
+    def test_health_check_response_structure(self, client: TestClient) -> None:
         """Test that health check response has correct structure."""
         response = client.get("/health")
 
@@ -110,9 +104,7 @@ class TestHealthEndpoint:
             )
             assert parsed_timestamp is not None
         except ValueError:
-            pytest.fail(
-                f"Timestamp '{timestamp_str}' is not in valid ISO format"
-            )
+            pytest.fail(f"Timestamp '{timestamp_str}' is not in valid ISO format")
 
     def test_health_check_services_status(self, client: TestClient) -> None:
         """Test that health check includes all service statuses."""
@@ -129,9 +121,7 @@ class TestHealthEndpoint:
         assert services["temporal"] in ["up", "down"]
         assert services["storage"] in ["up", "down"]
 
-    def test_health_check_overall_status_logic(
-        self, client: TestClient
-    ) -> None:
+    def test_health_check_overall_status_logic(self, client: TestClient) -> None:
         """Test that overall status reflects service health correctly."""
         response = client.get("/health")
         assert response.status_code == 200
@@ -152,9 +142,7 @@ class TestHealthEndpoint:
         else:
             assert overall_status == "unhealthy"
 
-    def test_health_check_multiple_calls_consistent(
-        self, client: TestClient
-    ) -> None:
+    def test_health_check_multiple_calls_consistent(self, client: TestClient) -> None:
         """Test multiple health check calls return consistent structure."""
         # Make multiple calls
         responses = [client.get("/health") for _ in range(3)]

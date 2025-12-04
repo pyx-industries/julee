@@ -105,10 +105,7 @@ class TestMinioKnowledgeServiceQueryRepositoryBasicOperations:
         assert retrieved is not None
         assert retrieved.query_id == sample_query.query_id
         assert retrieved.name == sample_query.name
-        assert (
-            retrieved.knowledge_service_id
-            == sample_query.knowledge_service_id
-        )
+        assert retrieved.knowledge_service_id == sample_query.knowledge_service_id
         assert retrieved.prompt == sample_query.prompt
         assert retrieved.assistant_prompt == sample_query.assistant_prompt
         assert retrieved.query_metadata == sample_query.query_metadata
@@ -436,8 +433,6 @@ class TestMinioKnowledgeServiceQueryRepositoryFullWorkflow:
 
         updated_queries = await query_repo.list_all()
         modified_query = next(
-            q
-            for q in updated_queries
-            if q.query_id == sample_queries[1].query_id
+            q for q in updated_queries if q.query_id == sample_queries[1].query_id
         )
         assert modified_query.name == "Modified Query"

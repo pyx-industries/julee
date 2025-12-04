@@ -88,9 +88,7 @@ async def get_temporal_client_with_retries(
                 extra={
                     "endpoint": endpoint,
                     "attempt": attempt + 1,
-                    "data_converter_type": type(
-                        client.data_converter
-                    ).__name__,
+                    "data_converter_type": type(client.data_converter).__name__,
                 },
             )
             return client
@@ -147,20 +145,16 @@ async def run_worker() -> None:
 
     # Instantiate temporal repository classes for activity registration
     logger.debug("Creating Temporal Activity repository implementations")
-    temporal_assembly_repo = TemporalMinioAssemblyRepository(
+    temporal_assembly_repo = TemporalMinioAssemblyRepository(client=minio_client)
+    temporal_assembly_spec_repo = TemporalMinioAssemblySpecificationRepository(
         client=minio_client
     )
-    temporal_assembly_spec_repo = (
-        TemporalMinioAssemblySpecificationRepository(client=minio_client)
-    )
-    temporal_document_repo = TemporalMinioDocumentRepository(
+    temporal_document_repo = TemporalMinioDocumentRepository(client=minio_client)
+    temporal_knowledge_config_repo = TemporalMinioKnowledgeServiceConfigRepository(
         client=minio_client
     )
-    temporal_knowledge_config_repo = (
-        TemporalMinioKnowledgeServiceConfigRepository(client=minio_client)
-    )
-    temporal_knowledge_query_repo = (
-        TemporalMinioKnowledgeServiceQueryRepository(client=minio_client)
+    temporal_knowledge_query_repo = TemporalMinioKnowledgeServiceQueryRepository(
+        client=minio_client
     )
 
     # Create policy repositories for validation workflow

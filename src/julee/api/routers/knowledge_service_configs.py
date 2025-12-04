@@ -75,6 +75,5 @@ async def get_knowledge_service_configs(
         )
         raise HTTPException(
             status_code=500,
-            detail="Failed to retrieve configurations due to an "
-            "internal error.",
+            detail="Failed to retrieve configurations due to an " "internal error.",
         )

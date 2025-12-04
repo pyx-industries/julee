@@ -26,9 +26,7 @@ from .base import MemoryRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class MemoryDocumentRepository(
-    DocumentRepository, MemoryRepositoryMixin[Document]
-):
+class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Document]):
     """
     Memory implementation of DocumentRepository using Python dictionaries.
 
@@ -100,9 +98,7 @@ class MemoryDocumentRepository(
 
         # Create a copy without content_string (content saved
         # in separate content-addressable storage)
-        document_for_storage = document.model_copy(
-            update={"content_string": None}
-        )
+        document_for_storage = document.model_copy(update={"content_string": None})
         self.save_entity(document_for_storage, "document_id")
 
     async def generate_id(self) -> str:
@@ -113,9 +109,7 @@ class MemoryDocumentRepository(
         """
         return self.generate_entity_id("doc")
 
-    async def get_many(
-        self, document_ids: List[str]
-    ) -> Dict[str, Optional[Document]]:
+    async def get_many(self, document_ids: List[str]) -> Dict[str, Optional[Document]]:
         """Retrieve multiple documents by ID.
 
         Args:

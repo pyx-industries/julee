@@ -54,9 +54,7 @@ def memory_query_repository() -> MemoryKnowledgeServiceQueryRepository:
 
 
 @pytest.fixture
-def memory_assembly_spec_repository() -> (
-    MemoryAssemblySpecificationRepository
-):
+def memory_assembly_spec_repository() -> MemoryAssemblySpecificationRepository:
     """Create memory assembly specification repository."""
     return MemoryAssemblySpecificationRepository()
 
@@ -83,9 +81,7 @@ def fixture_configs() -> list[dict]:
     # Get the fixture file path
     current_file = Path(__file__)
     julee_dir = current_file.parent.parent.parent.parent
-    fixture_path = (
-        julee_dir / "demo_fixtures" / "knowledge_service_configs.yaml"
-    )
+    fixture_path = julee_dir / "demo_fixtures" / "knowledge_service_configs.yaml"
 
     assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
@@ -133,9 +129,7 @@ class TestInitializeSystemDataUseCase:
         # Verify configs were created with correct IDs from fixture
 
         saved_ids = {config.knowledge_service_id for config in saved_configs}
-        expected_ids = {
-            config["knowledge_service_id"] for config in fixture_configs
-        }
+        expected_ids = {config["knowledge_service_id"] for config in fixture_configs}
         assert saved_ids == expected_ids
 
         # Verify first config matches fixture data
@@ -143,8 +137,7 @@ class TestInitializeSystemDataUseCase:
         first_saved = next(
             config
             for config in saved_configs
-            if config.knowledge_service_id
-            == first_fixture["knowledge_service_id"]
+            if config.knowledge_service_id == first_fixture["knowledge_service_id"]
         )
 
         assert first_saved.name == first_fixture["name"]
@@ -225,8 +218,7 @@ class TestInitializeSystemDataUseCase:
             saved_config = next(
                 config
                 for config in saved_configs
-                if config.knowledge_service_id
-                == fixture_config["knowledge_service_id"]
+                if config.knowledge_service_id == fixture_config["knowledge_service_id"]
             )
 
             # Verify all fixture values are correctly applied
@@ -236,10 +228,7 @@ class TestInitializeSystemDataUseCase:
             )
             assert saved_config.name == fixture_config["name"]
             assert saved_config.description == fixture_config["description"]
-            assert (
-                saved_config.service_api.value
-                == fixture_config["service_api"]
-            )
+            assert saved_config.service_api.value == fixture_config["service_api"]
             assert saved_config.created_at is not None
             assert saved_config.updated_at is not None
             assert isinstance(saved_config.created_at, datetime)
@@ -276,9 +265,7 @@ class TestInitializeSystemDataUseCase:
         memory_config_repository: MemoryKnowledgeServiceConfigRepository,
         memory_document_repository: MemoryDocumentRepository,
         memory_query_repository: MemoryKnowledgeServiceQueryRepository,
-        memory_assembly_spec_repository: (
-            MemoryAssemblySpecificationRepository
-        ),
+        memory_assembly_spec_repository: MemoryAssemblySpecificationRepository,
     ) -> None:
         """Test use case initialization with repositories."""
         use_case = InitializeSystemDataUseCase(
@@ -299,9 +286,7 @@ class TestInitializeSystemDataUseCase:
         memory_config_repository: MemoryKnowledgeServiceConfigRepository,
         memory_document_repository: MemoryDocumentRepository,
         memory_query_repository: MemoryKnowledgeServiceQueryRepository,
-        memory_assembly_spec_repository: (
-            MemoryAssemblySpecificationRepository
-        ),
+        memory_assembly_spec_repository: MemoryAssemblySpecificationRepository,
         fixture_configs: list[dict],
     ) -> None:
         """Test only the config initialization part."""
@@ -328,16 +313,10 @@ class TestYamlFixtureIntegration:
         # Get the fixture file path
         current_file = Path(__file__)
         julee_dir = current_file.parent.parent.parent.parent
-        fixture_path = (
-            julee_dir
-            / "demo_fixtures"
-            / "knowledge_service_configs.yaml"
-        )
+        fixture_path = julee_dir / "demo_fixtures" / "knowledge_service_configs.yaml"
 
         # Verify file exists
-        assert (
-            fixture_path.exists()
-        ), f"Fixture file not found: {fixture_path}"
+        assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
         # Verify file can be parsed
         with open(fixture_path, "r", encoding="utf-8") as f:
@@ -368,27 +347,19 @@ class TestYamlFixtureIntegration:
                 )
 
             # Verify service_api is valid
-            assert config["service_api"] in [
-                api.value for api in ServiceApi
-            ], (
+            assert config["service_api"] in [api.value for api in ServiceApi], (
                 f"Invalid service_api '{config['service_api']}' in config "
                 f"{config['knowledge_service_id']}"
             )
 
             # Verify IDs are not empty
-            assert config[
-                "knowledge_service_id"
-            ].strip(), "Empty knowledge_service_id"
+            assert config["knowledge_service_id"].strip(), "Empty knowledge_service_id"
             assert config["name"].strip(), "Empty name"
             assert config["description"].strip(), "Empty description"
 
-    def test_fixture_configs_have_unique_ids(
-        self, fixture_configs: list[dict]
-    ) -> None:
+    def test_fixture_configs_have_unique_ids(self, fixture_configs: list[dict]) -> None:
         """Test that all fixture configs have unique IDs."""
-        config_ids = [
-            config["knowledge_service_id"] for config in fixture_configs
-        ]
+        config_ids = [config["knowledge_service_id"] for config in fixture_configs]
         assert len(config_ids) == len(
             set(config_ids)
         ), "Duplicate knowledge_service_id found in fixture"
@@ -420,9 +391,7 @@ class TestYamlFixtureIntegration:
         """Test the _create_config_from_fixture_data method directly."""
         fixture_config = fixture_configs[0]
 
-        created_config = use_case._create_config_from_fixture_data(
-            fixture_config
-        )
+        created_config = use_case._create_config_from_fixture_data(fixture_config)
 
         assert isinstance(created_config, KnowledgeServiceConfig)
         assert (
@@ -431,9 +400,7 @@ class TestYamlFixtureIntegration:
         )
         assert created_config.name == fixture_config["name"]
         assert created_config.description == fixture_config["description"]
-        assert (
-            created_config.service_api.value == fixture_config["service_api"]
-        )
+        assert created_config.service_api.value == fixture_config["service_api"]
         assert created_config.created_at is not None
         assert created_config.updated_at is not None
 
@@ -460,9 +427,7 @@ class TestInitializeSystemDataUseCaseIntegration:
 
         # Verify configs were created with correct IDs from fixture
         saved_ids = {config.knowledge_service_id for config in saved_configs}
-        expected_ids = {
-            config["knowledge_service_id"] for config in fixture_configs
-        }
+        expected_ids = {config["knowledge_service_id"] for config in fixture_configs}
         assert saved_ids == expected_ids
 
     @pytest.mark.asyncio

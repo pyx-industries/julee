@@ -71,9 +71,7 @@ class SystemInitializationService:
 
         try:
             # Execute system data initialization
-            await self._execute_system_data_initialization(
-                initialization_results
-            )
+            await self._execute_system_data_initialization(initialization_results)
 
             # Future initialization tasks can be added here
             # await self._execute_additional_initialization_tasks(
@@ -86,12 +84,8 @@ class SystemInitializationService:
             self.logger.info(
                 "System initialization completed successfully",
                 extra={
-                    "tasks_completed": initialization_results[
-                        "tasks_completed"
-                    ],
-                    "total_tasks": len(
-                        initialization_results["tasks_completed"]
-                    ),
+                    "tasks_completed": initialization_results["tasks_completed"],
+                    "total_tasks": len(initialization_results["tasks_completed"]),
                 },
             )
 
@@ -108,9 +102,7 @@ class SystemInitializationService:
                 "System initialization failed",
                 exc_info=True,
                 extra={
-                    "tasks_completed": initialization_results[
-                        "tasks_completed"
-                    ],
+                    "tasks_completed": initialization_results["tasks_completed"],
                     "tasks_failed": initialization_results["tasks_failed"],
                     "error_type": type(e).__name__,
                     "error_message": str(e),

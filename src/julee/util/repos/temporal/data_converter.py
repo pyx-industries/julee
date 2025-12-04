@@ -69,14 +69,10 @@ class TemporalValidationPayloadConverter(CompositePayloadConverter):
     ensuring all Pydantic models get temporal_validation context.
     """
 
-    def __init__(
-        self, to_json_options: Optional[ToJsonOptions] = None
-    ) -> None:
+    def __init__(self, to_json_options: Optional[ToJsonOptions] = None) -> None:
         """Initialize with custom JSON converter adding temporal context."""
         # Create our custom JSON converter with temporal validation
-        json_payload_converter = TemporalValidationPydanticConverter(
-            to_json_options
-        )
+        json_payload_converter = TemporalValidationPydanticConverter(to_json_options)
 
         # Initialize CompositePayloadConverter, replacing JSON converter
 
@@ -87,9 +83,7 @@ class TemporalValidationPayloadConverter(CompositePayloadConverter):
                     if not isinstance(c, JSONPlainPayloadConverter)
                     else json_payload_converter
                 )
-                for c in (
-                    DefaultPayloadConverter.default_encoding_payload_converters
-                )
+                for c in (DefaultPayloadConverter.default_encoding_payload_converters)
             )
         )
 
@@ -110,9 +104,7 @@ def create_temporal_data_converter(
     Returns:
         DataConverter configured with temporal validation support
     """
-    return DataConverter(
-        payload_converter_class=TemporalValidationPayloadConverter
-    )
+    return DataConverter(payload_converter_class=TemporalValidationPayloadConverter)
 
 
 # Default temporal data converter with validation context support

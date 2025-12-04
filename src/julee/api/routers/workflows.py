@@ -34,18 +34,14 @@ router = APIRouter()
 class StartExtractAssembleRequest(BaseModel):
     """Request model for starting extract-assemble workflow."""
 
-    document_id: str = Field(
-        ..., min_length=1, description="Document ID to process"
-    )
+    document_id: str = Field(..., min_length=1, description="Document ID to process")
     assembly_specification_id: str = Field(
         ..., min_length=1, description="Assembly specification ID to use"
     )
     workflow_id: Optional[str] = Field(
         None,
         min_length=1,
-        description=(
-            "Optional custom workflow ID (auto-generated if not provided)"
-        ),
+        description=("Optional custom workflow ID (auto-generated if not provided)"),
     )
 
 
@@ -102,9 +98,7 @@ async def start_extract_assemble_workflow(
             extra={
                 "workflow_id": workflow_id,
                 "document_id": request.document_id,
-                "assembly_specification_id": (
-                    request.assembly_specification_id
-                ),
+                "assembly_specification_id": (request.assembly_specification_id),
             },
         )
 
@@ -138,14 +132,10 @@ async def start_extract_assemble_workflow(
             e,
             extra={
                 "document_id": request.document_id,
-                "assembly_specification_id": (
-                    request.assembly_specification_id
-                ),
+                "assembly_specification_id": (request.assembly_specification_id),
             },
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to start workflow"
-        ) from e
+        raise HTTPException(status_code=500, detail="Failed to start workflow") from e
 
 
 @router.get("/{workflow_id}/status", response_model=WorkflowStatusResponse)

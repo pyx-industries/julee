@@ -24,9 +24,7 @@ import io
 @pytest.fixture
 def test_document() -> Document:
     """Create a test Document for testing."""
-    content_text = (
-        "This is test document content for knowledge service testing."
-    )
+    content_text = "This is test document content for knowledge service testing."
     content_bytes = content_text.encode("utf-8")
     content_stream = ContentStream(io.BytesIO(content_bytes))
 
@@ -95,9 +93,7 @@ class TestMemoryKnowledgeService:
             f"memory_{test_document.document_id}_"
         )
         assert result.registration_metadata["service"] == "memory"
-        assert result.registration_metadata["registered_via"] == (
-            "in_memory_storage"
-        )
+        assert result.registration_metadata["registered_via"] == ("in_memory_storage")
         assert result.registration_metadata["knowledge_service_id"] == (
             knowledge_service_config.knowledge_service_id
         )
@@ -120,9 +116,7 @@ class TestMemoryKnowledgeService:
 
         # Should get the exact same result
         assert result1 == result2
-        assert result1.knowledge_service_file_id == (
-            result2.knowledge_service_file_id
-        )
+        assert result1.knowledge_service_file_id == (result2.knowledge_service_file_id)
 
     async def test_register_file_stores_in_memory(
         self,
@@ -181,9 +175,7 @@ class TestMemoryKnowledgeService:
         result1 = await memory_service.register_file(
             knowledge_service_config, test_document
         )
-        result2 = await memory_service.register_file(
-            knowledge_service_config, doc2
-        )
+        result2 = await memory_service.register_file(knowledge_service_config, doc2)
 
         all_files = memory_service.get_all_registered_files()
 
@@ -254,9 +246,7 @@ class TestMemoryKnowledgeService:
         # Should return updated result with actual query parameters
         assert result.query_id == sample_query_result.query_id
         assert result.query_text == query_text  # Updated to actual query
-        assert (
-            result.execution_time_ms == sample_query_result.execution_time_ms
-        )
+        assert result.execution_time_ms == sample_query_result.execution_time_ms
         assert result.result_data["queried_documents"] == document_ids
         assert result.result_data["service"] == "memory"
         assert result.result_data["knowledge_service_id"] == (

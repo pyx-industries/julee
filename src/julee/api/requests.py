@@ -36,14 +36,10 @@ class CreateAssemblySpecificationRequest(BaseModel):
         description=AssemblySpecification.model_fields["name"].description
     )
     applicability: str = Field(
-        description=AssemblySpecification.model_fields[
-            "applicability"
-        ].description
+        description=AssemblySpecification.model_fields["applicability"].description
     )
     jsonschema: Dict[str, Any] = Field(
-        description=AssemblySpecification.model_fields[
-            "jsonschema"
-        ].description
+        description=AssemblySpecification.model_fields["jsonschema"].description
     )
     knowledge_service_queries: Dict[str, str] = Field(
         default_factory=dict,
@@ -77,18 +73,14 @@ class CreateAssemblySpecificationRequest(BaseModel):
     def validate_knowledge_service_queries(
         cls, v: Dict[str, str], info: ValidationInfo
     ) -> Dict[str, str]:
-        return AssemblySpecification.knowledge_service_queries_must_be_valid(
-            v, info
-        )
+        return AssemblySpecification.knowledge_service_queries_must_be_valid(v, info)
 
     @field_validator("version")
     @classmethod
     def validate_version(cls, v: str) -> str:
         return AssemblySpecification.version_must_not_be_empty(v)
 
-    def to_domain_model(
-        self, assembly_specification_id: str
-    ) -> AssemblySpecification:
+    def to_domain_model(self, assembly_specification_id: str) -> AssemblySpecification:
         """Convert this request to a complete AssemblySpecification object.
 
         Args:
@@ -138,17 +130,11 @@ class CreateKnowledgeServiceQueryRequest(BaseModel):
     )
     query_metadata: Dict[str, Any] = Field(
         default_factory=dict,
-        description=KnowledgeServiceQuery.model_fields[
-            "query_metadata"
-        ].description,
+        description=KnowledgeServiceQuery.model_fields["query_metadata"].description,
     )
     assistant_prompt: Optional[str] = Field(
-        default=KnowledgeServiceQuery.model_fields[
-            "assistant_prompt"
-        ].default,
-        description=KnowledgeServiceQuery.model_fields[
-            "assistant_prompt"
-        ].description,
+        default=KnowledgeServiceQuery.model_fields["assistant_prompt"].default,
+        description=KnowledgeServiceQuery.model_fields["assistant_prompt"].description,
     )
 
     # Delegate validation to domain model class methods

@@ -61,9 +61,7 @@ class TemporalKnowledgeService(ConfigurableKnowledgeService):
                 f"re-fetching from repo"
             )
             # Re-fetch the document with proper content
-            fresh_document = await self.document_repo.get(
-                document.document_id
-            )
+            fresh_document = await self.document_repo.get(document.document_id)
             if fresh_document and fresh_document.content:
                 # Read the MinIO stream content into a seekable buffer
                 # This prevents the stream from being consumed during upload

@@ -14,20 +14,12 @@ backend code from activities.py.
 # Activity name bases - shared constants for consistency between
 # activity registrations and workflow proxies
 ASSEMBLY_ACTIVITY_BASE = "julee.assembly_repo.minio"
-ASSEMBLY_SPECIFICATION_ACTIVITY_BASE = (
-    "julee.assembly_specification_repo.minio"
-)
+ASSEMBLY_SPECIFICATION_ACTIVITY_BASE = "julee.assembly_specification_repo.minio"
 DOCUMENT_ACTIVITY_BASE = "julee.document_repo.minio"
-KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE = (
-    "julee.knowledge_service_config_repo.minio"
-)
-KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE = (
-    "julee.knowledge_service_query_repo.minio"
-)
+KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE = "julee.knowledge_service_config_repo.minio"
+KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE = "julee.knowledge_service_query_repo.minio"
 POLICY_ACTIVITY_BASE = "julee.policy_repo.minio"
-DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE = (
-    "julee.document_policy_validation_repo.minio"
-)
+DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE = "julee.document_policy_validation_repo.minio"
 
 
 # Export all constants

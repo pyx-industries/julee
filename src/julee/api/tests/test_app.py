@@ -52,12 +52,8 @@ def client(
     )
 
     with (
-        patch(
-            "julee.api.routers.system.check_temporal_health"
-        ) as mock_temporal,
-        patch(
-            "julee.api.routers.system.check_storage_health"
-        ) as mock_storage,
+        patch("julee.api.routers.system.check_temporal_health") as mock_temporal,
+        patch("julee.api.routers.system.check_storage_health") as mock_storage,
     ):
         # Mock health checks to return UP status
         mock_temporal.return_value = ServiceStatus.UP
@@ -194,9 +190,7 @@ class TestKnowledgeServiceQueriesEndpoint:
         await memory_repo.save(sample_knowledge_service_query)
 
         # Verify it can be retrieved
-        retrieved = await memory_repo.get(
-            sample_knowledge_service_query.query_id
-        )
+        retrieved = await memory_repo.get(sample_knowledge_service_query.query_id)
         assert retrieved == sample_knowledge_service_query
 
         # This shows we can store and retrieve queries from the repository

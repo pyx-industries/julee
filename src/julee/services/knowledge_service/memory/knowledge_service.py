@@ -80,9 +80,7 @@ class MemoryKnowledgeService(KnowledgeService):
         )
         self._canned_query_results.append(query_result)
 
-    def add_canned_query_results(
-        self, query_results: List[QueryResult]
-    ) -> None:
+    def add_canned_query_results(self, query_results: List[QueryResult]) -> None:
         """Add multiple canned query results to be returned by execute_query.
 
         Args:
@@ -231,9 +229,7 @@ class MemoryKnowledgeService(KnowledgeService):
             extra={
                 "knowledge_service_id": config.knowledge_service_id,
                 "query_text": query_text,
-                "document_count": (
-                    len(service_file_ids) if service_file_ids else 0
-                ),
+                "document_count": (len(service_file_ids) if service_file_ids else 0),
             },
         )
 

@@ -43,15 +43,11 @@ class MinioDocumentPolicyValidationRepository(
             client: MinioClient protocol implementation (real or fake)
         """
         self.client = client
-        self.logger = logging.getLogger(
-            "MinioDocumentPolicyValidationRepository"
-        )
+        self.logger = logging.getLogger("MinioDocumentPolicyValidationRepository")
         self.validations_bucket = "document-policy-validations"
         self.ensure_buckets_exist(self.validations_bucket)
 
-    async def get(
-        self, validation_id: str
-    ) -> Optional[DocumentPolicyValidation]:
+    async def get(self, validation_id: str) -> Optional[DocumentPolicyValidation]:
         """Retrieve a document policy validation by ID."""
         return self.get_json_object(
             bucket_name=self.validations_bucket,
@@ -71,8 +67,7 @@ class MinioDocumentPolicyValidationRepository(
             bucket_name=self.validations_bucket,
             object_name=validation.validation_id,
             model=validation,
-            success_log_message="Document policy validation saved "
-            "successfully",
+            success_log_message="Document policy validation saved " "successfully",
             error_log_message="Error saving document policy validation",
             extra_log_data={
                 "validation_id": validation.validation_id,

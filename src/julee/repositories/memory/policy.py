@@ -65,9 +65,7 @@ class MemoryPolicyRepository(PolicyRepository, MemoryRepositoryMixin[Policy]):
         """
         return self.generate_entity_id("policy")
 
-    async def get_many(
-        self, policy_ids: List[str]
-    ) -> Dict[str, Optional[Policy]]:
+    async def get_many(self, policy_ids: List[str]) -> Dict[str, Optional[Policy]]:
         """Retrieve multiple policies by ID.
 
         Args:

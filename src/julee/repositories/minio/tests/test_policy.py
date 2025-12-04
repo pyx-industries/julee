@@ -85,10 +85,7 @@ class TestMinioPolicyRepositoryBasicOperations:
         assert retrieved.description == sample_policy.description
         assert retrieved.status == sample_policy.status
         assert retrieved.validation_scores == sample_policy.validation_scores
-        assert (
-            retrieved.transformation_queries
-            == sample_policy.transformation_queries
-        )
+        assert retrieved.transformation_queries == sample_policy.transformation_queries
         assert retrieved.version == sample_policy.version
 
     @pytest.mark.asyncio
@@ -100,9 +97,7 @@ class TestMinioPolicyRepositoryBasicOperations:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_generate_id(
-        self, policy_repo: MinioPolicyRepository
-    ) -> None:
+    async def test_generate_id(self, policy_repo: MinioPolicyRepository) -> None:
         """Test generating unique policy IDs."""
         id1 = await policy_repo.generate_id()
         id2 = await policy_repo.generate_id()
@@ -442,10 +437,7 @@ class TestMinioPolicyRepositoryIdempotency:
         assert retrieved2.policy_id == sample_policy.policy_id
         assert retrieved2.title == sample_policy.title
         assert retrieved2.validation_scores == sample_policy.validation_scores
-        assert (
-            retrieved2.transformation_queries
-            == sample_policy.transformation_queries
-        )
+        assert retrieved2.transformation_queries == sample_policy.transformation_queries
         assert retrieved2.updated_at is not None
         assert first_updated_at is not None
         assert retrieved2.updated_at > first_updated_at
@@ -524,9 +516,7 @@ class TestMinioPolicyRepositoryRoundtrip:
         assert retrieved.description == policy.description
         assert retrieved.status == policy.status
         assert retrieved.validation_scores == policy.validation_scores
-        assert (
-            retrieved.transformation_queries == policy.transformation_queries
-        )
+        assert retrieved.transformation_queries == policy.transformation_queries
         assert retrieved.version == policy.version
         assert retrieved.created_at is not None
         assert retrieved.updated_at is not None

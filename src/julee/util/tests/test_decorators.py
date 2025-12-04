@@ -126,15 +126,9 @@ def test_decorator_wraps_public_async_methods() -> None:
 
     # Check that async methods are wrapped with activity decorator
     # Use dir() check since hasattr() doesn't work with Temporal activities
-    assert "__temporal_activity_definition" in dir(
-        DecoratedRepository.process_payment
-    )
-    assert "__temporal_activity_definition" in dir(
-        DecoratedRepository.get_payment
-    )
-    assert "__temporal_activity_definition" in dir(
-        DecoratedRepository.refund_payment
-    )
+    assert "__temporal_activity_definition" in dir(DecoratedRepository.process_payment)
+    assert "__temporal_activity_definition" in dir(DecoratedRepository.get_payment)
+    assert "__temporal_activity_definition" in dir(DecoratedRepository.refund_payment)
     assert "__temporal_activity_definition" in dir(
         DecoratedRepository.base_async_method
     )
@@ -176,9 +170,7 @@ def test_decorator_does_not_wrap_sync_methods() -> None:
         pass
 
     # Check that sync methods are NOT wrapped
-    assert "__temporal_activity_definition" not in dir(
-        DecoratedRepository.sync_method
-    )
+    assert "__temporal_activity_definition" not in dir(DecoratedRepository.sync_method)
     assert "__temporal_activity_definition" not in dir(
         DecoratedRepository.base_sync_method
     )
@@ -236,9 +228,7 @@ def test_decorated_methods_preserve_metadata() -> None:
     assert repo.refund_payment.__name__ == "refund_payment"
 
     # Check that docstrings are preserved
-    assert "Mock payment processing method" in (
-        repo.process_payment.__doc__ or ""
-    )
+    assert "Mock payment processing method" in (repo.process_payment.__doc__ or "")
     assert "Mock get payment method" in (repo.get_payment.__doc__ or "")
     assert "Mock refund payment method" in (repo.refund_payment.__doc__ or "")
 
@@ -379,8 +369,7 @@ def test_decorator_logs_wrapped_methods() -> None:
         # Check that the final info log contains the expected information
         final_info_call = mock_logger.info.call_args_list[-1]
         assert (
-            "Temporal activity registration decorator applied"
-            in final_info_call[0][0]
+            "Temporal activity registration decorator applied" in final_info_call[0][0]
         )
         assert "DecoratedRepository" in final_info_call[0][0]
 
@@ -433,12 +422,8 @@ def test_multiple_decorations() -> None:
         pass
 
     # Check that each has different activity names
-    assert "__temporal_activity_definition" in dir(
-        FirstDecoration.process_payment
-    )
-    assert "__temporal_activity_definition" in dir(
-        SecondDecoration.process_payment
-    )
+    assert "__temporal_activity_definition" in dir(FirstDecoration.process_payment)
+    assert "__temporal_activity_definition" in dir(SecondDecoration.process_payment)
 
 
 # Test domain models for type substitution tests
@@ -511,9 +496,7 @@ class TestTypeExtraction:
         assembly_type = _extract_concrete_type_from_base(
             MockAssemblySpecificationRepository
         )
-        document_type = _extract_concrete_type_from_base(
-            MockDocumentRepository
-        )
+        document_type = _extract_concrete_type_from_base(MockDocumentRepository)
 
         assert assembly_type == MockAssemblySpecification
         assert document_type == MockDocument
@@ -544,9 +527,7 @@ class TestTypeSubstitution:
 
     def test_substitutes_direct_typevar(self) -> None:
         """Test direct TypeVar substitution."""
-        result = _substitute_typevar_with_concrete(
-            T, MockAssemblySpecification
-        )
+        result = _substitute_typevar_with_concrete(T, MockAssemblySpecification)
         assert result == MockAssemblySpecification
 
     def test_substitutes_optional_typevar(self) -> None:
@@ -566,9 +547,7 @@ class TestTypeSubstitution:
     def test_substitutes_nested_generics(self) -> None:
         """Test substitution in nested generic types."""
         nested_generic = List[Optional[T]]
-        result = _substitute_typevar_with_concrete(
-            nested_generic, MockDocument
-        )
+        result = _substitute_typevar_with_concrete(nested_generic, MockDocument)
 
         # Should be List[Optional[MockDocument]]
         outer_origin = get_origin(result)
@@ -583,12 +562,8 @@ class TestTypeSubstitution:
 
     def test_returns_non_generic_types_unchanged(self) -> None:
         """Test that non-generic types are returned unchanged."""
-        result_str = _substitute_typevar_with_concrete(
-            str, MockAssemblySpecification
-        )
-        result_int = _substitute_typevar_with_concrete(
-            int, MockAssemblySpecification
-        )
+        result_str = _substitute_typevar_with_concrete(str, MockAssemblySpecification)
+        result_int = _substitute_typevar_with_concrete(int, MockAssemblySpecification)
         result_concrete = _substitute_typevar_with_concrete(
             MockDocument, MockAssemblySpecification
         )
@@ -599,9 +574,7 @@ class TestTypeSubstitution:
 
     def test_handles_none_annotation(self) -> None:
         """Test handling of None annotations."""
-        result = _substitute_typevar_with_concrete(
-            None, MockAssemblySpecification
-        )
+        result = _substitute_typevar_with_concrete(None, MockAssemblySpecification)
         assert result is None
 
     def test_handles_signature_empty(self) -> None:
@@ -634,12 +607,8 @@ class TestTypeSubstitution:
             return get_args(annotation)
 
         with (
-            patch.object(
-                decorators_module, "get_origin", side_effect=mock_get_origin
-            ),
-            patch.object(
-                decorators_module, "get_args", side_effect=mock_get_args
-            ),
+            patch.object(decorators_module, "get_origin", side_effect=mock_get_origin),
+            patch.object(decorators_module, "get_args", side_effect=mock_get_args),
         ):
             with pytest.raises(TypeError) as exc_info:
                 _substitute_typevar_with_concrete(
@@ -805,12 +774,8 @@ class TestEndToEndTypeSubstitution:
             getattr(activity_result_dict, "assembly_specification_id")
 
         # Demonstrate the solution: reconstruct Pydantic object
-        reconstructed = MockAssemblySpecification.model_validate(
-            activity_result_dict
-        )
+        reconstructed = MockAssemblySpecification.model_validate(activity_result_dict)
         assert isinstance(reconstructed, MockAssemblySpecification)
-        assert (
-            reconstructed.assembly_specification_id == "test-123"
-        )  # This works
+        assert reconstructed.assembly_specification_id == "test-123"  # This works
         assert reconstructed.name == "Test Spec"
         assert reconstructed.status == "active"
