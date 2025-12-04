@@ -1,6 +1,5 @@
 services:
   postgres:
-    profiles: ["julee", "calendar", "sample"]
     image: postgres:14-alpine
     environment:
       POSTGRES_USER: temporal
@@ -16,26 +15,7 @@ services:
       timeout: 5s
       retries: 5
 
-  calendar-postgres:
-    profiles: ["calendar"]
-    image: postgres:14-alpine
-    environment:
-      POSTGRES_USER: calendar
-      POSTGRES_PASSWORD: calendar
-      POSTGRES_DB: calendar
-    volumes:
-      - calendar-postgres-data:/var/lib/postgresql/data
-      - ./cal/repos/postgresql/migrations:/docker-entrypoint-initdb.d
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U calendar"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   temporal:
-    profiles: ["julee", "calendar", "sample"]
     image: temporalio/auto-setup:1.27.2
     depends_on:
       postgres:
@@ -51,7 +31,6 @@ services:
       - "8233:8233"
 
   temporal-ui:
-    profiles: ["julee", "calendar", "sample"]
     image: temporalio/ui:2.10.3
     depends_on:
       - temporal
@@ -62,7 +41,6 @@ services:
       - "8001:8080"
 
   minio:
-    profiles: ["julee", "calendar", "sample"]
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
@@ -79,75 +57,10 @@ services:
       timeout: 5s
       retries: 3
 
-  sample-worker:
-    profiles: ["sample"]
-    build:
-      context: .
-      dockerfile: sample/Dockerfile.worker
-    depends_on:
-      temporal:
-        condition: service_started
-      minio:
-        condition: service_healthy
-    environment:
-      - TEMPORAL_ENDPOINT=temporal:7233
-      - MINIO_ENDPOINT=minio:9000
-      - LOG_LEVEL=INFO
-    restart: on-failure
-
-  sample-api:
-    profiles: ["sample"]
-    build:
-      context: .
-      dockerfile: sample/Dockerfile.api
-    depends_on:
-      temporal:
-        condition: service_started
-      minio:
-        condition: service_healthy
-    environment:
-      - TEMPORAL_ENDPOINT=temporal:7233
-      - MINIO_ENDPOINT=minio:9000
-      - LOG_LEVEL=INFO
-    ports:
-      - "8002:8000"
-
-  calendar-worker:
-    profiles: ["calendar"]
-    build:
-      context: .
-      dockerfile: cal/Dockerfile.worker
-    depends_on:
-      temporal:
-        condition: service_started
-      calendar-postgres:
-        condition: service_healthy
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - CALENDAR_DB_HOST=calendar-postgres
-      - CALENDAR_DB_PORT=5432
-      - CALENDAR_DB_USER=calendar
-      - CALENDAR_DB_PASSWORD=calendar
-      - CALENDAR_DB_NAME=calendar
-      - LOG_LEVEL=INFO
-      - SYNC_COLLECTION_ID=work
-      - SYNC_INTERVAL_MINUTES=15
-    volumes:
-      - ./config:/app/config:ro
-      - ./credentials.json:/app/credentials.json:ro
-      - ./token.json:/app/token.json:rw
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "python", "-c", "import temporalio; print('OK')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   julee-worker:
-    profiles: ["julee"]
     build:
       context: .
-      dockerfile: julee_example/Dockerfile.worker
+      dockerfile: Dockerfile.worker
     depends_on:
       temporal:
         condition: service_started
@@ -166,10 +79,9 @@ services:
       retries: 3
 
   julee-api:
-    profiles: ["julee"]
     build:
       context: .
-      dockerfile: julee_example/Dockerfile.api
+      dockerfile: Dockerfile.api
     depends_on:
       temporal:
         condition: service_started
@@ -185,10 +97,9 @@ services:
     restart: on-failure
 
   julee-ui:
-    profiles: ["julee"]
     build:
       context: .
-      dockerfile: julee_example/Dockerfile.ui
+      dockerfile: Dockerfile.ui
     depends_on:
       - julee-api
     environment:
@@ -200,5 +111,4 @@ services:
 
 volumes:
   postgres-data:
-  calendar-postgres-data:
   minio-data:
