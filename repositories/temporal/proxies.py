@@ -1,5 +1,5 @@
 """
-Workflow-safe proxy classes for the julee_example domain.
+Workflow-safe proxy classes for the julee domain.
 
 This module contains all @temporal_workflow_proxy decorated classes that
 delegate to Temporal activities from within workflows. These classes are
@@ -12,24 +12,24 @@ and retry policies.
 """
 
 from util.temporal.decorators import temporal_workflow_proxy
-from julee_example.domain.repositories.assembly import AssemblyRepository
-from julee_example.domain.repositories.assembly_specification import (
+from julee.domain.repositories.assembly import AssemblyRepository
+from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee_example.domain.repositories.document import DocumentRepository
-from julee_example.domain.repositories.knowledge_service_config import (
+from julee.domain.repositories.document import DocumentRepository
+from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee_example.domain.repositories.knowledge_service_query import (
+from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee_example.domain.repositories.policy import PolicyRepository
-from julee_example.domain.repositories.document_policy_validation import (
+from julee.domain.repositories.policy import PolicyRepository
+from julee.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
 
 # Import activity name bases from shared module
-from julee_example.repositories.temporal.activity_names import (
+from julee.repositories.temporal.activity_names import (
     ASSEMBLY_ACTIVITY_BASE,
     ASSEMBLY_SPECIFICATION_ACTIVITY_BASE,
     DOCUMENT_ACTIVITY_BASE,

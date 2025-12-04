@@ -8,11 +8,11 @@ idempotency, error handling, and content operations including content_string.
 
 import io
 import pytest
-from julee_example.repositories.memory.document import (
+from julee.repositories.memory.document import (
     MemoryDocumentRepository,
 )
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 

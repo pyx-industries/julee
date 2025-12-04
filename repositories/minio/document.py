@@ -21,11 +21,11 @@ from typing import Optional, List, Dict
 from minio.error import S3Error  # type: ignore[import-untyped]
 import multihash  # type: ignore[import-untyped]
 
-from julee_example.domain.models.document import Document
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.document import Document
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
-from julee_example.domain.repositories.document import DocumentRepository
+from julee.domain.repositories.document import DocumentRepository
 from .client import MinioClient, MinioRepositoryMixin
 from pydantic import BaseModel, ConfigDict
 

@@ -13,8 +13,8 @@ import pytest
 from unittest.mock import AsyncMock
 from datetime import datetime, timezone
 
-from julee_example.domain.use_cases import ExtractAssembleDataUseCase
-from julee_example.domain.models import (
+from julee.domain.use_cases import ExtractAssembleDataUseCase
+from julee.domain.models import (
     Assembly,
     AssemblyStatus,
     Document,
@@ -25,18 +25,18 @@ from julee_example.domain.models import (
     KnowledgeServiceQuery,
     KnowledgeServiceConfig,
 )
-from julee_example.domain.models.knowledge_service_config import ServiceApi
-from julee_example.repositories.memory import (
+from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.repositories.memory import (
     MemoryDocumentRepository,
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
 )
-from julee_example.services.knowledge_service.memory import (
+from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
-from julee_example.services.knowledge_service import QueryResult
+from julee.services.knowledge_service import QueryResult
 
 
 class TestExtractAssembleDataUseCase:

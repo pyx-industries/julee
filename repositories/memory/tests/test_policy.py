@@ -9,8 +9,8 @@ project.
 import pytest
 from datetime import datetime, timezone
 
-from julee_example.domain.models.policy import Policy, PolicyStatus
-from julee_example.repositories.memory.policy import MemoryPolicyRepository
+from julee.domain.models.policy import Policy, PolicyStatus
+from julee.repositories.memory.policy import MemoryPolicyRepository
 
 
 @pytest.fixture

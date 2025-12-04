@@ -11,18 +11,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 import io
 
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.models.knowledge_service_config import ServiceApi
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
-from julee_example.services.knowledge_service.anthropic import (
+from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks,
 )
-from julee_example.services.knowledge_service.anthropic import (
+from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks_module,
 )
 
@@ -91,7 +91,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query without service file IDs."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -146,7 +146,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with service file IDs."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -199,7 +199,7 @@ class TestAnthropicKnowledgeService:
         )
 
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_client
 
@@ -218,7 +218,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test that query IDs are unique and properly formatted."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -249,7 +249,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with empty service_file_ids list."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -277,7 +277,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with query_metadata configuration."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -314,7 +314,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query uses default values when metadata is None."""
         with patch(
-            "julee_example.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 

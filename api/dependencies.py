@@ -1,7 +1,7 @@
 """
-Dependency injection for julee_example FastAPI endpoints.
+Dependency injection for julee FastAPI endpoints.
 
-This module provides dependency injection for the julee_example API endpoints,
+This module provides dependency injection for the julee API endpoints,
 following the same patterns established in the sample project. It manages
 singleton lifecycle for expensive resources and provides clean separation
 between infrastructure concerns and business logic.
@@ -15,7 +15,7 @@ import logging
 from typing import Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from julee_example.api.services.system_initialization import (
+    from julee.api.services.system_initialization import (
         SystemInitializationService,
     )
 
@@ -23,31 +23,31 @@ from fastapi import Depends
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 
-from julee_example.domain.repositories.knowledge_service_query import (
+from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee_example.domain.repositories.knowledge_service_config import (
+from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee_example.domain.repositories.assembly_specification import (
+from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee_example.domain.repositories.document import (
+from julee.domain.repositories.document import (
     DocumentRepository,
 )
-from julee_example.repositories.minio.knowledge_service_query import (
+from julee.repositories.minio.knowledge_service_query import (
     MinioKnowledgeServiceQueryRepository,
 )
-from julee_example.repositories.minio.knowledge_service_config import (
+from julee.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
-from julee_example.repositories.minio.assembly_specification import (
+from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
-from julee_example.repositories.minio.document import (
+from julee.repositories.minio.document import (
     MinioDocumentRepository,
 )
-from julee_example.repositories.minio.client import MinioClient
+from julee.repositories.minio.client import MinioClient
 from minio import Minio
 
 logger = logging.getLogger(__name__)
@@ -194,7 +194,7 @@ class StartupDependenciesProvider:
     async def get_document_repository(self) -> DocumentRepository:
         """Get document repository for startup dependencies."""
         minio_client = await self.container.get_minio_client()
-        from julee_example.repositories.minio.document import (
+        from julee.repositories.minio.document import (
             MinioDocumentRepository,
         )
 
@@ -225,10 +225,10 @@ class StartupDependenciesProvider:
         self,
     ) -> "SystemInitializationService":
         """Get fully configured system initialization service."""
-        from julee_example.api.services.system_initialization import (
+        from julee.api.services.system_initialization import (
             SystemInitializationService,
         )
-        from julee_example.domain.use_cases.initialize_system_data import (
+        from julee.domain.use_cases.initialize_system_data import (
             InitializeSystemDataUseCase,
         )
 

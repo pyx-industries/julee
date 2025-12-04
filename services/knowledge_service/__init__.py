@@ -1,5 +1,5 @@
 """
-Knowledge Service module for julee_example domain.
+Knowledge Service module for julee domain.
 
 This module provides the KnowledgeService protocol and factory function for
 creating configured knowledge service instances. The factory routes to the

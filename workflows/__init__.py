@@ -1,5 +1,5 @@
 """
-Temporal workflows for the julee_example domain.
+Temporal workflows for the julee domain.
 
 This package contains Temporal workflow definitions that orchestrate
 use cases with durability guarantees, retry logic, and state management.

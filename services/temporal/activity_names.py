@@ -1,5 +1,5 @@
 """
-Shared activity name constants for the julee_example knowledge service domain.
+Shared activity name constants for the julee knowledge service domain.
 
 This module contains activity name base constants that are shared between
 activities.py and proxies.py, avoiding the need for either module to import

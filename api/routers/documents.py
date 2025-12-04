@@ -1,5 +1,5 @@
 """
-Documents API router for the julee_example CEAP system.
+Documents API router for the julee CEAP system.
 
 This module provides document management API endpoints for retrieving
 and managing documents in the system.
@@ -19,9 +19,9 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.responses import Response
 from fastapi_pagination import Page, paginate
 
-from julee_example.domain.models.document import Document
-from julee_example.domain.repositories.document import DocumentRepository
-from julee_example.api.dependencies import get_document_repository
+from julee.domain.models.document import Document
+from julee.domain.repositories.document import DocumentRepository
+from julee.api.dependencies import get_document_repository
 
 logger = logging.getLogger(__name__)
 

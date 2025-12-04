@@ -12,8 +12,8 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from julee_example.api.routers.workflows import router
-from julee_example.api.dependencies import get_temporal_client
+from julee.api.routers.workflows import router
+from julee.api.dependencies import get_temporal_client
 
 
 @pytest.fixture

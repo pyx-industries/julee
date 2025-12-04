@@ -12,12 +12,12 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from julee_example.api.routers.knowledge_service_queries import router
-from julee_example.api.dependencies import (
+from julee.api.routers.knowledge_service_queries import router
+from julee.api.dependencies import (
     get_knowledge_service_query_repository,
 )
-from julee_example.domain.models import KnowledgeServiceQuery
-from julee_example.repositories.memory import (
+from julee.domain.models import KnowledgeServiceQuery
+from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
 )
 

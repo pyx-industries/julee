@@ -1,5 +1,5 @@
 """
-Script to populate example data for julee_example workflows.
+Script to populate example data for julee workflows.
 
 This script loads the example data files (meeting transcript, assembly spec,
 knowledge service queries) and stores them in the repositories so that
@@ -17,7 +17,7 @@ from typing import Dict
 
 from minio import Minio
 
-from julee_example.domain.models import (
+from julee.domain.models import (
     Document,
     DocumentStatus,
     ContentStream,
@@ -27,18 +27,18 @@ from julee_example.domain.models import (
     Policy,
     PolicyStatus,
 )
-from julee_example.domain.models.knowledge_service_config import ServiceApi
-from julee_example.repositories.minio.assembly_specification import (
+from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
-from julee_example.repositories.minio.document import MinioDocumentRepository
-from julee_example.repositories.minio.knowledge_service_query import (
+from julee.repositories.minio.document import MinioDocumentRepository
+from julee.repositories.minio.knowledge_service_query import (
     MinioKnowledgeServiceQueryRepository,
 )
-from julee_example.repositories.minio.knowledge_service_config import (
+from julee.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
-from julee_example.repositories.minio.policy import (
+from julee.repositories.minio.policy import (
     MinioPolicyRepository,
 )
 

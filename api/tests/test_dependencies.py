@@ -9,7 +9,7 @@ during application startup without exposing internal container details.
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     StartupDependenciesProvider,
     DependencyContainer,
     get_startup_dependencies,

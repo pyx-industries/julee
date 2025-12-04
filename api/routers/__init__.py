@@ -1,5 +1,5 @@
 """
-API routers for the julee_example CEAP system.
+API routers for the julee CEAP system.
 
 This package contains APIRouter modules that organize endpoints by domain.
 Each router module defines routes at the root level and is mounted with a
@@ -20,18 +20,18 @@ Router modules follow the pattern:
 """
 
 # Import routers for convenient access
-from julee_example.api.routers.knowledge_service_queries import (
+from julee.api.routers.knowledge_service_queries import (
     router as knowledge_service_queries_router,
 )
-from julee_example.api.routers.knowledge_service_configs import (
+from julee.api.routers.knowledge_service_configs import (
     router as knowledge_service_configs_router,
 )
-from julee_example.api.routers.assembly_specifications import (
+from julee.api.routers.assembly_specifications import (
     router as assembly_specifications_router,
 )
-from julee_example.api.routers.system import router as system_router
-from julee_example.api.routers.documents import router as documents_router
-from julee_example.api.routers.workflows import router as workflows_router
+from julee.api.routers.system import router as system_router
+from julee.api.routers.documents import router as documents_router
+from julee.api.routers.workflows import router as workflows_router
 
 __all__ = [
     "knowledge_service_queries_router",

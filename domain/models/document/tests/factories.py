@@ -12,8 +12,8 @@ from factory.base import Factory
 from factory.faker import Faker
 from factory.declarations import LazyAttribute, LazyFunction
 
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 

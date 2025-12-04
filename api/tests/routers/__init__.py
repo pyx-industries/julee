@@ -1,5 +1,5 @@
 """
-Tests for API routers in the julee_example CEAP system.
+Tests for API routers in the julee CEAP system.
 
 This package contains test modules organized by router, following the same
 structure as the main routers package. Each test module focuses on testing

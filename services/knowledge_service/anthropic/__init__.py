@@ -1,5 +1,5 @@
 """
-Anthropic service implementations for julee_example domain.
+Anthropic service implementations for julee domain.
 
 This module exports Anthropic-specific implementations of service protocols
 for the Capture, Extract, Assemble, Publish workflow.

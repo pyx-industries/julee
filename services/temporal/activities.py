@@ -1,5 +1,5 @@
 """
-Temporal activity wrapper classes for the julee_example knowledge service
+Temporal activity wrapper classes for the julee knowledge service
 domain.
 
 This module contains the @temporal_activity_registration decorated class
@@ -16,18 +16,18 @@ import logging
 from typing_extensions import override
 
 from util.temporal.decorators import temporal_activity_registration
-from julee_example.services.knowledge_service.factory import (
+from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )
-from julee_example.domain.repositories.document import DocumentRepository
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.repositories.document import DocumentRepository
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee_example.domain.models.document import Document
+from julee.domain.models.document import Document
 from ..knowledge_service import FileRegistrationResult
 
 # Import activity name bases from shared module
-from julee_example.services.temporal.activity_names import (
+from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
 

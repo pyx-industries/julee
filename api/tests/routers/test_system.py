@@ -13,8 +13,8 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-from julee_example.api.routers.system import router
-from julee_example.api.responses import ServiceStatus
+from julee.api.routers.system import router
+from julee.api.responses import ServiceStatus
 
 
 @pytest.fixture
@@ -35,10 +35,10 @@ def client(
     """Create a test client with the system router app."""
     with (
         patch(
-            "julee_example.api.routers.system.check_temporal_health"
+            "julee.api.routers.system.check_temporal_health"
         ) as mock_temporal,
         patch(
-            "julee_example.api.routers.system.check_storage_health"
+            "julee.api.routers.system.check_storage_health"
         ) as mock_storage,
     ):
         # Mock health checks to return UP status

@@ -1,5 +1,5 @@
 """
-Tests for the julee_example FastAPI application.
+Tests for the julee FastAPI application.
 
 This module provides tests for the API endpoints, focusing on testing the
 HTTP layer behavior with proper dependency injection and mocking patterns.
@@ -10,19 +10,19 @@ from typing import Generator
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 
-from julee_example.api.app import app
-from julee_example.api.dependencies import (
+from julee.api.app import app
+from julee.api.dependencies import (
     get_knowledge_service_query_repository,
     get_knowledge_service_config_repository,
 )
-from julee_example.domain.models import KnowledgeServiceQuery
-from julee_example.repositories.memory import (
+from julee.domain.models import KnowledgeServiceQuery
+from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
 )
-from julee_example.repositories.memory.knowledge_service_config import (
+from julee.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
 )
-from julee_example.api.responses import ServiceStatus
+from julee.api.responses import ServiceStatus
 
 
 @pytest.fixture
@@ -53,10 +53,10 @@ def client(
 
     with (
         patch(
-            "julee_example.api.routers.system.check_temporal_health"
+            "julee.api.routers.system.check_temporal_health"
         ) as mock_temporal,
         patch(
-            "julee_example.api.routers.system.check_storage_health"
+            "julee.api.routers.system.check_storage_health"
         ) as mock_storage,
     ):
         # Mock health checks to return UP status

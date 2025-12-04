@@ -14,8 +14,8 @@ All operations are still async to maintain interface compatibility.
 import logging
 from typing import Optional, Dict, Any, List
 
-from julee_example.domain.models.assembly import Assembly
-from julee_example.domain.repositories.assembly import AssemblyRepository
+from julee.domain.models.assembly import Assembly
+from julee.domain.repositories.assembly import AssemblyRepository
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)

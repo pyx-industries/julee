@@ -1,5 +1,5 @@
 """
-Minio repository implementations for julee_example domain.
+Minio repository implementations for julee domain.
 
 This module exports Minio-based implementations of all repository protocols
 for the Capture, Extract, Assemble, Publish workflow. These implementations

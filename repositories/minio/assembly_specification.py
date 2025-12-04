@@ -16,10 +16,10 @@ schema and query mappings.
 import logging
 from typing import Optional, List, Dict
 
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     AssemblySpecification,
 )
-from julee_example.domain.repositories.assembly_specification import (
+from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 from .client import MinioClient, MinioRepositoryMixin

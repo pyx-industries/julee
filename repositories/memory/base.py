@@ -3,7 +3,7 @@ Memory repository base classes and mixins.
 
 This module provides common functionality for in-memory repository
 implementations, reducing code duplication and ensuring consistent patterns
-across all memory-based repositories in the julee_example domain.
+across all memory-based repositories in the julee domain.
 
 The MemoryRepositoryMixin encapsulates common patterns like:
 - Dictionary-based storage management

@@ -1,5 +1,5 @@
 """
-FastAPI application for julee_example CEAP workflow system.
+FastAPI application for julee CEAP workflow system.
 
 This module provides the HTTP API layer for the Capture, Extract, Assemble,
 Publish workflow system. It follows clean architecture principles with
@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 from fastapi_pagination.utils import disable_installed_extensions_check
 
-from julee_example.api.routers import (
+from julee.api.routers import (
     assembly_specifications_router,
     knowledge_service_queries_router,
     knowledge_service_configs_router,
@@ -32,7 +32,7 @@ from julee_example.api.routers import (
     documents_router,
     workflows_router,
 )
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     get_startup_dependencies,
     get_knowledge_service_config_repository,
 )
@@ -54,7 +54,7 @@ def setup_logging() -> None:
     )
 
     # Set specific log levels
-    logging.getLogger("julee_example").setLevel(logging.DEBUG)
+    logging.getLogger("julee").setLevel(logging.DEBUG)
     logging.getLogger("fastapi").setLevel(logging.INFO)
     logging.getLogger("uvicorn").setLevel(logging.INFO)
 
@@ -179,7 +179,7 @@ app.include_router(
 
 if __name__ == "__main__":
     uvicorn.run(
-        "julee_example.api.app:app",
+        "julee.api.app:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

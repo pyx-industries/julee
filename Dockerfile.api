@@ -16,7 +16,7 @@ RUN useradd --create-home --shell /bin/bash julee
 USER julee
 
 # Copy the application code with correct ownership
-COPY --chown=julee:julee . .
+COPY --chown=julee:julee . /app/julee
 
 # Set environment variables
 ENV PYTHONPATH=/app

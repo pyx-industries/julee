@@ -10,10 +10,10 @@ import pytest
 
 from datetime import datetime, timezone
 
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
-from julee_example.repositories.minio.knowledge_service_query import (
+from julee.repositories.minio.knowledge_service_query import (
     MinioKnowledgeServiceQueryRepository,
 )
 from .fake_client import FakeMinioClient

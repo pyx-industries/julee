@@ -1,5 +1,5 @@
 """
-Tests for the julee_example API layer.
+Tests for the julee API layer.
 
 This package contains tests for the FastAPI interface adapters including:
 - Request model validation tests

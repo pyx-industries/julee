@@ -1,5 +1,5 @@
 """
-Domain layer for julee_example.
+Domain layer for julee.
 
 This package contains the core business logic and domain models following
 Clean Architecture principles. All domain concerns are framework-independent
@@ -12,11 +12,11 @@ Subpackages:
 
 Import domain components using package imports for convenience, e.g.:
     # Models from the models package
-    from julee_example.domain.models import Document, Assembly, Policy
+    from julee.domain.models import Document, Assembly, Policy
 
     # Repository protocols from the repositories package
-    from julee_example.domain.repositories import DocumentRepository
+    from julee.domain.repositories import DocumentRepository
 
     # Use cases from the use_cases package
-    from julee_example.domain.use_cases import ValidateDocumentUseCase
+    from julee.domain.use_cases import ValidateDocumentUseCase
 """

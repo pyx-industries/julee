@@ -1,5 +1,5 @@
 """
-FastAPI interface adapters for the julee_example CEAP workflow system.
+FastAPI interface adapters for the julee CEAP workflow system.
 
 This package contains the HTTP API layer that provides external access to the
 CEAP (Capture, Extract, Assemble, Publish) workflow functionality.

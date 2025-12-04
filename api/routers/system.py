@@ -1,5 +1,5 @@
 """
-System API router for the julee_example CEAP system.
+System API router for the julee CEAP system.
 
 This module provides system-level API endpoints including health checks,
 status information, and other operational endpoints.
@@ -18,7 +18,7 @@ from temporalio.client import Client
 from minio import Minio
 import os
 
-from julee_example.api.responses import (
+from julee.api.responses import (
     HealthCheckResponse,
     ServiceHealthStatus,
     ServiceStatus,

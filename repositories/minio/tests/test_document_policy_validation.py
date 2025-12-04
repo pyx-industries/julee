@@ -10,11 +10,11 @@ avoid external dependencies during testing.
 import pytest
 from datetime import datetime, timezone
 
-from julee_example.domain.models.policy import (
+from julee.domain.models.policy import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
-from julee_example.repositories.minio.document_policy_validation import (
+from julee.repositories.minio.document_policy_validation import (
     MinioDocumentPolicyValidationRepository,
 )
 from .fake_client import FakeMinioClient

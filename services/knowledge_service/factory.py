@@ -7,14 +7,14 @@ KnowledgeService instances based on the service API configuration.
 
 import logging
 
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
 from .knowledge_service import KnowledgeService
 from .anthropic import AnthropicKnowledgeService
-from julee_example.domain.models.document import Document
-from julee_example.services.knowledge_service import (
+from julee.domain.models.document import Document
+from julee.services.knowledge_service import (
     QueryResult,
     FileRegistrationResult,
 )
@@ -84,8 +84,8 @@ def knowledge_service_factory(
         ValueError: If the service_api is not supported
 
     Example:
-        >>> from julee_example.domain import KnowledgeServiceConfig
-        >>> from julee_example.domain.models.knowledge_service_config import (
+        >>> from julee.domain import KnowledgeServiceConfig
+        >>> from julee.domain.models.knowledge_service_config import (
         ...     ServiceApi
         ... )
         >>> config = KnowledgeServiceConfig(

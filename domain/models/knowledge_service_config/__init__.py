@@ -1,5 +1,5 @@
 """
-Knowledge Service domain models for julee_example domain.
+Knowledge Service domain models for julee domain.
 
 This module exports domain models for knowledge services in the Capture,
 Extract, Assemble, Publish workflow. Knowledge services represent external

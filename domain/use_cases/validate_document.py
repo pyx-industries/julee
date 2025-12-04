@@ -11,30 +11,32 @@ import hashlib
 import io
 import json
 import logging
-import multihash
 from datetime import datetime
 from typing import Callable, Dict, List, Tuple
 
-from julee_example.domain.models import (
-    Document,
-    DocumentStatus,
+import multihash
+
+from julee.domain.models import (
     ContentStream,
-    KnowledgeServiceQuery,
+    Document,
     DocumentPolicyValidation,
+    DocumentStatus,
+    KnowledgeServiceQuery,
     Policy,
 )
-from julee_example.domain.models.policy import (
+from julee.domain.models.policy import (
     DocumentPolicyValidationStatus,
 )
-from julee_example.domain.repositories import (
-    DocumentRepository,
+from julee.domain.repositories import (
     DocumentPolicyValidationRepository,
+    DocumentRepository,
     KnowledgeServiceConfigRepository,
     KnowledgeServiceQueryRepository,
     PolicyRepository,
 )
-from julee_example.services import KnowledgeService
-from sample.validation import ensure_repository_protocol
+from julee.services import KnowledgeService
+from util.validation import ensure_repository_protocol
+
 from .decorators import try_use_case_step
 
 logger = logging.getLogger(__name__)
@@ -160,9 +162,7 @@ class ValidateDocumentUseCase:
         )
 
         # Step 1: Generate unique validation ID
-        validation_id = (
-            await self.document_policy_validation_repo.generate_id()
-        )
+        validation_id = await self.document_policy_validation_repo.generate_id()
 
         # Step 2: Retrieve document and policy (validate they exist)
         document = await self._retrieve_document(document_id)
@@ -199,10 +199,8 @@ class ValidateDocumentUseCase:
             all_queries = await self._retrieve_all_queries(policy)
 
             # Step 6: Register the document with knowledge services
-            document_registrations = (
-                await self._register_document_with_services(
-                    document, all_queries
-                )
+            document_registrations = await self._register_document_with_services(
+                document, all_queries
             )
 
             # Step 7: Execute validation queries and calculate scores
@@ -215,9 +213,7 @@ class ValidateDocumentUseCase:
 
             # Step 9: Update validation with scores
             validation.validation_scores = validation_scores
-            validation.status = (
-                DocumentPolicyValidationStatus.VALIDATION_COMPLETE
-            )
+            validation.status = DocumentPolicyValidationStatus.VALIDATION_COMPLETE
             await self.document_policy_validation_repo.save(validation)
 
             # Step 10: Check if transformations are needed
@@ -265,9 +261,7 @@ class ValidateDocumentUseCase:
 
             # Step 11: Initial validation failed and transformations are
             # available
-            validation.status = (
-                DocumentPolicyValidationStatus.TRANSFORMATION_REQUIRED
-            )
+            validation.status = DocumentPolicyValidationStatus.TRANSFORMATION_REQUIRED
             await self.document_policy_validation_repo.save(validation)
 
             logger.info(
@@ -293,12 +287,8 @@ class ValidateDocumentUseCase:
                 document_registrations,
             )
 
-            validation.transformed_document_id = (
-                transformed_document.document_id
-            )
-            validation.status = (
-                DocumentPolicyValidationStatus.TRANSFORMATION_COMPLETE
-            )
+            validation.transformed_document_id = transformed_document.document_id
+            validation.status = DocumentPolicyValidationStatus.TRANSFORMATION_COMPLETE
             await self.document_policy_validation_repo.save(validation)
 
             # Step 13: Register transformed document with knowledge services
@@ -312,13 +302,11 @@ class ValidateDocumentUseCase:
             validation.status = DocumentPolicyValidationStatus.IN_PROGRESS
             await self.document_policy_validation_repo.save(validation)
 
-            post_transform_validation_scores = (
-                await self._execute_validation_queries(
-                    transformed_document,
-                    policy,
-                    transformed_document_registrations,
-                    all_queries,
-                )
+            post_transform_validation_scores = await self._execute_validation_queries(
+                transformed_document,
+                policy,
+                transformed_document_registrations,
+                all_queries,
             )
 
             # Step 15: Determine final result based on post-transformation
@@ -358,9 +346,7 @@ class ValidateDocumentUseCase:
                     "passed": final_passed,
                     "initial_scores": validation_scores,
                     "final_scores": post_transform_validation_scores,
-                    "transformed_document_id": (
-                        transformed_document.document_id
-                    ),
+                    "transformed_document_id": (transformed_document.document_id),
                 },
             )
 
@@ -422,9 +408,7 @@ class ValidateDocumentUseCase:
             for query_id in policy.transformation_queries:
                 query = await self.knowledge_service_query_repo.get(query_id)
                 if not query:
-                    raise ValueError(
-                        f"Transformation query not found: {query_id}"
-                    )
+                    raise ValueError(f"Transformation query not found: {query_id}")
                 all_queries[query_id] = query
 
         return all_queries
@@ -453,13 +437,10 @@ class ValidateDocumentUseCase:
 
         for knowledge_service_id in required_service_ids:
             # Get the config for this service
-            config = await self.knowledge_service_config_repo.get(
-                knowledge_service_id
-            )
+            config = await self.knowledge_service_config_repo.get(knowledge_service_id)
             if not config:
                 raise ValueError(
-                    f"Knowledge service config not found: "
-                    f"{knowledge_service_id}"
+                    f"Knowledge service config not found: {knowledge_service_id}"
                 )
 
             registration_result = await self.knowledge_service.register_file(
@@ -504,18 +485,14 @@ class ValidateDocumentUseCase:
             )
             if not config:
                 raise ValueError(
-                    f"Knowledge service config not found: "
-                    f"{query.knowledge_service_id}"
+                    f"Knowledge service config not found: {query.knowledge_service_id}"
                 )
 
             # Get the service file ID from our registrations
-            service_file_id = document_registrations.get(
-                query.knowledge_service_id
-            )
+            service_file_id = document_registrations.get(query.knowledge_service_id)
             if not service_file_id:
                 raise ValueError(
-                    f"Document not registered with service "
-                    f"{query.knowledge_service_id}"
+                    f"Document not registered with service {query.knowledge_service_id}"
                 )
 
             # Execute the validation query
@@ -528,9 +505,7 @@ class ValidateDocumentUseCase:
             )
 
             # Extract the score from the query result
-            actual_score = self._extract_score_from_result(
-                query_result.result_data
-            )
+            actual_score = self._extract_score_from_result(query_result.result_data)
             validation_scores.append((query_id, actual_score))
 
             logger.debug(
@@ -563,8 +538,7 @@ class ValidateDocumentUseCase:
             return score
         except ValueError as e:
             raise ValueError(
-                f"Failed to parse numeric score from response: "
-                f"{response_text}"
+                f"Failed to parse numeric score from response: {response_text}"
             ) from e
 
     def _determine_validation_result(
@@ -642,9 +616,7 @@ class ValidateDocumentUseCase:
         # Apply transformations sequentially
         current_content = document.content
         if current_content is None:
-            raise ValueError(
-                "Document content stream is required for transformation"
-            )
+            raise ValueError("Document content stream is required for transformation")
         current_content.seek(0)
         transformed_content = current_content.read().decode("utf-8")
         current_content.seek(0)
@@ -658,29 +630,23 @@ class ValidateDocumentUseCase:
             )
             if not config:
                 raise ValueError(
-                    f"Knowledge service config not found: "
-                    f"{query.knowledge_service_id}"
+                    f"Knowledge service config not found: {query.knowledge_service_id}"
                 )
 
             # Get the service file ID from our registrations
-            service_file_id = document_registrations.get(
-                query.knowledge_service_id
-            )
+            service_file_id = document_registrations.get(query.knowledge_service_id)
             if not service_file_id:
                 raise ValueError(
-                    f"Document not registered with service "
-                    f"{query.knowledge_service_id}"
+                    f"Document not registered with service {query.knowledge_service_id}"
                 )
 
             # Execute the transformation query
-            transformation_result = (
-                await self.knowledge_service.execute_query(
-                    config,
-                    query.prompt,
-                    [service_file_id],
-                    query.query_metadata,
-                    query.assistant_prompt,
-                )
+            transformation_result = await self.knowledge_service.execute_query(
+                config,
+                query.prompt,
+                [service_file_id],
+                query.query_metadata,
+                query.assistant_prompt,
             )
 
             # Extract transformed content from result

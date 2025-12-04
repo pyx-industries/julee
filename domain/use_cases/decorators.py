@@ -2,7 +2,7 @@
 Decorators for use case step error handling and logging.
 
 This module provides decorators that implement consistent error handling
-and logging patterns across all use cases in the julee_example domain,
+and logging patterns across all use cases in the julee domain,
 following the patterns established in the sample use cases.
 """
 

@@ -1,5 +1,5 @@
 """
-Initialize System Data Use Case for the julee_example CEAP system.
+Initialize System Data Use Case for the julee CEAP system.
 
 This module provides the use case for initializing required system data
 on application startup, such as knowledge service configurations that
@@ -19,28 +19,28 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, Dict, Any
 
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.repositories.knowledge_service_config import (
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee_example.domain.repositories.knowledge_service_query import (
+from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee_example.domain.repositories.assembly_specification import (
+from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee_example.domain.repositories.document import DocumentRepository
+from julee.domain.repositories.document import DocumentRepository
 
 logger = logging.getLogger(__name__)
 
@@ -125,8 +125,8 @@ class InitializeSystemDataUseCase:
             Path to the fixture file
         """
         current_file = Path(__file__)
-        julee_example_dir = current_file.parent.parent.parent
-        return julee_example_dir / "demo_fixtures" / filename
+        julee_dir = current_file.parent.parent.parent
+        return julee_dir / "demo_fixtures" / filename
 
     async def _ensure_knowledge_service_configs_exist(self) -> None:
         """

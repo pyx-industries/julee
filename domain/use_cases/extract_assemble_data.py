@@ -11,29 +11,30 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Callable
-import jsonpointer  # type: ignore
-import multihash
-import jsonschema
+from typing import Any, Callable, Dict
 
-from julee_example.domain.models import (
+import jsonpointer  # type: ignore
+import jsonschema
+import multihash
+
+from julee.domain.models import (
     Assembly,
+    AssemblySpecification,
     AssemblyStatus,
     Document,
     DocumentStatus,
-    AssemblySpecification,
     KnowledgeServiceQuery,
 )
-from julee_example.domain.repositories import (
-    DocumentRepository,
+from julee.domain.repositories import (
     AssemblyRepository,
     AssemblySpecificationRepository,
-    KnowledgeServiceQueryRepository,
+    DocumentRepository,
     KnowledgeServiceConfigRepository,
+    KnowledgeServiceQueryRepository,
 )
-from julee_example.services import KnowledgeService
-from sample.validation import ensure_repository_protocol
-from util.validation import validate_parameter_types
+from julee.services import KnowledgeService
+from util.validation import ensure_repository_protocol, validate_parameter_types
+
 from .decorators import try_use_case_step
 
 logger = logging.getLogger(__name__)
@@ -275,13 +276,10 @@ class ExtractAssembleDataUseCase:
 
         for knowledge_service_id in required_service_ids:
             # Get the config for this service
-            config = await self.knowledge_service_config_repo.get(
-                knowledge_service_id
-            )
+            config = await self.knowledge_service_config_repo.get(knowledge_service_id)
             if not config:
                 raise ValueError(
-                    f"Knowledge service config not found: "
-                    f"{knowledge_service_id}"
+                    f"Knowledge service config not found: {knowledge_service_id}"
                 )
 
             registration_result = await self.knowledge_service.register_file(
@@ -298,9 +296,7 @@ class ExtractAssembleDataUseCase:
         self, assembly_specification: AssemblySpecification
     ) -> Dict[str, KnowledgeServiceQuery]:
         """Retrieve all knowledge service queries needed for this assembly."""
-        query_ids = list(
-            assembly_specification.knowledge_service_queries.values()
-        )
+        query_ids = list(assembly_specification.knowledge_service_queries.values())
 
         # TODO: TEMPORAL SERIALIZATION ISSUE - Replace with get_many when
         # fixed
@@ -339,9 +335,7 @@ class ExtractAssembleDataUseCase:
         for query_id in query_ids:
             query = await self.knowledge_service_query_repo.get(query_id)
             if not query:
-                raise ValueError(
-                    f"Knowledge service query not found: {query_id}"
-                )
+                raise ValueError(f"Knowledge service query not found: {query_id}")
             queries[query_id] = query
         return queries
 
@@ -400,24 +394,18 @@ class ExtractAssembleDataUseCase:
 
             if not config:
                 raise ValueError(
-                    f"Knowledge service config not found: "
-                    f"{query.knowledge_service_id}"
+                    f"Knowledge service config not found: {query.knowledge_service_id}"
                 )
 
             # Get the service file ID from our registrations
-            service_file_id = document_registrations.get(
-                query.knowledge_service_id
-            )
+            service_file_id = document_registrations.get(query.knowledge_service_id)
             if not service_file_id:
                 raise ValueError(
-                    f"Document not registered with service "
-                    f"{query.knowledge_service_id}"
+                    f"Document not registered with service {query.knowledge_service_id}"
                 )
 
             # Execute the query with schema section embedded in the prompt
-            query_text = self._build_query_with_schema(
-                query.prompt, schema_section
-            )
+            query_text = self._build_query_with_schema(query.prompt, schema_section)
 
             query_result = await self.knowledge_service.execute_query(
                 config,
@@ -460,8 +448,7 @@ class ExtractAssembleDataUseCase:
         )
         if not specification:
             raise ValueError(
-                f"Assembly specification not found: "
-                f"{assembly_specification_id}"
+                f"Assembly specification not found: {assembly_specification_id}"
             )
         return specification
 
@@ -486,13 +473,9 @@ class ExtractAssembleDataUseCase:
             result = ptr.resolve(jsonschema)
             return result
         except (jsonpointer.JsonPointerException, KeyError, TypeError) as e:
-            raise ValueError(
-                f"Cannot extract schema section '{schema_pointer}': {e}"
-            )
+            raise ValueError(f"Cannot extract schema section '{schema_pointer}': {e}")
 
-    def _build_query_with_schema(
-        self, base_prompt: str, schema_section: Any
-    ) -> str:
+    def _build_query_with_schema(self, base_prompt: str, schema_section: Any) -> str:
         """Build the query text with embedded JSON schema section."""
         schema_json = json.dumps(schema_section, indent=2)
         return f"""{base_prompt}
@@ -534,9 +517,7 @@ text or markdown formatting."""
                 assembled_data.update(result_data)
             else:
                 # Can't merge non-dict at root level, this would be an error
-                raise ValueError(
-                    "Cannot merge non-dict result data at root level"
-                )
+                raise ValueError("Cannot merge non-dict result data at root level")
         else:
             # Use JSON Pointer to set the data at the correct location
             try:
@@ -576,8 +557,7 @@ text or markdown formatting."""
 
             except (KeyError, TypeError) as e:
                 raise ValueError(
-                    f"Cannot store result at schema pointer "
-                    f"'{schema_pointer}': {e}"
+                    f"Cannot store result at schema pointer '{schema_pointer}': {e}"
                 )
 
     @try_use_case_step("assembled_document_creation")
@@ -598,14 +578,11 @@ text or markdown formatting."""
         assembled_document = Document(
             document_id=document_id,
             original_filename=(
-                f"assembled_"
-                f"{assembly_specification.name.replace(' ', '_')}.json"
+                f"assembled_{assembly_specification.name.replace(' ', '_')}.json"
             ),
             content_type="application/json",
             size_bytes=len(content_bytes),
-            content_multihash=self._calculate_multihash_from_content(
-                content_bytes
-            ),
+            content_multihash=self._calculate_multihash_from_content(content_bytes),
             status=DocumentStatus.ASSEMBLED,
             content_string=assembled_content,  # Use content_string for small
             created_at=self.now_fn(),
@@ -624,9 +601,7 @@ text or markdown formatting."""
     ) -> None:
         """Validate that the assembled data conforms to the JSON schema."""
         try:
-            jsonschema.validate(
-                assembled_data, assembly_specification.jsonschema
-            )
+            jsonschema.validate(assembled_data, assembly_specification.jsonschema)
             logger.debug(
                 "Assembled data validation passed",
                 extra={
@@ -643,12 +618,8 @@ text or markdown formatting."""
                         assembly_specification.assembly_specification_id
                     ),
                     "validation_error": str(e),
-                    "error_path": (
-                        list(e.absolute_path) if e.absolute_path else []
-                    ),
-                    "schema_path": (
-                        list(e.schema_path) if e.schema_path else []
-                    ),
+                    "error_path": (list(e.absolute_path) if e.absolute_path else []),
+                    "schema_path": (list(e.schema_path) if e.schema_path else []),
                 },
             )
             raise ValueError(

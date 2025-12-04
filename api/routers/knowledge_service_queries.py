@@ -1,5 +1,5 @@
 """
-Knowledge Service Queries API router for the julee_example CEAP system.
+Knowledge Service Queries API router for the julee CEAP system.
 
 This module provides the API endpoints for knowledge service queries,
 which define how to extract specific data using external knowledge services
@@ -18,14 +18,14 @@ from typing import Optional, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
 
-from julee_example.domain.models import KnowledgeServiceQuery
-from julee_example.domain.repositories.knowledge_service_query import (
+from julee.domain.models import KnowledgeServiceQuery
+from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     get_knowledge_service_query_repository,
 )
-from julee_example.api.requests import CreateKnowledgeServiceQueryRequest
+from julee.api.requests import CreateKnowledgeServiceQueryRequest
 
 logger = logging.getLogger(__name__)
 

@@ -12,15 +12,15 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from julee_example.api.routers.assembly_specifications import router
-from julee_example.api.dependencies import (
+from julee.api.routers.assembly_specifications import router
+from julee.api.dependencies import (
     get_assembly_specification_repository,
 )
-from julee_example.domain.models import (
+from julee.domain.models import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee_example.repositories.memory import (
+from julee.repositories.memory import (
     MemoryAssemblySpecificationRepository,
 )
 

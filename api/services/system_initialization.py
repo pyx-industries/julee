@@ -1,5 +1,5 @@
 """
-System Initialization Service for the julee_example CEAP system.
+System Initialization Service for the julee CEAP system.
 
 This module provides the service layer for system initialization,
 orchestrating the use cases needed to ensure required system data
@@ -13,7 +13,7 @@ to the appropriate use cases.
 import logging
 from typing import Dict, Any
 
-from julee_example.domain.use_cases.initialize_system_data import (
+from julee.domain.use_cases.initialize_system_data import (
     InitializeSystemDataUseCase,
 )
 

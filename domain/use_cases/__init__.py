@@ -1,5 +1,5 @@
 """
-Use cases for julee_example domain.
+Use cases for julee domain.
 
 This package contains use case classes that orchestrate business logic
 for the Capture, Extract, Assemble, Publish workflow while remaining

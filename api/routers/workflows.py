@@ -1,5 +1,5 @@
 """
-Workflows API router for the julee_example CEAP system.
+Workflows API router for the julee CEAP system.
 
 This module provides workflow management API endpoints for starting,
 monitoring, and managing workflows in the system.
@@ -20,8 +20,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from temporalio.client import Client
 
-from julee_example.api.dependencies import get_temporal_client
-from julee_example.workflows.extract_assemble import (
+from julee.api.dependencies import get_temporal_client
+from julee.workflows.extract_assemble import (
     ExtractAssembleWorkflow,
     EXTRACT_ASSEMBLE_RETRY_POLICY,
 )

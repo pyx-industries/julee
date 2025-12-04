@@ -1,8 +1,8 @@
 """
-Examples package for the julee_example project.
+Examples package for the julee project.
 
 This package contains example scripts and demonstrations of how to use
-the various components of the julee_example system, including:
+the various components of the julee system, including:
 
 - Knowledge service integrations
 - Document processing workflows

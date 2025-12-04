@@ -1,12 +1,12 @@
 """
-Domain models for julee_example.
+Domain models for julee.
 
 This package contains all the domain entities and value objects following
 Clean Architecture principles. These models are framework-independent and
 contain only business logic.
 
 Re-exports commonly used models for convenient importing:
-    from julee_example.domain.models import Document, Assembly, Policy
+    from julee.domain.models import Document, Assembly, Policy
 """
 
 # Document models

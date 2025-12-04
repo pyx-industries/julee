@@ -11,12 +11,12 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 from typing import Generator
 
-from julee_example.api.app import app
-from julee_example.domain.models.knowledge_service_config import (
+from julee.api.app import app
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     get_knowledge_service_config_repository,
 )
 from datetime import datetime, timezone

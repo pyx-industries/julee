@@ -13,7 +13,7 @@ from pydantic import ValidationInfo
 from typing import Callable, Optional, List, Dict, Any
 from datetime import datetime, timezone
 from enum import Enum
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 

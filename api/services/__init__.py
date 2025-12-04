@@ -1,5 +1,5 @@
 """
-API services package for the julee_example CEAP system.
+API services package for the julee CEAP system.
 
 This package contains service layer components that orchestrate use cases
 and provide higher-level application services. Services in this package

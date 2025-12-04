@@ -12,10 +12,10 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from julee_example.api.routers.documents import router
-from julee_example.api.dependencies import get_document_repository
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.repositories.memory import MemoryDocumentRepository
+from julee.api.routers.documents import router
+from julee.api.dependencies import get_document_repository
+from julee.domain.models.document import Document, DocumentStatus
+from julee.repositories.memory import MemoryDocumentRepository
 
 
 @pytest.fixture

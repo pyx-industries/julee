@@ -1,5 +1,5 @@
 """
-Knowledge Service Configs API router for the julee_example CEAP system.
+Knowledge Service Configs API router for the julee CEAP system.
 
 This module provides the API endpoints for knowledge service configurations,
 which define the available knowledge services that can be used for extracting
@@ -16,13 +16,13 @@ from typing import cast
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination import Page, paginate
 
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee_example.domain.repositories.knowledge_service_config import (
+from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     get_knowledge_service_config_repository,
 )
 

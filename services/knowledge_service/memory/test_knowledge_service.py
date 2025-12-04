@@ -8,12 +8,12 @@ canned query response functionality.
 
 import pytest
 from datetime import datetime, timezone
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.models.knowledge_service_config import ServiceApi
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 from ..knowledge_service import QueryResult

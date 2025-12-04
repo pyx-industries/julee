@@ -9,11 +9,11 @@ external dependencies during testing.
 import pytest
 from datetime import datetime, timezone
 
-from julee_example.domain.models.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee_example.domain.models.knowledge_service_config import ServiceApi
-from julee_example.repositories.minio.knowledge_service_config import (
+from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
 from .fake_client import FakeMinioClient

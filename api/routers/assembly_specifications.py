@@ -1,5 +1,5 @@
 """
-Assembly Specifications API router for the julee_example CEAP system.
+Assembly Specifications API router for the julee CEAP system.
 
 This module provides the API endpoints for assembly specifications,
 which define how to assemble documents of specific types including
@@ -17,14 +17,14 @@ from typing import cast
 from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi_pagination import Page, paginate
 
-from julee_example.domain.models import AssemblySpecification
-from julee_example.domain.repositories.assembly_specification import (
+from julee.domain.models import AssemblySpecification
+from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee_example.api.dependencies import (
+from julee.api.dependencies import (
     get_assembly_specification_repository,
 )
-from julee_example.api.requests import CreateAssemblySpecificationRequest
+from julee.api.requests import CreateAssemblySpecificationRequest
 
 logger = logging.getLogger(__name__)
 

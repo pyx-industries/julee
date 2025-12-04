@@ -19,11 +19,11 @@ import uuid
 from typing import Optional, List, Dict
 
 
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
 from .client import MinioClient, MinioRepositoryMixin
-from julee_example.domain.repositories.knowledge_service_query import (
+from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 

@@ -28,7 +28,7 @@ stubs that delegate to activities for durability and proper error handling.
 """
 
 from typing import runtime_checkable, Protocol
-from julee_example.domain.models import Assembly
+from julee.domain.models import Assembly
 from .base import BaseRepository
 
 

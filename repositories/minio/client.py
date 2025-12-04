@@ -32,7 +32,7 @@ from minio.error import S3Error  # type: ignore[import-untyped]
 from pydantic import BaseModel
 
 # Import ContentStream here to avoid circular imports
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 

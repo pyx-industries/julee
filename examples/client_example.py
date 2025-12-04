@@ -1,5 +1,5 @@
 """
-Example client for starting ExtractAssemble workflows in julee_example.
+Example client for starting ExtractAssemble workflows in julee.
 
 This demonstrates how to start document extraction and assembly workflows
 using Temporal's client API. It shows proper workflow configuration,
@@ -14,16 +14,16 @@ from temporalio.client import Client
 from util.repos.temporal.data_converter import temporal_data_converter
 from minio import Minio
 
-from julee_example.workflows import (
+from julee.workflows import (
     ExtractAssembleWorkflow,
     EXTRACT_ASSEMBLE_RETRY_POLICY,
     ValidateDocumentWorkflow,
     VALIDATE_DOCUMENT_RETRY_POLICY,
 )
-from julee_example.domain.models.assembly import Assembly
-from julee_example.domain.models.policy import DocumentPolicyValidation
-from julee_example.examples.populate_example_data import populate_example_data
-from julee_example.repositories.minio.document import MinioDocumentRepository
+from julee.domain.models.assembly import Assembly
+from julee.domain.models.policy import DocumentPolicyValidation
+from julee.examples.populate_example_data import populate_example_data
+from julee.repositories.minio.document import MinioDocumentRepository
 
 logger = logging.getLogger(__name__)
 

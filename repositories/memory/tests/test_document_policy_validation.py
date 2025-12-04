@@ -10,11 +10,11 @@ import pytest
 from datetime import datetime, timezone
 from typing import Any
 
-from julee_example.domain.models.policy import (
+from julee.domain.models.policy import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
-from julee_example.repositories.memory.document_policy_validation import (
+from julee.repositories.memory.document_policy_validation import (
     MemoryDocumentPolicyValidationRepository,
 )
 

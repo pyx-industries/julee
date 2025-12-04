@@ -16,8 +16,8 @@ status, scores, transformation results, and metadata.
 import logging
 from typing import Optional, List, Dict
 
-from julee_example.domain.models.policy import DocumentPolicyValidation
-from julee_example.domain.repositories.document_policy_validation import (
+from julee.domain.models.policy import DocumentPolicyValidation
+from julee.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
 from .client import MinioClient, MinioRepositoryMixin

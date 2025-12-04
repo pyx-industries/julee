@@ -1,5 +1,5 @@
 """
-Repository protocols for julee_example domain.
+Repository protocols for julee domain.
 
 This module exports all repository protocol interfaces for the Capture,
 Extract, Assemble, Publish workflow, following the Clean Architecture

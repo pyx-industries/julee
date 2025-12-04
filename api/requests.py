@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from datetime import datetime, timezone
 
-from julee_example.domain.models import (
+from julee.domain.models import (
     AssemblySpecification,
     AssemblySpecificationStatus,
     KnowledgeServiceQuery,

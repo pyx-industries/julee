@@ -10,11 +10,11 @@ import pytest
 from datetime import datetime, timezone
 
 
-from julee_example.domain.models.assembly_specification import (
+from julee.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee_example.repositories.minio.assembly_specification import (
+from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
 from .fake_client import FakeMinioClient

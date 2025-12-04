@@ -1,5 +1,5 @@
 """
-Services for julee_example domain.
+Services for julee domain.
 
 This module provides service classes and factory functions for interacting
 with external services in the Capture, Extract, Assemble, Publish workflow.

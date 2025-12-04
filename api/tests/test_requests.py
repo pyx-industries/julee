@@ -10,11 +10,11 @@ import pytest
 from datetime import datetime
 from pydantic import ValidationError
 
-from julee_example.api.requests import (
+from julee.api.requests import (
     CreateAssemblySpecificationRequest,
     CreateKnowledgeServiceQueryRequest,
 )
-from julee_example.domain.models import (
+from julee.domain.models import (
     AssemblySpecification,
     AssemblySpecificationStatus,
     KnowledgeServiceQuery,

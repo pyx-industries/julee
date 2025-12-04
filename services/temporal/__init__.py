@@ -1,5 +1,5 @@
 """
-Temporal integration for the julee_example knowledge service domain.
+Temporal integration for the julee knowledge service domain.
 
 This package contains Temporal activity and proxy implementations for
 knowledge service operations, following the established patterns from

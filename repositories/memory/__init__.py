@@ -1,5 +1,5 @@
 """
-Memory repository implementations for julee_example domain.
+Memory repository implementations for julee domain.
 
 This module exports in-memory implementations of all repository protocols
 for the Capture, Extract, Assemble, Publish workflow. These implementations

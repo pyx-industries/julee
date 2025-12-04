@@ -15,9 +15,9 @@ from unittest.mock import Mock
 from minio.error import S3Error
 
 
-from julee_example.repositories.minio.document import MinioDocumentRepository
-from julee_example.domain.models.document import Document, DocumentStatus
-from julee_example.domain.models.custom_fields.content_stream import (
+from julee.repositories.minio.document import MinioDocumentRepository
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 from .fake_client import FakeMinioClient

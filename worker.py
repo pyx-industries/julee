@@ -1,8 +1,8 @@
 """
-Temporal worker for julee_example domain workflows and activities.
+Temporal worker for julee domain workflows and activities.
 
 This worker runs workflows and activities for document processing,
-assembly, and knowledge service operations within the julee_example domain.
+assembly, and knowledge service operations within the julee domain.
 """
 
 import asyncio
@@ -13,11 +13,11 @@ from temporalio.service import RPCError
 from temporalio.worker import Worker
 from util.repos.temporal.data_converter import temporal_data_converter
 
-from julee_example.workflows import (
+from julee.workflows import (
     ExtractAssembleWorkflow,
     ValidateDocumentWorkflow,
 )
-from julee_example.repositories.temporal.activities import (
+from julee.repositories.temporal.activities import (
     TemporalMinioAssemblyRepository,
     TemporalMinioAssemblySpecificationRepository,
     TemporalMinioDocumentRepository,
@@ -26,11 +26,11 @@ from julee_example.repositories.temporal.activities import (
     TemporalMinioPolicyRepository,
     TemporalMinioDocumentPolicyValidationRepository,
 )
-from julee_example.services.temporal.activities import (
+from julee.services.temporal.activities import (
     TemporalKnowledgeService,
 )
 from minio import Minio
-from julee_example.repositories.minio.client import MinioClient
+from julee.repositories.minio.client import MinioClient
 from util.temporal.activities import collect_activities_from_instances
 
 logger = logging.getLogger(__name__)
@@ -119,14 +119,14 @@ async def get_temporal_client_with_retries(
 
 
 async def run_worker() -> None:
-    """Run the Temporal worker for julee_example domain"""
+    """Run the Temporal worker for julee domain"""
     # Setup logging first
     setup_logging()
 
     # Connect to Temporal server using environment variable
     temporal_endpoint = os.environ.get("TEMPORAL_ENDPOINT", "localhost:7234")
     logger.info(
-        "Starting julee_example Temporal worker",
+        "Starting julee Temporal worker",
         extra={"temporal_endpoint": temporal_endpoint},
     )
 
@@ -190,7 +190,7 @@ async def run_worker() -> None:
     )
 
     logger.info(
-        "Creating Temporal worker for julee_example domain",
+        "Creating Temporal worker for julee domain",
         extra={
             "task_queue": "julee-extract-assemble-queue",
             "workflow_count": 2,
@@ -207,7 +207,7 @@ async def run_worker() -> None:
         activities=activities,  # type: ignore[arg-type]
     )
 
-    logger.info("Starting julee_example worker execution")
+    logger.info("Starting julee worker execution")
 
     # Run the worker
     await worker.run()

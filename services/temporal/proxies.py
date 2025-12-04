@@ -1,5 +1,5 @@
 """
-Workflow-safe proxy classes for the julee_example knowledge service domain.
+Workflow-safe proxy classes for the julee knowledge service domain.
 
 This module contains @temporal_workflow_proxy decorated classes that
 delegate to Temporal activities from within workflows. These classes are
@@ -12,10 +12,10 @@ and retry policies.
 """
 
 from util.temporal.decorators import temporal_workflow_proxy
-from julee_example.services.knowledge_service import KnowledgeService
+from julee.services.knowledge_service import KnowledgeService
 
 # Import activity name bases from shared module
-from julee_example.services.temporal.activity_names import (
+from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
 
