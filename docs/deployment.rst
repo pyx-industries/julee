@@ -6,7 +6,7 @@ This document describes the runtime deployment architecture of Julee application
 C4 Context Diagram
 ------------------
 
-A deployed Julee application with its service dependencies:
+A deployed Julee application with its dependencies:
 
 .. uml::
 
@@ -16,9 +16,12 @@ A deployed Julee application with its service dependencies:
    Person(user, "User", "Application end user")
    System(juleeApp, "Julee Application", "Your app built with Julee framework")
 
+   System_Boundary(infra, "Infrastructure") {
+       System_Ext(temporal, "Temporal", "Workflow orchestration")
+       System_Ext(storage, "Object Storage", "S3/MinIO storage")
+   }
+
    System_Boundary(services, "Services") {
-       System_Ext(temporal, "Temporal", "Workflow orchestration service")
-       System_Ext(storage, "Object Storage", "S3/MinIO storage service")
        System_Ext(external, "External Services", "Knowledge, AI, policy services, etc")
    }
 
@@ -27,10 +30,17 @@ A deployed Julee application with its service dependencies:
    Rel(juleeApp, storage, "Stores/retrieves data", "S3 API")
    Rel(juleeApp, external, "Calls services", "HTTPS/API")
 
+   note right of infra
+     Infrastructure:
+     - Temporal (workflow orchestration)
+     - MinIO/S3 (object storage)
+     - PostgreSQL (Temporal persistence)
+   end note
+
    note right of services
-     Services can be:
-     - Third-party APIs (Anthropic)
-     - Self-hosted (MinIO, Temporal)
+     Services (supply chain):
+     - Third-party APIs (Anthropic, OpenAI)
+     - Self-hosted (local LLM)
      - Bundled with app
    end note
    @enduml
