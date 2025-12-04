@@ -6,13 +6,13 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Copy package files
-COPY julee_example/ui/package*.json ./
+COPY ui/package*.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
-COPY julee_example/ui/ ./
+COPY ui/ ./
 
 # Create a non-root user
 RUN addgroup -g 1001 -S julee && \
