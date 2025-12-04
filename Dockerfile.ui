@@ -11,18 +11,13 @@ COPY demo-ui/package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Copy source code
-COPY demo-ui/ ./
-
 # Create a non-root user
 RUN addgroup -g 1001 -S julee && \
     adduser -S julee -u 1001 -G julee
-
-# Set ownership
-RUN chown -R julee:julee /app
-
-# Switch to non-root user
 USER julee
+
+# Copy source code with correct ownership
+COPY --chown=julee:julee demo-ui/ ./
 
 # Expose port 3000 (Vite dev server default)
 EXPOSE 3000

@@ -9,11 +9,9 @@ This guide explains how to set up and run the Julee Example application using Do
 
 ## Quick Start
 
-**Note**: All commands should be run from the top-level `plays_with_temporal` directory.
-
 1. **Set up environment variables**:
    ```bash
-   cp julee_example/.env.example .env
+   cp .env.example .env
    ```
    Edit `.env` and add your API keys:
    ```bash
@@ -23,7 +21,7 @@ This guide explains how to set up and run the Julee Example application using Do
 
 2. **Run the application**:
    ```bash
-   docker-compose --profile julee up --build -d
+   docker compose up --build -d
    ```
 
 3. **Access the services**:
@@ -37,13 +35,13 @@ This guide explains how to set up and run the Julee Example application using Do
 
 ```bash
 # Start in background
-docker-compose --profile julee up -d --build
+docker compose up -d --build
 
 # View logs
-docker-compose --profile julee logs -f
+docker compose logs -f
 
 # Stop all services
-docker-compose --profile julee down
+docker compose down
 ```
 
 ## Demo Features
@@ -101,17 +99,17 @@ Replace the document ID with the one returned from your workflow execution.
 
 **Build failures:**
 - Clear Docker cache: `docker system prune -f`
-- Rebuild without cache: `docker-compose build --no-cache`
+- Rebuild without cache: `docker compose build --no-cache`
 
 ### Database and Storage
 
 **Reset data:**
 ```bash
 # Stop services and remove volumes
-docker-compose --profile julee down -v
+docker compose down -v
 
 # Restart with fresh data
-docker-compose --profile julee up --build
+docker compose up --build
 ```
 
 **Access MinIO Console:**
