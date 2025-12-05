@@ -68,10 +68,6 @@ jobs:
   api-tests:
     name: Run API Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.API_DIRECTORY }}
-
     steps:
       - name: Test Julee API
         run: |
