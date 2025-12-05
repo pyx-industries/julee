@@ -112,12 +112,15 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Architecture & Design
+   :caption: Architecture
 
-   framework
-   deployment
-   code
-   workflows
+   architecture/framework
+   architecture/clean_architecture
+   architecture/protocols
+   architecture/repositories
+   architecture/services
+   architecture/workflows
+   architecture/deployment
 
 .. toctree::
    :maxdepth: 2

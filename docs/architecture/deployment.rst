@@ -8,78 +8,14 @@ C4 Context Diagram
 
 A deployed Julee application with its dependencies:
 
-.. uml::
-
-   @startuml
-   !include <C4/C4_Context>
-
-   Person(user, "User", "Application end user")
-   System(juleeApp, "Julee Application", "Your app built with Julee framework")
-
-   System_Boundary(infra, "Infrastructure") {
-       System_Ext(temporal, "Temporal", "Workflow orchestration")
-       System_Ext(storage, "Object Storage", "S3/MinIO storage")
-   }
-
-   System_Boundary(services, "Services") {
-       System_Ext(external, "External Services", "Knowledge, AI, policy services, etc")
-   }
-
-   Rel(user, juleeApp, "Uses", "HTTPS")
-   Rel(juleeApp, temporal, "Orchestrates workflows", "gRPC")
-   Rel(juleeApp, storage, "Stores/retrieves data", "S3 API")
-   Rel(juleeApp, external, "Calls services", "HTTPS/API")
-
-   note right of infra
-     Infrastructure:
-     - Temporal (workflow orchestration)
-     - MinIO/S3 (object storage)
-     - PostgreSQL (Temporal persistence)
-   end note
-
-   note right of services
-     Services (supply chain):
-     - Third-party APIs (Anthropic, OpenAI)
-     - Self-hosted (local LLM)
-     - Bundled with app
-   end note
-   @enduml
+.. uml:: diagrams/c4_context.puml
 
 C4 Container Diagram
 --------------------
 
 Runtime containers in a typical Julee application deployment:
 
-.. uml::
-
-   @startuml
-   !include <C4/C4_Container>
-
-   Person(user, "User")
-
-   System_Boundary(app, "Julee Application") {
-       Container(ui, "Web UI", "React/Vue/etc", "Optional user interface")
-       Container(api, "API Server", "FastAPI + Julee", "Application API using Julee")
-       Container(worker, "Temporal Worker", "Python + Julee", "Runs Julee CEAP workflows")
-   }
-
-   System_Boundary(infra, "Infrastructure Services") {
-       ContainerDb(temporal, "Temporal Server", "Workflow Engine", "Orchestrates CEAP workflows")
-       ContainerDb(storage, "Object Storage", "MinIO/S3", "Document and data storage")
-       ContainerDb(tempdb, "PostgreSQL", "Database", "Temporal persistence")
-   }
-
-   System_Ext(external, "External Services", "Knowledge, AI, policy services, etc.")
-
-   Rel(user, ui, "Uses", "HTTPS")
-   Rel(ui, api, "Calls", "HTTPS/JSON")
-   Rel(api, temporal, "Starts workflows", "gRPC")
-   Rel(worker, temporal, "Polls for work", "gRPC")
-   Rel(api, storage, "Stores/retrieves", "S3 API")
-   Rel(worker, storage, "Stores/retrieves", "S3 API")
-   Rel(worker, external, "Calls services", "HTTPS/API")
-   Rel(temporal, tempdb, "Persists", "SQL")
-   @enduml
+.. uml:: diagrams/c4_container.puml
 
 Container Responsibilities
 ---------------------------
@@ -130,91 +66,14 @@ C4 Component Diagram
 
 Framework components and your application:
 
-.. uml::
-
-   @startuml
-   !include <C4/C4_Component>
-
-   Container_Boundary(framework, "Julee Framework") {
-       Component(domain, "Domain", "Models & Protocols", "Entities, Repository Protocols, Service Protocols")
-       Component(usecases, "Use Cases", "Business Logic", "CEAP use case implementations")
-       Component(workflows, "CEAP Workflows", "Temporal workflows", "ExtractAssemble, Validate workflows")
-       Component(repos, "Repository Impls", "Storage", "MinIO, Memory implementations")
-       Component(services, "Service Impls", "Integrations", "Knowledge service implementations")
-       Component(di, "DI Container", "FastAPI Depends", "Dependency injection and configuration")
-   }
-
-   Container_Boundary(app, "Your Application") {
-       Component(appDomain, "Domain Models", "Pydantic", "Your business entities")
-       Component(appUseCases, "Use Cases", "Business Logic", "Your application use cases")
-       Component(appConfig, "Configuration", "Settings", "Service configuration, DI setup")
-       Component(appAPI, "API Container", "FastAPI", "REST API, triggers workflows")
-       Component(appWorker, "Worker Container", "Temporal", "Runs workflows, executes use cases")
-   }
-
-   Rel(appDomain, domain, "Extends/Uses")
-   Rel(appUseCases, usecases, "Extends/Uses")
-   Rel(appUseCases, domain, "Uses")
-   Rel(appWorker, workflows, "Runs")
-   Rel(workflows, appUseCases, "Calls")
-   Rel(workflows, usecases, "Calls")
-   Rel(usecases, domain, "Uses")
-   Rel(usecases, repos, "Via protocols")
-   Rel(usecases, services, "Via protocols")
-   Rel(appAPI, appUseCases, "Calls")
-   Rel(appAPI, workflows, "Triggers (via Temporal)")
-   Rel(appConfig, di, "Configures")
-   Rel(di, repos, "Provides")
-   Rel(di, services, "Provides")
-   @enduml
+.. uml:: diagrams/c4_component.puml
 
 Data Flow: CEAP Workflow Execution
 -----------------------------------
 
 How a CEAP workflow executes:
 
-.. uml::
-
-   @startuml
-   participant "API/Trigger" as api
-   participant "Temporal" as temporal
-   participant "Worker\n(Julee App)" as worker
-   participant "Use Case" as usecase
-   participant "Repository\n(via Protocol)" as repo
-   participant "Service\n(via Protocol)" as service
-   participant "Storage" as storage
-   participant "External Service" as external
-
-   api -> temporal: Start ExtractAssembleWorkflow
-   temporal -> worker: Execute workflow
-   worker -> usecase: execute_extract_assemble()
-
-   usecase -> repo: get_document(id)
-   repo -> storage: fetch document
-   storage --> repo: document data
-   repo --> usecase: Document
-
-   usecase -> repo: get_specification(id)
-   repo -> storage: fetch spec
-   storage --> repo: spec data
-   repo --> usecase: AssemblySpecification
-
-   usecase -> service: query(content, prompts)
-   service -> external: API call
-   external --> service: extracted data
-   service --> usecase: extraction results
-
-   usecase -> usecase: assemble_data()
-
-   usecase -> repo: create_assembly(assembly)
-   repo -> storage: store assembly
-   storage --> repo: saved
-   repo --> usecase: Assembly
-
-   usecase --> worker: result
-   worker --> temporal: workflow complete
-   temporal --> api: result
-   @enduml
+.. uml:: diagrams/ceap_workflow_sequence.puml
 
 Deployment Patterns
 -------------------

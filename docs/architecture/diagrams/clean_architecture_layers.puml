@@ -1,0 +1,40 @@
+@startuml
+!include <C4/C4_Component>
+
+rectangle "Clean Architecture Layers" {
+    component "Infrastructure\n(Repos, Services)" as infra #LightGreen
+
+    package "Applications" as apps #LightYellow {
+        component "Application\n(Use Cases)" as app
+    }
+
+    component "DI Container\n(configures infrastructure dependencies)" as di #LightCyan
+    component "Domain\n(Models, Protocols, Use Cases)" as domain #Orange
+}
+
+infra -down-> domain : implements protocols
+app -down-> domain : uses protocols
+di -down-> infra : configures
+app -down-> di : depends on
+
+
+note right of app
+  Applications include:
+  - CLI
+  - API
+  - Workers
+end note
+
+
+note right of domain
+  Core domain has ZERO dependencies
+  on outer layers. Defines protocols
+  that infrastructure implements.
+end note
+
+note left of di
+  DI Container wires
+  concrete implementations
+  to protocol interfaces
+end note
+@enduml

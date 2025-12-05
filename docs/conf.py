@@ -37,11 +37,11 @@ extensions = [
 # AutoAPI configuration
 autoapi_type = 'python'
 autoapi_dirs = [
-    '../api',
-    '../domain',
-    '../repositories',
-    '../services',
-    '../workflows',
+    '../src/julee/api',
+    '../src/julee/domain',
+    '../src/julee/repositories',
+    '../src/julee/services',
+    '../src/julee/workflows',
 ]
 autoapi_options = [
     'members',
