@@ -295,28 +295,4 @@ See :doc:`/contributing` for contribution guidelines.
 Summary
 -------
 
-**Batteries included means production-ready modules out of the box.**
-
-**What's included:**
-
-- CEAP workflows for AI document processing
-- Repository implementations (MinIO, Memory)
-- Service implementations (Anthropic, OpenAI, Mock)
-- Domain models and utilities
-
-**How to use:**
-
-- Direct: Import and use as-is
-- Configure: Customize via settings
-- Extend: Subclass for custom behavior
-- Replace: Swap with your own implementations
-
-**Philosophy:**
-
-- Reduce time to value
-- Encode best practices
-- Provide starting points, not constraints
-
-For third-party modules, see :doc:`3rd-party`.
-
-For module integration patterns, see :doc:`modules`.
+Batteries included: CEAP workflows, repository implementations (MinIO, Memory), service implementations (Anthropic, OpenAI, Mock). Use as-is, configure, extend, or replace with your own implementations.

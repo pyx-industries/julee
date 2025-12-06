@@ -1,9 +1,7 @@
 Solutions
 =========
 
-A **Julee Solution** is a software system built using the Julee framework to solve specific business problems.
-
-Solutions compose use cases with services to create value. They may run compositions directly (for simple operations) or as pipelines (for reliable, auditable execution).
+A **Julee Solution** is a software system built using the Julee framework—see :doc:`/architecture/framework` for what that means. This section covers how solutions are structured.
 
 .. toctree::
    :maxdepth: 1
@@ -14,27 +12,6 @@ Solutions compose use cases with services to create value. They may run composit
    modules
    batteries-included
    3rd-party
-
-What is a Julee Solution?
--------------------------
-
-A Julee Solution is:
-
-- A software system built to meet specific business requirements
-- Composed of one or more **applications** (Worker, API, CLI, UI)
-- Built using the Julee framework's patterns and components
-- Extended with domain-specific code for your business logic
-
-Solutions combine:
-
-**Domain-Specific Code**
-    Your business models, use cases, and rules. This is what makes your solution unique.
-
-**Framework Components**
-    Julee's infrastructure - repository patterns, service protocols, DI container, Temporal integration.
-
-**Modules**
-    Reusable functionality from batteries-included modules (like CEAP) or third-party plugins.
 
 From Composition to Pipeline
 ----------------------------
@@ -53,29 +30,7 @@ Compositions can be executed in two ways:
 **Pipeline Execution**
     Run the composition via Temporal as a workflow. Reliable, auditable, with supply chain provenance.
 
-See :doc:`composition` for how compositions work.
-
-See :doc:`pipelines` for when and why to use pipeline execution.
-
-Module Types
-------------
-
-The functionality in your solution comes from different sources:
-
-**Batteries-Included**
-    Ready-made modules from the Julee framework. CEAP workflows, repository implementations, service integrations.
-
-**Third-Party**
-    External modules you import or integrate. Can be embedded (run in your process) or dispatched (called as services).
-
-**Domain-Specific**
-    Your own code implementing business logic specific to your solution.
-
-See :doc:`modules` for how modules integrate into solutions.
-
-See :doc:`batteries-included` for what Julee provides out of the box.
-
-See :doc:`3rd-party` for integrating external modules.
+See :doc:`composition` for details. See :doc:`pipelines` for when and why to use pipeline execution.
 
 Solution Architecture
 ---------------------

@@ -532,28 +532,4 @@ Prevents workflow history from growing unbounded.
 Summary
 -------
 
-CEAP workflows are Julee's batteries:
-
-**ExtractAssembleWorkflow**
-    Process documents through Capture, Extract, Assemble, Publish pipeline.
-
-**ValidateDocumentWorkflow**
-    Validate documents against policies for accountability.
-
-**Production-Ready**
-    Error handling, retries, audit trails built-in.
-
-**Customizable**
-    Use as-is, extend, or build new workflows using patterns.
-
-**Observable**
-    Temporal UI provides complete visibility.
-
-**Testable**
-    Unit tests with mocks, integration tests with real infrastructure.
-
-For understanding layers and architecture, see :doc:`/architecture/clean_architecture/index`.
-
-For service and repository patterns, see :doc:`/architecture/clean_architecture/services` and :doc:`/architecture/clean_architecture/repositories`.
-
-For protocol-based design and DI, see :doc:`/architecture/clean_architecture/protocols`.
+CEAP workflows (ExtractAssembleWorkflow, ValidateDocumentWorkflow) are Julee's batteries—production-ready with error handling, retries, and audit trails. Use as-is, extend, or build custom workflows. Monitor via Temporal UI.

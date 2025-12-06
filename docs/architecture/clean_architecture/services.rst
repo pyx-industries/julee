@@ -283,184 +283,26 @@ Claude AI integration for document processing::
 OpenAI Knowledge Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GPT integration for document processing::
-
-    from openai import AsyncOpenAI
-
-    class OpenAIKnowledgeService:
-        """OpenAI GPT implementation of KnowledgeService."""
-
-        def __init__(
-            self,
-            api_key: str,
-            model: str = "gpt-4o"
-        ):
-            self.client = AsyncOpenAI(api_key=api_key)
-            self.model = model
-
-        async def register_file(
-            self,
-            content: bytes,
-            content_type: str
-        ) -> str:
-            """Upload file to OpenAI."""
-            file_response = await self.client.files.create(
-                file=content,
-                purpose="assistants"
-            )
-            return file_response.id
-
-        async def query(
-            self,
-            file_id: str,
-            prompt: str,
-            response_schema: dict | None = None
-        ) -> dict:
-            """Query GPT with file content."""
-            # Create assistant with file access
-            assistant = await self.client.beta.assistants.create(
-                model=self.model,
-                tools=[{"type": "file_search"}],
-                file_ids=[file_id]
-            )
-
-            # Create thread and run
-            thread = await self.client.beta.threads.create()
-            await self.client.beta.threads.messages.create(
-                thread_id=thread.id,
-                role="user",
-                content=prompt
-            )
-
-            run = await self.client.beta.threads.runs.create(
-                thread_id=thread.id,
-                assistant_id=assistant.id
-            )
-
-            # Wait for completion and get response
-            # ... (implementation details)
-
-            if response_schema:
-                return json.loads(response_text)
-            else:
-                return {"text": response_text}
-
-**When to use:** When you prefer OpenAI's GPT models.
+Same interface as Anthropic, using OpenAI's Assistants API for file handling. **When to use:** When you prefer GPT models.
 
 Local LLM Service
 ~~~~~~~~~~~~~~~~~
 
-Self-hosted LLM for cost control and privacy::
-
-    import httpx
-
-    class LocalLLMService:
-        """Local LLM implementation (Ollama, LM Studio, etc.).
-
-        Uses a self-hosted LLM via HTTP API.
-        """
-
-        def __init__(
-            self,
-            endpoint: str = "http://localhost:11434",
-            model: str = "llama2"
-        ):
-            self.endpoint = endpoint
-            self.model = model
-            self.client = httpx.AsyncClient()
-
-        async def register_file(
-            self,
-            content: bytes,
-            content_type: str
-        ) -> str:
-            """Store file content for later queries."""
-            file_id = str(uuid.uuid4())
-            self._files[file_id] = content.decode('utf-8')
-            return file_id
-
-        async def query(
-            self,
-            file_id: str,
-            prompt: str,
-            response_schema: dict | None = None
-        ) -> dict:
-            """Query local LLM."""
-            content = self._files.get(file_id)
-            if not content:
-                raise ValueError(f"File {file_id} not found")
-
-            # Construct prompt with file content
-            full_prompt = f"""Document:
-            {content}
-
-            {prompt}
-
-            Respond in JSON format.
-            """
-
-            # Call local LLM API
-            response = await self.client.post(
-                f"{self.endpoint}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": full_prompt,
-                    "stream": False
-                }
-            )
-
-            result = response.json()
-            response_text = result["response"]
-
-            if response_schema:
-                return json.loads(response_text)
-            else:
-                return {"text": response_text}
-
-**When to use:** Cost optimization, data privacy, offline operation.
+Self-hosted LLM via HTTP API (Ollama, vLLM, etc.). Same interface, runs on your infrastructure. **When to use:** Cost optimization, data privacy, offline operation.
 
 Memory Knowledge Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fast mock for testing::
+Mock for testing—returns programmable responses::
 
     class MemoryKnowledgeService:
-        """In-memory mock implementation of KnowledgeService.
-
-        Returns predictable mock data for testing.
-        """
-
         def __init__(self):
             self._responses = {}
 
-        async def register_file(
-            self,
-            content: bytes,
-            content_type: str
-        ) -> str:
-            """Return mock file ID."""
-            return "mock-file-id"
-
-        async def query(
-            self,
-            file_id: str,
-            prompt: str,
-            response_schema: dict | None = None
-        ) -> dict:
-            """Return mock response."""
-            # Check for programmed response
-            if prompt in self._responses:
-                return self._responses[prompt]
-
-            # Default mock response
-            if response_schema:
-                # Return empty data matching schema
-                return {key: None for key in response_schema.get("properties", {})}
-            else:
-                return {"text": "Mock response"}
+        async def query(self, file_id: str, prompt: str, ...) -> dict:
+            return self._responses.get(prompt, {"text": "Mock response"})
 
         def program_response(self, prompt: str, response: dict):
-            """Program specific response for testing."""
             self._responses[prompt] = response
 
 **When to use:** Unit tests, CI/CD pipelines, development.
@@ -781,150 +623,9 @@ Try multiple services in sequence::
             except Exception:
                 return await self.fallback.query(file_id, prompt, response_schema)
 
-Common Mistakes
----------------
-
-Mistake 1: Service Doing Persistence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Wrong:**
-
-::
-
-    class KnowledgeService:
-        async def query(self, file_id: str, prompt: str) -> dict:
-            result = await self.call_ai_api(file_id, prompt)
-
-            # Service storing results ❌
-            await self.db.save_result(result)
-
-            return result
-
-**Right:**
-
-::
-
-    # Service returns result ✓
-    class KnowledgeService:
-        async def query(self, file_id: str, prompt: str) -> dict:
-            return await self.call_ai_api(file_id, prompt)
-
-    # Use case handles persistence ✓
-    class ExtractDataUseCase:
-        async def execute(self, file_id: str, prompt: str):
-            result = await self.knowledge.query(file_id, prompt)
-
-            # Use case stores via repository
-            await self.result_repo.create(result)
-
-Mistake 2: Business Logic in Service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Wrong:**
-
-::
-
-    class KnowledgeService:
-        async def query(self, file_id: str, prompt: str) -> dict:
-            result = await self.call_ai_api(file_id, prompt)
-
-            # Business rule in service ❌
-            if result["confidence"] < 0.8:
-                raise ValueError("Confidence too low")
-
-            return result
-
-**Right:**
-
-::
-
-    # Service returns raw result ✓
-    class KnowledgeService:
-        async def query(self, file_id: str, prompt: str) -> dict:
-            return await self.call_ai_api(file_id, prompt)
-
-    # Use case implements business rule ✓
-    class ExtractDataUseCase:
-        async def execute(self, file_id: str, prompt: str):
-            result = await self.knowledge.query(file_id, prompt)
-
-            if result["confidence"] < 0.8:
-                raise ValueError("Confidence too low")
-
-            return result
-
-Mistake 3: Service Calling Service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Wrong:**
-
-::
-
-    class ValidationService:
-        def __init__(self, knowledge: KnowledgeService):
-            self.knowledge = knowledge
-
-        async def validate(self, doc: Document) -> bool:
-            # Service calling service ❌
-            result = await self.knowledge.query(doc.file_id, "Validate")
-            return result["is_valid"]
-
-**Right:**
-
-::
-
-    # Services stay independent ✓
-    class ValidationService:
-        async def validate(self, doc: Document, data: dict) -> bool:
-            # Validate using provided data
-            return self._check_rules(data)
-
-    # Use case coordinates services ✓
-    class ValidateDocumentUseCase:
-        def __init__(
-            self,
-            knowledge: KnowledgeService,
-            validator: ValidationService
-        ):
-            self.knowledge = knowledge
-            self.validator = validator
-
-        async def execute(self, doc: Document):
-            # Extract data
-            data = await self.knowledge.query(doc.file_id, "Extract")
-
-            # Validate data
-            is_valid = await self.validator.validate(doc, data)
-
-            return is_valid
+For common mistakes (services doing persistence, business logic in services, etc.), see :doc:`index`.
 
 Summary
 -------
 
-**Services do things.**
-
-Key principles:
-
-**Complex Operations**
-    Beyond CRUD - AI, external APIs, complex processing.
-
-**Supply Chain Actors**
-    Third-party APIs, self-hosted services, bundled logic.
-
-**Protocol-Based**
-    Domain defines protocol, infrastructure implements.
-
-**No Persistence**
-    Services operate, repositories persist.
-
-**Multiple Implementations**
-    Anthropic vs OpenAI vs local LLM - same protocol.
-
-**Dependency Injection**
-    Wire implementations at runtime.
-
-For the repository pattern, see :doc:`repositories`.
-
-For dependency injection, see :doc:`protocols`.
-
-For layer organization, see :doc:`index`.
+Services do things beyond CRUD—AI operations, external API calls, complex processing. They represent supply chain actors (third-party APIs, self-hosted services). Domain defines protocols, infrastructure implements (Anthropic, OpenAI, local LLMs).

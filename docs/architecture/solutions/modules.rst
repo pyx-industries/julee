@@ -300,24 +300,4 @@ This allows the same composition to run with different supply chain characterist
 Summary
 -------
 
-**Modules can be embedded or dispatched, with different supply chain implications.**
-
-**Embedded modules:**
-
-- Run in your process
-- You are the supply chain actor
-- Full control, full responsibility
-
-**Dispatched modules:**
-
-- Run on external services
-- External party is a supply chain actor
-- Shared responsibility, recorded handoffs
-
-**Key principle:** The choice between embedded and dispatched affects who appears in your supply chain audit trail and who bears compliance responsibility.
-
-For batteries-included modules, see :doc:`batteries-included`.
-
-For third-party integration, see :doc:`3rd-party`.
-
-For supply chain provenance in pipelines, see :doc:`pipelines`.
+Modules are embedded (run in your process, you're the actor) or dispatched (run externally, they're a supply chain actor). This affects audit trails and compliance responsibility. See :doc:`batteries-included` for Julee's included modules, :doc:`3rd-party` for external integrations.

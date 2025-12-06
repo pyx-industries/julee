@@ -82,8 +82,6 @@ Example::
         async def get(self, id: str) -> Document | None: ...
         async def list(self) -> list[Document]: ...
 
-See :doc:`repositories` for the canonical repository pattern.
-
 Service Protocols
 ~~~~~~~~~~~~~~~~~
 
@@ -98,8 +96,6 @@ Example::
     class KnowledgeService(Protocol):
         async def register_file(self, content: bytes) -> str: ...
         async def query(self, file_id: str, prompt: str) -> dict: ...
-
-See :doc:`services` for the canonical service pattern.
 
 Use Cases
 ~~~~~~~~~
@@ -116,7 +112,7 @@ Examples:
 - ``ValidateDocument`` - Validate document against policies
 - ``InitializeSystemData`` - Set up system with seed data
 
-Use cases receive dependencies via dependency injection. See :doc:`protocols` for details.
+Use cases receive dependencies via dependency injection (see :doc:`protocols`).
 
 Application Layer
 -----------------
@@ -166,9 +162,7 @@ Concrete persistence mechanisms:
 - ``MemoryDocumentRepository`` - In-memory for testing
 - ``PostgreSQLRepository`` - Relational database storage
 
-All implement domain repository protocols. All are interchangeable.
-
-See :doc:`repositories` for implementation details.
+All implement domain :doc:`repository <repositories>` protocols.
 
 Service Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -180,9 +174,7 @@ Concrete integrations with AI and external services:
 - ``LocalLLMService`` - Self-hosted LLM integration
 - ``MemoryKnowledgeService`` - Fast mock for testing
 
-All implement domain service protocols. All are pluggable.
-
-See :doc:`services` for implementation details.
+All implement domain :doc:`service <services>` protocols.
 
 Infrastructure Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -381,8 +373,6 @@ Note the flow:
 
 The use case is in the domain layer. Applications (API, Worker, CLI) invoke it differently, but it's the same use case.
 
-For dependency injection patterns, see :doc:`protocols`.
-
 Common Mistakes
 ---------------
 
@@ -482,31 +472,4 @@ Mistake 3: Use Cases in Infrastructure
 Summary
 -------
 
-Three layers with one rule:
-
-**Domain** - Business logic, zero dependencies
-    Models, protocols, use cases
-
-**Application** - Orchestration (CLI, API, Workers)
-    Use case invocation, workflows (Worker-specific), API endpoints, CLI commands
-
-**Infrastructure** - Concrete implementations
-    Repositories, services, clients, DI container
-
-**The Dependency Rule** - Dependencies point inward
-    Application depends on DI Container, DI Container configures Infrastructure, Infrastructure implements Domain protocols
-
-This structure makes AI systems:
-
-- Testable (mock any component)
-- Flexible (swap implementations via DI)
-- Maintainable (changes stay localized)
-- Understandable (architecture reveals intent)
-
-For protocol-based design and DI, see :doc:`protocols`.
-
-For persistence patterns, see :doc:`repositories`.
-
-For AI service patterns, see :doc:`services`.
-
-For applications (Worker, API, CLI), see :doc:`/architecture/applications/index`.
+Three layers, one rule: **dependencies point inward toward the domain**. Domain defines protocols, infrastructure implements them, applications orchestrate via DI.

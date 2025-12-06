@@ -341,17 +341,4 @@ Choose services based on input:
 Summary
 -------
 
-**Compositions are the building blocks of Julee solutions.**
-
-- Combine use cases with services and repositories
-- Injected dependencies make them testable and flexible
-- Can be executed directly (simple) or as pipelines (reliable)
-- Wired together using dependency injection
-
-**Key principle:** The composition doesn't know how it will be executed. The application (API, CLI, Worker) decides whether to run it directly or dispatch it as a pipeline.
-
-For reliable, auditable execution, see :doc:`pipelines`.
-
-For dependency injection patterns, see :doc:`/architecture/clean_architecture/protocols`.
-
-For application types, see :doc:`/architecture/applications/index`.
+Compositions combine use cases with services and repositories. The composition doesn't know how it will be executed—applications decide whether to run directly (simple) or dispatch as a :doc:`pipeline <pipelines>` (reliable, auditable).

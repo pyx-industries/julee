@@ -554,32 +554,4 @@ When implementation depends on input::
 Summary
 -------
 
-Protocol-based design enables:
-
-**Flexibility**
-    Swap implementations via configuration
-
-**Testability**
-    Fast unit tests with mocks
-
-**Type Safety**
-    Catch errors at development time
-
-**Maintainability**
-    Changes stay localized
-
-**Documentation**
-    Protocols declare system capabilities
-
-**The pattern:**
-
-1. Domain defines protocol
-2. Infrastructure implements protocol
-3. Domain uses protocol (not implementation)
-4. Dependency injection wires implementations at runtime
-
-For repository protocols, see :doc:`repositories`.
-
-For service protocols, see :doc:`services`.
-
-For layer organization, see :doc:`index`.
+Domain defines protocols, infrastructure implements them, DI wires them at runtime. This enables flexibility (swap implementations), testability (mock anything), and type safety (mypy verifies compatibility).

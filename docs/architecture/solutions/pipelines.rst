@@ -405,17 +405,4 @@ See :doc:`/architecture/applications/worker` for Worker application details.
 Summary
 -------
 
-**Pipelines make compositions reliable and auditable.**
-
-- Wrap compositions in Temporal workflows
-- Break operations into activities with timeouts and retries
-- Record complete history for supply chain provenance
-- Enable compliance through audit trails
-
-**Key principle:** Applications dispatch pipelines for reliable execution. Workers execute the actual work. Temporal manages state, retries, and history.
-
-For composition patterns, see :doc:`composition`.
-
-For Worker applications, see :doc:`/architecture/applications/worker`.
-
-For CEAP workflows (batteries-included pipelines), see :doc:`batteries-included`.
+Pipelines wrap compositions in Temporal workflows for reliability (retries, timeouts) and auditability (complete history, supply chain provenance). Applications dispatch pipelines; :doc:`workers </architecture/applications/worker>` execute them.
