@@ -1,0 +1,137 @@
+Solutions
+=========
+
+A **Julee Solution** is a software system
+built on the :doc:`Julee framework </architecture/framework>`.
+The framework provides the vocabulary and patterns
+for orchestrating a digital product supply chains.
+
+
+Organise Around Your Business Domain
+------------------------------------
+
+The Julee framework codebase is organised around software architecture concepts,
+because Julee is a framework; those *are* its domain concepts.
+
+A Julee solution should be organised around *your* bounded contexts —
+the distinct areas of your business that the solution serves.
+This is what makes your architecture "speak" your business language.
+
+::
+
+    # Framework organisation (Julee itself)
+    julee/
+      domain/           # Framework vocabulary
+      infrastructure/   # Framework implementations
+      workflows/        # Framework patterns
+
+    # Solution organisation (your application)
+    your_business/      # Bounded contexts of your business
+      billing/
+        domain/
+          invoice.py
+          payment.py
+        use_cases/
+          process_invoice.py
+        infrastructure/
+          invoice_repository.py
+      compliance/
+        domain/
+          audit_record.py
+          policy.py
+        use_cases/
+          validate_invoice.py
+      apps/             # Application entry points
+        api/
+        cli/
+        worker/
+
+Each bounded context contains its own domain models, use cases, and infrastructure —
+using Julee's vocabulary (Repository, Service, UseCase patterns) to express
+the specific concerns of that part of your business.
+
+
+Applications Adjacent to Contexts
+---------------------------------
+
+Application entry points (API, CLI, Worker, UI) sit *adjacent* to bounded contexts,
+not above or below them. They wire together the contexts and expose them to the outside world.
+
+::
+
+    invoice_processor/
+      billing/              # Bounded context
+      compliance/           # Bounded context
+      shared/               # Shared kernel (if needed)
+      apps/
+        api/
+          routers/
+            billing.py      # Exposes billing context via REST
+            compliance.py   # Exposes compliance context via REST
+          dependencies.py   # DI wiring
+        worker/
+          workflows/
+            invoice_workflow.py  # Orchestrates across contexts
+        cli/
+          commands/
+            billing.py
+            compliance.py
+
+The ``apps/`` directory doesn't contain business logic,
+it provides a way for it to interact with the outside world.
+
+
+Solution Architecture
+---------------------
+
+A typical Julee solution with bounded contexts looks like this:
+
+::
+
+    ┌───────────────────────────────────────────────────────────────┐
+    │                       Julee Solution                          │
+    ├───────────────────────────────────────────────────────────────┤
+    │                                                               │
+    │  ┌─────────────────────────────────────────────────────────┐  │
+    │  │ Applications (entry points)                             │  │
+    │  │ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐         │  │
+    │  │ │ Worker  │ │   API   │ │   CLI   │ │   UI    │         │  │
+    │  │ └─────────┘ └─────────┘ └─────────┘ └─────────┘         │  │
+    │  └────────────────────────┬────────────────────────────────┘  │
+    │                           │                                   │
+    │                           ▼                                   │
+    │  ┌─────────────────────────────────────────────────────────┐  │
+    │  │ Bounded Contexts (your business domain)                 │  │
+    │  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │  │
+    │  │ │   Billing   │ │ Compliance  │ │  Reporting  │         │  │
+    │  │ │  domain/    │ │  domain/    │ │  domain/    │         │  │
+    │  │ │  use_cases/ │ │  use_cases/ │ │  use_cases/ │         │  │
+    │  │ │  infra/     │ │  infra/     │ │  infra/     │         │  │
+    │  │ └─────────────┘ └─────────────┘ └─────────────┘         │  │
+    │  └─────────────────────────────────────────────────────────┘  │
+    │                                                               │
+    └───────────────────────────────┬───────────────────────────────┘
+                                    │
+                                    ▼
+    ┌───────────────────────────────────────────────────────────────┐
+    │                     Julee Framework                           │
+    │  Batteries: CEAP workflows, MinIO repos, AI services          │
+    │  Patterns: Repository, Service, UseCase protocols             │
+    │  Utilities: Temporal integration, DI helpers                  │
+    └───────────────────────────────────────────────────────────────┘
+
+There is at least one application (CLI, API, UI, Worker)
+which contains configuration and depends on the bounded contexts.
+Typically this would include an API and a Worker (at least).
+
+There are various ways that the solution can have dependencies on the framework.
+The solution might:
+- import some "batteries included" pipelines, to avoid reinventing the wheel
+- have new infrastructure implementation of an imported interfaces
+
+The solution might also have dependencies on a 3rd-party component, e.g:
+- importing a bounded context and using it's parts
+- importing a service and running it locally, as part of the solution
+- operating a gateway service (runtime dependency on a 3rd party service)
+
+As well as using their own bespoke bounded context(s).

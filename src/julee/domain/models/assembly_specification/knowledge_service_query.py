@@ -37,26 +37,30 @@ class KnowledgeServiceQuery(BaseModel):
 
     Examples of query_metadata usage:
 
-    For Anthropic services:
+    For Anthropic services::
+
         query_metadata = {
             "model": "claude-sonnet-4-20250514",
             "max_tokens": 4000,
             "temperature": 0.1
         }
 
-    For OpenAI services:
+    For OpenAI services::
+
         query_metadata = {
             "model": "gpt-4",
             "temperature": 0.2,
             "top_p": 0.9
         }
 
-    For custom services:
+    For custom services::
+
         query_metadata = {
             "endpoint": "custom-model-v2",
             "timeout": 30,
             "retries": 3
         }
+
     """
 
     # Core query identification

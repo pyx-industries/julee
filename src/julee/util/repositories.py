@@ -23,11 +23,9 @@ class FileStorageRepository(Protocol):
             FileMetadata object with details about the uploaded file.
 
         Implementation Notes:
-        - Must be idempotent: uploading the same file_id multiple times is
-          safe.
+        - Must be idempotent: uploading the same file_id multiple times is safe.
         - Should return metadata including the actual size and content type.
-        - Must perform security validation: file size limits, content type
-          verification, and filename sanitization.
+        - Must perform security validation: file size limits, content type verification, and filename sanitization.
         - Should reject files that don't match declared content type.
         """
         ...

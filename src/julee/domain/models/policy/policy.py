@@ -38,9 +38,11 @@ class Policy(BaseModel):
     be applied to improve document quality before re-validation.
 
     The policy operates in two modes:
+
     1. Validation-only: Calculates scores and passes/fails based on criteria
     2. Validation with transformation: Calculates scores, applies
        transformations, then re-calculates scores for final pass/fail
+
     """
 
     # Core policy identification

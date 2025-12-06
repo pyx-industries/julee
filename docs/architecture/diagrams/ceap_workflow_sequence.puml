@@ -1,0 +1,40 @@
+@startuml
+participant "API/Trigger" as api
+participant "Temporal" as temporal
+participant "Worker\n(Julee App)" as worker
+participant "Use Case" as usecase
+participant "Repository\n(via Protocol)" as repo
+participant "Service\n(via Protocol)" as service
+participant "Storage" as storage
+participant "External Service" as external
+
+api -> temporal: Start ExtractAssembleWorkflow
+temporal -> worker: Execute workflow
+worker -> usecase: execute_extract_assemble()
+
+usecase -> repo: get_document(id)
+repo -> storage: fetch document
+storage --> repo: document data
+repo --> usecase: Document
+
+usecase -> repo: get_specification(id)
+repo -> storage: fetch spec
+storage --> repo: spec data
+repo --> usecase: AssemblySpecification
+
+usecase -> service: query(content, prompts)
+service -> external: API call
+external --> service: extracted data
+service --> usecase: structured data
+
+usecase -> usecase: assemble_data()
+
+usecase -> repo: create_assembly(assembly)
+repo -> storage: store assembly
+storage --> repo: saved
+repo --> usecase: Assembly
+
+usecase --> worker: result
+worker --> temporal: workflow complete
+temporal --> api: result
+@enduml

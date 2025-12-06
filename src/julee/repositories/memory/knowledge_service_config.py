@@ -36,6 +36,7 @@ class MemoryKnowledgeServiceConfigRepository(
     dictionaries.
 
     This implementation stores knowledge service configurations in memory:
+
     - Knowledge Services: Dictionary keyed by knowledge_service_id containing
       KnowledgeServiceConfig objects
 

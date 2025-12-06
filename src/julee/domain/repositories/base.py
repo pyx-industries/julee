@@ -51,10 +51,12 @@ class BaseRepository(Protocol[T]):
         Returns:
             Entity if found, None otherwise
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: multiple calls return same result
         - Should handle missing entities gracefully (return None)
         - Loads complete entity with all relationships
+
         """
         ...
 
@@ -67,7 +69,8 @@ class BaseRepository(Protocol[T]):
         Returns:
             Dict mapping entity_id to entity (or None if not found)
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: multiple calls return same result
         - Should handle missing entities gracefully (return None for missing)
         - Implementations may optimize with batch operations or fall back
@@ -75,10 +78,12 @@ class BaseRepository(Protocol[T]):
         - Keys in returned dict correspond exactly to input entity_ids
         - Missing entities have None values in the returned dict
 
-        Workflow Context:
+        .. rubric:: Workflow Context
+
         In Temporal workflows, this method is implemented as an activity
         to ensure batch operations are durably stored and consistent
         across workflow replays.
+
         """
         ...
 
@@ -88,11 +93,13 @@ class BaseRepository(Protocol[T]):
         Args:
             entity: Complete entity to save
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: saving same entity state is safe
         - Should update the updated_at timestamp
         - Must save complete entity with all relationships
         - Handles both new entities and updates to existing ones
+
         """
         ...
 
@@ -102,24 +109,30 @@ class BaseRepository(Protocol[T]):
         Returns:
             List of all entities in the repository
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must be idempotent: multiple calls return same result
         - Returns empty list if no entities exist
         - Should return entities in a consistent order (e.g., by ID)
         - For large datasets, consider pagination at the use case level
 
-        Workflow Context:
+        .. rubric:: Workflow Context
+
         In Temporal workflows, this method is implemented as an activity
         to ensure the list operation is durably stored and consistent
         across workflow replays.
 
-        Default Implementation:
+        .. rubric:: Default Implementation
+
         Base protocol provides a default that returns empty list.
         Repository implementations should override this method as needed.
 
-        TODO: This default implementation returns empty list to avoid
-        breaking existing repositories. Specific repositories should
-        implement proper list_all() functionality as needed.
+        .. note::
+
+            This default implementation returns empty list to avoid
+            breaking existing repositories. Specific repositories should
+            implement proper list_all() functionality as needed.
+
         """
         return []
 
@@ -132,15 +145,18 @@ class BaseRepository(Protocol[T]):
         Returns:
             Unique entity ID string
 
-        Implementation Notes:
+        .. rubric:: Implementation Notes
+
         - Must generate globally unique identifiers
         - May use UUIDs, database sequences, or distributed ID generators
         - Should be fast and reliable
         - Failure here should be rare but handled gracefully
 
-        Workflow Context:
+        .. rubric:: Workflow Context
+
         In Temporal workflows, this method is implemented as an activity
         to ensure the generated ID is durably stored and consistent
         across workflow replays.
+
         """
         ...

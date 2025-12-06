@@ -79,7 +79,7 @@ def collect_activities_from_instances(*instances: Any) -> list[Any]:
 
     Args:
         *instances: Repository and service instances decorated with
-                   @temporal_activity_registration
+            @temporal_activity_registration
 
     Returns:
         List of activity methods ready for Worker registration
