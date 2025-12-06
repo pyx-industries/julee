@@ -211,7 +211,7 @@ Like Django provides an admin interface and ORM out-of-the-box, Julee provides p
     Integration patterns for AI and external services (Anthropic, OpenAI, local LLMs).
 
 **Domain Models**
-    Ready-to-use Pydantic models for common entities (Document, Assembly, Policy).
+    Ready-to-use Pydantic models for common entities (:py:class:`~julee.domain.models.Document`, :py:class:`~julee.domain.models.Assembly`, :py:class:`~julee.domain.models.Policy`).
 
 **Dependency Injection**
     Configuration and service wiring using FastAPI's DI system.

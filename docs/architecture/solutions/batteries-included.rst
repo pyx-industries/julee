@@ -13,7 +13,7 @@ CEAP Workflows
 
 The **Capture, Extract, Assemble, Publish** pattern implemented as Temporal workflows.
 
-**ExtractAssembleWorkflow**
+:py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow`
     Process documents through AI extraction and assembly.
 
     - Capture documents from storage
@@ -21,7 +21,7 @@ The **Capture, Extract, Assemble, Publish** pattern implemented as Temporal work
     - Assemble results according to specifications
     - Publish to storage
 
-**ValidateDocumentWorkflow**
+:py:class:`~julee.workflows.validate_document.ValidateDocumentWorkflow`
     Validate documents against policies.
 
     - Fetch document and policy
@@ -38,7 +38,7 @@ Ready-to-use storage implementations:
 **MinIO Repositories**
     S3-compatible object storage for production.
 
-    - ``MinioDocumentRepository``
+    - :py:class:`~julee.repositories.minio.MinioDocumentRepository`
     - ``MinioAssemblyRepository``
     - ``MinioSpecificationRepository``
     - ``MinioPolicyRepository``
@@ -46,7 +46,7 @@ Ready-to-use storage implementations:
 **Memory Repositories**
     In-memory storage for testing and development.
 
-    - ``MemoryDocumentRepository``
+    - :py:class:`~julee.repositories.memory.MemoryDocumentRepository`
     - ``MemoryAssemblyRepository``
     - ``MemorySpecificationRepository``
     - ``MemoryPolicyRepository``
@@ -61,9 +61,9 @@ AI and external service integrations:
 **Knowledge Services**
     AI-powered document processing.
 
-    - ``AnthropicKnowledgeService`` - Claude integration
+    - :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` - Claude integration
     - ``OpenAIKnowledgeService`` - GPT integration
-    - ``MemoryKnowledgeService`` - Mock for testing
+    - :py:class:`~julee.services.knowledge_service.memory.MemoryKnowledgeService` - Mock for testing
 
 See :doc:`/architecture/clean_architecture/services` for service patterns.
 
@@ -72,11 +72,11 @@ Domain Models
 
 Pydantic models for common entities:
 
-- ``Document`` - Content to be processed
-- ``Assembly`` - Assembled results
-- ``AssemblySpecification`` - Instructions for assembly
-- ``Policy`` - Validation and compliance rules
-- ``KnowledgeServiceConfig`` - AI service configuration
+- :py:class:`~julee.domain.models.Document` - Content to be processed
+- :py:class:`~julee.domain.models.Assembly` - Assembled results
+- :py:class:`~julee.domain.models.AssemblySpecification` - Instructions for assembly
+- :py:class:`~julee.domain.models.Policy` - Validation and compliance rules
+- :py:class:`~julee.domain.models.KnowledgeServiceConfig` - AI service configuration
 
 Temporal Utilities
 ~~~~~~~~~~~~~~~~~~

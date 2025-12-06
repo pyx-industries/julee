@@ -110,7 +110,8 @@ Common Third-Party Integrations
 AI/LLM Providers
 ~~~~~~~~~~~~~~~~
 
-::
+Julee provides :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` and other provider implementations::
+
 
     # Anthropic
     from julee.services.knowledge_service.anthropic import AnthropicKnowledgeService

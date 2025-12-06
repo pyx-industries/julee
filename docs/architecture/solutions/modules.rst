@@ -240,7 +240,7 @@ Module Integration Patterns
 Pattern: Protocol Abstraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Hide embedded/dispatched behind a protocol:
+Hide embedded/dispatched behind a protocol (see :py:class:`~julee.services.knowledge_service.KnowledgeService`):
 
 ::
 
