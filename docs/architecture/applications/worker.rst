@@ -201,9 +201,7 @@ Using the Workflows
 Configuration
 ~~~~~~~~~~~~~
 
-Workflows use repositories and services via dependency injection.
-
-See :doc:`/architecture/clean_architecture/protocols` for DI setup.
+Workflows use repositories and services via :doc:`dependency injection </architecture/clean_architecture/protocols>`.
 
 **Example configuration:**
 
@@ -373,7 +371,7 @@ Test workflow logic with Temporal's test environment::
 
             assert result.status == "completed"
 
-See :doc:`/architecture/clean_architecture/protocols` for testing patterns.
+Testing uses :doc:`protocol-based </architecture/clean_architecture/protocols>` dependency injection.
 
 Integration Testing
 ~~~~~~~~~~~~~~~~~~~

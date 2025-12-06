@@ -172,7 +172,7 @@ Dispatch the composition to run as a Temporal workflow (see :py:class:`~julee.wo
 - Compliance-critical processes
 - Operations where failure must be handled gracefully
 
-See :doc:`pipelines` for details on pipeline execution and supply chain provenance.
+:doc:`Pipelines <pipelines>` add reliability and supply chain provenance.
 
 Wiring Compositions
 -------------------
@@ -221,7 +221,7 @@ Choose implementations based on configuration:
         else:
             raise ValueError(f"Unknown AI provider: {settings.ai_provider}")
 
-See :doc:`/architecture/clean_architecture/protocols` for dependency injection patterns.
+Dependencies are injected via :doc:`protocols </architecture/clean_architecture/protocols>`.
 
 Testing Compositions
 --------------------

@@ -28,7 +28,7 @@ The **Capture, Extract, Assemble, Publish** pattern implemented as Temporal work
     - Execute validation rules
     - Record validation results for audit
 
-See :doc:`/architecture/applications/worker` for workflow details.
+:doc:`Workers </architecture/applications/worker>` execute these workflows.
 
 Repository Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,7 +51,7 @@ Ready-to-use storage implementations:
     - ``MemorySpecificationRepository``
     - ``MemoryPolicyRepository``
 
-See :doc:`/architecture/clean_architecture/repositories` for repository patterns.
+These implement the :doc:`repository pattern </architecture/clean_architecture/repositories>`.
 
 Service Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +65,7 @@ AI and external service integrations:
     - ``OpenAIKnowledgeService`` - GPT integration
     - :py:class:`~julee.services.knowledge_service.memory.MemoryKnowledgeService` - Mock for testing
 
-See :doc:`/architecture/clean_architecture/services` for service patterns.
+These implement the :doc:`service pattern </architecture/clean_architecture/services>`.
 
 Domain Models
 ~~~~~~~~~~~~~
@@ -290,7 +290,7 @@ If you build a reusable module, consider contributing it back:
 3. Include tests and documentation
 4. Submit as a PR to the Julee repository
 
-See :doc:`/contributing` for contribution guidelines.
+Follow the :doc:`contributing guide </contributing>`.
 
 Summary
 -------

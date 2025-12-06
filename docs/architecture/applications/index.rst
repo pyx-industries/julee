@@ -17,25 +17,17 @@ Application Types
 
 Julee solutions typically include multiple application types, each serving a different purpose:
 
-**Worker Applications**
+:doc:`Worker Applications <worker>`
     Temporal workers that execute long-running, reliable workflows. Workers poll Temporal for work and execute use cases as workflow activities. This is where CEAP workflows run.
 
-    See :doc:`worker` for details.
-
-**API Applications**
+:doc:`API Applications <api>`
     REST endpoints for external access. APIs execute use cases directly for synchronous operations, or trigger workflows via Temporal client for async operations.
 
-    See :doc:`api` for details.
-
-**CLI Applications**
+:doc:`CLI Applications <cli>`
     Command-line interfaces for operations and administration. CLIs execute use cases from the command line, trigger workflows, and perform administrative tasks.
 
-    See :doc:`cli` for details.
-
-**UI Applications**
-    User interfaces (web, desktop, mobile) that interact with API applications. UIs don't directly execute use cases - they call the API.
-
-    See :doc:`ui` for details.
+:doc:`UI Applications <ui>`
+    User interfaces (web, desktop, mobile) that interact with API applications. UIs don't directly execute use cases—they call the API.
 
 Same Use Cases, Different Entry Points
 --------------------------------------
@@ -117,6 +109,4 @@ Each application type has different deployment characteristics:
 - **CLIs**: Run on-demand, typically on admin machines or in CI/CD
 - **UIs**: Static assets, deployed to CDN or web server
 
-For deployment architecture, see :doc:`/architecture/deployment`.
-
-For the underlying layer structure, see :doc:`/architecture/clean_architecture/index`.
+:doc:`Deployment </architecture/deployment>` describes runtime architecture; :doc:`Clean Architecture </architecture/clean_architecture/index>` explains the underlying layer structure.

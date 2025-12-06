@@ -19,22 +19,29 @@ app -down-> di : depends on
 
 
 note right of app
-  Applications include:
-  - CLI
-  - API
-  - Workers
+  This code interacts with users
+  or does work on their behalf.
+  Includes CLI, API, and Workers.
+  Usecases become app features.
 end note
 
+note right of di
+  Processes the configuration,
+  wires everything together.
+  Leverages abstraction to
+  protect apps, agnostic to
+  implementation details.
+end note
+
+note right of infra
+  Code that is world-sullied.
+  Interacts with network, disk, and external systems.
+  Scope is explicitly defined by protocols.
+end note
 
 note right of domain
-  Core domain has ZERO dependencies
-  on outer layers. Defines protocols
-  that infrastructure implements.
+  Abstract definition of business.
+  No dependency on other layers, but they all depnd on it.
 end note
 
-note left of di
-  DI Container wires
-  concrete implementations
-  to protocol interfaces
-end note
 @enduml

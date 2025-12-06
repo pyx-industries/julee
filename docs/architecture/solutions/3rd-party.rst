@@ -1,7 +1,7 @@
 Third-Party Modules
 ===================
 
-Third-party modules extend Julee solutions with external functionality. They can be embedded (imported libraries) or dispatched (external services)—see :doc:`modules` for the distinction and supply chain implications.
+Third-party modules extend Julee solutions with external functionality. They can be :doc:`embedded or dispatched <modules>`—a distinction that affects supply chain provenance.
 
 This page focuses on **integration patterns**, **evaluation criteria**, and **common third-party integrations**.
 
@@ -102,7 +102,7 @@ When choosing third-party modules, consider:
 - **Cost** - Pricing model, cost at your scale
 - **Lock-in** - How hard to switch? Are there alternatives?
 
-For embedded vs dispatched tradeoffs, see :doc:`modules`.
+The :doc:`embedded vs dispatched <modules>` distinction also affects evaluation.
 
 Common Third-Party Integrations
 -------------------------------
@@ -213,4 +213,4 @@ Integration Tests with Real Services
 Summary
 -------
 
-Third-party modules extend Julee with external functionality. Use protocol-based integration, adapters, or factory patterns to hide implementation details. For embedded vs dispatched concepts, see :doc:`modules`.
+Third-party modules extend Julee with external functionality. Use protocol-based integration, adapters, or factory patterns to hide implementation details. The :doc:`embedded vs dispatched <modules>` distinction affects supply chain provenance.

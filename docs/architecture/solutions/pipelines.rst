@@ -400,7 +400,7 @@ Pipelines run on **Worker applications** - processes that poll Temporal for work
 
         await worker.run()
 
-See :doc:`/architecture/applications/worker` for Worker application details.
+:doc:`Workers </architecture/applications/worker>` execute pipelines and implement CEAP workflows.
 
 Summary
 -------

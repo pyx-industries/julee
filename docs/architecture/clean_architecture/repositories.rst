@@ -28,7 +28,7 @@ A repository is responsible for persistence of domain entities.
 
 **Key distinction:** Repositories handle *persistence only*.
 
-For complex operations beyond storage, see :doc:`services`.
+Complex operations beyond storage belong in :doc:`services`.
 
 When to Use a Repository
 ------------------------
@@ -339,7 +339,7 @@ Inject repositories via dependency injection::
             raise HTTPException(status_code=404, detail="Document not found")
         return doc
 
-See :doc:`protocols` for dependency injection details.
+Repositories are injected via :doc:`protocols`.
 
 Testing with Repositories
 --------------------------
@@ -492,7 +492,7 @@ Implementation::
             except:
                 return False
 
-For common mistakes (business logic in repositories, complex queries, etc.), see :doc:`index`.
+Avoid :doc:`common mistakes <index>` like putting business logic in repositories.
 
 Summary
 -------

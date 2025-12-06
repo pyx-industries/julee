@@ -27,7 +27,7 @@ A service is responsible for complex operations that don't fit the CRUD pattern.
 
 **Key distinction:** Services handle *operations beyond storage*.
 
-For simple persistence, see :doc:`repositories`.
+Simple persistence belongs in :doc:`repositories`.
 
 When to Use a Service
 ---------------------
@@ -382,7 +382,7 @@ Inject services via dependency injection::
 
         return result
 
-See :doc:`protocols` for dependency injection details.
+Services are injected via :doc:`protocols`.
 
 Testing with Services
 ---------------------
@@ -627,7 +627,7 @@ Try multiple services in sequence::
             except Exception:
                 return await self.fallback.query(file_id, prompt, response_schema)
 
-For common mistakes (services doing persistence, business logic in services, etc.), see :doc:`index`.
+Avoid :doc:`common mistakes <index>` like putting persistence logic in services.
 
 Summary
 -------

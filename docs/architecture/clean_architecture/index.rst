@@ -1,72 +1,123 @@
 Clean Architecture
 ==================
 
-Julee organizes code into three architectural layers: **Domain**, **Application**, and **Infrastructure**.
+Both the :doc:`Julee Framework </architecture/framework>` and :doc:`Julee Solutions </architecture/solutions/index>`
+organize their code using Robert C Martin's "Clean Architecture" principles.
+This document will just focus on Julee's interpretation and implementation.
 
-This separation makes AI systems manageable by isolating concerns and controlling dependencies.
+Clean Architcture is strict about how the dependencies in code are organised.
+There are other similar schemes, such as Alistair Cockbourn's "Hexagonal Architecture"
+(a.k.a "ports and adapters"), which share the same core goals
+of **dependency inversion** and **separation of concerns**. They both:
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Topics
+* Place business logic at the center, isolated from external concerns
+* Make external dependencies (databases, UI, external services) plug into the core rather than vice versa
+* Use dependency inversion to point dependencies inward
+* Aim for testability and flexibility in swapping implementations
 
-   protocols
-   repositories
-   services
-
-
-Framework Layers vs Solution Layers
------------------------------------
-
-Before diving into the layers, remember the key distinction:
-**a framework and a solution are different beasts.**
-
-Julee is a framework—its "domain" is the vocabulary for building digital supply chains.
-When you look at Julee's ``domain/`` directory, you see framework concepts:
-``Repository``, ``Service``, ``UseCase``, ``Entity``.
-
-Your solution uses this vocabulary to express *your* business domain.
-Your ``domain/`` directories (within your bounded contexts) contain
-*your* business entities: ``Invoice``, ``Patient``, ``Order``.
-
-::
-
-    # Julee's domain layer (framework vocabulary)
-    julee/domain/
-      repositories/       # Repository protocol definitions
-      models/             # Base model patterns
-      use_cases/          # Use case patterns
-
-    # Your solution's domain layer (your business)
-    my_app/billing/domain/
-      invoice.py          # Your Invoice entity
-      payment.py          # Your Payment entity
-      invoice_repository.py  # Protocol for your entity
-
-The Clean Architecture principles apply at both levels,
-but what goes *in* each layer differs between framework and solution.
-
-
-The Dependency Rule
--------------------
-
-**Dependencies point inward toward the domain.**
-
-The core principle: Outer layers depend on inner layers. Inner layers never depend on outer layers.
+For comparison, Hexagonal architecture uses a simpler two-part model
+(inside/outside) focused on ports and adapters,
+without prescribing how to structure the business logic inside.
+Clean Architecture defines multiple concentric layers
+with specific responsibilities for each.
+Essentially, Clean Architecture is more prescriptive
+about the internal organization while Hexagonal Architecture
+is more minimal and focused on the boundary between core and infrastructure.
+It is essentially a 3 layer, rather than a 2 layer system.
 
 .. uml:: ../diagrams/clean_architecture_layers.puml
 
-This means:
 
-- Domain defines :py:class:`~julee.services.knowledge_service.KnowledgeService` protocol
-- Infrastructure provides :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` implementation
-- Application uses ``KnowledgeService`` protocol (not the implementation)
-- Dependency injection wires up concrete implementations at runtime
+Demonstration
+-------------
 
-**Why this matters:**
+One of the :doc:`batteries included </architecture/solutions/batteries-included>` features
+is a "Capture, Extract, Assembly, Publish" workflow (CEAP).
+This is a general purpose AI heuristic
+which is useful in a lot of circumstances.
+Rather than talking about the clean architecture in theory,
+we will walk through a part of this by way of an example.
 
-- Test domain logic without infrastructure
-- Swap AI providers without changing business rules
-- Understand system behavior by reading protocols
+This is an automated process with no user interaction,
+so it is done by an application called a Worker.
+We will specifically look at the :doc:`pipeline </architecture/solutions/pipelines>`
+called :py:class:`~julee.domain.use_cases.ExtractAssembleDataUseCase`.
+This is the most complicated and interesting part of CEAP.
+
+.. uml:: ../diagrams/ceap_workflow_sequence.puml
+
+A usecase is usually specific to a business domain,
+CEAP is unusual because it's a generic, reusable pattern.
+That's why it's part of the framework,
+so you can reuse it without having to reinvent the wheel.
+
+This usecase is understandable and testable,
+but it leaves a lot to the imagination.
+What is :py:class:`~julee.services.KnowledgeService`,
+:py:class:`~julee.domain.repositories.DocumentRepository`,
+:py:class:`~julee.domain.repositories.AssemblyRepository`,
+:py:class:`~julee.domain.repositories.AssemblySpecificationRepository`,
+:py:class:`~julee.domain.repositories.KnowledgeServiceQueryRepository`, and
+:py:class:`~julee.domain.repositories.KnowledgeServiceConfigRepository`?
+How do they work? Those questions are answered separately.
+
+The repositories are "things that store and access data".
+As long as the usecase can use them,
+it shouldn't have to care about how they work.
+So "what is the repository" is first defined in the abstract,
+using a python Protocol specification,
+which is part of the domain model.
+These definitions are:
+
+- :py:class:`~julee.domain.repositories.DocumentRepository`
+- :py:class:`~julee.domain.repositories.AssemblyRepository`
+- :py:class:`~julee.domain.repositories.AssemblySpecificationRepository`
+- :py:class:`~julee.domain.repositories.KnowledgeServiceQueryRepository`
+- :py:class:`~julee.domain.repositories.KnowledgeServiceConfigRepository`
+
+Second, "how do they work" is an infrastructure concern.
+There is code that implements the protocol using technology:
+
+**MinIO implementations** (production, S3-compatible object storage):
+
+- :py:class:`~julee.repositories.minio.MinioDocumentRepository`
+- :py:class:`~julee.repositories.minio.MinioAssemblyRepository`
+- :py:class:`~julee.repositories.minio.MinioAssemblySpecificationRepository`
+- :py:class:`~julee.repositories.minio.MinioKnowledgeServiceQueryRepository`
+- :py:class:`~julee.repositories.minio.MinioKnowledgeServiceConfigRepository`
+
+**Memory implementations** (testing):
+
+- :py:class:`~julee.repositories.memory.MemoryDocumentRepository`
+- :py:class:`~julee.repositories.memory.MemoryAssemblyRepository`
+- :py:class:`~julee.repositories.memory.MemoryAssemblySpecificationRepository`
+- :py:class:`~julee.repositories.memory.MemoryKnowledgeServiceQueryRepository`
+- :py:class:`~julee.repositories.memory.MemoryKnowledgeServiceConfigRepository`
+
+Those do the dirty work of writing to disk,
+talking to databases, making API calls,
+or whatever else it is that they need to do
+to store and access data.
+
+Note how the protocols are strongly typed.
+They proscribe that inputs and outputs are either
+domain model classes or simple primitives.
+The repositories give and take:
+
+- :py:class:`~julee.domain.models.Document`
+- :py:class:`~julee.domain.models.Assembly`
+- :py:class:`~julee.domain.models.AssemblySpecification`
+- :py:class:`~julee.domain.models.KnowledgeServiceQuery`
+- :py:class:`~julee.domain.models.KnowledgeServiceConfig`
+
+These domain model abstractions serve to protect the usecase
+from the vaguries of the external systems.
+This also makes the implementations "swappable",
+anything that conforms to the protocol will do.
+This is how it is possible for the Dependency Injection
+(DI) container to do it's job, it simply provides the application
+with "one of each of the repositories that it needs",
+and henceforth the usecases just use them.
 
 
 Domain Layer
@@ -199,7 +250,7 @@ Business logic orchestration:
             # ... business logic
             return await self.invoice_repo.update(invoice)
 
-Use cases receive dependencies via dependency injection (see :doc:`protocols`).
+Use cases receive dependencies via :doc:`dependency injection <protocols>`.
 
 Application Layer
 -----------------
@@ -214,7 +265,7 @@ The application layer contains different types of applications:
     - Workflows are a Temporal-specific decoration of use cases
     - Workers poll Temporal for work
     - Execute use cases in response to workflow steps
-    - See :doc:`/architecture/applications/worker` for CEAP workflow details
+    - :doc:`CEAP workflows </architecture/applications/worker>` implement the pattern
 
 **API Applications**
     REST endpoints for external access.
