@@ -98,7 +98,7 @@ Trigger the extraction and assembly workflow::
 Next Steps
 ----------
 
-- Learn about :doc:`framework`
-- Understand :doc:`deployment`
+- Learn about :doc:`architecture/framework`
+- Understand :doc:`architecture/deployment`
 - Explore the :doc:`autoapi/index`
-- Read about :doc:`workflows`
+- Read about :doc:`architecture/workflows`

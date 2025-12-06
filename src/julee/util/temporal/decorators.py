@@ -123,13 +123,10 @@ def temporal_activity_registration(
     name.
 
     Args:
-        activity_prefix: Prefix for activity names (e.g.,
-        "sample.payment_repo.minio") Method names will be appended to create
-        full activity names like "sample.payment_repo.minio.process_payment"
+        activity_prefix: Prefix for activity names (e.g., "sample.payment_repo.minio"). Method names will be appended to create full activity names like "sample.payment_repo.minio.process_payment"
 
     Returns:
-        The decorated class with all async methods wrapped as Temporal
-        activities
+        The decorated class with all async methods wrapped as Temporal activities
 
     Example:
         @temporal_activity_registration("sample.payment_repo.minio")
@@ -137,12 +134,9 @@ def temporal_activity_registration(
             pass
 
         # This automatically creates activities for all protocol methods:
-        # - process_payment ->
-        #   "sample.payment_repo.minio.process_payment"
-        # - get_payment ->
-        #   "sample.payment_repo.minio.get_payment"
-        # - refund_payment ->
-        #   "sample.payment_repo.minio.refund_payment"
+        # - process_payment -> "sample.payment_repo.minio.process_payment"
+        # - get_payment -> "sample.payment_repo.minio.get_payment"
+        # - refund_payment -> "sample.payment_repo.minio.refund_payment"
     """
 
     def decorator(cls: Type[T]) -> Type[T]:
@@ -226,8 +220,8 @@ def temporal_workflow_proxy(
         retry_methods: List of method names that should use retry policies
 
     Returns:
-        The decorated class with all protocol methods implemented as
-        workflow activity calls
+        The decorated class with all protocol methods implemented as workflow
+        activity calls
 
     Example:
         @temporal_workflow_proxy(
@@ -241,8 +235,7 @@ def temporal_workflow_proxy(
         # This automatically creates workflow methods for all methods:
         # - get() -> calls "julee.document_repo.minio.get" activity
         # - save() -> calls "julee.document_repo.minio.save" with retry
-        # - generate_id() -> calls "julee.document_repo.minio.generate_id"
-        #   with retry
+        # - generate_id() -> calls "julee.document_repo.minio.generate_id" with retry
     """
 
     def decorator(cls: Type[T]) -> Type[T]:

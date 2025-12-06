@@ -927,4 +927,4 @@ For the repository pattern, see :doc:`repositories`.
 
 For dependency injection, see :doc:`protocols`.
 
-For layer organization, see :doc:`layers`.
+For layer organization, see :doc:`clean_architecture`.

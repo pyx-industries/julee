@@ -42,6 +42,7 @@ autoapi_dirs = [
     '../src/julee/repositories',
     '../src/julee/services',
     '../src/julee/workflows',
+    '../src/julee/util',
 ]
 autoapi_options = [
     'members',
@@ -99,6 +100,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 # Suppress warnings for ambiguous cross-references caused by re-exports in __init__.py
 suppress_warnings = [
     'ref.python',  # Suppress "more than one target found for cross-reference" warnings
+    'docutils',    # Suppress docutils formatting warnings from AutoAPI-generated code examples
 ]
 
 # -- Options for HTML output -------------------------------------------------

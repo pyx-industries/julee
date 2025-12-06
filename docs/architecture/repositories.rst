@@ -759,4 +759,4 @@ For the service pattern, see :doc:`services`.
 
 For dependency injection, see :doc:`protocols`.
 
-For layer organization, see :doc:`layers`.
+For layer organization, see :doc:`clean_architecture`.

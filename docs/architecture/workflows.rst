@@ -552,7 +552,7 @@ CEAP workflows are Julee's batteries:
 **Testable**
     Unit tests with mocks, integration tests with real infrastructure.
 
-For understanding layers and architecture, see :doc:`layers`.
+For understanding layers and architecture, see :doc:`clean_architecture`.
 
 For service and repository patterns, see :doc:`services` and :doc:`repositories`.
 
