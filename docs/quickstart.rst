@@ -101,4 +101,4 @@ Next Steps
 - Learn about :doc:`architecture/framework`
 - Understand :doc:`architecture/deployment`
 - Explore the :doc:`autoapi/index`
-- Read about :doc:`architecture/workflows`
+- Read about :doc:`architecture/applications/worker`

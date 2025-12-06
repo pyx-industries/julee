@@ -136,11 +136,11 @@ Services are components that "do things" with data.
 The Julee framework uses Python Protocols to define repository and service interfaces,
 and a Julee Solution can use any implementation of a repository or service that complies with the interfaces.
 
-See :doc:`repositories` for the repository pattern.
+See :doc:`clean_architecture/repositories` for the repository pattern.
 
-See :doc:`services` for the service pattern.
+See :doc:`clean_architecture/services` for the service pattern.
 
-See :doc:`protocols` for protocol-based design.
+See :doc:`clean_architecture/protocols` for protocol-based design.
 
 
 Julee Pipelines
@@ -154,7 +154,7 @@ They produce a digital product by following business rules,
 and the depend on services and repositories to get the work done.
 The pipeline is the thing that runs reliably and keeps immaculate records.
 
-See :doc:`workflows` for CEAP workflows - the included pipeline batteries.
+See :doc:`applications/worker` for CEAP workflows - the included pipeline batteries.
 
 
 What Batteries are Included?
@@ -202,9 +202,9 @@ Julee's Clean Architecture approach makes complicated systems manageable:
 **Maintainability**
     Changes stay localized. Adding a new AI provider doesn't require rewriting workflows.
 
-For details on the layered architecture, see :doc:`clean_architecture`.
+For details on the layered architecture, see :doc:`clean_architecture/index`.
 
-For protocol-based design patterns, see :doc:`protocols`.
+For protocol-based design patterns, see :doc:`clean_architecture/protocols`.
 
 When to Use Julee
 -----------------
@@ -265,13 +265,13 @@ Next Steps
 ----------
 
 **Understand the Architecture**
-    - :doc:`clean_architecture` - How Julee organizes code into layers
-    - :doc:`protocols` - How protocol-based design enables flexibility
+    - :doc:`clean_architecture/index` - How Julee organizes code into layers
+    - :doc:`clean_architecture/protocols` - How protocol-based design enables flexibility
 
 **Learn the Patterns**
-    - :doc:`repositories` - The repository pattern for persistence
-    - :doc:`services` - The service pattern for AI and external operations
-    - :doc:`workflows` - CEAP workflows for document processing
+    - :doc:`clean_architecture/repositories` - The repository pattern for persistence
+    - :doc:`clean_architecture/services` - The service pattern for AI and external operations
+    - :doc:`applications/worker` - CEAP workflows for document processing
 
 **Deploy Your System**
     - :doc:`deployment` - Runtime architecture and deployment patterns

@@ -115,11 +115,9 @@ Documentation Contents
    :caption: Architecture
 
    architecture/framework
-   architecture/clean_architecture
-   architecture/protocols
-   architecture/repositories
-   architecture/services
-   architecture/workflows
+   architecture/solutions/index
+   architecture/clean_architecture/index
+   architecture/applications/index
    architecture/deployment
 
 .. toctree::
@@ -132,6 +130,7 @@ Documentation Contents
    autoapi/julee/repositories/index
    autoapi/julee/services/index
    autoapi/julee/workflows/index
+   autoapi/julee/util/index
 
 .. toctree::
    :maxdepth: 1

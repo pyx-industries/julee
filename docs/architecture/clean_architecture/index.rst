@@ -1,9 +1,17 @@
-Layers
-======
+Clean Architecture
+==================
 
 Julee organizes code into three architectural layers: **Domain**, **Application**, and **Infrastructure**.
 
 This separation makes AI systems manageable by isolating concerns and controlling dependencies.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Topics
+
+   protocols
+   repositories
+   services
 
 The Dependency Rule
 -------------------
@@ -12,7 +20,7 @@ The Dependency Rule
 
 The core principle: Outer layers depend on inner layers. Inner layers never depend on outer layers.
 
-.. uml:: diagrams/clean_architecture_layers.puml
+.. uml:: ../diagrams/clean_architecture_layers.puml
 
 This means:
 
@@ -123,7 +131,7 @@ The application layer contains different types of applications:
     - Workflows are a Temporal-specific decoration of use cases
     - Workers poll Temporal for work
     - Execute use cases in response to workflow steps
-    - See :doc:`workflows` for CEAP workflow details
+    - See :doc:`/architecture/applications/worker` for CEAP workflow details
 
 **API Applications**
     REST endpoints for external access.
@@ -501,4 +509,4 @@ For persistence patterns, see :doc:`repositories`.
 
 For AI service patterns, see :doc:`services`.
 
-For workflows in Worker applications, see :doc:`workflows`.
+For applications (Worker, API, CLI), see :doc:`/architecture/applications/index`.

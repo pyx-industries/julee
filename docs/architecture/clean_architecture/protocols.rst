@@ -582,4 +582,4 @@ For repository protocols, see :doc:`repositories`.
 
 For service protocols, see :doc:`services`.
 
-For layer organization, see :doc:`clean_architecture`.
+For layer organization, see :doc:`index`.

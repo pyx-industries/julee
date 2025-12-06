@@ -203,7 +203,7 @@ Configuration
 
 Workflows use repositories and services via dependency injection.
 
-See :doc:`protocols` for DI setup.
+See :doc:`/architecture/clean_architecture/protocols` for DI setup.
 
 **Example configuration:**
 
@@ -373,7 +373,7 @@ Test workflow logic with Temporal's test environment::
 
             assert result.status == "completed"
 
-See :doc:`protocols` for testing patterns.
+See :doc:`/architecture/clean_architecture/protocols` for testing patterns.
 
 Integration Testing
 ~~~~~~~~~~~~~~~~~~~
@@ -552,8 +552,8 @@ CEAP workflows are Julee's batteries:
 **Testable**
     Unit tests with mocks, integration tests with real infrastructure.
 
-For understanding layers and architecture, see :doc:`clean_architecture`.
+For understanding layers and architecture, see :doc:`/architecture/clean_architecture/index`.
 
-For service and repository patterns, see :doc:`services` and :doc:`repositories`.
+For service and repository patterns, see :doc:`/architecture/clean_architecture/services` and :doc:`/architecture/clean_architecture/repositories`.
 
-For protocol-based design and DI, see :doc:`protocols`.
+For protocol-based design and DI, see :doc:`/architecture/clean_architecture/protocols`.
