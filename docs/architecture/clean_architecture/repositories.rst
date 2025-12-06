@@ -36,7 +36,7 @@ When to Use a Repository
 Create a repository when you need to:
 
 **Persist Domain Entities**
-    Documents, Assemblies, Policies, Specifications - entities defined in your domain.
+    :py:class:`~julee.domain.models.Document`, :py:class:`~julee.domain.models.Assembly`, :py:class:`~julee.domain.models.Policy`, :py:class:`~julee.domain.models.AssemblySpecification` - entities defined in your domain.
 
 **Abstract Storage Technology**
     Hide whether you're using S3, PostgreSQL, or in-memory storage.
@@ -62,7 +62,9 @@ The Repository Protocol
 
 **The canonical protocol definition.**
 
-Every repository in Julee follows this pattern::
+Every repository in Julee follows this pattern. See :py:class:`~julee.domain.repositories.DocumentRepository` for the actual protocol.
+
+::
 
     from typing import Protocol
     from domain.models import Document
@@ -135,7 +137,7 @@ Every repository in Julee follows this pattern::
 
 Different repositories may have slightly different methods based on entity needs, but all follow CRUD pattern.
 
-**Example: Assembly Repository**
+**Example: Assembly Repository** (see :py:class:`~julee.domain.repositories.AssemblyRepository`)
 
 ::
 
@@ -149,7 +151,7 @@ Different repositories may have slightly different methods based on entity needs
 
 Note: ``list`` takes optional ``document_id`` filter. This is acceptable - repositories can have query parameters for simple filtering.
 
-**Example: Policy Repository**
+**Example: Policy Repository** (see :py:class:`~julee.domain.repositories.PolicyRepository`)
 
 ::
 
@@ -172,7 +174,9 @@ Julee provides three standard implementations:
 MinIO Repository (Production)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-S3-compatible object storage for production use::
+S3-compatible object storage for production use. See :py:class:`~julee.repositories.minio.MinioDocumentRepository` for the actual implementation.
+
+::
 
     from minio import Minio
     from domain.models import Document
@@ -240,7 +244,9 @@ S3-compatible object storage for production use::
 Memory Repository (Testing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In-memory storage for fast tests—stores documents in a dictionary::
+In-memory storage for fast tests—stores documents in a dictionary. See :py:class:`~julee.repositories.memory.MemoryDocumentRepository` for the actual implementation.
+
+::
 
     class MemoryDocumentRepository:
         def __init__(self):

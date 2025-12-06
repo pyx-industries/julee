@@ -1,6 +1,9 @@
 Automate Digital Product Supply Chains
 ======================================
 
+**A reusable framework and a business application are different beasts.**
+One is a vocabulary for building things; the other is the thing being built.
+
 Julee is a framework for building resilient,
 transparent, and accountable digital product supply chains.
 It's a kind of orchestrator that manages work pipelines,
@@ -8,19 +11,19 @@ using a set of idioms based on "Clean Architecture" principles.
 
 A "digital product supply chain" is a way of thinking about how work gets done.
 That work might involve humans, traditional automation, and AI agents or services.
-At it's heart, Julee applications are process that follow business rules.
-They are done in a way that leaves an impecable audit trail,
+At it's heart, Julee applications are processes that follow business rules.
+They are done in a way that leaves an impeccable audit trail,
 which can be used to create a "digital product passport"
-to acompany the output of the process.
+to accompany the output of the process.
 This makes Julee particularly suitable for processes
 with non-trivial compliance requirements, such as responsible AI requirements
-or algorithmic due-dilligence of high-integrity supply chain information.
+or algorithmic due-diligence of high-integrity supply chain information.
 
 The processes that Julee orchestrates may depend on unreliable services,
-e.g. services which might temporarially fail, be rate-limited, or timeout, etc.
-Julee runs the work pipelines in a way that is resiliant,
-with intelligent retrys and so on.
-It make tradeoffs in favour of reliability and resiliance,
+e.g. services which might temporarily fail, be rate-limited, or timeout, etc.
+Julee runs the work pipelines in a way that is resilient,
+with intelligent retries and so on.
+It makes tradeoffs in favour of reliability and resilience,
 at the expense of throughput and latency.
 Julee is most suitable for processes which must be done correctly,
 and which may be complex and long-running.
@@ -28,10 +31,46 @@ and which may be complex and long-running.
 The clean architecture principles allow Julee applications to evolve.
 Infrastructure can be swapped-out (without needing to rewire everything),
 business-logic and domain models can be adapted as requirements change over time,
-and the system remains managable even in the most complicated enterprises.
-Essentially, the digital supply chain transparancy creates an opportunity for good process governance;
+and the system remains manageable even in the most complicated enterprises.
+Essentially, the digital supply chain transparency creates an opportunity for good process governance;
 risks can be identified and mitigated, strategies implemented, and processes refined over time.
-Comprehensive test automation, clean and clear boundaries, and  enable best practice,
+Comprehensive test automation, clean and clear boundaries enable best practice.
+
+
+Framework vs Solution
+---------------------
+
+Understanding the difference between a framework and a solution
+is essential to using Julee well—and to understanding why Julee's
+codebase is organised the way it is.
+
+**A framework provides vocabulary.** Julee's first-class concepts are
+the building blocks for constructing digital supply chains:
+entities, repositories, services, use cases, workflows.
+This is why Julee's codebase is organised around ``domain/``, ``infrastructure/``, ``repositories/``—
+these are the words in Julee's vocabulary.
+
+**A solution uses that vocabulary to say something specific.**
+When you build a solution with Julee, your codebase should be organised
+around your business domain—the specific problem you're solving.
+Your top-level directories should reflect your bounded contexts:
+``billing/``, ``inventory/``, ``shipping/``.
+
+::
+
+    # Julee Framework provides the vocabulary
+    julee/
+      domain/           # Entity, Repository, Service abstractions
+      infrastructure/   # How vocabulary connects to real technology
+      workflows/        # Orchestration patterns
+
+    # Your Solution uses the vocabulary to express your business
+    my_invoicing_app/
+      billing/          # Your bounded context
+      inventory/        # Your bounded context
+      apps/             # Entry points (API, CLI, Worker)
+
+See :doc:`solutions/index` for detailed guidance on structuring Julee solutions.
 
 
 What, if anything, is a Framework?

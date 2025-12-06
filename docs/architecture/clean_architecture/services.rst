@@ -108,7 +108,7 @@ The Service Protocol
 
 **The canonical protocol for AI services.**
 
-The primary service in Julee is ``KnowledgeService`` for AI operations::
+The primary service in Julee is :py:class:`~julee.services.knowledge_service.KnowledgeService` for AI operations::
 
     from typing import Protocol
 
@@ -200,7 +200,9 @@ Service Implementations
 Anthropic Knowledge Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Claude AI integration for document processing::
+Claude AI integration for document processing. See :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` for the actual implementation.
+
+::
 
     from anthropic import Anthropic, AsyncAnthropic
     from domain.models import Document
@@ -293,7 +295,9 @@ Self-hosted LLM via HTTP API (Ollama, vLLM, etc.). Same interface, runs on your 
 Memory Knowledge Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mock for testing—returns programmable responses::
+Mock for testing—returns programmable responses. See :py:class:`~julee.services.knowledge_service.memory.MemoryKnowledgeService` for the actual implementation.
+
+::
 
     class MemoryKnowledgeService:
         def __init__(self):

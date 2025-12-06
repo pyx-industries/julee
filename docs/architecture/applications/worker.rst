@@ -45,8 +45,8 @@ Included Workflows
 
 Julee provides two production-ready workflows:
 
-ExtractAssembleWorkflow
-~~~~~~~~~~~~~~~~~~~~~~~
+:py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Purpose:** Process documents through the CEAP pipeline.
 
@@ -139,8 +139,8 @@ Retry policy::
         maximum_attempts=5
     )
 
-ValidateDocumentWorkflow
-~~~~~~~~~~~~~~~~~~~~~~~~
+:py:class:`~julee.workflows.validate_document.ValidateDocumentWorkflow`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Purpose:** Validate documents against policies.
 

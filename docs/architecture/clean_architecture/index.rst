@@ -13,6 +13,39 @@ This separation makes AI systems manageable by isolating concerns and controllin
    repositories
    services
 
+
+Framework Layers vs Solution Layers
+-----------------------------------
+
+Before diving into the layers, remember the key distinction:
+**a framework and a solution are different beasts.**
+
+Julee is a framework—its "domain" is the vocabulary for building digital supply chains.
+When you look at Julee's ``domain/`` directory, you see framework concepts:
+``Repository``, ``Service``, ``UseCase``, ``Entity``.
+
+Your solution uses this vocabulary to express *your* business domain.
+Your ``domain/`` directories (within your bounded contexts) contain
+*your* business entities: ``Invoice``, ``Patient``, ``Order``.
+
+::
+
+    # Julee's domain layer (framework vocabulary)
+    julee/domain/
+      repositories/       # Repository protocol definitions
+      models/             # Base model patterns
+      use_cases/          # Use case patterns
+
+    # Your solution's domain layer (your business)
+    my_app/billing/domain/
+      invoice.py          # Your Invoice entity
+      payment.py          # Your Payment entity
+      invoice_repository.py  # Protocol for your entity
+
+The Clean Architecture principles apply at both levels,
+but what goes *in* each layer differs between framework and solution.
+
+
 The Dependency Rule
 -------------------
 
@@ -24,8 +57,8 @@ The core principle: Outer layers depend on inner layers. Inner layers never depe
 
 This means:
 
-- Domain defines ``KnowledgeService`` protocol
-- Infrastructure provides ``AnthropicKnowledgeService`` implementation
+- Domain defines :py:class:`~julee.services.knowledge_service.KnowledgeService` protocol
+- Infrastructure provides :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` implementation
 - Application uses ``KnowledgeService`` protocol (not the implementation)
 - Dependency injection wires up concrete implementations at runtime
 
@@ -34,6 +67,7 @@ This means:
 - Test domain logic without infrastructure
 - Swap AI providers without changing business rules
 - Understand system behavior by reading protocols
+
 
 Domain Layer
 ------------
@@ -45,15 +79,34 @@ The domain layer contains:
 Models
 ~~~~~~
 
-Pydantic entities representing business concepts:
+Pydantic entities representing business concepts.
 
-- ``Document`` - Content to be processed
-- ``Assembly`` - Assembled results
-- ``AssemblySpecification`` - Instructions for assembly
-- ``Policy`` - Validation and compliance rules
-- ``KnowledgeServiceConfig`` - AI service configuration
+**In the Julee framework**, the domain models are generic building blocks
+that many solutions might use:
 
-**What belongs here:**
+- :py:class:`~julee.domain.models.Document` - Content to be processed
+- :py:class:`~julee.domain.models.Assembly` - Assembled results
+- :py:class:`~julee.domain.models.AssemblySpecification` - Instructions for assembly
+- :py:class:`~julee.domain.models.Policy` - Validation and compliance rules
+- :py:class:`~julee.domain.models.KnowledgeServiceConfig` - AI service configuration
+
+**In your solution**, the domain models are *your* business entities::
+
+    # my_app/billing/domain/invoice.py
+    from pydantic import BaseModel
+    from decimal import Decimal
+
+    class Invoice(BaseModel):
+        """An invoice in the billing context."""
+        id: str
+        customer_id: str
+        line_items: list[LineItem]
+        total: Decimal
+        status: InvoiceStatus
+
+You may extend or compose Julee's models, or define entirely your own.
+
+**What belongs in domain models:**
 
 - Business validation rules
 - Domain logic and calculations
@@ -75,12 +128,20 @@ Abstract interfaces for persistence:
 - Make storage technology pluggable
 - No implementation details
 
-Example::
+**Julee provides** repository protocols for its framework entities::
 
     class DocumentRepository(Protocol):
         async def create(self, doc: Document) -> Document: ...
         async def get(self, id: str) -> Document | None: ...
         async def list(self) -> list[Document]: ...
+
+**Your solution defines** repository protocols for your entities::
+
+    # my_app/billing/domain/invoice_repository.py
+    class InvoiceRepository(Protocol):
+        async def create(self, invoice: Invoice) -> Invoice: ...
+        async def get(self, id: str) -> Invoice | None: ...
+        async def list_by_customer(self, customer_id: str) -> list[Invoice]: ...
 
 Service Protocols
 ~~~~~~~~~~~~~~~~~
@@ -91,11 +152,17 @@ Abstract interfaces for complex operations:
 - Make service providers pluggable
 - Document expected behavior
 
-Example::
+**Julee provides** service protocols for common AI operations::
 
     class KnowledgeService(Protocol):
         async def register_file(self, content: bytes) -> str: ...
         async def query(self, file_id: str, prompt: str) -> dict: ...
+
+**Your solution defines** service protocols for your specific needs::
+
+    # my_app/billing/domain/tax_service.py
+    class TaxService(Protocol):
+        async def calculate_tax(self, invoice: Invoice) -> TaxResult: ...
 
 Use Cases
 ~~~~~~~~~
@@ -106,11 +173,31 @@ Business logic orchestration:
 - Implement domain workflows
 - No knowledge of web frameworks or databases
 
-Examples:
+**Julee provides** use cases for common document processing patterns:
 
-- ``ExtractAssembleData`` - Extract and assemble document data
-- ``ValidateDocument`` - Validate document against policies
-- ``InitializeSystemData`` - Set up system with seed data
+- :py:class:`~julee.domain.use_cases.ExtractAssembleDataUseCase` - Extract and assemble document data
+- :py:class:`~julee.domain.use_cases.ValidateDocumentUseCase` - Validate document against policies
+- :py:class:`~julee.domain.use_cases.InitializeSystemDataUseCase` - Set up system with seed data
+
+**Your solution defines** use cases for your business operations::
+
+    # my_app/billing/use_cases/process_invoice.py
+    class ProcessInvoiceUseCase:
+        def __init__(
+            self,
+            invoice_repo: InvoiceRepository,
+            tax_service: TaxService,
+            knowledge_service: KnowledgeService  # from Julee
+        ):
+            self.invoice_repo = invoice_repo
+            self.tax_service = tax_service
+            self.knowledge_service = knowledge_service
+
+        async def execute(self, invoice_id: str) -> Invoice:
+            invoice = await self.invoice_repo.get(invoice_id)
+            tax = await self.tax_service.calculate_tax(invoice)
+            # ... business logic
+            return await self.invoice_repo.update(invoice)
 
 Use cases receive dependencies via dependency injection (see :doc:`protocols`).
 
@@ -158,8 +245,8 @@ Repository Implementations
 
 Concrete persistence mechanisms:
 
-- ``MinioDocumentRepository`` - S3-compatible object storage
-- ``MemoryDocumentRepository`` - In-memory for testing
+- :py:class:`~julee.repositories.minio.MinioDocumentRepository` - S3-compatible object storage
+- :py:class:`~julee.repositories.memory.MemoryDocumentRepository` - In-memory for testing
 - ``PostgreSQLRepository`` - Relational database storage
 
 All implement domain :doc:`repository <repositories>` protocols.
@@ -169,10 +256,10 @@ Service Implementations
 
 Concrete integrations with AI and external services:
 
-- ``AnthropicKnowledgeService`` - Claude AI integration
+- :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` - Claude AI integration
 - ``OpenAIKnowledgeService`` - GPT integration
 - ``LocalLLMService`` - Self-hosted LLM integration
-- ``MemoryKnowledgeService`` - Fast mock for testing
+- :py:class:`~julee.services.knowledge_service.memory.MemoryKnowledgeService` - Fast mock for testing
 
 All implement domain :doc:`service <services>` protocols.
 

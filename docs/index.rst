@@ -6,7 +6,10 @@ Welcome to the Julee documentation. **Julee is a Python framework** for building
 What is Julee?
 --------------
 
-Julee is a framework, not an application. You install Julee as a dependency in your project and use its patterns, abstractions, and utilities to build your own document processing applications.
+**A reusable framework and a business application are different beasts.**
+One is a vocabulary for building things; the other is the thing being built.
+
+Julee is a framework—a vocabulary. You install Julee as a dependency in your project and use its patterns, abstractions, and utilities to build your own document processing applications. Those applications (solutions) are organised around your business domain, using Julee's vocabulary to express your specific needs.
 
 The CEAP Pattern
 ~~~~~~~~~~~~~~~~

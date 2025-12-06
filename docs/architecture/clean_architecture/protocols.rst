@@ -22,7 +22,8 @@ In Python, a protocol is a structural type - any class that implements the requi
 Protocol Example
 ~~~~~~~~~~~~~~~~
 
-::
+The :py:class:`~julee.services.knowledge_service.KnowledgeService` protocol defines AI operations::
+
 
     from typing import Protocol
 
@@ -37,7 +38,7 @@ Protocol Example
             """Query with prompt, returns structured data."""
             ...
 
-Any class with these methods satisfies the protocol::
+Any class with these methods satisfies the protocol. :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` and :py:class:`~julee.services.knowledge_service.memory.MemoryKnowledgeService` both implement it::
 
     class AnthropicKnowledgeService:
         """Implements KnowledgeService protocol."""
@@ -66,7 +67,7 @@ The Canonical Protocol Pattern
 
 **Step 1: Domain Defines Protocol**
 
-The domain layer defines what it needs::
+The domain layer defines what it needs (see :py:class:`~julee.domain.repositories.DocumentRepository`)::
 
     # In domain/repositories/document.py
     from typing import Protocol
@@ -93,7 +94,7 @@ The domain layer defines what it needs::
 
 **Step 2: Infrastructure Implements Protocol**
 
-Infrastructure provides concrete implementations::
+Infrastructure provides concrete implementations (see :py:class:`~julee.repositories.minio.MinioDocumentRepository`)::
 
     # In infrastructure/repositories/minio_document.py
     from minio import Minio
@@ -129,7 +130,7 @@ Infrastructure provides concrete implementations::
         async def delete(self, id: str) -> None:
             await self.client.remove_object(self.bucket, id)
 
-Multiple implementations::
+Multiple implementations (see :py:class:`~julee.repositories.memory.MemoryDocumentRepository`)::
 
     # In infrastructure/repositories/memory_document.py
     from domain.models import Document

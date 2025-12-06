@@ -123,7 +123,7 @@ Run the composition immediately in an API endpoint or CLI command.
 Pipeline Execution
 ~~~~~~~~~~~~~~~~~~
 
-Dispatch the composition to run as a Temporal workflow.
+Dispatch the composition to run as a Temporal workflow (see :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow`).
 
 ::
 
