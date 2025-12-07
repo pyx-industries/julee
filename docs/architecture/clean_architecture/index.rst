@@ -32,8 +32,8 @@ It is essentially a 3 layer, rather than a 2 layer system.
 Demonstration
 -------------
 
-One of the :doc:`batteries included </architecture/solutions/batteries-included>`
-features is a "Capture, Extract, Assembly, Publish" workflow (CEAP).
+One of the :doc:`contrib modules </architecture/solutions/contrib>`
+is a "Capture, Extract, Assembly, Publish" workflow (CEAP).
 This is a general purpose AI heuristic
 which is useful in a lot of circumstances.
 Rather than talking about the clean architecture in theory,
