@@ -1,14 +1,51 @@
 Pipelines
 =========
 
-A **pipeline** is a composition executed via Temporal for reliable, auditable execution with supply chain provenance.
+A **Julee pipeline** is a use case
+that has been appropriately treated (with decorators and proxies)
+to run as a Temporal workflow.
 
-Pipelines transform compositions from simple function calls into durable, observable business processes.
+A pipeline is the marriage of two things:
+
+1. A **Julee use case** - deterministic business logic following Clean Architecture
+2. **Temporal workflow technology** - durable, reliable execution with automatic retries
+
+All Julee pipelines are Temporal workflows, but not all Temporal workflows are Julee pipelines.
+All Julee pipelines are Julee use cases, but not all Julee use cases are pipelines.
+
+::
+
+    # Use case: pure business logic (in domain layer)
+    class ExtractAssembleDataUseCase:
+        async def assemble_data(self, document_id: str, spec_id: str) -> Assembly:
+            # Business logic - no knowledge of Temporal
+            ...
+
+    # Pipeline: use case + Temporal treatment (in application layer)
+    @workflow.defn
+    class ExtractAssemblePipeline:
+        @workflow.run
+        async def run(self, document_id: str, spec_id: str) -> Assembly:
+            # Create use case with workflow-safe proxies
+            use_case = ExtractAssembleDataUseCase(
+                document_repo=WorkflowDocumentRepositoryProxy(),
+                knowledge_service=WorkflowKnowledgeServiceProxy(),
+                ...
+            )
+            # Execute the same business logic with Temporal durability
+            return await use_case.assemble_data(document_id, spec_id)
+
+The use case is unaware it's running as a pipeline.
+The proxies route repository and service calls through Temporal activities,
+providing automatic retries, state persistence, and audit trails.
+
+See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for the CEAP pipeline implementation.
+
 
 Why Pipelines?
 --------------
 
-Direct execution of compositions is simple but fragile:
+Direct execution of use cases is simple but fragile:
 
 - If the process crashes, work is lost
 - If a service fails, the operation fails
@@ -24,62 +61,50 @@ Pipelines solve these problems:
     Workflow state is persisted. If the worker crashes, another worker picks up where it left off.
 
 **Observability**
-    Complete history of every step. What happened, when, with what inputs and outputs.
+    Julee uses Temporal's workflow history as an audit log. Every step is recorded: what happened, when, with what inputs and outputs.
 
 **Supply Chain Provenance**
-    Every step is recorded with its actor, inputs, outputs, and timing. Creates an auditable trail for compliance.
+    The audit log is used to construct a supply chain provenance graph for artefacts produced by the pipeline. Every step is recorded with its actor, inputs, outputs, and timing - creating a complete lineage for compliance.
 
-From Composition to Pipeline
-----------------------------
+Pipeline Proxies
+----------------
 
-A composition becomes a pipeline when wrapped in a Temporal workflow:
+The magic is in the **pipeline proxies**.
+When a use case runs as a pipeline,
+its :doc:`repository </architecture/clean_architecture/repositories>` and
+:doc:`service </architecture/clean_architecture/services>` dependencies
+are replaced with proxy classes that route calls through Temporal activities.
 
 ::
 
-    # The composition (business logic)
-    class ExtractAssembleComposition:
-        async def execute(self, document_id: str, spec_id: str) -> Assembly:
-            # ... business logic ...
+    # Direct execution: use case calls real repository
+    use_case = ExtractAssembleDataUseCase(
+        document_repo=MinioDocumentRepository(client),
+        ...
+    )
 
-    # The pipeline (Temporal workflow)
-    @workflow.defn
-    class ExtractAssemblePipeline:
-        @workflow.run
-        async def run(self, document_id: str, spec_id: str) -> dict:
-            # Each step becomes an activity
-            document = await workflow.execute_activity(
-                fetch_document,
-                document_id,
-                start_to_close_timeout=timedelta(seconds=30),
-            )
+    # Pipeline execution: use case calls proxy repository
+    use_case = ExtractAssembleDataUseCase(
+        document_repo=WorkflowDocumentRepositoryProxy(),
+        ...
+    )
 
-            spec = await workflow.execute_activity(
-                fetch_specification,
-                spec_id,
-                start_to_close_timeout=timedelta(seconds=30),
-            )
+The proxy implements the same :doc:`protocol </architecture/clean_architecture/protocols>`,
+so the use case doesn't know the difference.
+But each method call becomes a Temporal activity with:
 
-            extracted = await workflow.execute_activity(
-                extract_data,
-                args=[document, spec],
-                start_to_close_timeout=timedelta(minutes=5),
-                retry_policy=RetryPolicy(maximum_attempts=3),
-            )
+- Its own **timeout**
+- Its own **retry policy**
+- **State persistence** in Temporal's history
+- **Audit trail** of inputs and outputs
 
-            assembly = await workflow.execute_activity(
-                assemble_and_store,
-                args=[document_id, spec_id, extracted],
-                start_to_close_timeout=timedelta(seconds=60),
-            )
+Julee provides decorators to generate these proxies automatically:
 
-            return assembly
+- :py:func:`~julee.util.temporal.decorators.temporal_workflow_proxy` - generates proxy classes from protocols
+- :py:func:`~julee.util.temporal.decorators.temporal_activity_registration` - wraps repository/service methods as activities
 
-The workflow:
-
-- Breaks the composition into discrete **activities**
-- Each activity has its own **timeout** and **retry policy**
-- Temporal records **every step** in the workflow history
-- If any step fails, Temporal handles **retries** automatically
+The pipeline uses Temporal's ``@workflow.defn`` and ``@workflow.run`` decorators to wrap the use case.
+See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for the CEAP pipeline implementation
 
 Dispatching Pipelines
 ---------------------
@@ -155,10 +180,10 @@ From CLI Applications
             result = asyncio.run(handle.result())
             typer.echo(f"Result: {result}")
 
-Direct Execution vs Dispatch
+Direct Execution vs Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Applications can choose:
+Applications can choose how to execute use cases:
 
 ::
 
@@ -167,242 +192,19 @@ Applications can choose:
         document_id: str,
         spec_id: str,
         async_mode: bool = False,
-        composition: ExtractAssembleComposition = Depends(get_composition),
+        use_case: ExtractAssembleDataUseCase = Depends(get_use_case),
         temporal: Client = Depends(get_temporal_client)
     ):
         if async_mode:
-            # Dispatch to pipeline (reliable, auditable)
+            # Dispatch as pipeline (reliable, auditable)
             handle = await temporal.start_workflow(
                 ExtractAssemblePipeline.run,
                 args=[document_id, spec_id],
                 id=f"extract-{document_id}",
                 task_queue="julee-extract-queue",
             )
-            return {"workflow_id": handle.id, "mode": "pipeline"}
+            return {"pipeline_id": handle.id, "mode": "pipeline"}
         else:
             # Direct execution (simple, fast)
-            result = await composition.execute(document_id, spec_id)
+            result = await use_case.assemble_data(document_id, spec_id)
             return {"result": result, "mode": "direct"}
-
-Supply Chain Provenance
------------------------
-
-Pipelines create high-integrity supply chain information through Temporal's workflow history.
-
-What is Recorded
-~~~~~~~~~~~~~~~~
-
-Every pipeline execution records:
-
-**Workflow Metadata**
-    - Workflow ID (unique identifier)
-    - Start time, end time, duration
-    - Input parameters
-    - Final result or error
-
-**Activity Execution**
-    - Activity name (what was done)
-    - Start time, end time, duration
-    - Input parameters
-    - Output result
-    - Retry attempts (if any)
-    - Worker identity (who executed it)
-
-**Supply Chain Actors**
-    - Which services were called
-    - Which workers executed activities
-    - External service responses
-
-This creates a complete **audit trail** for every operation.
-
-Example Workflow History
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    Workflow: extract-doc-123
-    Started: 2025-12-06T10:00:00Z
-    Status: Completed
-
-    Activities:
-    1. fetch_document
-       - Started: 10:00:00.100
-       - Completed: 10:00:00.250
-       - Worker: worker-1
-       - Input: document_id="doc-123"
-       - Output: Document(id="doc-123", name="Invoice.pdf")
-
-    2. fetch_specification
-       - Started: 10:00:00.260
-       - Completed: 10:00:00.310
-       - Worker: worker-1
-       - Input: spec_id="invoice-spec"
-       - Output: Specification(id="invoice-spec", ...)
-
-    3. extract_data
-       - Started: 10:00:00.320
-       - Completed: 10:00:45.100
-       - Worker: worker-2
-       - Input: document, specification
-       - Output: {extracted_fields...}
-       - Service Called: Anthropic Claude
-       - Retry Attempts: 0
-
-    4. assemble_and_store
-       - Started: 10:00:45.110
-       - Completed: 10:00:45.500
-       - Worker: worker-2
-       - Input: document_id, spec_id, extracted_data
-       - Output: Assembly(id="assembly-456")
-
-    Result: Assembly(id="assembly-456")
-    Duration: 45.5 seconds
-
-Digital Product Passport
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-This history can be transformed into a **digital product passport** - a document that accompanies the output and proves:
-
-- What input was processed
-- What steps were taken
-- Which services were used
-- When each step occurred
-- Who (which worker/service) performed each step
-
-For compliance-critical applications, this provenance is essential.
-
-Reliability Patterns
---------------------
-
-Retry Policies
-~~~~~~~~~~~~~~
-
-Configure how activities handle failures:
-
-::
-
-    # Aggressive retries for transient failures
-    ai_retry_policy = RetryPolicy(
-        initial_interval=timedelta(seconds=1),
-        maximum_interval=timedelta(seconds=60),
-        backoff_coefficient=2.0,
-        maximum_attempts=5,
-    )
-
-    # Single attempt for operations that shouldn't retry
-    no_retry_policy = RetryPolicy(
-        maximum_attempts=1,
-    )
-
-    # In workflow
-    result = await workflow.execute_activity(
-        extract_data,
-        args=[document, spec],
-        start_to_close_timeout=timedelta(minutes=5),
-        retry_policy=ai_retry_policy,
-    )
-
-Timeouts
-~~~~~~~~
-
-Set appropriate timeouts for each activity:
-
-::
-
-    # Fast operations
-    document = await workflow.execute_activity(
-        fetch_document,
-        document_id,
-        start_to_close_timeout=timedelta(seconds=30),
-    )
-
-    # Slow AI operations
-    extracted = await workflow.execute_activity(
-        extract_data,
-        args=[document, spec],
-        start_to_close_timeout=timedelta(minutes=10),
-    )
-
-    # Very long operations
-    result = await workflow.execute_activity(
-        process_large_batch,
-        batch_id,
-        start_to_close_timeout=timedelta(hours=1),
-    )
-
-Heartbeats
-~~~~~~~~~~
-
-For long-running activities, use heartbeats to report progress:
-
-::
-
-    @activity.defn
-    async def process_large_document(document_id: str) -> dict:
-        document = await fetch_document(document_id)
-
-        results = []
-        for i, page in enumerate(document.pages):
-            # Report progress
-            activity.heartbeat(f"Processing page {i+1}/{len(document.pages)}")
-
-            result = await process_page(page)
-            results.append(result)
-
-        return {"pages": results}
-
-If the worker crashes, Temporal knows the activity was still running (heartbeat stopped) and can reschedule it.
-
-When to Use Pipelines
----------------------
-
-**Use pipelines when:**
-
-- Operations involve unreliable services (AI, external APIs)
-- Operations are long-running (minutes to hours)
-- Audit trails are required
-- Compliance requires supply chain provenance
-- Failures must be handled gracefully
-- Operations must complete eventually (at-least-once)
-
-**Use direct execution when:**
-
-- Operations are fast and simple
-- Failure is acceptable (can retry manually)
-- No audit trail needed
-- Development and testing
-
-Worker Applications
--------------------
-
-Pipelines run on **Worker applications** - processes that poll Temporal for work.
-
-::
-
-    # worker.py
-    from temporalio.client import Client
-    from temporalio.worker import Worker
-
-    async def run_worker():
-        client = await Client.connect("localhost:7233")
-
-        worker = Worker(
-            client,
-            task_queue="julee-extract-queue",
-            workflows=[ExtractAssemblePipeline, ValidateDocumentPipeline],
-            activities=[
-                fetch_document,
-                fetch_specification,
-                extract_data,
-                assemble_and_store,
-            ],
-        )
-
-        await worker.run()
-
-:doc:`Workers </architecture/applications/worker>` execute pipelines and implement CEAP workflows.
-
-Summary
--------
-
-Pipelines wrap compositions in Temporal workflows for reliability (retries, timeouts) and auditability (complete history, supply chain provenance). Applications dispatch pipelines; :doc:`workers </architecture/applications/worker>` execute them.
