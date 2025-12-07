@@ -89,9 +89,7 @@ autodoc_typehints = 'description'
 autodoc_typehints_description_target = 'documented'
 
 # PlantUML configuration
-# Set this to the path of your PlantUML jar file or server URL
-# plantuml = 'java -jar /path/to/plantuml.jar'
-# Or use a PlantUML server:
+# Requires plantuml to be installed (apt install plantuml on Debian/Ubuntu)
 plantuml_output_format = 'svg'
 
 templates_path = ['_templates']
