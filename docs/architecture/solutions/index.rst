@@ -46,15 +46,15 @@ This is what makes your architecture "speak" your business language.
         cli/
         worker/
 
-Each bounded context contains its own domain models, use cases, and infrastructure —
-using Julee's vocabulary (Repository, Service, UseCase patterns) to express
+Each bounded context contains its own domain models, :doc:`use cases </architecture/clean_architecture/use_cases>`, and infrastructure —
+using Julee's vocabulary (:doc:`Repository </architecture/clean_architecture/repositories>`, :doc:`Service </architecture/clean_architecture/services>`, UseCase patterns) to express
 the specific concerns of that part of your business.
 
 
 Applications Adjacent to Contexts
 ---------------------------------
 
-Application entry points (API, CLI, Worker, UI) sit *adjacent* to bounded contexts,
+:doc:`Application </architecture/applications/index>` entry points (API, CLI, Worker, UI) sit *adjacent* to bounded contexts,
 not above or below them. They wire together the contexts and expose them to the outside world.
 
 ::
@@ -94,10 +94,12 @@ Typically this would include an API and a Worker (at least).
 
 There are various ways that the solution can have dependencies on the framework.
 The solution might:
-- import some contrib pipelines, to avoid reinventing the wheel
+
+- import some :doc:`contrib <contrib>` :doc:`pipelines <pipelines>`, to avoid reinventing the wheel
 - have new infrastructure implementation of an imported interfaces
 
-The solution might also have dependencies on a 3rd-party component, e.g:
+The solution might also have dependencies on a :doc:`3rd-party component <3rd-party>`, e.g:
+
 - importing a bounded context and using it's parts
 - importing a service and running it locally, as part of the solution
 - operating a gateway service (runtime dependency on a 3rd party service)

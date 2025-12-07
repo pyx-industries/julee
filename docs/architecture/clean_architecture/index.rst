@@ -40,7 +40,7 @@ Rather than talking about the clean architecture in theory,
 we will walk through a part of this by way of an example.
 
 This is an automated process with no user interaction,
-so it is done by an application called a Worker.
+so it is done by an application called a :doc:`Worker </architecture/applications/worker>`.
 We will specifically look at the :doc:`pipeline </architecture/solutions/pipelines>`
 called :py:class:`~julee.domain.use_cases.ExtractAssembleDataUseCase`.
 This is the most complicated and interesting part of CEAP.

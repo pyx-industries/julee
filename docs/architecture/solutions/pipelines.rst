@@ -1,13 +1,13 @@
 Pipelines
 =========
 
-A **Julee pipeline** is a use case
+A **Julee pipeline** is a :doc:`use case </architecture/clean_architecture/use_cases>`
 that has been appropriately treated (with decorators and proxies)
 to run as a Temporal workflow.
 
 A pipeline is the marriage of two things:
 
-1. A **Julee use case** - deterministic business logic following Clean Architecture
+1. A **Julee use case** - deterministic business logic following :doc:`Clean Architecture </architecture/clean_architecture/index>`
 2. **Temporal workflow technology** - durable, reliable execution with automatic retries
 
 All Julee pipelines are Temporal workflows, but not all Temporal workflows are Julee pipelines.
@@ -58,7 +58,7 @@ Pipelines solve these problems:
     Automatic retries, timeout handling, failure recovery. If a service is temporarily unavailable, the pipeline waits and retries.
 
 **Durability**
-    Workflow state is persisted. If the worker crashes, another worker picks up where it left off.
+    Workflow state is persisted. If the :doc:`worker </architecture/applications/worker>` crashes, another worker picks up where it left off.
 
 **Observability**
     Julee uses Temporal's workflow history as an audit log. Every step is recorded: what happened, when, with what inputs and outputs.
@@ -89,8 +89,7 @@ are replaced with proxy classes that route calls through Temporal activities.
         ...
     )
 
-The proxy implements the same :doc:`protocol </architecture/clean_architecture/protocols>`,
-so the use case doesn't know the difference.
+The proxy implements the same :doc:`protocol </architecture/clean_architecture/protocols>`, enabling :doc:`dependency injection </architecture/clean_architecture/dependency_injection>` to swap implementations without the use case knowing the difference.
 But each method call becomes a Temporal activity with:
 
 - Its own **timeout**
@@ -109,10 +108,12 @@ See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for th
 Dispatching Pipelines
 ---------------------
 
-Applications dispatch pipelines rather than executing compositions directly.
+:doc:`Applications </architecture/applications/index>` dispatch pipelines rather than executing :doc:`compositions <composition>` directly.
 
 From API Applications
 ~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`APIs </architecture/applications/api>` dispatch pipelines via a Temporal client, returning a workflow ID that clients can use to check status.
 
 ::
 
@@ -154,6 +155,8 @@ From API Applications
 From CLI Applications
 ~~~~~~~~~~~~~~~~~~~~~
 
+:doc:`CLIs </architecture/applications/cli>` dispatch pipelines for batch operations or administrative tasks, optionally waiting for the result.
+
 ::
 
     @app.command()
@@ -183,7 +186,7 @@ From CLI Applications
 Direct Execution vs Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Applications can choose how to execute use cases:
+:doc:`Applications </architecture/applications/index>` can choose how to execute use cases—directly for simplicity, or as a pipeline for reliability and auditability:
 
 ::
 
