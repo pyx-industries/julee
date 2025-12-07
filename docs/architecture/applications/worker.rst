@@ -8,3 +8,5 @@ Workers connect to a Temporal server and poll a task queue. When a pipeline is t
 Temporal automatically retries failed activities with configurable backoff. Multiple worker instances can run concurrently; Temporal distributes work across them. Workflow code must be deterministic for replay; side effects belong in activities.
 
 Temporal UI provides visibility into running and completed workflows, activity execution history, retry attempts, errors, and input/output data.
+
+Pipelines can be triggered by :doc:`APIs <api>` for user-initiated operations, by :doc:`CLIs <cli>` for administrative or batch tasks, or by scheduled triggers within Temporal itself.

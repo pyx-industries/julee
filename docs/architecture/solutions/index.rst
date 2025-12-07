@@ -86,39 +86,7 @@ Solution Architecture
 
 A typical Julee solution with bounded contexts looks like this:
 
-::
-
-    ┌───────────────────────────────────────────────────────────────┐
-    │                       Julee Solution                          │
-    ├───────────────────────────────────────────────────────────────┤
-    │                                                               │
-    │  ┌─────────────────────────────────────────────────────────┐  │
-    │  │ Applications (entry points)                             │  │
-    │  │ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐         │  │
-    │  │ │ Worker  │ │   API   │ │   CLI   │ │   UI    │         │  │
-    │  │ └─────────┘ └─────────┘ └─────────┘ └─────────┘         │  │
-    │  └────────────────────────┬────────────────────────────────┘  │
-    │                           │                                   │
-    │                           ▼                                   │
-    │  ┌─────────────────────────────────────────────────────────┐  │
-    │  │ Bounded Contexts (your business domain)                 │  │
-    │  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │  │
-    │  │ │   Billing   │ │ Compliance  │ │  Reporting  │         │  │
-    │  │ │  domain/    │ │  domain/    │ │  domain/    │         │  │
-    │  │ │  use_cases/ │ │  use_cases/ │ │  use_cases/ │         │  │
-    │  │ │  infra/     │ │  infra/     │ │  infra/     │         │  │
-    │  │ └─────────────┘ └─────────────┘ └─────────────┘         │  │
-    │  └─────────────────────────────────────────────────────────┘  │
-    │                                                               │
-    └───────────────────────────────┬───────────────────────────────┘
-                                    │
-                                    ▼
-    ┌───────────────────────────────────────────────────────────────┐
-    │                     Julee Framework                           │
-    │  Contrib: CEAP workflows, MinIO repos, AI services            │
-    │  Patterns: Repository, Service, UseCase protocols             │
-    │  Utilities: Temporal integration, DI helpers                  │
-    └───────────────────────────────────────────────────────────────┘
+.. uml:: ../diagrams/solution_architecture.puml
 
 There is at least one application (CLI, API, UI, Worker)
 which contains configuration and depends on the bounded contexts.
