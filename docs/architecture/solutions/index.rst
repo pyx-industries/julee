@@ -115,7 +115,7 @@ A typical Julee solution with bounded contexts looks like this:
                                     ▼
     ┌───────────────────────────────────────────────────────────────┐
     │                     Julee Framework                           │
-    │  Batteries: CEAP workflows, MinIO repos, AI services          │
+    │  Contrib: CEAP workflows, MinIO repos, AI services            │
     │  Patterns: Repository, Service, UseCase protocols             │
     │  Utilities: Temporal integration, DI helpers                  │
     └───────────────────────────────────────────────────────────────┘
@@ -126,7 +126,7 @@ Typically this would include an API and a Worker (at least).
 
 There are various ways that the solution can have dependencies on the framework.
 The solution might:
-- import some "batteries included" pipelines, to avoid reinventing the wheel
+- import some contrib pipelines, to avoid reinventing the wheel
 - have new infrastructure implementation of an imported interfaces
 
 The solution might also have dependencies on a 3rd-party component, e.g:

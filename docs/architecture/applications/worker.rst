@@ -1,7 +1,7 @@
 Workflows
 =========
 
-**CEAP workflows are Julee's "batteries included" - production-ready workflows you can use immediately.**
+**CEAP workflows demonstrate Julee's patterns for document processing.**
 
 This page documents the Capture, Extract, Assemble, Publish pattern and its implementation as Temporal workflows.
 
@@ -43,7 +43,7 @@ Why CEAP?
 Included Workflows
 ------------------
 
-Julee provides two production-ready workflows:
+Julee provides two example workflows:
 
 :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -530,4 +530,4 @@ Prevents workflow history from growing unbounded.
 Summary
 -------
 
-CEAP workflows (ExtractAssembleWorkflow, ValidateDocumentWorkflow) are Julee's batteries—production-ready with error handling, retries, and audit trails. Use as-is, extend, or build custom workflows. Monitor via Temporal UI.
+CEAP workflows (ExtractAssembleWorkflow, ValidateDocumentWorkflow) demonstrate Julee's patterns for document processing. Use as-is, extend, or build custom workflows. Monitor via Temporal UI.

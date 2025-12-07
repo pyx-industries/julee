@@ -113,11 +113,9 @@ The Julee framework is an implementation of Clean Architecture principles
 that make these salient features prominent.
 It's a set of idioms (ways of doing things) that consistently implement this clean architecture.
 
-The julee framework has a "batteries included" philosophy,
-so you can get started quickly and don't have to reinvent the wheel.
-This means that the framework itself includes a number of high quality,
-ready-made services, repositories and pipelines that are genericly useful
-and can be incorporated into a julee solution cheeply.
+Julee ships with :doc:`contrib modules <solutions/contrib>` -
+ready-made components (including pipelines, services, repositories) that are generically useful
+and can be incorporated into a Julee solution cheaply.
 
 **Build-time composition of a Julee solution:**
 
@@ -125,7 +123,7 @@ and can be incorporated into a julee solution cheeply.
 
 This C4 component diagram shows how you compose your application at build time:
 
-- **Julee Framework** (left boundary) provides the batteries:
+- **Julee Framework** (left boundary) provides contrib modules:
 
   - Domain protocols and base models
   - CEAP use case implementations
@@ -167,4 +165,4 @@ They produce a digital product by following business rules,
 and the depend on services and repositories to get the work done.
 The pipeline is the thing that runs reliably and keeps immaculate records.
 
-:doc:`CEAP workflows <applications/worker>` are the included pipeline batteries.
+:doc:`CEAP workflows <applications/worker>` are an example :doc:`contrib module <solutions/contrib>`.

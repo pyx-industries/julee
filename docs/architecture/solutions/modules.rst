@@ -10,7 +10,7 @@ Module Types
 
 Julee solutions use three types of modules:
 
-:doc:`Batteries-Included Modules <batteries-included>`
+:doc:`Contrib Modules <contrib>`
     Ready-made functionality from the Julee framework. CEAP workflows, repository implementations, service integrations.
 
 :doc:`Third-Party Modules <3rd-party>`
@@ -296,4 +296,4 @@ This allows the same composition to run with different supply chain characterist
 Summary
 -------
 
-Modules are embedded (run in your process, you're the actor) or dispatched (run externally, they're a supply chain actor). This affects audit trails and compliance responsibility. :doc:`Batteries-included modules <batteries-included>` ship with Julee; :doc:`third-party modules <3rd-party>` are external integrations.
+Modules are embedded (run in your process, you're the actor) or dispatched (run externally, they're a supply chain actor). This affects audit trails and compliance responsibility. :doc:`Contrib modules <contrib>` ship with Julee; :doc:`third-party modules <3rd-party>` are external integrations.
