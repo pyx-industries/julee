@@ -66,7 +66,7 @@ Runtime Dependencies
 
 .. uml:: diagrams/c4_context.puml
 
-A :doc:`deployed <deployment>` Julee application depends on:
+A deployed Julee application depends on:
 
 - **Infrastructure** you deploy (Temporal, Object Storage, PostgreSQL)
 - **Services** from the supply chain (third-party APIs, self-hosted services, bundled services)

@@ -107,21 +107,12 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
-
-   installation
-   quickstart
-   configuration
-
-.. toctree::
-   :maxdepth: 2
    :caption: Architecture
 
    architecture/framework
    architecture/solutions/index
    architecture/clean_architecture/index
    architecture/applications/index
-   architecture/deployment
 
 .. toctree::
    :maxdepth: 2
