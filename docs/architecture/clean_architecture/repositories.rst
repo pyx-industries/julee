@@ -47,13 +47,22 @@ These are volatile and unsuitable for production,
 but useful as testing doubles in unit tests
 that run fast and in parallel without external dependencies.
 
-TODO:
-* explain how repositories are implemented
-* pydantic interfaces (pydantic)
-  foo.domain.repositories.{the-thing}
-* whatever technology
-  foo.repositories.{the-tech}.{the-thing}
-* dependency injection
-  settings.py <- app-specific-DI-container.py <- app
-  (maybe one day it's a generic DI container and everything is driven by settings)
+Implementing Repositories
+-------------------------
+
+Repository protocols can define any interface suitable for the domain.
+For the common case of simple CRUD operations,
+:py:class:`~julee.domain.repositories.BaseRepository` provides a generic starting point:
+
+.. code-block:: python
+
+    class DocumentRepository(BaseRepository[Document], Protocol):
+        pass
+
+Implementation mixins handle technology-specific boilerplate:
+
+- :py:class:`~julee.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
+- :py:class:`~julee.repositories.minio.client.MinioRepositoryMixin` - S3-compatible storage
+
+The :doc:`DI container <dependency_injection>` wires protocols to implementations at runtime.
 
