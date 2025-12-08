@@ -26,7 +26,7 @@ Publishing a release
 3. Tag the release::
 
        git tag vX.Y.Z
-       git push origin main --tags
+       git push origin master --tags
 
 4. The GitHub Action will automatically build and publish to PyPI.
 
@@ -52,7 +52,7 @@ Before publishing to the real PyPI, test with TestPyPI:
 
 4. Test installing from TestPyPI::
 
-       pip install --index-url https://test.pypi.org/simple/ julee
+       pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ julee
 
 Version numbering
 -----------------
