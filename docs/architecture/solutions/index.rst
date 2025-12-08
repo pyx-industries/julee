@@ -110,6 +110,7 @@ As well as using their own bespoke bounded context(s).
    :maxdepth: 1
    :hidden:
 
+   accelerators
    pipelines
    composition
    contrib
