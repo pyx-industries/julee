@@ -105,3 +105,13 @@ The solution might also have dependencies on a :doc:`3rd-party component <3rd-pa
 - operating a gateway service (runtime dependency on a 3rd party service)
 
 As well as using their own bespoke bounded context(s).
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   pipelines
+   composition
+   contrib
+   modules
+   3rd-party
