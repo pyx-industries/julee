@@ -8,7 +8,6 @@ on:
 
 env:
   SPA_DIRECTORY: demo-ui/src
-  API_DIRECTORY: src/julee
 
 permissions:
   contents: write
@@ -65,14 +64,14 @@ jobs:
         run: |
           npm run test:e2e
 
-  api-tests:
-    name: Run API Tests
+  unit-tests:
+    name: Run Julee Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
   
-      - name: Test Julee API
+      - name: Run Tests
         run: |
           docker compose build
           docker compose run julee-api pytest
