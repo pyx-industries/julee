@@ -93,7 +93,7 @@ serve to protect the usecase from the vagaries of the external systems.
 This also makes the implementations "swappable",
 anything that conforms to the protocol will do.
 This is how it is possible for the :doc:`Dependency Injection <dependency_injection>`
-container to do its job - it provides the :doc:`application <applications>`
+container to do its job - it provides the :doc:`application </architecture/applications/index>`
 with repositories and services that satisfy the protocols,
 and henceforth the usecases just use them.
 
@@ -108,5 +108,4 @@ and henceforth the usecases just use them.
    services
    protocols
    dependency_injection
-   applications
 

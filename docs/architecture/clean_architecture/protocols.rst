@@ -10,7 +10,7 @@ We use modern python typing to ensure infrastructure components
 (actual repository and service implementations)
 implement those interfaces, and this is relied upon by :doc:`use cases <use_cases>`
 and leveraged by :doc:`dependency injection <dependency_injection>`.
-This is why :doc:`applications` don't need to think about it,
+This is why :doc:`applications </architecture/applications/index>` don't need to think about it,
 they just run the use cases.
 
 The service and repository interfaces are typed such that
