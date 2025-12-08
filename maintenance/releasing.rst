@@ -11,6 +11,18 @@ Setup (one-time)
    - Name: ``PYPI_API_TOKEN``
    - Value: your token (starts with ``pypi-``)
 
+4. (Optional) For manual uploads, configure ``~/.pypirc`` to avoid entering credentials each time::
+
+       [pypi]
+       username = __token__
+       password = pypi-YOUR_TOKEN_HERE
+
+       [testpypi]
+       username = __token__
+       password = pypi-YOUR_TESTPYPI_TOKEN_HERE
+
+   **Warning**: Never commit ``.pypirc`` to the repository - it contains secrets.
+
 Publishing a release
 --------------------
 
