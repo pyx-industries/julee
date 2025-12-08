@@ -48,7 +48,7 @@ business processes (:doc:`use cases <clean_architecture/use_cases>`),
 and :doc:`protocols <clean_architecture/protocols>`
 (:doc:`repositories <clean_architecture/repositories>` and :doc:`services <clean_architecture/services>`).
 
-**A :doc:`solution <solutions/index>` uses that vocabulary to say something specific.**
+A :doc:`solution <solutions/index>` uses that vocabulary to say something specific.
 When you build a solution with Julee, your codebase should be organised
 around your business domain—your bounded contexts—not around framework concepts.
 A solution builds :doc:`accelerators <solutions/accelerators>`
