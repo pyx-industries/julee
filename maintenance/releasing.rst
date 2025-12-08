@@ -26,21 +26,35 @@ Setup (one-time)
 Publishing a release
 --------------------
 
-1. Update the version in both files:
+1. Create a release branch::
+
+       git checkout master
+       git pull
+       git checkout -b release/vX.Y.Z
+
+2. Update the version in both files:
 
    - ``pyproject.toml`` (version field)
    - ``src/julee/__init__.py`` (``__version__``)
 
-2. Commit the version bump::
+3. Commit the version bump::
 
        git commit -am "Bump version to X.Y.Z"
 
-3. Tag the release::
+4. Push the branch and create a PR::
 
+       git push -u origin release/vX.Y.Z
+
+   Then create a PR to merge into ``master``.
+
+5. After the PR is merged, tag the release from master::
+
+       git checkout master
+       git pull
        git tag vX.Y.Z
-       git push origin master --tags
+       git push origin vX.Y.Z
 
-4. The GitHub Action will automatically build and publish to PyPI.
+6. The GitHub Action will automatically build and publish to PyPI.
 
 Manual publishing
 -----------------
