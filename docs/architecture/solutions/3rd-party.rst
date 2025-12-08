@@ -33,8 +33,8 @@ Hide third-party details behind protocols:
         async def extract(self, document: bytes) -> str:
             return await self.client.extract_text(document)
 
-    # Composition doesn't care which implementation
-    class DocumentComposition:
+    # Use case doesn't care which implementation
+    class DocumentUseCase:
         def __init__(self, extractor: TextExtractor):
             self.extractor = extractor  # Could be either
 
@@ -189,11 +189,11 @@ Mock External Services
             return {"result": "mocked response", "confidence": 1.0}
 
     @pytest.mark.asyncio
-    async def test_composition():
-        composition = MyComposition(
+    async def test_use_case():
+        use_case = MyUseCase(
             knowledge_service=MockKnowledgeService()
         )
-        result = await composition.execute("test input")
+        result = await use_case.execute("test input")
         assert result is not None
 
 Integration Tests with Real Services

@@ -108,7 +108,7 @@ See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for th
 Dispatching Pipelines
 ---------------------
 
-:doc:`Applications </architecture/applications/index>` dispatch pipelines rather than executing :doc:`compositions <composition>` directly.
+:doc:`Applications </architecture/applications/index>` dispatch pipelines rather than executing use cases directly.
 
 From API Applications
 ~~~~~~~~~~~~~~~~~~~~~

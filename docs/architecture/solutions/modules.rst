@@ -3,7 +3,7 @@ Modules
 
 Modules provide reusable functionality for Julee solutions. They can be **embedded** (imported and run in your process) or **dispatched** (called as external services).
 
-This distinction matters for supply chain provenance: embedded modules run as part of your composition, while dispatched modules involve separate supply chain actors.
+This distinction matters for supply chain provenance: embedded modules run as part of your use case, while dispatched modules involve separate supply chain actors.
 
 Module Types
 ------------
@@ -34,7 +34,7 @@ Embedded modules are imported and run in your process:
     # Embedded: imported and runs in your process
     from some_library import PDFParser
 
-    class DocumentProcessingComposition:
+    class DocumentProcessingUseCase:
         def __init__(self, pdf_parser: PDFParser):
             self.pdf_parser = pdf_parser
 
@@ -50,7 +50,7 @@ Embedded modules are imported and run in your process:
 - You control execution
 - Your worker is the supply chain actor
 
-**Supply chain perspective:** The embedded module's code becomes part of your composition. From a supply chain perspective, **you** (your worker) are the actor performing the work, even though you're using third-party code.
+**Supply chain perspective:** The embedded module's code becomes part of your use case. From a supply chain perspective, **you** (your worker) are the actor performing the work, even though you're using third-party code.
 
 Dispatched Modules
 ~~~~~~~~~~~~~~~~~~
@@ -60,7 +60,7 @@ Dispatched modules are called as external services:
 ::
 
     # Dispatched: called over network as a service
-    class DocumentProcessingComposition:
+    class DocumentProcessingUseCase:
         def __init__(self, ai_service: KnowledgeService):
             self.ai_service = ai_service
 
@@ -165,7 +165,7 @@ Many solutions use both:
 
 ::
 
-    class InvoiceProcessingComposition:
+    class InvoiceProcessingUseCase:
         def __init__(
             self,
             # Embedded: PDF parsing
@@ -204,7 +204,7 @@ A middle ground: dispatch to services you host yourself.
 
 ::
 
-    class DocumentProcessingComposition:
+    class DocumentProcessingUseCase:
         def __init__(
             self,
             # Dispatched to self-hosted Ollama
@@ -262,11 +262,11 @@ Hide embedded/dispatched behind a protocol (see :py:class:`~julee.services.knowl
             response = await self.client.messages.create(...)
             return response.content
 
-The composition doesn't know (or care) which implementation is used:
+The use case doesn't know (or care) which implementation is used:
 
 ::
 
-    class ExtractionComposition:
+    class ExtractionUseCase:
         def __init__(self, knowledge: KnowledgeService):
             self.knowledge = knowledge  # Could be embedded or dispatched
 
@@ -291,7 +291,7 @@ Choose embedded vs dispatched via configuration:
             # Use Anthropic (dispatched to third party)
             return AnthropicKnowledgeService(api_key=settings.anthropic_api_key)
 
-This allows the same composition to run with different supply chain characteristics based on deployment requirements.
+This allows the same use case to run with different supply chain characteristics based on deployment requirements.
 
 Summary
 -------

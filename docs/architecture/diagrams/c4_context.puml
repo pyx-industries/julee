@@ -6,29 +6,25 @@ System(juleeApp, "Julee Application", "Your app built with Julee framework")
 
 System_Boundary(infra, "Infrastructure") {
     System_Ext(temporal, "Temporal", "Workflow orchestration")
-    System_Ext(storage, "Object Storage", "S3/MinIO storage")
+    System_Ext(storage, "Storage", "As required for persistence\n(e.g. S3, MinIO, PostgreSQL)")
 }
 
 System_Boundary(services, "Services") {
-    System_Ext(external, "External Services", "Knowledge, AI, policy services, etc")
+    System_Ext(external, "Service Infrastructure", "As required\n(e.g. LLM, validation APIs)")
 }
 
 Rel(user, juleeApp, "Uses", "HTTPS")
 Rel(juleeApp, temporal, "Orchestrates workflows", "gRPC")
-Rel(juleeApp, storage, "Stores/retrieves data", "S3 API")
+Rel(juleeApp, storage, "Stores/retrieves data", "API")
 Rel(juleeApp, external, "Calls services", "HTTPS/API")
 
-note right of infra
-  Infrastructure:
-  - Temporal (workflow orchestration)
-  - MinIO/S3 (object storage)
-  - PostgreSQL (Temporal persistence)
+note bottom of infra
+  Backing services that
+  support the application
 end note
 
-note right of services
-  Services (supply chain):
-  - Third-party APIs (Anthropic, OpenAI)
-  - Self-hosted (local LLM)
-  - Bundled with app
+note bottom of services
+  3rd-party digital
+  supply chain actors
 end note
 @enduml

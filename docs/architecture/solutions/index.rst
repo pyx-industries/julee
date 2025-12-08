@@ -112,7 +112,6 @@ As well as using their own bespoke bounded context(s).
 
    accelerators
    pipelines
-   composition
    contrib
    modules
    3rd-party
