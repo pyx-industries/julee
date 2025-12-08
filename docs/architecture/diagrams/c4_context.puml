@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Context>
+
+Person(user, "User", "Application end user")
+System(juleeApp, "Julee Application", "Your app built with Julee framework")
+
+System_Boundary(infra, "Infrastructure") {
+    System_Ext(temporal, "Temporal", "Workflow orchestration")
+    System_Ext(storage, "Storage", "As required for persistence\n(e.g. S3, MinIO, PostgreSQL)")
+}
+
+System_Boundary(services, "Services") {
+    System_Ext(external, "Service Infrastructure", "As required\n(e.g. LLM, validation APIs)")
+}
+
+Rel(user, juleeApp, "Uses", "HTTPS")
+Rel(juleeApp, temporal, "Orchestrates workflows", "gRPC")
+Rel(juleeApp, storage, "Stores/retrieves data", "API")
+Rel(juleeApp, external, "Calls services", "HTTPS/API")
+
+note bottom of infra
+  Backing services that
+  support the application
+end note
+
+note bottom of services
+  3rd-party digital
+  supply chain actors
+end note
+@enduml

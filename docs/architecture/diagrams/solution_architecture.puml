@@ -1,0 +1,33 @@
+@startuml solution_architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+title Julee Solution Architecture
+
+System_Boundary(solution, "Julee Solution") {
+    Container_Boundary(apps, "Applications") {
+        Container(worker, "Worker", "Python", "Executes pipelines")
+        Container(api, "API", "FastAPI", "REST endpoints")
+        Container(cli, "CLI", "Typer", "Command line")
+        Container(ui, "UI", "React/Vue", "User interface")
+    }
+
+    Container_Boundary(contexts, "Bounded Contexts") {
+        Container(billing, "Billing", "Domain", "domain/\nuse_cases/\ninfra/")
+        Container(compliance, "Compliance", "Domain", "domain/\nuse_cases/\ninfra/")
+        Container(reporting, "Reporting", "Domain", "domain/\nuse_cases/\ninfra/")
+    }
+}
+
+System_Boundary(framework, "Julee Framework") {
+    Container(contrib, "Contrib", "Package", "CEAP workflows\nMinIO repos\nAI services")
+    Container(patterns, "Patterns", "Protocols", "Repository\nService\nUseCase")
+    Container(utilities, "Utilities", "Package", "Temporal integration\nDI helpers")
+}
+
+Rel(apps, contexts, "wire")
+Rel(contexts, framework, "import")
+
+@enduml

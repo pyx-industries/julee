@@ -34,12 +34,12 @@ class MinioKnowledgeServiceConfigRepository(
 
     This implementation stores knowledge service configurations as JSON
     objects:
+
     - Knowledge Service Configs: JSON objects in the
       "knowledge-service-configs" bucket
 
     Each configuration is stored with its knowledge_service_id as the object
-    name
-    for efficient retrieval and updates.
+    name for efficient retrieval and updates.
     """
 
     def __init__(self, client: MinioClient) -> None:
