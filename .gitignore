@@ -13,7 +13,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Python virtual environment lib directories
+venv/lib/
+env/lib/
+.venv/lib/
+ENV/lib/
 lib64/
 parts/
 sdist/
@@ -191,3 +195,5 @@ token.json
 credentials.json
 /temporal
 test_data/
+.claude
+.pypirc
