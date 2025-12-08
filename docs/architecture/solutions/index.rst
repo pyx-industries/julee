@@ -15,6 +15,7 @@ because Julee is a framework; those *are* its domain concepts.
 
 A Julee solution should be organised around *your* bounded contexts —
 the distinct areas of your business that the solution serves.
+These are your :doc:`accelerators <accelerators>`.
 This is what makes your architecture "speak" your business language.
 
 ::
@@ -46,9 +47,10 @@ This is what makes your architecture "speak" your business language.
         cli/
         worker/
 
-Each bounded context contains its own domain models, :doc:`use cases </architecture/clean_architecture/use_cases>`, and infrastructure —
+Each accelerator contains its own domain models, :doc:`use cases </architecture/clean_architecture/use_cases>`, and infrastructure —
 using Julee's vocabulary (:doc:`Repository </architecture/clean_architecture/repositories>`, :doc:`Service </architecture/clean_architecture/services>`, UseCase patterns) to express
 the specific concerns of that part of your business.
+Use cases become :doc:`pipelines <pipelines>` when run with Temporal for durability and audit trails.
 
 
 Applications Adjacent to Contexts
