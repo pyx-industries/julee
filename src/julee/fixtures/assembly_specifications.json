@@ -99,6 +99,23 @@
         "/properties/agenda_items": "extract-agenda-items-query",
         "/properties/action_items": "extract-action-items-query"
       }
+    },
+    {
+      "assembly_specification_id": "dpp-assembly",
+      "name": "Digital Product Passport Assembly",
+      "applicability": "Generating Digital Product Passport from a product spec sheet.",
+      "status": "active",
+      "version": "1.0",
+      "jsonschema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "Digital Product Passport",
+        "type": "object",
+        "properties": {
+        },
+        "required": []
+      },
+      "knowledge_service_queries": {
+      }
     }
   ]
 }
