@@ -9,6 +9,10 @@
 # repository if they don't already exist (idempotent loading).
 
 documents:
+  - document_id: "product-spec-sheet"
+    original_filename: "Spec-Sheet-BondorPanel-v17.pdf"
+    content_type: "application/pdf"
+    status: "captured"
   - document_id: "meeting-transcript-q1-planning"
     original_filename: "q1_planning_meeting.txt"
     content_type: "text/plain"

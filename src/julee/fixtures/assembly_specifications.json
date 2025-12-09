@@ -111,10 +111,25 @@
         "title": "Digital Product Passport",
         "type": "object",
         "properties": {
+          "product_information": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the product"
+              },
+              "description": {
+                "type": "string",
+                "description": "The description of the product"
+              }
+            }
+          }
         },
+        "description": "The Product Passport is a comprehensive data structure that encapsulates various details pertaining to a product, including its identification details, who issued it, batch information, provenance information, circularity information and a set of verifiable product conformity & sustainability claims. ",
         "required": []
       },
       "knowledge_service_queries": {
+        "/properties/product_information": "extract-product-information-query"
       }
     }
   ]

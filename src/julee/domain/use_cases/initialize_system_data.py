@@ -800,21 +800,39 @@ class InitializeSystemDataUseCase:
             "content_type",
         ]
 
-        # Validate required fields
         for field in required_fields:
             if field not in doc_data:
                 raise KeyError(f"Required field '{field}' missing from document")
 
-        # Get or load content
+        content_type = doc_data["content_type"]
+        is_text = content_type.startswith("text/") or content_type in {
+            "application/json",
+            "application/xml",
+            "application/javascript",
+        }
+
         if "content" in doc_data:
             content = doc_data["content"]
+
+            if isinstance(content, bytes):
+                content_bytes = content
+                content_string = content.decode("utf-8") if is_text else None
+            elif isinstance(content, str):
+                content_string = content
+                content_bytes = content.encode("utf-8")
+            else:
+                raise TypeError(
+                    f"Unsupported type for 'content': {type(content)!r}. Expected str or bytes."
+                )
         else:
             current_file = Path(__file__)
             julee_dir = current_file.parent.parent.parent
             fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
-    
+
+            open_mode = "r" if is_text else "rb"
+
             try:
-                with fixture_path.open("r", encoding="utf-8") as f:
+                with fixture_path.open(open_mode, encoding="utf-8" if is_text else None) as f:
                     content = f.read()
             except FileNotFoundError as e:
                 self.logger.error(
@@ -829,18 +847,19 @@ class InitializeSystemDataUseCase:
                     f"{doc_data['document_id']}"
                 ) from e
 
-        # Update doc_data so downstream code/tests also see the content
-        doc_data["content"] = content
+            if is_text:
+                content_string = content
+                content_bytes = content.encode("utf-8")
+            else:
+                content_string = None
+                content_bytes = content
 
-        # Get content and calculate hash
-        content_bytes = content.encode("utf-8")
+        doc_data["content"] = content_string if is_text else content_bytes
+
         size_bytes = len(content_bytes)
-
-        # Create multihash (using SHA-256)
         sha256_hash = hashlib.sha256(content_bytes).hexdigest()
         content_multihash = f"sha256-{sha256_hash}"
 
-        # Parse status
         status = DocumentStatus.CAPTURED
         if "status" in doc_data:
             try:
@@ -850,12 +869,10 @@ class InitializeSystemDataUseCase:
                     f"Invalid status '{doc_data['status']}', using default 'captured'"
                 )
 
-        # Get optional fields
         knowledge_service_id = doc_data.get("knowledge_service_id")
         assembly_types = doc_data.get("assembly_types", [])
         additional_metadata = doc_data.get("additional_metadata", {})
 
-        # Create document
         document = Document(
             document_id=doc_data["document_id"],
             original_filename=doc_data["original_filename"],
@@ -868,7 +885,8 @@ class InitializeSystemDataUseCase:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
             additional_metadata=additional_metadata,
-            content_string=content,  # Store content as string for fixtures
+            content_string=content_string,
+            content_bytes=content_bytes,
         )
 
         self.logger.debug(

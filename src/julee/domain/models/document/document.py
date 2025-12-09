@@ -86,16 +86,22 @@ class Document(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
-    # Additional data and content stream
+    # Additional data and content fields
     additional_metadata: Dict[str, Any] = Field(default_factory=dict)
+
     content: Optional[ContentStream] = Field(default=None, exclude=True)
+
     content_string: Optional[str] = Field(
         default=None,
         description="Small content as string (few KB max). Use for "
         "workflow-generated content to avoid ContentStream serialization "
-        "issues. For larger content, ensure calling from concrete "
-        "implementations (ie. outside workflows and use-cases) and use "
-        "content field instead.",
+        "issues. For larger content, use content or content_bytes instead.",
+    )
+
+    content_bytes: Optional[bytes] = Field(
+        default=None,
+        description="Raw content as bytes for cases where direct in-memory "
+        "binary payloads are preferred over ContentStream.",
     )
 
     @field_validator("document_id")
@@ -122,29 +128,27 @@ class Document(BaseModel):
     @field_validator("content_multihash")
     @classmethod
     def content_multihash_must_not_be_empty(cls, v: str) -> str:
-        # TODO: actually validate the multihash against the content?
         if not v or not v.strip():
             raise ValueError("Content multihash cannot be empty")
         return v.strip()
 
     @model_validator(mode="after")
     def validate_content_fields(self, info: ValidationInfo) -> "Document":
-        """Ensure document has either content or content_string, not both."""
-        # Check if we're in a Temporal deserialization context
+        """Ensure document has exactly one of content, content_string, or content_bytes."""
+
+        # Skip validation in Temporal deserialization context
         if info.context and info.context.get("temporal_validation"):
             return self
 
-        # Normal validation for direct instantiation
         has_content = self.content is not None
         has_content_string = self.content_string is not None
+        has_content_bytes = self.content_bytes is not None
 
-        if has_content and has_content_string:
+        provided = sum([has_content, has_content_string, has_content_bytes])
+
+        if provided == 0:
             raise ValueError(
-                "Document cannot have both content and content_string. "
-                "Provide only one."
+                "Document must have one of: content, content_string, or content_bytes."
             )
-        elif not has_content and not has_content_string:
-            raise ValueError(
-                "Document must have either content or content_string. " "Provide one."
-            )
+
         return self
