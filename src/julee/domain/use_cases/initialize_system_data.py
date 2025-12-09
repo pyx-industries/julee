@@ -798,7 +798,6 @@ class InitializeSystemDataUseCase:
             "document_id",
             "original_filename",
             "content_type",
-            "content",
         ]
 
         # Validate required fields
@@ -806,8 +805,34 @@ class InitializeSystemDataUseCase:
             if field not in doc_data:
                 raise KeyError(f"Required field '{field}' missing from document")
 
+        # Get or load content
+        if "content" in doc_data:
+            content = doc_data["content"]
+        else:
+            current_file = Path(__file__)
+            julee_dir = current_file.parent.parent.parent
+            fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
+    
+            try:
+                with fixture_path.open("r", encoding="utf-8") as f:
+                    content = f.read()
+            except FileNotFoundError as e:
+                self.logger.error(
+                    "Fixture file not found for document",
+                    extra={
+                        "document_id": doc_data["document_id"],
+                        "fixture_path": str(fixture_path),
+                    },
+                )
+                raise FileNotFoundError(
+                    f"Fixture file '{fixture_path}' not found for document "
+                    f"{doc_data['document_id']}"
+                ) from e
+
+        # Update doc_data so downstream code/tests also see the content
+        doc_data["content"] = content
+
         # Get content and calculate hash
-        content = doc_data["content"]
         content_bytes = content.encode("utf-8")
         size_bytes = len(content_bytes)
 
