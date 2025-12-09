@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
+import json
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -535,54 +536,69 @@ class InitializeSystemDataUseCase:
 
     def _load_fixture_assembly_specifications(self) -> List[Dict[str, Any]]:
         """
-        Load assembly specifications from the YAML fixture file.
-
+        Load assembly specifications from a YAML or JSON fixture file.
+    
         Returns:
             List of specification dictionaries from the fixture file
-
+    
         Raises:
             FileNotFoundError: If the fixture file doesn't exist
             yaml.YAMLError: If the fixture file is invalid YAML
+            json.JSONDecodeError: If the fixture file is invalid JSON
             KeyError: If required fields are missing from the fixture
+            ValueError: If the specification section is malformed
         """
-        fixture_path = self._get_demo_fixture_path("assembly_specifications.yaml")
-
+        # Accept both .yaml and .json files
+        fixture_path = None
+        for ext in ("json", "yaml"):
+            candidate = self._get_demo_fixture_path(f"assembly_specifications.{ext}")
+            if candidate.exists():
+                fixture_path = candidate
+                break
+    
+        if fixture_path is None:
+            raise FileNotFoundError(
+                "Assembly specifications fixture file not found (.yaml or .json)"
+            )
+    
         self.logger.debug(
             "Loading assembly specifications fixture file",
             extra={"fixture_path": str(fixture_path)},
         )
-
-        if not fixture_path.exists():
-            raise FileNotFoundError(
-                f"Assembly specifications fixture file not found: {fixture_path}"
-            )
-
+    
         try:
             with open(fixture_path, "r", encoding="utf-8") as f:
-                fixture_data = yaml.safe_load(f)
-
+                if fixture_path.suffix.lower() == ".json":
+                    fixture_data = json.load(f)
+                else:
+                    fixture_data = yaml.safe_load(f)
+    
             if not fixture_data or "assembly_specifications" not in fixture_data:
-                raise KeyError(
-                    "Fixture file must contain 'assembly_specifications' key"
-                )
-
+                raise KeyError("Fixture file must contain 'assembly_specifications' key")
+    
             specs = fixture_data["assembly_specifications"]
             if not isinstance(specs, list):
                 raise ValueError(
-                    "'assembly_specifications' must be a list of "
-                    "specification configurations"
+                    "'assembly_specifications' must be a list of specification configurations"
                 )
-
+    
             self.logger.debug(
                 "Loaded fixture assembly specifications",
                 extra={"count": len(specs)},
             )
-
+    
             return specs
-
+    
         except yaml.YAMLError as e:
             raise yaml.YAMLError(
                 f"Invalid YAML in assembly specifications fixture file: {e}"
+            )
+    
+        except json.JSONDecodeError as e:
+            raise json.JSONDecodeError(
+                f"Invalid JSON in assembly specifications fixture file: {e}",
+                e.doc,
+                e.pos,
             )
 
     def _create_assembly_spec_from_fixture_data(
