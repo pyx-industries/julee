@@ -11,8 +11,10 @@ import hashlib
 import httpx
 import pytest
 
-from julee.services.polling_service import PollingConfig, PollingProtocol
-from julee.services.polling_service.http import HttpPollingService
+from julee.contrib.polling.domain.models import PollingConfig, PollingProtocol
+from julee.contrib.polling.infrastructure.services.polling.http import (
+    HttpPollingService,
+)
 
 
 class TestHttpPollingServicePollEndpoint:
