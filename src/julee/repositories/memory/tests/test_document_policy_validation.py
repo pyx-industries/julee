@@ -6,9 +6,10 @@ repository implementation, focusing on functionality specific to this
 repository that differs from the inherited mixins.
 """
 
-import pytest
 from datetime import datetime, timezone
 from typing import Any
+
+import pytest
 
 from julee.domain.models.policy import (
     DocumentPolicyValidation,

@@ -6,16 +6,17 @@ endpoints, focusing on testing the router behavior with proper dependency
 injection and mocking patterns.
 """
 
+from collections.abc import Generator
+
 import pytest
-from typing import Generator
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from julee.api.routers.knowledge_service_queries import router
 from julee.api.dependencies import (
     get_knowledge_service_query_repository,
 )
+from julee.api.routers.knowledge_service_queries import router
 from julee.domain.models import KnowledgeServiceQuery
 from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,

@@ -13,7 +13,7 @@ should be avoided.
 """
 
 import logging
-from typing import Dict, Optional, Any, List
+from typing import Any
 
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
@@ -21,6 +21,7 @@ from julee.domain.models.assembly_specification import (
 from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -47,11 +48,11 @@ class MemoryKnowledgeServiceQueryRepository(
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "KnowledgeServiceQuery"
-        self.storage_dict: Dict[str, KnowledgeServiceQuery] = {}
+        self.storage_dict: dict[str, KnowledgeServiceQuery] = {}
 
         logger.debug("Initializing MemoryKnowledgeServiceQueryRepository")
 
-    async def get(self, query_id: str) -> Optional[KnowledgeServiceQuery]:
+    async def get(self, query_id: str) -> KnowledgeServiceQuery | None:
         """Retrieve a knowledge service query by ID.
 
         Args:
@@ -71,8 +72,8 @@ class MemoryKnowledgeServiceQueryRepository(
         self.save_entity(query, "query_id")
 
     async def get_many(
-        self, query_ids: List[str]
-    ) -> Dict[str, Optional[KnowledgeServiceQuery]]:
+        self, query_ids: list[str]
+    ) -> dict[str, KnowledgeServiceQuery | None]:
         """Retrieve multiple knowledge service queries by ID.
 
         Args:
@@ -92,7 +93,7 @@ class MemoryKnowledgeServiceQueryRepository(
         """
         return self.generate_entity_id("query")
 
-    async def list_all(self) -> List[KnowledgeServiceQuery]:
+    async def list_all(self) -> list[KnowledgeServiceQuery]:
         """List all knowledge service queries.
 
         Returns:
@@ -113,7 +114,7 @@ class MemoryKnowledgeServiceQueryRepository(
         return entities
 
     def _add_entity_specific_log_data(
-        self, entity: KnowledgeServiceQuery, log_data: Dict[str, Any]
+        self, entity: KnowledgeServiceQuery, log_data: dict[str, Any]
     ) -> None:
         """Add knowledge service query-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

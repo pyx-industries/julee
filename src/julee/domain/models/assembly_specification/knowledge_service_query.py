@@ -15,9 +15,10 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class KnowledgeServiceQuery(BaseModel):
@@ -77,13 +78,13 @@ class KnowledgeServiceQuery(BaseModel):
     )
 
     # Service-specific configuration
-    query_metadata: Optional[Dict[str, Any]] = Field(
+    query_metadata: dict[str, Any] | None = Field(
         default_factory=dict,
         description="Service-specific metadata and configuration options "
         "such as model selection, temperature, max_tokens, etc. "
         "The structure depends on the specific knowledge service being used.",
     )
-    assistant_prompt: Optional[str] = Field(
+    assistant_prompt: str | None = Field(
         default=None,
         description="Optional assistant message content to constrain "
         "or prime the model's response. This is added as the final "
@@ -91,10 +92,10 @@ class KnowledgeServiceQuery(BaseModel):
         "allowing control over response format and structure.",
     )
 
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 

@@ -18,14 +18,16 @@ Design decisions documented:
 - Status defaults to ACTIVE
 """
 
-import pytest
 import json
-from typing import Dict, Any
+from typing import Any
+
+import pytest
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
+
 from .factories import AssemblyFactory
 
 
@@ -136,7 +138,7 @@ class TestAssemblyInstantiation:
         assembly_specification_id: str,
         name: str,
         applicability: str,
-        jsonschema: Dict[str, Any],
+        jsonschema: dict[str, Any],
         expected_success: bool,
     ) -> None:
         """Test assembly creation with various field validation scenarios."""

@@ -14,12 +14,12 @@ status, scores, transformation results, and metadata.
 """
 
 import logging
-from typing import Optional, List, Dict
 
 from julee.domain.models.policy import DocumentPolicyValidation
 from julee.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
+
 from .client import MinioClient, MinioRepositoryMixin
 
 
@@ -47,7 +47,7 @@ class MinioDocumentPolicyValidationRepository(
         self.validations_bucket = "document-policy-validations"
         self.ensure_buckets_exist(self.validations_bucket)
 
-    async def get(self, validation_id: str) -> Optional[DocumentPolicyValidation]:
+    async def get(self, validation_id: str) -> DocumentPolicyValidation | None:
         """Retrieve a document policy validation by ID."""
         return self.get_json_object(
             bucket_name=self.validations_bucket,
@@ -88,8 +88,8 @@ class MinioDocumentPolicyValidationRepository(
         return self.generate_id_with_prefix("validation")
 
     async def get_many(
-        self, validation_ids: List[str]
-    ) -> Dict[str, Optional[DocumentPolicyValidation]]:
+        self, validation_ids: list[str]
+    ) -> dict[str, DocumentPolicyValidation | None]:
         """Retrieve multiple document policy validations by ID.
 
         Args:
@@ -113,7 +113,7 @@ class MinioDocumentPolicyValidationRepository(
         )
 
         # Convert object names back to validation IDs for the result
-        result: Dict[str, Optional[DocumentPolicyValidation]] = {}
+        result: dict[str, DocumentPolicyValidation | None] = {}
         for validation_id in validation_ids:
             result[validation_id] = object_results[validation_id]
 

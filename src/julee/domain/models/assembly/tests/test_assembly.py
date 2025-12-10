@@ -19,11 +19,13 @@ Design decisions documented:
 - Timestamps are automatically set with timezone-aware defaults
 """
 
-import pytest
 import json
 from datetime import datetime, timezone
 
+import pytest
+
 from julee.domain.models.assembly import Assembly, AssemblyStatus
+
 from .factories import AssemblyFactory
 
 

@@ -13,12 +13,13 @@ All operations are still async to maintain interface compatibility.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from julee.domain.models.policy import DocumentPolicyValidation
 from julee.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -41,11 +42,11 @@ class MemoryDocumentPolicyValidationRepository(
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "DocumentPolicyValidation"
-        self.storage_dict: Dict[str, DocumentPolicyValidation] = {}
+        self.storage_dict: dict[str, DocumentPolicyValidation] = {}
 
         logger.debug("Initializing MemoryDocumentPolicyValidationRepository")
 
-    async def get(self, validation_id: str) -> Optional[DocumentPolicyValidation]:
+    async def get(self, validation_id: str) -> DocumentPolicyValidation | None:
         """Retrieve a document policy validation by ID.
 
         Args:
@@ -73,8 +74,8 @@ class MemoryDocumentPolicyValidationRepository(
         return self.generate_entity_id("validation")
 
     async def get_many(
-        self, validation_ids: List[str]
-    ) -> Dict[str, Optional[DocumentPolicyValidation]]:
+        self, validation_ids: list[str]
+    ) -> dict[str, DocumentPolicyValidation | None]:
         """Retrieve multiple document policy validations by ID.
 
         Args:
@@ -87,7 +88,7 @@ class MemoryDocumentPolicyValidationRepository(
         return self.get_many_entities(validation_ids)
 
     def _add_entity_specific_log_data(
-        self, entity: DocumentPolicyValidation, log_data: Dict[str, Any]
+        self, entity: DocumentPolicyValidation, log_data: dict[str, Any]
     ) -> None:
         """Add validation-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

@@ -5,15 +5,16 @@ This module provides unit tests for the workflows API endpoints,
 focusing on workflow triggering, status monitoring, and error handling.
 """
 
-import pytest
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock
-from fastapi.testclient import TestClient
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from julee.api.routers.workflows import router
 from julee.api.dependencies import get_temporal_client
+from julee.api.routers.workflows import router
 
 
 @pytest.fixture

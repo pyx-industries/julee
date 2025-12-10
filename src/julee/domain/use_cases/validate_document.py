@@ -11,8 +11,8 @@ import hashlib
 import io
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Dict, List, Tuple
 
 import multihash
 
@@ -397,13 +397,13 @@ class ValidateDocumentUseCase:
     @try_use_case_step("all_queries_retrieval")
     async def _retrieve_all_queries(
         self, policy: Policy
-    ) -> Dict[str, KnowledgeServiceQuery]:
+    ) -> dict[str, KnowledgeServiceQuery]:
         """Retrieve all knowledge service queries needed for validation and
         transformation."""
         all_queries = {}
 
         # Get validation queries
-        for query_id, required_score in policy.validation_scores:
+        for query_id, _required_score in policy.validation_scores:
             query = await self.knowledge_service_query_repo.get(query_id)
             if not query:
                 raise ValueError(f"Validation query not found: {query_id}")
@@ -423,8 +423,8 @@ class ValidateDocumentUseCase:
     async def _register_document_with_services(
         self,
         document: Document,
-        queries: Dict[str, KnowledgeServiceQuery],
-    ) -> Dict[str, str]:
+        queries: dict[str, KnowledgeServiceQuery],
+    ) -> dict[str, str]:
         """
         Register the document with all knowledge services needed for
         validation.
@@ -464,9 +464,9 @@ class ValidateDocumentUseCase:
         self,
         document: Document,
         policy: Policy,
-        document_registrations: Dict[str, str],
-        queries: Dict[str, KnowledgeServiceQuery],
-    ) -> List[Tuple[str, int]]:
+        document_registrations: dict[str, str],
+        queries: dict[str, KnowledgeServiceQuery],
+    ) -> list[tuple[str, int]]:
         """
         Execute all validation queries and return the actual scores achieved.
 
@@ -528,7 +528,7 @@ class ValidateDocumentUseCase:
 
         return validation_scores
 
-    def _extract_score_from_result(self, result_data: Dict) -> int:
+    def _extract_score_from_result(self, result_data: dict) -> int:
         """
         Extract a numeric score from the knowledge service query result.
 
@@ -551,8 +551,8 @@ class ValidateDocumentUseCase:
 
     def _determine_validation_result(
         self,
-        actual_scores: List[Tuple[str, int]],
-        required_scores: List[Tuple[str, int]],
+        actual_scores: list[tuple[str, int]],
+        required_scores: list[tuple[str, int]],
     ) -> bool:
         """
         Determine if validation passed based on actual vs required scores.
@@ -591,8 +591,8 @@ class ValidateDocumentUseCase:
         self,
         document: Document,
         policy: Policy,
-        all_queries: Dict[str, KnowledgeServiceQuery],
-        document_registrations: Dict[str, str],
+        all_queries: dict[str, KnowledgeServiceQuery],
+        document_registrations: dict[str, str],
     ) -> Document:
         """
         Apply transformation queries to a document and return the
@@ -714,7 +714,7 @@ class ValidateDocumentUseCase:
 
         return transformed_document
 
-    def _extract_transformed_content(self, result_data: Dict) -> str:
+    def _extract_transformed_content(self, result_data: dict) -> str:
         """
         Extract transformed document content from knowledge service result.
 

@@ -14,17 +14,18 @@ These routes are mounted at /assembly_specifications in the main app.
 
 import logging
 from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi_pagination import Page, paginate
 
-from julee.domain.models import AssemblySpecification
-from julee.domain.repositories.assembly_specification import (
-    AssemblySpecificationRepository,
-)
 from julee.api.dependencies import (
     get_assembly_specification_repository,
 )
 from julee.api.requests import CreateAssemblySpecificationRequest
+from julee.domain.models import AssemblySpecification
+from julee.domain.repositories.assembly_specification import (
+    AssemblySpecificationRepository,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -10,12 +10,10 @@ Both reduce boilerplate and ensure consistent patterns.
 import functools
 import inspect
 import logging
+from collections.abc import Callable
 from datetime import timedelta
 from typing import (
     Any,
-    Callable,
-    Optional,
-    Type,
     TypeVar,
     get_args,
     get_origin,
@@ -34,7 +32,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def _extract_concrete_type_from_base(cls: type) -> Optional[type]:
+def _extract_concrete_type_from_base(cls: type) -> type | None:
     """
     Extract the concrete type argument from a generic base class.
 
@@ -113,7 +111,7 @@ def _substitute_typevar_with_concrete(annotation: Any, concrete_type: type) -> A
 
 def temporal_activity_registration(
     activity_prefix: str,
-) -> Callable[[Type[T]], Type[T]]:
+) -> Callable[[type[T]], type[T]]:
     """
     Class decorator that wraps async protocol methods as Temporal activities.
 
@@ -139,7 +137,7 @@ def temporal_activity_registration(
         # - refund_payment -> "sample.payment_repo.minio.refund_payment"
     """
 
-    def decorator(cls: Type[T]) -> Type[T]:
+    def decorator(cls: type[T]) -> type[T]:
         logger.debug(
             f"Applying temporal_activity_registration decorator to {cls.__name__}"
         )
@@ -204,8 +202,8 @@ def temporal_activity_registration(
 def temporal_workflow_proxy(
     activity_base: str,
     default_timeout_seconds: int = 30,
-    retry_methods: Optional[list[str]] = None,
-) -> Callable[[Type[T]], Type[T]]:
+    retry_methods: list[str] | None = None,
+) -> Callable[[type[T]], type[T]]:
     """
     Class decorator that automatically creates workflow proxy methods that
     delegate to Temporal activities.
@@ -238,7 +236,7 @@ def temporal_workflow_proxy(
         # - generate_id() -> calls "julee.document_repo.minio.generate_id" with retry
     """
 
-    def decorator(cls: Type[T]) -> Type[T]:
+    def decorator(cls: type[T]) -> type[T]:
         logger.debug(f"Applying temporal_workflow_proxy decorator to {cls.__name__}")
 
         retry_methods_set = set(retry_methods or [])
@@ -409,7 +407,7 @@ def temporal_workflow_proxy(
             proxy_self.activity_fail_fast_retry_policy = fail_fast_retry_policy
             logger.debug(f"Initialized {cls.__name__}")
 
-        setattr(cls, "__init__", __init__)
+        cls.__init__ = __init__
 
         logger.info(
             f"Temporal workflow proxy decorator applied to {cls.__name__}",

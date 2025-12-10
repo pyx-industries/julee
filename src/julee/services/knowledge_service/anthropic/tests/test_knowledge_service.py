@@ -6,18 +6,19 @@ KnowledgeService protocol, verifying file registration and query
 execution functionality.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timezone
 import io
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from julee.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-)
-from julee.domain.models.document import Document, DocumentStatus
-from julee.domain.models.knowledge_service_config import ServiceApi
+import pytest
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
+)
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
 )
 from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks,

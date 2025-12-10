@@ -6,20 +6,21 @@ ensuring they follow consistent patterns with proper error handling,
 pagination, and response formats.
 """
 
-import pytest
+from collections.abc import Generator
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
+
+import pytest
 from fastapi.testclient import TestClient
-from typing import Generator
 
 from julee.api.app import app
+from julee.api.dependencies import (
+    get_knowledge_service_config_repository,
+)
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.api.dependencies import (
-    get_knowledge_service_config_repository,
-)
-from datetime import datetime, timezone
 
 
 @pytest.fixture

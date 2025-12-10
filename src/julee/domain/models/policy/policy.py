@@ -13,10 +13,10 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List, Tuple
 from datetime import datetime, timezone
 from enum import Enum
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class PolicyStatus(str, Enum):
@@ -55,12 +55,12 @@ class Policy(BaseModel):
 
     # Policy configuration
     status: PolicyStatus = PolicyStatus.ACTIVE
-    validation_scores: List[Tuple[str, int]] = Field(
+    validation_scores: list[tuple[str, int]] = Field(
         description="List of (knowledge_service_query_id, required_score) "
         "tuples where required_score is between 0 and 100. All scores "
         "must be met or exceeded for the policy to pass"
     )
-    transformation_queries: Optional[List[str]] = Field(
+    transformation_queries: list[str] | None = Field(
         default=None,
         description="Optional list of knowledge service query IDs for "
         "transformations to apply before re-validation. If not provided "
@@ -69,10 +69,10 @@ class Policy(BaseModel):
 
     # Policy metadata
     version: str = Field(default="0.1.0", description="Policy version")
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(default=None)
+    updated_at: datetime | None = Field(default=None)
 
     @field_validator("policy_id")
     @classmethod
@@ -98,8 +98,8 @@ class Policy(BaseModel):
     @field_validator("validation_scores")
     @classmethod
     def validation_scores_must_be_valid(
-        cls, v: List[Tuple[str, int]]
-    ) -> List[Tuple[str, int]]:
+        cls, v: list[tuple[str, int]]
+    ) -> list[tuple[str, int]]:
         if not isinstance(v, list):
             raise ValueError("Validation scores must be a list")
 
@@ -147,8 +147,8 @@ class Policy(BaseModel):
     @field_validator("transformation_queries")
     @classmethod
     def transformation_queries_must_be_valid(
-        cls, v: Optional[List[str]]
-    ) -> Optional[List[str]]:
+        cls, v: list[str] | None
+    ) -> list[str] | None:
         if v is None:
             return v
 

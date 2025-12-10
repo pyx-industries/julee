@@ -12,9 +12,10 @@ Design decisions documented:
 - ContentStream works with Pydantic validation without arbitrary_types_allowed
 """
 
-import pytest
 import io
 from typing import Any
+
+import pytest
 
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,

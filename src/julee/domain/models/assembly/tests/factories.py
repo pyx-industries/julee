@@ -6,9 +6,10 @@ Assembly domain objects with sensible defaults.
 """
 
 from datetime import datetime, timezone
+
 from factory.base import Factory
-from factory.faker import Faker
 from factory.declarations import LazyFunction
+from factory.faker import Faker
 
 from julee.domain.models.assembly import (
     Assembly,

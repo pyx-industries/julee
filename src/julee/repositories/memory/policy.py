@@ -12,10 +12,11 @@ All operations are still async to maintain interface compatibility.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from julee.domain.models.policy import Policy
 from julee.domain.repositories.policy import PolicyRepository
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -34,11 +35,11 @@ class MemoryPolicyRepository(PolicyRepository, MemoryRepositoryMixin[Policy]):
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "Policy"
-        self.storage_dict: Dict[str, Policy] = {}
+        self.storage_dict: dict[str, Policy] = {}
 
         logger.debug("Initializing MemoryPolicyRepository")
 
-    async def get(self, policy_id: str) -> Optional[Policy]:
+    async def get(self, policy_id: str) -> Policy | None:
         """Retrieve a policy by ID.
 
         Args:
@@ -65,7 +66,7 @@ class MemoryPolicyRepository(PolicyRepository, MemoryRepositoryMixin[Policy]):
         """
         return self.generate_entity_id("policy")
 
-    async def get_many(self, policy_ids: List[str]) -> Dict[str, Optional[Policy]]:
+    async def get_many(self, policy_ids: list[str]) -> dict[str, Policy | None]:
         """Retrieve multiple policies by ID.
 
         Args:
@@ -77,7 +78,7 @@ class MemoryPolicyRepository(PolicyRepository, MemoryRepositoryMixin[Policy]):
         return self.get_many_entities(policy_ids)
 
     def _add_entity_specific_log_data(
-        self, entity: Policy, log_data: Dict[str, Any]
+        self, entity: Policy, log_data: dict[str, Any]
     ) -> None:
         """Add policy-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

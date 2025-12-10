@@ -23,6 +23,7 @@ import pytest
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
+
 from .factories import KnowledgeServiceQueryFactory
 
 

@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from temporalio import workflow
 
@@ -35,7 +34,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
         )
         return FileMetadata.model_validate(result)
 
-    async def download_file(self, file_id: str) -> Optional[bytes]:
+    async def download_file(self, file_id: str) -> bytes | None:
         """Download a file from storage via Temporal activity."""
         logger.debug(f"Workflow calling activity to download file: {file_id}")
         result = await workflow.execute_activity(
@@ -45,7 +44,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
         )
         return result  # type: ignore[no-any-return]
 
-    async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
+    async def get_file_metadata(self, file_id: str) -> FileMetadata | None:
         """Retrieve file metadata via Temporal activity."""
         logger.debug(f"Workflow calling activity to get file metadata: {file_id}")
         result = await workflow.execute_activity(

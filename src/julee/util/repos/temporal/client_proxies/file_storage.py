@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from temporalio.client import Client
 
@@ -19,7 +18,7 @@ class TemporalFileStorageRepository(FileStorageRepository):
     def __init__(
         self,
         client: Client,
-        concrete_repo: Optional[FileStorageRepository] = None,
+        concrete_repo: FileStorageRepository | None = None,
     ):
         self.client = client
         self.concrete_repo = concrete_repo
@@ -39,7 +38,7 @@ class TemporalFileStorageRepository(FileStorageRepository):
         result = await handle.result()
         return result  # type: ignore[no-any-return]
 
-    async def download_file(self, file_id: str) -> Optional[bytes]:
+    async def download_file(self, file_id: str) -> bytes | None:
         """Download a file via Temporal activity."""
         logger.debug(f"Client calling activity to download file: {file_id}")
 
@@ -53,7 +52,7 @@ class TemporalFileStorageRepository(FileStorageRepository):
         result = await handle.result()
         return result  # type: ignore[no-any-return]
 
-    async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
+    async def get_file_metadata(self, file_id: str) -> FileMetadata | None:
         """Retrieve file metadata via Temporal activity."""
         logger.debug(f"Client calling activity to get file metadata: {file_id}")
 

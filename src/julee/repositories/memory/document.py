@@ -14,13 +14,14 @@ All operations are still async to maintain interface compatibility.
 import hashlib
 import io
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 
-from julee.domain.models.document import Document
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.domain.models.document import Document
 from julee.domain.repositories.document import DocumentRepository
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -41,11 +42,11 @@ class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Documen
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "Document"
-        self.storage_dict: Dict[str, Document] = {}
+        self.storage_dict: dict[str, Document] = {}
 
         logger.debug("Initializing MemoryDocumentRepository")
 
-    async def get(self, document_id: str) -> Optional[Document]:
+    async def get(self, document_id: str) -> Document | None:
         """Retrieve a document with metadata and content.
 
         Args:
@@ -109,7 +110,7 @@ class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Documen
         """
         return self.generate_entity_id("doc")
 
-    async def get_many(self, document_ids: List[str]) -> Dict[str, Optional[Document]]:
+    async def get_many(self, document_ids: list[str]) -> dict[str, Document | None]:
         """Retrieve multiple documents by ID.
 
         Args:
@@ -120,7 +121,7 @@ class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Documen
         """
         return self.get_many_entities(document_ids)
 
-    async def list_all(self) -> List[Document]:
+    async def list_all(self) -> list[Document]:
         """List all documents.
 
         Returns:
@@ -142,7 +143,7 @@ class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Documen
         return documents
 
     def _add_entity_specific_log_data(
-        self, entity: Document, log_data: Dict[str, Any]
+        self, entity: Document, log_data: dict[str, Any]
     ) -> None:
         """Add document-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

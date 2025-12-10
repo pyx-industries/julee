@@ -7,9 +7,10 @@ AssemblySpecification domain objects with sensible defaults.
 
 from datetime import datetime, timezone
 from typing import Any
+
 from factory.base import Factory
-from factory.faker import Faker
 from factory.declarations import LazyAttribute, LazyFunction
+from factory.faker import Faker
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,

@@ -27,8 +27,10 @@ In Temporal workflow contexts, these protocols are implemented by workflow
 stubs that delegate to activities for durability and proper error handling.
 """
 
-from typing import runtime_checkable, Protocol
+from typing import Protocol, runtime_checkable
+
 from julee.domain.models import Assembly
+
 from .base import BaseRepository
 
 

@@ -19,11 +19,13 @@ Design decisions documented:
 - Documents act as readable streams with standard methods
 """
 
-import pytest
 import json
 
+import pytest
+
 from julee.domain.models.document import Document
-from .factories import DocumentFactory, ContentStreamFactory
+
+from .factories import ContentStreamFactory, DocumentFactory
 
 
 class TestDocumentInstantiation:

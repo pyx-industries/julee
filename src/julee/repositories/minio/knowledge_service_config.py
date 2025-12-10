@@ -14,7 +14,6 @@ key.
 """
 
 import logging
-from typing import Optional, List, Dict
 
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
@@ -22,6 +21,7 @@ from julee.domain.models.knowledge_service_config import (
 from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
+
 from .client import MinioClient, MinioRepositoryMixin
 
 
@@ -53,7 +53,7 @@ class MinioKnowledgeServiceConfigRepository(
         self.bucket_name = "knowledge-service-configs"
         self.ensure_buckets_exist(self.bucket_name)
 
-    async def get(self, knowledge_service_id: str) -> Optional[KnowledgeServiceConfig]:
+    async def get(self, knowledge_service_id: str) -> KnowledgeServiceConfig | None:
         """Retrieve a knowledge service configuration by ID.
 
         Args:
@@ -98,8 +98,8 @@ class MinioKnowledgeServiceConfigRepository(
         )
 
     async def get_many(
-        self, knowledge_service_ids: List[str]
-    ) -> Dict[str, Optional[KnowledgeServiceConfig]]:
+        self, knowledge_service_ids: list[str]
+    ) -> dict[str, KnowledgeServiceConfig | None]:
         """Retrieve multiple knowledge service configs by ID.
 
         Args:
@@ -124,7 +124,7 @@ class MinioKnowledgeServiceConfigRepository(
         )
 
         # Convert object names back to knowledge service IDs for the result
-        result: Dict[str, Optional[KnowledgeServiceConfig]] = {}
+        result: dict[str, KnowledgeServiceConfig | None] = {}
         for i, service_id in enumerate(knowledge_service_ids):
             object_name = object_names[i]
             result[service_id] = object_results[object_name]
@@ -139,7 +139,7 @@ class MinioKnowledgeServiceConfigRepository(
         """
         return self.generate_id_with_prefix("ks")
 
-    async def list_all(self) -> List[KnowledgeServiceConfig]:
+    async def list_all(self) -> list[KnowledgeServiceConfig]:
         """List all knowledge service configurations.
 
         Returns:

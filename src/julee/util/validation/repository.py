@@ -6,7 +6,7 @@ their defined Protocols using @runtime_checkable.
 """
 
 import logging
-from typing import Type, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class RepositoryValidationError(Exception):
     pass
 
 
-def validate_repository_protocol(repository: object, protocol: Type[P]) -> None:
+def validate_repository_protocol(repository: object, protocol: type[P]) -> None:
     """
     Validate that a repository implementation satisfies a protocol contract.
 
@@ -72,7 +72,7 @@ def validate_repository_protocol(repository: object, protocol: Type[P]) -> None:
     )
 
 
-def ensure_repository_protocol(repository: object, protocol: Type[P]) -> P:
+def ensure_repository_protocol(repository: object, protocol: type[P]) -> P:
     """
     Validate and return a repository with proper type annotation.
 

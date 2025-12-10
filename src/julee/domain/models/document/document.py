@@ -8,11 +8,13 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator, model_validator
-from pydantic import ValidationInfo
-from typing import Callable, Optional, List, Dict, Any
+from collections.abc import Callable
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
@@ -75,21 +77,21 @@ class Document(BaseModel):
 
     # Document processing state
     status: DocumentStatus = DocumentStatus.CAPTURED
-    knowledge_service_id: Optional[str] = None
-    assembly_types: List[str] = Field(default_factory=list)
+    knowledge_service_id: str | None = None
+    assembly_types: list[str] = Field(default_factory=list)
 
     # Timestamps
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
     # Additional data and content stream
-    additional_metadata: Dict[str, Any] = Field(default_factory=dict)
-    content: Optional[ContentStream] = Field(default=None, exclude=True)
-    content_string: Optional[str] = Field(
+    additional_metadata: dict[str, Any] = Field(default_factory=dict)
+    content: ContentStream | None = Field(default=None, exclude=True)
+    content_string: str | None = Field(
         default=None,
         description="Small content as string (few KB max). Use for "
         "workflow-generated content to avoid ContentStream serialization "

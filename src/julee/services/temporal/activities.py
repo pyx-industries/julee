@@ -13,23 +13,25 @@ The class follows the naming pattern documented in systemPatterns.org:
 
 import io
 import logging
+
 from typing_extensions import override
 
-from julee.util.temporal.decorators import temporal_activity_registration
-from julee.services.knowledge_service.factory import (
-    ConfigurableKnowledgeService,
-)
-from julee.domain.repositories.document import DocumentRepository
+from julee.domain.models.document import Document
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.models.document import Document
-from ..knowledge_service import FileRegistrationResult
+from julee.domain.repositories.document import DocumentRepository
+from julee.services.knowledge_service.factory import (
+    ConfigurableKnowledgeService,
+)
 
 # Import activity name bases from shared module
 from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
+from julee.util.temporal.decorators import temporal_activity_registration
+
+from ..knowledge_service import FileRegistrationResult
 
 
 @temporal_activity_registration(KNOWLEDGE_SERVICE_ACTIVITY_BASE)

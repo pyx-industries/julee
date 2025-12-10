@@ -9,11 +9,10 @@ appropriate implementation based on the service_api configuration.
 import logging
 
 from .knowledge_service import (
+    FileRegistrationResult,
     KnowledgeService,
     QueryResult,
-    FileRegistrationResult,
 )
-
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,8 @@ Classes using this mixin must provide:
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, TypeVar, Generic, List
+from typing import Any, Generic, TypeVar
+
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
@@ -45,11 +46,11 @@ class MemoryRepositoryMixin(Generic[T]):
     """
 
     # Type annotations for attributes that implementing classes must provide
-    storage_dict: Dict[str, T]
+    storage_dict: dict[str, T]
     entity_name: str
     logger: Any  # logging.Logger, but avoiding import
 
-    def get_entity(self, entity_id: str) -> Optional[T]:
+    def get_entity(self, entity_id: str) -> T | None:
         """Get an entity from memory storage with standardized logging.
 
         Args:
@@ -84,7 +85,7 @@ class MemoryRepositoryMixin(Generic[T]):
 
         return entity
 
-    def get_many_entities(self, entity_ids: List[str]) -> Dict[str, Optional[T]]:
+    def get_many_entities(self, entity_ids: list[str]) -> dict[str, T | None]:
         """Get multiple entities from memory storage with standardized
         logging.
 
@@ -103,7 +104,7 @@ class MemoryRepositoryMixin(Generic[T]):
             },
         )
 
-        result: Dict[str, Optional[T]] = {}
+        result: dict[str, T | None] = {}
         found_count = 0
 
         for entity_id in entity_ids:
@@ -160,7 +161,7 @@ class MemoryRepositoryMixin(Generic[T]):
             extra=success_extra,
         )
 
-    def generate_entity_id(self, prefix: Optional[str] = None) -> str:
+    def generate_entity_id(self, prefix: str | None = None) -> str:
         """Generate a unique entity ID with consistent format.
 
         Args:
@@ -196,14 +197,14 @@ class MemoryRepositoryMixin(Generic[T]):
             hasattr(entity, "created_at")
             and getattr(entity, "created_at", None) is None
         ):
-            setattr(entity, "created_at", now)
+            entity.created_at = now
 
         # Always update updated_at
         if hasattr(entity, "updated_at"):
-            setattr(entity, "updated_at", now)
+            entity.updated_at = now
 
     def _add_entity_specific_log_data(
-        self, entity: T, log_data: Dict[str, Any]
+        self, entity: T, log_data: dict[str, Any]
     ) -> None:
         """Add entity-specific data to log entries for richer logging.
 
@@ -216,12 +217,12 @@ class MemoryRepositoryMixin(Generic[T]):
         """
         # Default implementation adds basic model info
         if hasattr(entity, "status"):
-            status = getattr(entity, "status")
+            status = entity.status
             log_data["status"] = (
                 status.value if hasattr(status, "value") else str(status)
             )
 
         if hasattr(entity, "updated_at"):
-            updated_at = getattr(entity, "updated_at")
+            updated_at = entity.updated_at
             if updated_at:
                 log_data["updated_at"] = updated_at.isoformat()

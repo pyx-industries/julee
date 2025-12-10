@@ -8,18 +8,19 @@ scenarios where external service dependencies should be avoided.
 """
 
 import logging
-from typing import Optional, List, Dict, Deque, Any
-from datetime import datetime, timezone
 from collections import deque
+from datetime import datetime, timezone
+from typing import Any
 
+from julee.domain.models.document import Document
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.models.document import Document
+
 from ..knowledge_service import (
+    FileRegistrationResult,
     KnowledgeService,
     QueryResult,
-    FileRegistrationResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,10 +60,10 @@ class MemoryKnowledgeService(KnowledgeService):
         self.config = config
 
         # Storage for file registrations, keyed by knowledge_service_file_id
-        self._registered_files: Dict[str, FileRegistrationResult] = {}
+        self._registered_files: dict[str, FileRegistrationResult] = {}
 
         # Queue of canned query results to return
-        self._canned_query_results: Deque[QueryResult] = deque()
+        self._canned_query_results: deque[QueryResult] = deque()
 
     def add_canned_query_result(self, query_result: QueryResult) -> None:
         """Add a canned query result to be returned by execute_query.
@@ -80,7 +81,7 @@ class MemoryKnowledgeService(KnowledgeService):
         )
         self._canned_query_results.append(query_result)
 
-    def add_canned_query_results(self, query_results: List[QueryResult]) -> None:
+    def add_canned_query_results(self, query_results: list[QueryResult]) -> None:
         """Add multiple canned query results to be returned by execute_query.
 
         Args:
@@ -109,7 +110,7 @@ class MemoryKnowledgeService(KnowledgeService):
 
     def get_registered_file(
         self, knowledge_service_file_id: str
-    ) -> Optional[FileRegistrationResult]:
+    ) -> FileRegistrationResult | None:
         """Get a registered file by its knowledge service file ID.
 
         Args:
@@ -120,7 +121,7 @@ class MemoryKnowledgeService(KnowledgeService):
         """
         return self._registered_files.get(knowledge_service_file_id)
 
-    def get_all_registered_files(self) -> Dict[str, FileRegistrationResult]:
+    def get_all_registered_files(self) -> dict[str, FileRegistrationResult]:
         """Get all registered files.
 
         Returns:
@@ -203,9 +204,9 @@ class MemoryKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
-        service_file_ids: Optional[List[str]] = None,
-        query_metadata: Optional[Dict[str, Any]] = None,
-        assistant_prompt: Optional[str] = None,
+        service_file_ids: list[str] | None = None,
+        query_metadata: dict[str, Any] | None = None,
+        assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query by returning a canned response.
 

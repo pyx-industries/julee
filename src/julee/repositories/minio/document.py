@@ -11,23 +11,23 @@ The implementation separates document metadata (stored as JSON) from content
 payload handling pattern from the architectural guidelines.
 """
 
+import hashlib
 import io
 import json
-import hashlib
 import logging
 from datetime import datetime, timezone
-from typing import Optional, List, Dict
 
-from minio.error import S3Error  # type: ignore[import-untyped]
 import multihash  # type: ignore[import-untyped]
+from minio.error import S3Error  # type: ignore[import-untyped]
+from pydantic import BaseModel, ConfigDict
 
-from julee.domain.models.document import Document
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.domain.models.document import Document
 from julee.domain.repositories.document import DocumentRepository
+
 from .client import MinioClient, MinioRepositoryMixin
-from pydantic import BaseModel, ConfigDict
 
 
 class RawMetadata(BaseModel):
@@ -36,7 +36,7 @@ class RawMetadata(BaseModel):
     model_config = ConfigDict(extra="allow")  # Allow arbitrary fields
 
     # Only include fields we actually use for type safety
-    content_multihash: Optional[str] = None
+    content_multihash: str | None = None
 
 
 class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
@@ -63,7 +63,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         self.content_bucket = "documents-content"
         self.ensure_buckets_exist([self.metadata_bucket, self.content_bucket])
 
-    async def get(self, document_id: str) -> Optional[Document]:
+    async def get(self, document_id: str) -> Document | None:
         """Retrieve a document with metadata and content."""
         try:
             # First, get the metadata
@@ -234,7 +234,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
             raise
 
-    async def get_many(self, document_ids: List[str]) -> Dict[str, Optional[Document]]:
+    async def get_many(self, document_ids: list[str]) -> dict[str, Document | None]:
         """Retrieve multiple documents by ID using batch operations.
 
         Args:
@@ -271,7 +271,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         )
 
         # Use RawMetadata objects directly
-        metadata_results: Dict[str, Optional[RawMetadata]] = raw_metadata_results
+        metadata_results: dict[str, RawMetadata | None] = raw_metadata_results
 
         # Step 2: Extract unique content multihashes from found metadata
         content_hashes = set()
@@ -294,7 +294,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
 
         # Step 4: Splice metadata and content together into Documents
-        result: Dict[str, Optional[Document]] = {}
+        result: dict[str, Document | None] = {}
         for document_id in document_ids:
             metadata = metadata_results.get(document_id)
             if not metadata:
@@ -335,7 +335,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
 
         return result
 
-    async def list_all(self) -> List[Document]:
+    async def list_all(self) -> list[Document]:
         """List all documents.
 
         Returns:

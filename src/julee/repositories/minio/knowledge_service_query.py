@@ -16,17 +16,14 @@ Each query is stored as a separate object with the query ID as the key.
 import logging
 import uuid
 
-from typing import Optional, List, Dict
-
-
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
-from .client import MinioClient, MinioRepositoryMixin
 from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 
+from .client import MinioClient, MinioRepositoryMixin
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +51,7 @@ class MinioKnowledgeServiceQueryRepository(
         self.bucket_name = "knowledge-service-queries"
         self.ensure_buckets_exist(self.bucket_name)
 
-    async def get(self, query_id: str) -> Optional[KnowledgeServiceQuery]:
+    async def get(self, query_id: str) -> KnowledgeServiceQuery | None:
         """Retrieve a knowledge service query by ID.
 
         Args:
@@ -124,8 +121,8 @@ class MinioKnowledgeServiceQueryRepository(
         return query_id
 
     async def get_many(
-        self, query_ids: List[str]
-    ) -> Dict[str, Optional[KnowledgeServiceQuery]]:
+        self, query_ids: list[str]
+    ) -> dict[str, KnowledgeServiceQuery | None]:
         """Retrieve multiple knowledge service queries by ID.
 
         Args:
@@ -159,14 +156,14 @@ class MinioKnowledgeServiceQueryRepository(
         )
 
         # Convert object names back to query IDs for the result
-        result: Dict[str, Optional[KnowledgeServiceQuery]] = {}
+        result: dict[str, KnowledgeServiceQuery | None] = {}
         for i, query_id in enumerate(query_ids):
             object_name = object_names[i]
             result[query_id] = object_results[object_name]
 
         return result
 
-    async def list_all(self) -> List[KnowledgeServiceQuery]:
+    async def list_all(self) -> list[KnowledgeServiceQuery]:
         """List all knowledge service queries.
 
         Returns:

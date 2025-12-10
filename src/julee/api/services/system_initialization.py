@@ -11,7 +11,7 @@ to the appropriate use cases.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any
 
 from julee.domain.use_cases.initialize_system_data import (
     InitializeSystemDataUseCase,
@@ -46,7 +46,7 @@ class SystemInitializationService:
         self.initialize_system_data_use_case = initialize_system_data_use_case
         self.logger = logging.getLogger("SystemInitializationService")
 
-    async def initialize(self) -> Dict[str, Any]:
+    async def initialize(self) -> dict[str, Any]:
         """
         Initialize all required system data and configuration.
 
@@ -62,7 +62,7 @@ class SystemInitializationService:
         """
         self.logger.info("Starting system initialization")
 
-        initialization_results: Dict[str, Any] = {
+        initialization_results: dict[str, Any] = {
             "status": "in_progress",
             "tasks_completed": [],
             "tasks_failed": [],
@@ -112,7 +112,7 @@ class SystemInitializationService:
             raise
 
     async def _execute_system_data_initialization(
-        self, results: Dict[str, Any]
+        self, results: dict[str, Any]
     ) -> None:
         """
         Execute system data initialization use case.
@@ -159,7 +159,7 @@ class SystemInitializationService:
 
             raise
 
-    async def get_initialization_status(self) -> Dict[str, Any]:
+    async def get_initialization_status(self) -> dict[str, Any]:
         """
         Get the current initialization status.
 
@@ -180,7 +180,7 @@ class SystemInitializationService:
             "status": "ready",
         }
 
-    async def reinitialize(self) -> Dict[str, Any]:
+    async def reinitialize(self) -> dict[str, Any]:
         """
         Reinitialize system data.
 

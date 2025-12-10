@@ -10,7 +10,6 @@ import asyncio
 import inspect
 from typing import (
     Any,
-    List,
     Optional,
     Protocol,
     TypeVar,
@@ -62,7 +61,7 @@ class MockRepositoryProtocol(MockBaseRepositoryProtocol, Protocol):
         """Mock payment processing method."""
         ...
 
-    async def get_payment(self, payment_id: str) -> Optional[dict]:
+    async def get_payment(self, payment_id: str) -> dict | None:
         """Mock get payment method."""
         ...
 
@@ -98,7 +97,7 @@ class MockRepository(MockRepositoryProtocol):
         """Mock payment processing method."""
         return {"status": "success", "order_id": order_id, "amount": amount}
 
-    async def get_payment(self, payment_id: str) -> Optional[dict]:
+    async def get_payment(self, payment_id: str) -> dict | None:
         """Mock get payment method."""
         if payment_id == "not_found":
             return None
@@ -239,7 +238,7 @@ def test_activity_names_with_different_prefixes() -> None:
     captured_activity_names = []
     original_activity_defn = activity.defn
 
-    def mock_activity_defn(name: Optional[str] = None, **kwargs: Any) -> Any:
+    def mock_activity_defn(name: str | None = None, **kwargs: Any) -> Any:
         """Mock activity.defn to capture the activity names being created."""
         if name:
             captured_activity_names.append(name)
@@ -317,7 +316,7 @@ def test_decorator_handles_inheritance_correctly() -> None:
                 "amount": amount,
             }
 
-        async def get_payment(self, payment_id: str) -> Optional[dict]:
+        async def get_payment(self, payment_id: str) -> dict | None:
             if payment_id == "not_found":
                 return None
             return {"payment_id": payment_id, "status": "completed"}
@@ -467,7 +466,7 @@ class MockDocumentRepository(BaseRepository[MockDocument], Protocol):
 class NonGenericRepository(Protocol):
     """Repository that doesn't follow BaseRepository[T] pattern."""
 
-    async def get(self, id: str) -> Optional[MockDocument]: ...
+    async def get(self, id: str) -> MockDocument | None: ...
 
 
 class TestTypeExtraction:
@@ -535,7 +534,7 @@ class TestTypeSubstitution:
 
     def test_substitutes_nested_generics(self) -> None:
         """Test substitution in nested generic types."""
-        nested_generic = List[Optional[T]]
+        nested_generic = list[T | None]
         result = _substitute_typevar_with_concrete(nested_generic, MockDocument)
 
         # Should be List[Optional[MockDocument]]
@@ -760,7 +759,7 @@ class TestEndToEndTypeSubstitution:
         assert isinstance(activity_result_dict, dict)
         with pytest.raises(AttributeError):
             # This would fail because dict doesn't have the attribute
-            getattr(activity_result_dict, "assembly_specification_id")
+            _ = activity_result_dict.assembly_specification_id
 
         # Demonstrate the solution: reconstruct Pydantic object
         reconstructed = MockAssemblySpecification.model_validate(activity_result_dict)

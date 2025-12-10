@@ -8,35 +8,35 @@ following the Clean Architecture principles.
 
 import io
 import json
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock
+
 import pytest
 
-from unittest.mock import AsyncMock
-from datetime import datetime, timezone
-
-from julee.domain.use_cases import ExtractAssembleDataUseCase
 from julee.domain.models import (
     Assembly,
-    AssemblyStatus,
-    Document,
-    DocumentStatus,
-    ContentStream,
     AssemblySpecification,
     AssemblySpecificationStatus,
-    KnowledgeServiceQuery,
+    AssemblyStatus,
+    ContentStream,
+    Document,
+    DocumentStatus,
     KnowledgeServiceConfig,
+    KnowledgeServiceQuery,
 )
 from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.domain.use_cases import ExtractAssembleDataUseCase
 from julee.repositories.memory import (
-    MemoryDocumentRepository,
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
+    MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
 )
+from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
-from julee.services.knowledge_service import QueryResult
 
 
 class TestExtractAssembleDataUseCase:

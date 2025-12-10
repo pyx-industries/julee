@@ -13,12 +13,13 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 from enum import Enum
-import jsonschema
+from typing import Any
+
 import jsonpointer  # type: ignore
+import jsonschema
+from pydantic import BaseModel, Field, field_validator
 
 
 class AssemblySpecificationStatus(str, Enum):
@@ -56,14 +57,14 @@ class AssemblySpecification(BaseModel):
         "service for document-assembly matching"
     )
 
-    jsonschema: Dict[str, Any] = Field(
+    jsonschema: dict[str, Any] = Field(
         description="JSON Schema defining the structure of data to be "
         "extracted for this assembly"
     )
 
     # AssemblySpecification configuration
     status: AssemblySpecificationStatus = AssemblySpecificationStatus.ACTIVE
-    knowledge_service_queries: Dict[str, str] = Field(
+    knowledge_service_queries: dict[str, str] = Field(
         default_factory=dict,
         description="Mapping from JSON Pointer paths to "
         "KnowledgeServiceQuery IDs. Keys are JSON Pointer strings "
@@ -73,10 +74,10 @@ class AssemblySpecification(BaseModel):
 
     # AssemblySpecification metadata
     version: str = Field(default="0.1.0", description="Assembly definition version")
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
     # May later add a detailed description, change log, additional metadata
@@ -105,7 +106,7 @@ class AssemblySpecification(BaseModel):
 
     @field_validator("jsonschema")
     @classmethod
-    def jsonschema_must_be_valid(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+    def jsonschema_must_be_valid(cls, v: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(v, dict):
             raise ValueError("JSON Schema must be a dictionary")
 
@@ -124,8 +125,8 @@ class AssemblySpecification(BaseModel):
     @field_validator("knowledge_service_queries")
     @classmethod
     def knowledge_service_queries_must_be_valid(
-        cls, v: Dict[str, str], info: Any
-    ) -> Dict[str, str]:
+        cls, v: dict[str, str], info: Any
+    ) -> dict[str, str]:
         if not isinstance(v, dict):
             raise ValueError("Knowledge service queries must be a dictionary")
 
