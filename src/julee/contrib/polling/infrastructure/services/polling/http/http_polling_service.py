@@ -11,7 +11,8 @@ from typing import Any
 
 import httpx
 
-from ..polling_service import PollingConfig, PollingResult, PollingService
+from julee.contrib.polling.domain.models import PollingConfig, PollingResult
+from julee.contrib.polling.domain.services import PollingService
 
 
 class HttpPollingService(PollingService):

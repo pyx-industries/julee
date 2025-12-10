@@ -14,11 +14,9 @@ backend code from activities.py.
 # Activity name bases - shared constants for consistency between
 # activity registrations and workflow proxies
 KNOWLEDGE_SERVICE_ACTIVITY_BASE = "julee.knowledge_service"
-POLLING_SERVICE_ACTIVITY_BASE = "julee.polling_service"
 
 
 # Export all constants
 __all__ = [
     "KNOWLEDGE_SERVICE_ACTIVITY_BASE",
-    "POLLING_SERVICE_ACTIVITY_BASE",
 ]
