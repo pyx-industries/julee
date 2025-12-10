@@ -41,10 +41,13 @@ class HttpPollingService(PollingService):
             content = response.content
             content_hash = hashlib.sha256(content).hexdigest()
 
+            # Only consider 2xx status codes as successful
+            success = 200 <= response.status_code < 300
+
             return PollingResult(
-                success=True,
-                content=content,
-                content_hash=content_hash,
+                success=success,
+                content=content if success else b"",
+                content_hash=content_hash if success else None,
                 polled_at=datetime.now(timezone.utc),
                 metadata={
                     "status_code": response.status_code,
@@ -63,15 +66,14 @@ class HttpPollingService(PollingService):
                 metadata={"error_type": type(e).__name__},
             )
 
-    async def test_connection(self, config: PollingConfig) -> bool:
-        """Test HTTP endpoint connectivity."""
-        try:
-            url = config.connection_params["url"]
-            response = await self.client.head(url, timeout=10)
-            return response.status_code < 500
-        except:
-            return False
-
     async def close(self) -> None:
         """Close the HTTP client connection."""
         await self.client.aclose()
+
+    async def __aenter__(self) -> "HttpPollingService":
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Async context manager exit."""
+        await self.close()
