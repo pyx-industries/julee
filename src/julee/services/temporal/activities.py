@@ -24,10 +24,10 @@ from julee.domain.repositories.document import DocumentRepository
 from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )
-
-# Import activity name bases from shared module
+from julee.services.polling_service.http import HttpPollingService
 from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
+    POLLING_SERVICE_ACTIVITY_BASE,
 )
 from julee.util.temporal.decorators import temporal_activity_registration
 
@@ -81,8 +81,17 @@ class TemporalKnowledgeService(ConfigurableKnowledgeService):
         return await super().register_file(config, document)
 
 
-# Export the temporal service class for use in worker.py
+@temporal_activity_registration(POLLING_SERVICE_ACTIVITY_BASE)
+class TemporalPollingService(HttpPollingService):
+    """Temporal activity wrapper for PollingService operations."""
+
+    pass
+
+
+# Export the temporal service classes for use in worker.py
 __all__ = [
     "TemporalKnowledgeService",
+    "TemporalPollingService",
     "KNOWLEDGE_SERVICE_ACTIVITY_BASE",
+    "POLLING_SERVICE_ACTIVITY_BASE",
 ]
