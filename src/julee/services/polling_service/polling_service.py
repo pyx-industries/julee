@@ -77,21 +77,3 @@ class PollingService(Protocol):
         across workflow replays.
         """
         ...
-
-    async def test_connection(self, config: PollingConfig) -> bool:
-        """
-        Test connectivity to an endpoint without polling data.
-
-        Args:
-            config: PollingConfig containing endpoint details
-
-        Returns:
-            True if connection successful, False otherwise
-
-        .. rubric:: Implementation Notes
-
-        - Should be lightweight and fast
-        - Should not modify endpoint state
-        - Used for health checks and configuration validation
-        """
-        ...
