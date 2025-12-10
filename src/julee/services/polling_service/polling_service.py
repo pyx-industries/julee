@@ -10,7 +10,7 @@ mechanisms and are created via factory functions.
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
 
@@ -26,9 +26,9 @@ class PollingConfig(BaseModel):
 
     endpoint_identifier: str = Field(description="Unique identifier for this endpoint")
     polling_protocol: PollingProtocol
-    connection_params: Dict[str, Any] = Field(default_factory=dict)
-    polling_params: Dict[str, Any] = Field(default_factory=dict)
-    timeout_seconds: Optional[int] = Field(default=30)
+    connection_params: dict[str, Any] = Field(default_factory=dict)
+    polling_params: dict[str, Any] = Field(default_factory=dict)
+    timeout_seconds: int | None = Field(default=30)
 
 
 class PollingResult(BaseModel):
@@ -36,10 +36,10 @@ class PollingResult(BaseModel):
 
     success: bool
     content: bytes
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     polled_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    content_hash: Optional[str] = None
-    error_message: Optional[str] = None
+    content_hash: str | None = None
+    error_message: str | None = None
 
 
 @runtime_checkable

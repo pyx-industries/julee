@@ -7,7 +7,7 @@ REST API endpoints, webhooks, and other HTTP-based data sources.
 
 import hashlib
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 import httpx
 

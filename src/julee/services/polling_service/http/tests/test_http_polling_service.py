@@ -7,7 +7,6 @@ parametrization for comprehensive coverage of different scenarios.
 """
 
 import hashlib
-from unittest.mock import patch
 
 import httpx
 import pytest
