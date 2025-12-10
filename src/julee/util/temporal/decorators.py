@@ -178,8 +178,9 @@ def temporal_activity_registration(
                 return wrapper_method
 
             # Create the wrapper and apply activity decorator
-            wrapper_method = create_wrapper_method(method, name)
-            wrapped_method = activity.defn(name=activity_name)(wrapper_method)
+            wrapped_method = activity.defn(name=activity_name)(
+                create_wrapper_method(method, name)
+            )
 
             # Replace the method on the class with the wrapped version
             setattr(cls, name, wrapped_method)
@@ -388,14 +389,17 @@ def temporal_workflow_proxy(
                 return workflow_method
 
             # Create and set the method on the class
-            workflow_method = create_workflow_method(
+            setattr(
+                cls,
                 method_name,
-                needs_validation,
-                is_optional,
-                inner_type,
-                original_method,
+                create_workflow_method(
+                    method_name,
+                    needs_validation,
+                    is_optional,
+                    inner_type,
+                    original_method,
+                ),
             )
-            setattr(cls, method_name, workflow_method)
             wrapped_methods.append(method_name)
 
         # Always generate __init__ that calls super() for consistent init

@@ -22,6 +22,7 @@ Design decisions documented:
 import json
 
 import pytest
+from pydantic import ValidationError
 
 from julee.domain.models.document import Document
 
@@ -166,7 +167,7 @@ class TestDocumentInstantiation:
             assert doc.content_multihash.strip() == multihash.strip()
         else:
             # Should raise validation error
-            with pytest.raises(Exception):  # Could be ValueError or ValidationError
+            with pytest.raises((ValueError, ValidationError)):
                 Document(
                     document_id=document_id,
                     original_filename=original_filename,

@@ -23,6 +23,7 @@ import json
 from datetime import datetime, timezone
 
 import pytest
+from pydantic import ValidationError
 
 from julee.domain.models.assembly import Assembly, AssemblyStatus
 
@@ -81,7 +82,7 @@ class TestAssemblyInstantiation:
             assert assembly.updated_at is not None
         else:
             # Should raise validation error
-            with pytest.raises(Exception):  # Could be ValueError or ValidationError
+            with pytest.raises((ValueError, ValidationError)):
                 Assembly(
                     assembly_id=assembly_id,
                     assembly_specification_id=assembly_specification_id,
@@ -224,7 +225,7 @@ class TestAssemblyFieldValidation:
         assert valid_assembly.assembly_id == "valid-id"
 
         # Invalid cases
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="",
                 assembly_specification_id="spec-id",
@@ -232,7 +233,7 @@ class TestAssemblyFieldValidation:
                 workflow_id="test-workflow-123",
             )
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="   ",
                 assembly_specification_id="spec-id",
@@ -252,7 +253,7 @@ class TestAssemblyFieldValidation:
         assert valid_assembly.assembly_specification_id == "valid-spec-id"
 
         # Invalid cases
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="",
@@ -260,7 +261,7 @@ class TestAssemblyFieldValidation:
                 workflow_id="test-workflow-123",
             )
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="   ",
@@ -280,7 +281,7 @@ class TestAssemblyFieldValidation:
         assert valid_assembly.input_document_id == "valid-doc-id"
 
         # Invalid cases
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -288,7 +289,7 @@ class TestAssemblyFieldValidation:
                 workflow_id="test-workflow-123",
             )
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -347,7 +348,7 @@ class TestAssemblyDocumentManagement:
         assert none_assembly.assembled_document_id is None
 
         # Invalid cases - empty string
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -357,7 +358,7 @@ class TestAssemblyDocumentManagement:
             )
 
         # Invalid cases - whitespace only
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -393,7 +394,7 @@ class TestAssemblyWorkflowIdValidation:
         assert valid_assembly.workflow_id == "valid-workflow-id"
 
         # Invalid cases - empty string
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -402,7 +403,7 @@ class TestAssemblyWorkflowIdValidation:
             )
 
         # Invalid cases - whitespace only
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",
@@ -423,7 +424,7 @@ class TestAssemblyWorkflowIdValidation:
     def test_workflow_id_required(self) -> None:
         """Test that workflow_id is required."""
         # workflow_id is required and cannot be omitted
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, ValidationError)):
             Assembly(  # type: ignore[call-arg]
                 assembly_id="asm-id",
                 assembly_specification_id="spec-id",

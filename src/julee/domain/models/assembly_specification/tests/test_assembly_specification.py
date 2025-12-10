@@ -22,6 +22,7 @@ import json
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -160,7 +161,7 @@ class TestAssemblyInstantiation:
             assert assembly.version == "0.1.0"  # Default
         else:
             # Should raise validation error
-            with pytest.raises(Exception):  # Could be ValueError or ValidationError
+            with pytest.raises((ValueError, ValidationError)):
                 AssemblySpecification(
                     assembly_specification_id=assembly_specification_id,
                     name=name,
@@ -215,7 +216,7 @@ class TestAssemblyKnowledgeServiceQueriesValidation:
             assert assembly.knowledge_service_queries == knowledge_service_queries
         else:
             # Should raise validation error
-            with pytest.raises(Exception):
+            with pytest.raises((ValueError, ValidationError)):
                 AssemblySpecification(
                     assembly_specification_id="test-id",
                     name="Test Assembly",
@@ -488,5 +489,5 @@ class TestAssemblyVersionValidation:
             assembly = AssemblyFactory.build(version=version)
             assert assembly.version == version.strip()
         else:
-            with pytest.raises(Exception):
+            with pytest.raises((ValueError, ValidationError)):
                 AssemblyFactory.build(version=version)

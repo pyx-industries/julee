@@ -185,7 +185,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query handles API errors gracefully."""
         mock_client = MagicMock()
-        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
+        mock_client.messages.create = AsyncMock(side_effect=RuntimeError("API Error"))
 
         with patch(
             "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
@@ -194,7 +194,7 @@ class TestAnthropicKnowledgeService:
 
             service = anthropic_ks.AnthropicKnowledgeService()
 
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError):
                 await service.execute_query(knowledge_service_config, "Test query")
 
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})

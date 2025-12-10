@@ -10,7 +10,6 @@ import asyncio
 import inspect
 from typing import (
     Any,
-    Optional,
     Protocol,
     TypeVar,
     get_args,
@@ -520,7 +519,7 @@ class TestTypeSubstitution:
 
     def test_substitutes_optional_typevar(self) -> None:
         """Test Optional[TypeVar] substitution."""
-        optional_t = Optional[T]
+        optional_t = T | None
         result = _substitute_typevar_with_concrete(
             optional_t, MockAssemblySpecification
         )
@@ -620,20 +619,20 @@ class TestPydanticValidationDetection:
 
     def test_detects_optional_pydantic_types(self) -> None:
         """Test detection of Optional[PydanticModel] types."""
-        assert _needs_pydantic_validation(Optional[MockAssemblySpecification])
-        assert _needs_pydantic_validation(Optional[MockDocument])
+        assert _needs_pydantic_validation(MockAssemblySpecification | None)
+        assert _needs_pydantic_validation(MockDocument | None)
 
     def test_rejects_non_pydantic_types(self) -> None:
         """Test that non-Pydantic types are not flagged for validation."""
         assert not _needs_pydantic_validation(str)
         assert not _needs_pydantic_validation(int)
         assert not _needs_pydantic_validation(dict)
-        assert not _needs_pydantic_validation(Optional[str])
+        assert not _needs_pydantic_validation(str | None)
 
     def test_rejects_typevar_types(self) -> None:
         """Test TypeVar types aren't flagged for validation (the bug)."""
         assert not _needs_pydantic_validation(T)
-        assert not _needs_pydantic_validation(Optional[T])
+        assert not _needs_pydantic_validation(T | None)
 
     def test_handles_none_and_empty(self) -> None:
         """Test handling of None and Signature.empty."""
@@ -732,7 +731,7 @@ class TestEndToEndTypeSubstitution:
     def test_type_substitution_enables_pydantic_validation(self) -> None:
         """Test type substitution enables Pydantic validation."""
         # Simulate the problematic method signature: Optional[~T]
-        original_annotation = Optional[T]
+        original_annotation = T | None
 
         # Before fix: TypeVar prevents validation
         assert not _needs_pydantic_validation(original_annotation)
