@@ -30,17 +30,19 @@ def get_repo_root() -> Path:
     return Path(result.stdout.strip())
 
 
-def get_package_name(repo_root: Path) -> str:
-    """Detect package name from src/ directory."""
+def get_package_init(repo_root: Path) -> Path | None:
+    """Find __init__.py with __version__ in src/ directory."""
     src_dir = repo_root / "src"
     if not src_dir.exists():
-        print("ERROR: src/ directory not found", file=sys.stderr)
-        sys.exit(1)
-    packages = [p.name for p in src_dir.iterdir() if p.is_dir() and not p.name.startswith("_")]
+        return None
+    packages = [p for p in src_dir.iterdir() if p.is_dir() and not p.name.startswith("_")]
     if len(packages) != 1:
-        print(f"ERROR: Expected exactly one package in src/, found: {packages}", file=sys.stderr)
-        sys.exit(1)
-    return packages[0]
+        # Multiple packages (bounded contexts) - no single __init__.py to update
+        return None
+    init_file = packages[0] / "__init__.py"
+    if init_file.exists() and "__version__" in init_file.read_text():
+        return init_file
+    return None
 
 
 def validate_version(version: str) -> None:
@@ -77,7 +79,7 @@ def validate_git_state(require_master: bool = True) -> None:
 def update_version_in_file(file_path: Path, version: str, pattern: str, replacement: str) -> None:
     """Update version string in a file."""
     content = file_path.read_text()
-    new_content = re.sub(pattern, replacement, content)
+    new_content = re.sub(pattern, replacement, content, flags=re.MULTILINE)
     if content == new_content:
         print(f"WARNING: No version replacement made in {file_path}", file=sys.stderr)
     file_path.write_text(new_content)
@@ -89,7 +91,6 @@ def prepare(version: str) -> None:
     validate_git_state(require_master=True)
 
     repo_root = get_repo_root()
-    package_name = get_package_name(repo_root)
     branch_name = f"release/v{version}"
 
     # Create release branch
@@ -106,9 +107,9 @@ def prepare(version: str) -> None:
         f'version = "{version}"',
     )
 
-    # Update __init__.py
-    init_file = repo_root / "src" / package_name / "__init__.py"
-    if init_file.exists():
+    # Update __init__.py if it exists with __version__
+    init_file = get_package_init(repo_root)
+    if init_file:
         print(f"Updating {init_file}...")
         update_version_in_file(
             init_file,
