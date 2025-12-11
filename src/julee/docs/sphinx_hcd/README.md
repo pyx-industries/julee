@@ -412,6 +412,35 @@ Generate integration index with architecture diagram.
 .. integration-index::
 ```
 
+### Personas
+
+Auto-generated PlantUML diagrams showing persona-epic-app relationships.
+
+#### `.. persona-diagram::`
+
+Generate a use case diagram for a single persona showing their epics and apps.
+
+```rst
+.. persona-diagram:: Underwater Basket Weaver
+```
+
+Generates a PlantUML diagram with:
+- The persona as an actor
+- Epics they participate in as use cases (derived from stories)
+- Apps they interact with as components
+
+#### `.. persona-index-diagram::`
+
+Generate a use case diagram for a group of personas (staff or external).
+
+```rst
+.. persona-index-diagram:: staff
+.. persona-index-diagram:: customers
+.. persona-index-diagram:: vendors
+```
+
+Groups are determined by the `type` field from `app.yaml` manifests. Any value is accepted—the directive filters personas to those using apps with a matching type.
+
 ## Expected Directory Structure
 
 ```
