@@ -3,13 +3,15 @@
 Release preparation and tagging script.
 
 Usage:
-    release.py prepare X.Y.Z  # Create release branch and PR
-    release.py tag X.Y.Z      # Tag after PR is merged
+    release.py prepare X.Y.Z [--message-file FILE]  # Create release branch and PR
+    release.py tag X.Y.Z                            # Tag after PR is merged
 """
 
+import argparse
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -85,10 +87,18 @@ def update_version_in_file(file_path: Path, version: str, pattern: str, replacem
     file_path.write_text(new_content)
 
 
-def prepare(version: str) -> None:
+def prepare(version: str, message_file: Path | None = None) -> None:
     """Prepare a release: create branch, update versions, push, create PR."""
     validate_version(version)
     validate_git_state(require_master=True)
+
+    # Read release notes if provided
+    release_notes = None
+    if message_file:
+        if not message_file.exists():
+            print(f"ERROR: Message file not found: {message_file}", file=sys.stderr)
+            sys.exit(1)
+        release_notes = message_file.read_text().strip()
 
     repo_root = get_repo_root()
     branch_name = f"release/v{version}"
@@ -118,20 +128,41 @@ def prepare(version: str) -> None:
             f'__version__ = "{version}"',
         )
 
-    # Commit
+    # Commit with release notes or default message
     print("Committing version bump...")
-    run(f'git add -A && git commit -m "release: bump version to {version}"')
+    if release_notes:
+        commit_msg = f"release: v{version}\n\n{release_notes}"
+    else:
+        commit_msg = f"release: bump version to {version}"
+
+    # Use a temp file for the commit message to handle multiline properly
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        f.write(commit_msg)
+        commit_msg_file = f.name
+    try:
+        run(f'git add -A && git commit -F "{commit_msg_file}"')
+    finally:
+        Path(commit_msg_file).unlink()
 
     # Push
     print(f"Pushing {branch_name}...")
     run(f"git push -u origin {branch_name}")
 
-    # Create PR
+    # Create PR with release notes as body
     print("Creating pull request...")
-    result = run(
-        f'gh pr create --title "Release v{version}" --body "Bump version to {version}"',
-        check=False,
-    )
+    pr_body = release_notes if release_notes else f"Bump version to {version}"
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        f.write(pr_body)
+        pr_body_file = f.name
+    try:
+        result = run(
+            f'gh pr create --title "Release v{version}" --body-file "{pr_body_file}"',
+            check=False,
+        )
+    finally:
+        Path(pr_body_file).unlink()
+
     if result.returncode != 0:
         print(f"\nTo create PR manually:\n  gh pr create --title 'Release v{version}'")
 
@@ -167,21 +198,28 @@ def tag(version: str) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) < 3:
-        print(__doc__)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Release preparation and tagging script")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    command = sys.argv[1]
-    version = sys.argv[2]
+    # prepare subcommand
+    prepare_parser = subparsers.add_parser("prepare", help="Create release branch and PR")
+    prepare_parser.add_argument("version", help="Version number (X.Y.Z)")
+    prepare_parser.add_argument(
+        "--message-file", "-m",
+        type=Path,
+        help="File containing release notes for commit message and PR body",
+    )
 
-    if command == "prepare":
-        prepare(version)
-    elif command == "tag":
-        tag(version)
-    else:
-        print(f"Unknown command: {command}", file=sys.stderr)
-        print(__doc__)
-        sys.exit(1)
+    # tag subcommand
+    tag_parser = subparsers.add_parser("tag", help="Tag after PR is merged")
+    tag_parser.add_argument("version", help="Version number (X.Y.Z)")
+
+    args = parser.parse_args()
+
+    if args.command == "prepare":
+        prepare(args.version, args.message_file)
+    elif args.command == "tag":
+        tag(args.version)
 
 
 if __name__ == "__main__":
