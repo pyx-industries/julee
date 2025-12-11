@@ -285,11 +285,12 @@ class PersonaIndexDiagramDirective(SphinxDirective):
     Usage::
 
         .. persona-index-diagram:: staff
-        .. persona-index-diagram:: external
+        .. persona-index-diagram:: customers
+        .. persona-index-diagram:: vendors
 
-    Groups are determined by app type from app.yaml manifests:
-    - staff: Personas using apps with type 'staff'
-    - external: Personas using apps with type 'external' or 'member-tool'
+    Groups are determined by the type field from app.yaml manifests.
+    Any value is accepted - the directive filters personas to those
+    using apps with a matching type.
     """
 
     required_arguments = 1
@@ -297,12 +298,6 @@ class PersonaIndexDiagramDirective(SphinxDirective):
 
     def run(self):
         group_type = self.arguments[0].lower()
-
-        if group_type not in ('staff', 'external'):
-            logger.warning(
-                f"persona-index-diagram type must be 'staff' or 'external', "
-                f"got '{group_type}' in {self.env.docname}"
-            )
 
         # Return placeholder - actual rendering in doctree-resolved
         node = PersonaIndexDiagramPlaceholder()
@@ -323,9 +318,9 @@ def get_personas_by_app_type(story_registry: list, app_registry: dict) -> dict[s
         app_registry: Dict of app_slug -> app_data
 
     Returns:
-        Dict with 'staff' and 'external' keys mapping to sets of persona names
+        Dict mapping app type strings to sets of persona names
     """
-    personas_by_type = {'staff': set(), 'external': set()}
+    personas_by_type = defaultdict(set)
 
     for story in story_registry:
         app_slug = story['app']
@@ -335,12 +330,9 @@ def get_personas_by_app_type(story_registry: list, app_registry: dict) -> dict[s
             continue
 
         app_data = app_registry.get(app_slug, {})
-        app_type = app_data.get('type', 'unknown')
+        app_type = app_data.get('type', 'unknown').lower()
 
-        if app_type == 'staff':
-            personas_by_type['staff'].add(persona)
-        elif app_type in ('external', 'member-tool'):
-            personas_by_type['external'].add(persona)
+        personas_by_type[app_type].add(persona)
 
     return personas_by_type
 
