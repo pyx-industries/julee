@@ -15,21 +15,18 @@ import io
 import json
 from datetime import datetime, timezone
 from typing import (
-    Protocol,
     Any,
-    Dict,
-    Optional,
-    runtime_checkable,
-    List,
-    Union,
-    TypeVar,
     BinaryIO,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
 )
-from urllib3.response import BaseHTTPResponse
-from minio.datatypes import Object
+
 from minio.api import ObjectWriteResult
+from minio.datatypes import Object
 from minio.error import S3Error  # type: ignore[import-untyped]
 from pydantic import BaseModel
+from urllib3.response import BaseHTTPResponse
 
 # Import ContentStream here to avoid circular imports
 from julee.domain.models.custom_fields.content_stream import (
@@ -78,7 +75,7 @@ class MinioClient(Protocol):
         data: BinaryIO,
         length: int,
         content_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, Union[str, List[str], tuple[str]]]] = None,
+        metadata: dict[str, str | list[str] | tuple[str]] | None = None,
     ) -> ObjectWriteResult:
         """Store an object in the bucket.
 
@@ -167,7 +164,7 @@ class MinioRepositoryMixin:
     client: MinioClient
     logger: Any  # logging.Logger, but avoiding import
 
-    def ensure_buckets_exist(self, bucket_names: Union[str, List[str]]) -> None:
+    def ensure_buckets_exist(self, bucket_names: str | list[str]) -> None:
         """Ensure one or more buckets exist, creating them if necessary.
 
         Args:
@@ -202,12 +199,12 @@ class MinioRepositoryMixin:
     def get_many_json_objects(
         self,
         bucket_name: str,
-        object_names: List[str],
+        object_names: list[str],
         model_class: type[T],
         not_found_log_message: str,
         error_log_message: str,
-        extra_log_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Optional[T]]:
+        extra_log_data: dict[str, Any] | None = None,
+    ) -> dict[str, T | None]:
         """Get multiple JSON objects from Minio and deserialize them.
 
         Note: S3/MinIO does not have native batch retrieval operations.
@@ -232,7 +229,7 @@ class MinioRepositoryMixin:
             S3Error: For non-NoSuchKey errors
         """
         extra_log_data = extra_log_data or {}
-        result: Dict[str, Optional[T]] = {}
+        result: dict[str, T | None] = {}
         found_count = 0
 
         self.logger.debug(
@@ -297,11 +294,11 @@ class MinioRepositoryMixin:
     def get_many_binary_objects(
         self,
         bucket_name: str,
-        object_names: List[str],
+        object_names: list[str],
         not_found_log_message: str,
         error_log_message: str,
-        extra_log_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Optional[ContentStream]]:
+        extra_log_data: dict[str, Any] | None = None,
+    ) -> dict[str, ContentStream | None]:
         """Get multiple binary objects from Minio as ContentStreams.
 
         Note: S3/MinIO does not have native batch retrieval operations.
@@ -322,7 +319,7 @@ class MinioRepositoryMixin:
             S3Error: For non-NoSuchKey errors
         """
         extra_log_data = extra_log_data or {}
-        result: Dict[str, Optional[ContentStream]] = {}
+        result: dict[str, ContentStream | None] = {}
         found_count = 0
 
         self.logger.debug(
@@ -383,8 +380,8 @@ class MinioRepositoryMixin:
         model_class: type[T],
         not_found_log_message: str,
         error_log_message: str,
-        extra_log_data: Optional[Dict[str, Any]] = None,
-    ) -> Optional[T]:
+        extra_log_data: dict[str, Any] | None = None,
+    ) -> T | None:
         """Get a JSON object from Minio and deserialize it to a Pydantic
         model.
 
@@ -441,7 +438,7 @@ class MinioRepositoryMixin:
         model: BaseModel,
         success_log_message: str,
         error_log_message: str,
-        extra_log_data: Optional[Dict[str, Any]] = None,
+        extra_log_data: dict[str, Any] | None = None,
     ) -> None:
         """Store a Pydantic model as a JSON object in Minio.
 
@@ -494,11 +491,11 @@ class MinioRepositoryMixin:
 
         # Set created_at if it's None (for new objects)
         if hasattr(model, "created_at") and getattr(model, "created_at", None) is None:
-            setattr(model, "created_at", now)
+            model.created_at = now
 
         # Always update updated_at
         if hasattr(model, "updated_at"):
-            setattr(model, "updated_at", now)
+            model.updated_at = now
 
     def generate_id_with_prefix(self, prefix: str) -> str:
         """Generate a unique ID with the given prefix and log the generation.
@@ -530,7 +527,7 @@ class MinioRepositoryMixin:
         bucket_name: str,
         prefix: str,
         entity_type_name: str,
-    ) -> List[str]:
+    ) -> list[str]:
         """Extract entity IDs from objects with a given prefix.
 
         This method provides a common implementation for listing objects

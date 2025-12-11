@@ -14,7 +14,7 @@ avoided. All operations are still async to maintain interface compatibility.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -22,6 +22,7 @@ from julee.domain.models.assembly_specification import (
 from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -48,13 +49,11 @@ class MemoryAssemblySpecificationRepository(
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "AssemblySpecification"
-        self.storage_dict: Dict[str, AssemblySpecification] = {}
+        self.storage_dict: dict[str, AssemblySpecification] = {}
 
         logger.debug("Initializing MemoryAssemblySpecificationRepository")
 
-    async def get(
-        self, assembly_specification_id: str
-    ) -> Optional[AssemblySpecification]:
+    async def get(self, assembly_specification_id: str) -> AssemblySpecification | None:
         """Retrieve an assembly specification by ID.
 
         Args:
@@ -82,8 +81,8 @@ class MemoryAssemblySpecificationRepository(
         return self.generate_entity_id("spec")
 
     async def get_many(
-        self, assembly_specification_ids: List[str]
-    ) -> Dict[str, Optional[AssemblySpecification]]:
+        self, assembly_specification_ids: list[str]
+    ) -> dict[str, AssemblySpecification | None]:
         """Retrieve multiple assembly specifications by ID.
 
         Args:
@@ -96,7 +95,7 @@ class MemoryAssemblySpecificationRepository(
         """
         return self.get_many_entities(assembly_specification_ids)
 
-    async def list_all(self) -> List[AssemblySpecification]:
+    async def list_all(self) -> list[AssemblySpecification]:
         """List all assembly specifications.
 
         Returns:
@@ -118,7 +117,7 @@ class MemoryAssemblySpecificationRepository(
         return specifications
 
     def _add_entity_specific_log_data(
-        self, entity: AssemblySpecification, log_data: Dict[str, Any]
+        self, entity: AssemblySpecification, log_data: dict[str, Any]
     ) -> None:
         """Add assembly specification-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

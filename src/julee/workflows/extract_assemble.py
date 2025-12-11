@@ -7,9 +7,10 @@ compensation for the complex document assembly process.
 """
 
 import logging
+from datetime import timedelta
+
 from temporalio import workflow
 from temporalio.common import RetryPolicy
-from datetime import timedelta
 
 from julee.domain.models.assembly import Assembly
 from julee.domain.use_cases import ExtractAssembleDataUseCase

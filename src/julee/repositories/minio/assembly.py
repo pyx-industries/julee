@@ -11,10 +11,10 @@ the large payload handling pattern from the architectural guidelines.
 """
 
 import logging
-from typing import Optional, List, Dict
 
 from julee.domain.models.assembly import Assembly
 from julee.domain.repositories.assembly import AssemblyRepository
+
 from .client import MinioClient, MinioRepositoryMixin
 
 
@@ -37,7 +37,7 @@ class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):
         self.assembly_bucket = "assemblies"
         self.ensure_buckets_exist([self.assembly_bucket])
 
-    async def get(self, assembly_id: str) -> Optional[Assembly]:
+    async def get(self, assembly_id: str) -> Assembly | None:
         """Retrieve an assembly by ID."""
         # Get the assembly using mixin methods
         assembly = self.get_json_object(
@@ -69,7 +69,7 @@ class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):
             },
         )
 
-    async def get_many(self, assembly_ids: List[str]) -> Dict[str, Optional[Assembly]]:
+    async def get_many(self, assembly_ids: list[str]) -> dict[str, Assembly | None]:
         """Retrieve multiple assemblies by ID.
 
         Args:
@@ -92,7 +92,7 @@ class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):
         )
 
         # Convert object names back to assembly IDs for the result
-        result: Dict[str, Optional[Assembly]] = {}
+        result: dict[str, Assembly | None] = {}
         for assembly_id in assembly_ids:
             result[assembly_id] = object_results[assembly_id]
 

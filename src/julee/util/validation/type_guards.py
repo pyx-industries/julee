@@ -11,17 +11,16 @@ providing clear error messages when types don't match expectations.
 
 import inspect
 import logging
+from collections.abc import Callable
 from functools import wraps
 from typing import (
     Any,
-    Dict,
-    List,
     Union,
-    Callable,
-    get_type_hints,
-    get_origin,
     get_args,
+    get_origin,
+    get_type_hints,
 )
+
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -54,7 +53,7 @@ def validate_type(
         if allow_none:
             return
         raise TypeValidationError(
-            f"{context_name}: Expected {_format_type(expected_type)}, " f"got None"
+            f"{context_name}: Expected {_format_type(expected_type)}, got None"
         )
 
     # Get the origin type for generic types (List[X] -> list, Dict -> dict)
@@ -124,7 +123,7 @@ def _validate_generic_type(
 
 
 def _validate_list_contents(
-    value: List[Any], type_args: tuple, context_name: str
+    value: list[Any], type_args: tuple, context_name: str
 ) -> None:
     """Validate contents of a list."""
     if not type_args:
@@ -143,7 +142,7 @@ def _validate_list_contents(
 
 
 def _validate_dict_contents(
-    value: Dict[Any, Any], type_args: tuple, context_name: str
+    value: dict[Any, Any], type_args: tuple, context_name: str
 ) -> None:
     """Validate contents of a dictionary."""
     if len(type_args) < 2:
@@ -241,7 +240,7 @@ def _raise_pydantic_dict_error(
             "dict_keys": dict_keys,
             "model_fields": model_fields,
             "matching_fields": matching_fields,
-            "dict_sample": {k: v for k, v in list(value.items())[:3]},
+            "dict_sample": dict(list(value.items())[:3]),
         },
     )
 
@@ -263,7 +262,7 @@ def _format_value(value: Any, max_items: int = 5) -> str:
         else:
             items = list(value.items())[:max_items]
             return f"{dict(items)}... ({len(value)} total items)"
-    elif isinstance(value, (list, tuple)):
+    elif isinstance(value, list | tuple):
         if len(value) <= max_items:
             return str(value)
         else:
@@ -308,7 +307,9 @@ def validate_parameter_types(
             param_names = list(sig.parameters.keys())
 
             # Validate positional arguments
-            for i, (param_name, arg_value) in enumerate(zip(param_names, args)):
+            for i, (param_name, arg_value) in enumerate(
+                zip(param_names, args, strict=False)
+            ):
                 if param_name in types_to_check and param_name != "self":
                     try:
                         validate_type(

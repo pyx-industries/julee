@@ -13,10 +13,10 @@ and transformation queries.
 """
 
 import logging
-from typing import Optional, List, Dict
 
 from julee.domain.models.policy import Policy
 from julee.domain.repositories.policy import PolicyRepository
+
 from .client import MinioClient, MinioRepositoryMixin
 
 
@@ -40,7 +40,7 @@ class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):
         self.policies_bucket = "policies"
         self.ensure_buckets_exist(self.policies_bucket)
 
-    async def get(self, policy_id: str) -> Optional[Policy]:
+    async def get(self, policy_id: str) -> Policy | None:
         """Retrieve a policy by ID."""
         return self.get_json_object(
             bucket_name=self.policies_bucket,
@@ -72,7 +72,7 @@ class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):
             },
         )
 
-    async def get_many(self, policy_ids: List[str]) -> Dict[str, Optional[Policy]]:
+    async def get_many(self, policy_ids: list[str]) -> dict[str, Policy | None]:
         """Retrieve multiple policies by ID.
 
         Args:
@@ -95,7 +95,7 @@ class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):
         )
 
         # Convert object names back to policy IDs for the result
-        result: Dict[str, Optional[Policy]] = {}
+        result: dict[str, Policy | None] = {}
         for policy_id in policy_ids:
             result[policy_id] = object_results[policy_id]
 

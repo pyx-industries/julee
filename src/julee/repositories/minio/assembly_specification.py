@@ -14,7 +14,6 @@ schema and query mappings.
 """
 
 import logging
-from typing import Optional, List, Dict
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -22,6 +21,7 @@ from julee.domain.models.assembly_specification import (
 from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
+
 from .client import MinioClient, MinioRepositoryMixin
 
 
@@ -48,9 +48,7 @@ class MinioAssemblySpecificationRepository(
         self.specifications_bucket = "assembly-specifications"
         self.ensure_buckets_exist(self.specifications_bucket)
 
-    async def get(
-        self, assembly_specification_id: str
-    ) -> Optional[AssemblySpecification]:
+    async def get(self, assembly_specification_id: str) -> AssemblySpecification | None:
         """Retrieve an assembly specification by ID."""
         object_name = f"spec/{assembly_specification_id}"
 
@@ -87,8 +85,8 @@ class MinioAssemblySpecificationRepository(
         )
 
     async def get_many(
-        self, assembly_specification_ids: List[str]
-    ) -> Dict[str, Optional[AssemblySpecification]]:
+        self, assembly_specification_ids: list[str]
+    ) -> dict[str, AssemblySpecification | None]:
         """Retrieve multiple assembly specifications by ID.
 
         Args:
@@ -113,7 +111,7 @@ class MinioAssemblySpecificationRepository(
         )
 
         # Convert object names back to specification IDs for the result
-        result: Dict[str, Optional[AssemblySpecification]] = {}
+        result: dict[str, AssemblySpecification | None] = {}
         for i, spec_id in enumerate(assembly_specification_ids):
             object_name = object_names[i]
             result[spec_id] = object_results[object_name]
@@ -124,7 +122,7 @@ class MinioAssemblySpecificationRepository(
         """Generate a unique assembly specification identifier."""
         return self.generate_id_with_prefix("spec")
 
-    async def list_all(self) -> List[AssemblySpecification]:
+    async def list_all(self) -> list[AssemblySpecification]:
         """List all assembly specifications.
 
         Returns:

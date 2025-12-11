@@ -10,9 +10,9 @@ The dependencies focus on real Minio implementations for production use,
 with test overrides available through FastAPI's dependency override system.
 """
 
-import os
 import logging
-from typing import Any, Dict, TYPE_CHECKING
+import os
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from julee.api.services.system_initialization import (
@@ -20,35 +20,35 @@ if TYPE_CHECKING:
     )
 
 from fastapi import Depends
+from minio import Minio
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 
-from julee.domain.repositories.knowledge_service_query import (
-    KnowledgeServiceQueryRepository,
-)
-from julee.domain.repositories.knowledge_service_config import (
-    KnowledgeServiceConfigRepository,
-)
 from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 from julee.domain.repositories.document import (
     DocumentRepository,
 )
-from julee.repositories.minio.knowledge_service_query import (
-    MinioKnowledgeServiceQueryRepository,
+from julee.domain.repositories.knowledge_service_config import (
+    KnowledgeServiceConfigRepository,
 )
-from julee.repositories.minio.knowledge_service_config import (
-    MinioKnowledgeServiceConfigRepository,
+from julee.domain.repositories.knowledge_service_query import (
+    KnowledgeServiceQueryRepository,
 )
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
+from julee.repositories.minio.client import MinioClient
 from julee.repositories.minio.document import (
     MinioDocumentRepository,
 )
-from julee.repositories.minio.client import MinioClient
-from minio import Minio
+from julee.repositories.minio.knowledge_service_config import (
+    MinioKnowledgeServiceConfigRepository,
+)
+from julee.repositories.minio.knowledge_service_query import (
+    MinioKnowledgeServiceQueryRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class DependencyContainer:
     """
 
     def __init__(self) -> None:
-        self._instances: Dict[str, Any] = {}
+        self._instances: dict[str, Any] = {}
 
     async def get_or_create(self, key: str, factory: Any) -> Any:
         """Get or create a singleton instance."""

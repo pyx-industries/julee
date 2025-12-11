@@ -10,12 +10,12 @@ Workflows in this package:
 """
 
 from .extract_assemble import (
-    ExtractAssembleWorkflow,
     EXTRACT_ASSEMBLE_RETRY_POLICY,
+    ExtractAssembleWorkflow,
 )
 from .validate_document import (
-    ValidateDocumentWorkflow,
     VALIDATE_DOCUMENT_RETRY_POLICY,
+    ValidateDocumentWorkflow,
 )
 
 __all__ = [

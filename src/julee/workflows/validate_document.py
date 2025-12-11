@@ -7,9 +7,10 @@ compensation for the document validation process.
 """
 
 import logging
+from datetime import timedelta
+
 from temporalio import workflow
 from temporalio.common import RetryPolicy
-from datetime import timedelta
 
 from julee.domain.models.policy import DocumentPolicyValidation
 from julee.domain.use_cases import ValidateDocumentUseCase
@@ -110,8 +111,8 @@ class ValidateDocumentWorkflow:
             # Import policy repository proxy (assuming it exists)
             try:
                 from julee.repositories.temporal.proxies import (
-                    WorkflowPolicyRepositoryProxy,
                     WorkflowDocumentPolicyValidationRepositoryProxy,
+                    WorkflowPolicyRepositoryProxy,
                 )
 
                 policy_repo = WorkflowPolicyRepositoryProxy()  # type: ignore[abstract]

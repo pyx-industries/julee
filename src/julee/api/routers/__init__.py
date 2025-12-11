@@ -20,17 +20,17 @@ Router modules follow the pattern:
 """
 
 # Import routers for convenient access
-from julee.api.routers.knowledge_service_queries import (
-    router as knowledge_service_queries_router,
-)
-from julee.api.routers.knowledge_service_configs import (
-    router as knowledge_service_configs_router,
-)
 from julee.api.routers.assembly_specifications import (
     router as assembly_specifications_router,
 )
-from julee.api.routers.system import router as system_router
 from julee.api.routers.documents import router as documents_router
+from julee.api.routers.knowledge_service_configs import (
+    router as knowledge_service_configs_router,
+)
+from julee.api.routers.knowledge_service_queries import (
+    router as knowledge_service_queries_router,
+)
+from julee.api.routers.system import router as system_router
 from julee.api.routers.workflows import router as workflows_router
 
 __all__ = [

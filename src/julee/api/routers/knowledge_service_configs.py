@@ -13,17 +13,18 @@ These routes are mounted at /knowledge_service_configs in the main app.
 
 import logging
 from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination import Page, paginate
 
+from julee.api.dependencies import (
+    get_knowledge_service_config_repository,
+)
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
 from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
-)
-from julee.api.dependencies import (
-    get_knowledge_service_config_repository,
 )
 
 logger = logging.getLogger(__name__)

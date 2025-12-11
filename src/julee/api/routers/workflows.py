@@ -14,7 +14,6 @@ These routes are mounted with '/workflows' prefix in the main app.
 
 import logging
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -22,8 +21,8 @@ from temporalio.client import Client
 
 from julee.api.dependencies import get_temporal_client
 from julee.workflows.extract_assemble import (
-    ExtractAssembleWorkflow,
     EXTRACT_ASSEMBLE_RETRY_POLICY,
+    ExtractAssembleWorkflow,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class StartExtractAssembleRequest(BaseModel):
     assembly_specification_id: str = Field(
         ..., min_length=1, description="Assembly specification ID to use"
     )
-    workflow_id: Optional[str] = Field(
+    workflow_id: str | None = Field(
         None,
         min_length=1,
         description=("Optional custom workflow ID (auto-generated if not provided)"),
@@ -51,8 +50,8 @@ class WorkflowStatusResponse(BaseModel):
     workflow_id: str
     run_id: str
     status: str  # "RUNNING", "COMPLETED", "FAILED", "CANCELLED", etc.
-    current_step: Optional[str] = None
-    assembly_id: Optional[str] = None
+    current_step: str | None = None
+    assembly_id: str | None = None
 
 
 class StartWorkflowResponse(BaseModel):

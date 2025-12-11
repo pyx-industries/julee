@@ -6,8 +6,9 @@ focus on verifying the delegation works correctly and that the API-specific
 behavior (like field copying and conversion methods) functions as expected.
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
 from pydantic import ValidationError
 
 from julee.api.requests import (

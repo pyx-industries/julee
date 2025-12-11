@@ -1,4 +1,5 @@
-from typing import Protocol, Optional, runtime_checkable
+from typing import Protocol, runtime_checkable
+
 from julee.util.domain import FileMetadata, FileUploadArgs
 
 
@@ -30,7 +31,7 @@ class FileStorageRepository(Protocol):
         """
         ...
 
-    async def download_file(self, file_id: str) -> Optional[bytes]:
+    async def download_file(self, file_id: str) -> bytes | None:
         """Download a file from storage by its ID.
 
         Args:
@@ -41,7 +42,7 @@ class FileStorageRepository(Protocol):
         """
         ...
 
-    async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
+    async def get_file_metadata(self, file_id: str) -> FileMetadata | None:
         """Retrieve metadata for a stored file.
 
         Args:

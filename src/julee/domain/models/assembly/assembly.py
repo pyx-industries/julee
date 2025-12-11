@@ -12,10 +12,10 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional
 from datetime import datetime, timezone
 from enum import Enum
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class AssemblyStatus(str, Enum):
@@ -52,16 +52,16 @@ class Assembly(BaseModel):
 
     # Assembly process tracking
     status: AssemblyStatus = AssemblyStatus.PENDING
-    assembled_document_id: Optional[str] = Field(
+    assembled_document_id: str | None = Field(
         default=None,
         description="ID of the assembled document produced by this assembly",
     )
 
     # Assembly metadata
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -89,8 +89,8 @@ class Assembly(BaseModel):
     @field_validator("assembled_document_id")
     @classmethod
     def assembled_document_id_must_not_be_empty_if_provided(
-        cls, v: Optional[str]
-    ) -> Optional[str]:
+        cls, v: str | None
+    ) -> str | None:
         if v is not None and (not v or not v.strip()):
             raise ValueError("Assembled document ID cannot be empty string")
         return v.strip() if v else None

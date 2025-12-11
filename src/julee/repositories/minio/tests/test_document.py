@@ -6,20 +6,21 @@ without requiring a real MinIO instance. They follow the Clean Architecture
 testing patterns and verify idempotency, error handling, and content.
 """
 
-import io
-import pytest
 import hashlib
-import multihash
+import io
 from typing import Any
 from unittest.mock import Mock
+
+import multihash
+import pytest
 from minio.error import S3Error
 
-
-from julee.repositories.minio.document import MinioDocumentRepository
-from julee.domain.models.document import Document, DocumentStatus
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.domain.models.document import Document, DocumentStatus
+from julee.repositories.minio.document import MinioDocumentRepository
+
 from .fake_client import FakeMinioClient
 
 

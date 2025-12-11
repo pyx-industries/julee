@@ -6,8 +6,9 @@ repository implementation, following the testing patterns established in the
 project.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 
 from julee.domain.models.policy import Policy, PolicyStatus
 from julee.repositories.memory.policy import MemoryPolicyRepository

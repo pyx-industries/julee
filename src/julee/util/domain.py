@@ -1,23 +1,23 @@
+from datetime import datetime, timezone
+
 from pydantic import (
     BaseModel,
     Field,
     field_validator,
 )
-from typing import Optional, Dict
-from datetime import datetime, timezone
 
 
 class FileMetadata(BaseModel):
     """Metadata about a stored file."""
 
     file_id: str
-    filename: Optional[str] = None
-    content_type: Optional[str] = None
-    size_bytes: Optional[int] = None
+    filename: str | None = None
+    content_type: str | None = None
+    size_bytes: int | None = None
     uploaded_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
-    metadata: Dict[str, str] = Field(default_factory=dict)
+    metadata: dict[str, str] = Field(default_factory=dict)
 
 
 class FileUploadArgs(BaseModel):

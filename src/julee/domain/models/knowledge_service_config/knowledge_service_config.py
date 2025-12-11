@@ -13,10 +13,10 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional
 from datetime import datetime, timezone
 from enum import Enum
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ServiceApi(str, Enum):
@@ -48,10 +48,10 @@ class KnowledgeServiceConfig(BaseModel):
     )
 
     # Timestamps
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 

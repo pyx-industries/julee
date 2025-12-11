@@ -5,8 +5,9 @@ These tests verify the behavior of Policy domain objects,
 including validation, serialization, and business logic.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 from pydantic import ValidationError
 
 from julee.domain.models.policy import (

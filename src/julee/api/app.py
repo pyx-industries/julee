@@ -15,26 +15,27 @@ with proper HTTP status codes and error handling.
 """
 
 import logging
-import uvicorn
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Any, Callable
+from typing import Any
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 from fastapi_pagination.utils import disable_installed_extensions_check
 
+from julee.api.dependencies import (
+    get_knowledge_service_config_repository,
+    get_startup_dependencies,
+)
 from julee.api.routers import (
     assembly_specifications_router,
-    knowledge_service_queries_router,
-    knowledge_service_configs_router,
-    system_router,
     documents_router,
+    knowledge_service_configs_router,
+    knowledge_service_queries_router,
+    system_router,
     workflows_router,
-)
-from julee.api.dependencies import (
-    get_startup_dependencies,
-    get_knowledge_service_config_repository,
 )
 
 # Disable pagination extensions check for cleaner startup

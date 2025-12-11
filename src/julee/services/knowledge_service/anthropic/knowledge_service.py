@@ -10,23 +10,24 @@ Requirements:
     - ANTHROPIC_API_KEY environment variable must be set
 """
 
-import os
 import logging
+import os
 import time
 import uuid
-from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
+from typing import Any
 
 from anthropic import AsyncAnthropic
 
+from julee.domain.models.document import Document
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.models.document import Document
+
 from ..knowledge_service import (
+    FileRegistrationResult,
     KnowledgeService,
     QueryResult,
-    FileRegistrationResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -171,9 +172,9 @@ class AnthropicKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
-        service_file_ids: Optional[List[str]] = None,
-        query_metadata: Optional[Dict[str, Any]] = None,
-        assistant_prompt: Optional[str] = None,
+        service_file_ids: list[str] | None = None,
+        query_metadata: dict[str, Any] | None = None,
+        assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query against Anthropic.
 

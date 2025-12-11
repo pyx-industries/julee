@@ -5,25 +5,26 @@ This module contains tests for the factory function that creates
 KnowledgeService implementations based on configuration.
 """
 
+import io
+from datetime import datetime, timezone
+
 import pytest
 
-from julee.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-)
-from julee.domain.models.document import Document, DocumentStatus
-from julee.domain.models.knowledge_service_config import ServiceApi
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
-from julee.services.knowledge_service import ensure_knowledge_service
-from julee.services.knowledge_service.factory import (
-    knowledge_service_factory,
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
 )
+from julee.services.knowledge_service import ensure_knowledge_service
 from julee.services.knowledge_service.anthropic import (
     AnthropicKnowledgeService,
 )
-import io
-from datetime import datetime, timezone
+from julee.services.knowledge_service.factory import (
+    knowledge_service_factory,
+)
 
 
 @pytest.fixture

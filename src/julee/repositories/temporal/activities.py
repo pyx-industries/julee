@@ -10,12 +10,14 @@ The classes follow the naming pattern documented in systemPatterns.org:
 - Each repository type gets its own activity prefix
 """
 
-from julee.util.temporal.decorators import temporal_activity_registration
 from julee.repositories.minio.assembly import MinioAssemblyRepository
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
 from julee.repositories.minio.document import MinioDocumentRepository
+from julee.repositories.minio.document_policy_validation import (
+    MinioDocumentPolicyValidationRepository,
+)
 from julee.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
@@ -25,20 +27,18 @@ from julee.repositories.minio.knowledge_service_query import (
 from julee.repositories.minio.policy import (
     MinioPolicyRepository,
 )
-from julee.repositories.minio.document_policy_validation import (
-    MinioDocumentPolicyValidationRepository,
-)
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
     ASSEMBLY_ACTIVITY_BASE,
     ASSEMBLY_SPECIFICATION_ACTIVITY_BASE,
     DOCUMENT_ACTIVITY_BASE,
+    DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE,
     KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE,
     KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE,
     POLICY_ACTIVITY_BASE,
-    DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE,
 )
+from julee.util.temporal.decorators import temporal_activity_registration
 
 
 @temporal_activity_registration(ASSEMBLY_ACTIVITY_BASE)

@@ -7,13 +7,15 @@ idempotency, error handling, and content operations including content_string.
 """
 
 import io
+
 import pytest
-from julee.repositories.memory.document import (
-    MemoryDocumentRepository,
-)
-from julee.domain.models.document import Document, DocumentStatus
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
+)
+from julee.domain.models.document import Document, DocumentStatus
+from julee.repositories.memory.document import (
+    MemoryDocumentRepository,
 )
 
 

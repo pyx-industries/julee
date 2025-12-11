@@ -6,12 +6,13 @@ StartupDependenciesProvider that provides clean access to dependencies
 during application startup without exposing internal container details.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from julee.api.dependencies import (
-    StartupDependenciesProvider,
     DependencyContainer,
+    StartupDependenciesProvider,
     get_startup_dependencies,
 )
 

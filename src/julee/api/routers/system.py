@@ -10,13 +10,14 @@ Routes defined at root level:
 These routes are mounted at the root level in the main app.
 """
 
-import logging
 import asyncio
-from datetime import datetime, timezone
-from fastapi import APIRouter
-from temporalio.client import Client
-from minio import Minio
+import logging
 import os
+from datetime import datetime, timezone
+
+from fastapi import APIRouter
+from minio import Minio
+from temporalio.client import Client
 
 from julee.api.responses import (
     HealthCheckResponse,

@@ -8,8 +8,9 @@ only response models that are specific to API concerns and not represented
 by existing domain models.
 """
 
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
 
 
 class ServiceStatus(str, Enum):

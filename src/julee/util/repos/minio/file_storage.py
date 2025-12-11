@@ -1,7 +1,6 @@
 import io
 import logging
 import os
-from typing import Optional
 
 from minio import Minio  # type: ignore[import-untyped]
 from minio.error import S3Error  # type: ignore[import-untyped]
@@ -20,11 +19,11 @@ class MinioFileStorageRepository(FileStorageRepository):
 
     def __init__(
         self,
-        endpoint: Optional[str] = None,
-        access_key: Optional[str] = None,
-        secret_key: Optional[str] = None,
+        endpoint: str | None = None,
+        access_key: str | None = None,
+        secret_key: str | None = None,
         secure: bool = False,
-        bucket_name: Optional[str] = None,
+        bucket_name: str | None = None,
     ):
         self._endpoint = (
             endpoint
@@ -48,7 +47,7 @@ class MinioFileStorageRepository(FileStorageRepository):
             else os.environ.get("MINIO_BUCKET_NAME", "file-storage")
         )
 
-        self._client: Optional[Minio] = None
+        self._client: Minio | None = None
         logger.debug(
             "MinioFileStorageRepository initialized",
             extra={
@@ -134,7 +133,7 @@ class MinioFileStorageRepository(FileStorageRepository):
             )
             raise
 
-    async def download_file(self, file_id: str) -> Optional[bytes]:
+    async def download_file(self, file_id: str) -> bytes | None:
         """Download a file from Minio storage by its ID."""
         client = await self._get_client()
         logger.info(
@@ -161,7 +160,7 @@ class MinioFileStorageRepository(FileStorageRepository):
             )
             raise
 
-    async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
+    async def get_file_metadata(self, file_id: str) -> FileMetadata | None:
         """Retrieve metadata for a stored file from Minio."""
         client = await self._get_client()
         logger.info(
@@ -178,7 +177,7 @@ class MinioFileStorageRepository(FileStorageRepository):
                     "content_type": stat.content_type,
                 },
             )
-            uploaded_at_str: Optional[str] = (
+            uploaded_at_str: str | None = (
                 stat.last_modified.isoformat() if stat.last_modified else None
             )
             # Extract filename and metadata more explicitly

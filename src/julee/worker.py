@@ -8,30 +8,31 @@ assembly, and knowledge service operations within the julee domain.
 import asyncio
 import logging
 import os
+
+from minio import Minio
 from temporalio.client import Client
 from temporalio.service import RPCError
 from temporalio.worker import Worker
-from julee.util.repos.temporal.data_converter import temporal_data_converter
 
-from julee.workflows import (
-    ExtractAssembleWorkflow,
-    ValidateDocumentWorkflow,
-)
+from julee.repositories.minio.client import MinioClient
 from julee.repositories.temporal.activities import (
     TemporalMinioAssemblyRepository,
     TemporalMinioAssemblySpecificationRepository,
+    TemporalMinioDocumentPolicyValidationRepository,
     TemporalMinioDocumentRepository,
     TemporalMinioKnowledgeServiceConfigRepository,
     TemporalMinioKnowledgeServiceQueryRepository,
     TemporalMinioPolicyRepository,
-    TemporalMinioDocumentPolicyValidationRepository,
 )
 from julee.services.temporal.activities import (
     TemporalKnowledgeService,
 )
-from minio import Minio
-from julee.repositories.minio.client import MinioClient
+from julee.util.repos.temporal.data_converter import temporal_data_converter
 from julee.util.temporal.activities import collect_activities_from_instances
+from julee.workflows import (
+    ExtractAssembleWorkflow,
+    ValidateDocumentWorkflow,
+)
 
 logger = logging.getLogger(__name__)
 

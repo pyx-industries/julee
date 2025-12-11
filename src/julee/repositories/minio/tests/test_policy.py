@@ -6,11 +6,13 @@ implementation, using the fake client to avoid external dependencies during
 testing.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 
 from julee.domain.models.policy import Policy, PolicyStatus
 from julee.repositories.minio.policy import MinioPolicyRepository
+
 from .fake_client import FakeMinioClient
 
 
