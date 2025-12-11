@@ -421,7 +421,7 @@ Auto-generated PlantUML diagrams showing persona-epic-app relationships.
 Generate a use case diagram for a single persona showing their epics and apps.
 
 ```rst
-.. persona-diagram:: Pilot Manager
+.. persona-diagram:: Underwater Basket Weaver
 ```
 
 Generates a PlantUML diagram with:
@@ -435,12 +435,11 @@ Generate a use case diagram for a group of personas (staff or external).
 
 ```rst
 .. persona-index-diagram:: staff
-.. persona-index-diagram:: external
+.. persona-index-diagram:: customers
+.. persona-index-diagram:: vendors
 ```
 
-Groups are determined by app type from `app.yaml` manifests:
-- `staff`: Personas using apps with `type: staff`
-- `external`: Personas using apps with `type: external` or `type: member-tool`
+Groups are determined by the `type` field from `app.yaml` manifests. Any value is accepted—the directive filters personas to those using apps with a matching type.
 
 ## Expected Directory Structure
 
