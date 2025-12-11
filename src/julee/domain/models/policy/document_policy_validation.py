@@ -17,10 +17,10 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List, Tuple
 from datetime import datetime, timezone
 from enum import Enum
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class DocumentPolicyValidationStatus(str, Enum):
@@ -70,7 +70,7 @@ class DocumentPolicyValidation(BaseModel):
     status: DocumentPolicyValidationStatus = DocumentPolicyValidationStatus.PENDING
 
     # Initial validation results
-    validation_scores: List[Tuple[str, int]] = Field(
+    validation_scores: list[tuple[str, int]] = Field(
         default_factory=list,
         description="List of (knowledge_service_query_id, actual_score) "
         "tuples representing the scores achieved during initial validation. "
@@ -78,13 +78,13 @@ class DocumentPolicyValidation(BaseModel):
     )
 
     # Transformation results (if applicable)
-    transformed_document_id: Optional[str] = Field(
+    transformed_document_id: str | None = Field(
         default=None,
         description="ID of the document after transformations have been "
         "applied. Only present if the policy includes transformation queries "
         "and they were executed",
     )
-    post_transform_validation_scores: Optional[List[Tuple[str, int]]] = Field(
+    post_transform_validation_scores: list[tuple[str, int]] | None = Field(
         default=None,
         description="List of (knowledge_service_query_id, actual_score) "
         "tuples representing scores achieved after transformation. "
@@ -93,19 +93,19 @@ class DocumentPolicyValidation(BaseModel):
     )
 
     # Validation metadata
-    started_at: Optional[datetime] = Field(
+    started_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="When the validation process was initiated",
     )
-    completed_at: Optional[datetime] = Field(
+    completed_at: datetime | None = Field(
         default=None, description="When the validation process completed"
     )
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None, description="Error message if validation process failed"
     )
 
     # Results summary
-    passed: Optional[bool] = Field(
+    passed: bool | None = Field(
         default=None,
         description="Whether the document passed policy validation. "
         "None while validation is in progress, True/False when complete",
@@ -128,8 +128,8 @@ class DocumentPolicyValidation(BaseModel):
     @field_validator("validation_scores")
     @classmethod
     def validation_scores_must_be_valid(
-        cls, v: List[Tuple[str, int]]
-    ) -> List[Tuple[str, int]]:
+        cls, v: list[tuple[str, int]]
+    ) -> list[tuple[str, int]]:
         if not isinstance(v, list):
             raise ValueError("Validation scores must be a list")
 
@@ -142,8 +142,8 @@ class DocumentPolicyValidation(BaseModel):
     @field_validator("post_transform_validation_scores")
     @classmethod
     def post_transform_scores_must_be_valid(
-        cls, v: Optional[List[Tuple[str, int]]]
-    ) -> Optional[List[Tuple[str, int]]]:
+        cls, v: list[tuple[str, int]] | None
+    ) -> list[tuple[str, int]] | None:
         if v is None:
             return v
 
@@ -158,7 +158,7 @@ class DocumentPolicyValidation(BaseModel):
 
     @field_validator("error_message")
     @classmethod
-    def error_message_must_be_valid(cls, v: Optional[str]) -> Optional[str]:
+    def error_message_must_be_valid(cls, v: str | None) -> str | None:
         if v is None:
             return v
         if not isinstance(v, str):
@@ -167,7 +167,7 @@ class DocumentPolicyValidation(BaseModel):
 
     @field_validator("transformed_document_id")
     @classmethod
-    def transformed_document_id_must_be_valid(cls, v: Optional[str]) -> Optional[str]:
+    def transformed_document_id_must_be_valid(cls, v: str | None) -> str | None:
         if v is None:
             return v
         if not isinstance(v, str) or not v.strip():
@@ -178,8 +178,8 @@ class DocumentPolicyValidation(BaseModel):
 
     @classmethod
     def _validate_score_tuples(
-        cls, scores: List[Tuple[str, int]], field_name: str
-    ) -> List[Tuple[str, int]]:
+        cls, scores: list[tuple[str, int]], field_name: str
+    ) -> list[tuple[str, int]]:
         """Helper method to validate score tuple lists."""
         validated_scores = []
         query_ids_seen = set()

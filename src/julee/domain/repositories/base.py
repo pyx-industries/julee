@@ -23,7 +23,8 @@ In Temporal workflow contexts, these protocols are implemented by workflow
 stubs that delegate to activities for durability and proper error handling.
 """
 
-from typing import Protocol, Optional, runtime_checkable, TypeVar, List, Dict
+from typing import Protocol, TypeVar, runtime_checkable
+
 from pydantic import BaseModel
 
 # Type variable bound to Pydantic BaseModel for domain entities
@@ -42,7 +43,7 @@ class BaseRepository(Protocol[T]):
         T: The domain entity type (must extend Pydantic BaseModel)
     """
 
-    async def get(self, entity_id: str) -> Optional[T]:
+    async def get(self, entity_id: str) -> T | None:
         """Retrieve an entity by ID.
 
         Args:
@@ -60,7 +61,7 @@ class BaseRepository(Protocol[T]):
         """
         ...
 
-    async def get_many(self, entity_ids: List[str]) -> Dict[str, Optional[T]]:
+    async def get_many(self, entity_ids: list[str]) -> dict[str, T | None]:
         """Retrieve multiple entities by ID.
 
         Args:
@@ -103,7 +104,7 @@ class BaseRepository(Protocol[T]):
         """
         ...
 
-    async def list_all(self) -> List[T]:
+    async def list_all(self) -> list[T]:
         """List all entities.
 
         Returns:

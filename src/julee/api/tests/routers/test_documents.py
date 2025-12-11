@@ -5,15 +5,16 @@ This module provides unit tests for the documents API endpoints,
 focusing on the core functionality of listing documents with pagination.
 """
 
-import pytest
+from collections.abc import Generator
 from datetime import datetime, timezone
-from typing import Generator
-from fastapi.testclient import TestClient
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from julee.api.routers.documents import router
 from julee.api.dependencies import get_document_repository
+from julee.api.routers.documents import router
 from julee.domain.models.document import Document, DocumentStatus
 from julee.repositories.memory import MemoryDocumentRepository
 

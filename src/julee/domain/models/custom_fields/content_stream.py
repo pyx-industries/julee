@@ -6,10 +6,11 @@ validation
 for specialized data types used in the document processing workflow.
 """
 
+import io
+from typing import Any
+
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
-from typing import Any
-import io
 
 
 class ContentStream:

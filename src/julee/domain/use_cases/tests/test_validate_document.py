@@ -7,38 +7,38 @@ following the Clean Architecture principles.
 """
 
 import io
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock
+
+import pytest
 from pydantic import ValidationError
 
-from julee.domain.use_cases import ValidateDocumentUseCase
-
 from julee.domain.models import (
+    ContentStream,
     Document,
     DocumentStatus,
-    ContentStream,
     KnowledgeServiceConfig,
     KnowledgeServiceQuery,
 )
+from julee.domain.models.knowledge_service_config import ServiceApi
 from julee.domain.models.policy import (
-    Policy,
-    PolicyStatus,
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
+    Policy,
+    PolicyStatus,
 )
-from julee.domain.models.knowledge_service_config import ServiceApi
+from julee.domain.use_cases import ValidateDocumentUseCase
 from julee.repositories.memory import (
-    MemoryDocumentRepository,
-    MemoryKnowledgeServiceQueryRepository,
-    MemoryKnowledgeServiceConfigRepository,
-    MemoryPolicyRepository,
     MemoryDocumentPolicyValidationRepository,
+    MemoryDocumentRepository,
+    MemoryKnowledgeServiceConfigRepository,
+    MemoryKnowledgeServiceQueryRepository,
+    MemoryPolicyRepository,
 )
+from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
-from julee.services.knowledge_service import QueryResult
 
 
 class TestValidateDocumentUseCase:

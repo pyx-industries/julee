@@ -1,5 +1,5 @@
 # Makefile for quality checks and testing and E2E testing
-.PHONY: quality-fast quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format
+.PHONY: quality-fast quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format update-requirements
 
 # Fast quality checks (for pre-commit)
 quality-fast:
@@ -102,6 +102,13 @@ format:
 	@echo "Formatting code with black..."
 	black src/julee/
 
+# Update requirements files with exact pins from pyproject.toml
+update-requirements:
+	@echo "Updating requirements files from pyproject.toml..."
+	pip-compile --resolver=backtracking pyproject.toml --output-file requirements.txt
+	pip-compile --resolver=backtracking --extra dev pyproject.toml --output-file requirements-dev.txt
+	@echo "Requirements updated! Review changes before committing."
+
 # Help target
 help:
 	@echo "Available targets:"
@@ -118,6 +125,7 @@ help:
 	@echo "  post-commit     - Background quality checks (for git hook)"
 	@echo "  install-hooks   - Install git post-commit hook"
 	@echo "  format          - Format code with black"
+	@echo "  update-requirements - Update requirements.txt from pyproject.toml"
 	@echo "  clean           - Clean up generated files"
 	@echo "  reports         - Create reports directory"
 	@echo "  help            - Show this help"

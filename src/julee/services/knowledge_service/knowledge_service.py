@@ -11,16 +11,14 @@ Concrete implementations of this protocol are provided for different external
 services (Anthropic, OpenAI, etc.) and are created via factory functions.
 """
 
-from typing import (
-    Protocol,
-    Optional,
-    List,
-    runtime_checkable,
-    Dict,
-    Any,
-    TYPE_CHECKING,
-)
 from datetime import datetime, timezone
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Protocol,
+    runtime_checkable,
+)
+
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
@@ -36,15 +34,15 @@ class QueryResult(BaseModel):
 
     query_id: str = Field(description="Unique identifier for this query execution")
     query_text: str = Field(description="The original query text that was executed")
-    result_data: Dict[str, Any] = Field(
+    result_data: dict[str, Any] = Field(
         default_factory=dict,
         description="The structured result data from the query",
     )
-    execution_time_ms: Optional[int] = Field(
+    execution_time_ms: int | None = Field(
         default=None,
         description="Time taken to execute the query in milliseconds",
     )
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -56,11 +54,11 @@ class FileRegistrationResult(BaseModel):
     knowledge_service_file_id: str = Field(
         description="The file identifier assigned by the knowledge service"
     )
-    registration_metadata: Dict[str, Any] = Field(
+    registration_metadata: dict[str, Any] = Field(
         default_factory=dict,
         description="Additional metadata from the registration process",
     )
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -113,9 +111,9 @@ class KnowledgeService(Protocol):
         self,
         config: "KnowledgeServiceConfig",
         query_text: str,
-        service_file_ids: Optional[List[str]] = None,
-        query_metadata: Optional[Dict[str, Any]] = None,
-        assistant_prompt: Optional[str] = None,
+        service_file_ids: list[str] | None = None,
+        query_metadata: dict[str, Any] | None = None,
+        assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query against the external knowledge service.
 

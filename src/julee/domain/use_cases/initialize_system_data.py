@@ -16,7 +16,7 @@ import hashlib
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 import json
@@ -193,7 +193,7 @@ class InitializeSystemDataUseCase:
             )
             raise
 
-    def _load_fixture_configurations(self) -> List[Dict[str, Any]]:
+    def _load_fixture_configurations(self) -> list[dict[str, Any]]:
         """
         Load knowledge service configurations from the YAML fixture file.
 
@@ -218,7 +218,7 @@ class InitializeSystemDataUseCase:
             )
 
         try:
-            with open(fixture_path, "r", encoding="utf-8") as f:
+            with open(fixture_path, encoding="utf-8") as f:
                 fixture_data = yaml.safe_load(f)
 
             if not fixture_data or "knowledge_services" not in fixture_data:
@@ -241,7 +241,7 @@ class InitializeSystemDataUseCase:
             raise yaml.YAMLError(f"Invalid YAML in fixture file: {e}")
 
     def _create_config_from_fixture_data(
-        self, config_data: Dict[str, Any]
+        self, config_data: dict[str, Any]
     ) -> KnowledgeServiceConfig:
         """
         Create a KnowledgeServiceConfig from fixture data.
@@ -364,7 +364,7 @@ class InitializeSystemDataUseCase:
             )
             raise
 
-    def _load_fixture_queries(self) -> List[Dict[str, Any]]:
+    def _load_fixture_queries(self) -> list[dict[str, Any]]:
         """
         Load knowledge service queries from the YAML fixture file.
 
@@ -389,7 +389,7 @@ class InitializeSystemDataUseCase:
             )
 
         try:
-            with open(fixture_path, "r", encoding="utf-8") as f:
+            with open(fixture_path, encoding="utf-8") as f:
                 fixture_data = yaml.safe_load(f)
 
             if not fixture_data or "knowledge_service_queries" not in fixture_data:
@@ -414,7 +414,7 @@ class InitializeSystemDataUseCase:
             raise yaml.YAMLError(f"Invalid YAML in queries fixture file: {e}")
 
     def _create_query_from_fixture_data(
-        self, query_data: Dict[str, Any]
+        self, query_data: dict[str, Any]
     ) -> KnowledgeServiceQuery:
         """
         Create a KnowledgeServiceQuery from fixture data.
@@ -534,7 +534,7 @@ class InitializeSystemDataUseCase:
             )
             raise
 
-    def _load_fixture_assembly_specifications(self) -> List[Dict[str, Any]]:
+    def _load_fixture_assembly_specifications(self) -> list[dict[str, Any]]:
         """
         Load assembly specifications from a YAML or JSON fixture file.
     
@@ -602,7 +602,7 @@ class InitializeSystemDataUseCase:
             )
 
     def _create_assembly_spec_from_fixture_data(
-        self, spec_data: Dict[str, Any]
+        self, spec_data: dict[str, Any]
     ) -> AssemblySpecification:
         """
         Create an AssemblySpecification from fixture data.
@@ -735,7 +735,7 @@ class InitializeSystemDataUseCase:
             )
             raise
 
-    def _load_fixture_documents(self) -> List[Dict[str, Any]]:
+    def _load_fixture_documents(self) -> list[dict[str, Any]]:
         """
         Load documents from the YAML fixture file.
 
@@ -758,7 +758,7 @@ class InitializeSystemDataUseCase:
             raise FileNotFoundError(f"Documents fixture file not found: {fixture_path}")
 
         try:
-            with open(fixture_path, "r", encoding="utf-8") as f:
+            with open(fixture_path, encoding="utf-8") as f:
                 fixture_data = yaml.safe_load(f)
 
             if not fixture_data or "documents" not in fixture_data:
@@ -780,7 +780,7 @@ class InitializeSystemDataUseCase:
         except yaml.YAMLError as e:
             raise yaml.YAMLError(f"Invalid YAML in documents fixture file: {e}")
 
-    def _create_document_from_fixture_data(self, doc_data: Dict[str, Any]) -> Document:
+    def _create_document_from_fixture_data(self, doc_data: dict[str, Any]) -> Document:
         """
         Create a Document from fixture data.
 

@@ -34,11 +34,11 @@ class TestMinioClientProtocol:
         assert hasattr(real_client, "stat_object")
 
         # Test that methods are callable
-        assert callable(getattr(real_client, "bucket_exists"))
-        assert callable(getattr(real_client, "make_bucket"))
-        assert callable(getattr(real_client, "put_object"))
-        assert callable(getattr(real_client, "get_object"))
-        assert callable(getattr(real_client, "stat_object"))
+        assert callable(real_client.bucket_exists)
+        assert callable(real_client.make_bucket)
+        assert callable(real_client.put_object)
+        assert callable(real_client.get_object)
+        assert callable(real_client.stat_object)
 
     def test_protocol_accepts_real_minio_client(self) -> None:
         """Test that our protocol accepts a real Minio client instance."""

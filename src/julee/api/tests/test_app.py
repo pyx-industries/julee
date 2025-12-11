@@ -5,16 +5,18 @@ This module provides tests for the API endpoints, focusing on testing the
 HTTP layer behavior with proper dependency injection and mocking patterns.
 """
 
-import pytest
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 from julee.api.app import app
 from julee.api.dependencies import (
-    get_knowledge_service_query_repository,
     get_knowledge_service_config_repository,
+    get_knowledge_service_query_repository,
 )
+from julee.api.responses import ServiceStatus
 from julee.domain.models import KnowledgeServiceQuery
 from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
@@ -22,7 +24,6 @@ from julee.repositories.memory import (
 from julee.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
 )
-from julee.api.responses import ServiceStatus
 
 
 @pytest.fixture

@@ -10,8 +10,9 @@ instances following the Clean Architecture principles.
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict
+from typing import Any
 
 import jsonpointer  # type: ignore
 import jsonschema
@@ -256,8 +257,8 @@ class ExtractAssembleDataUseCase:
     async def _register_document_with_services(
         self,
         document: Document,
-        queries: Dict[str, KnowledgeServiceQuery],
-    ) -> Dict[str, str]:
+        queries: dict[str, KnowledgeServiceQuery],
+    ) -> dict[str, str]:
         """
         Register the document with all knowledge services needed for assembly.
 
@@ -301,7 +302,7 @@ class ExtractAssembleDataUseCase:
     @try_use_case_step("queries_retrieval")
     async def _retrieve_all_queries(
         self, assembly_specification: AssemblySpecification
-    ) -> Dict[str, KnowledgeServiceQuery]:
+    ) -> dict[str, KnowledgeServiceQuery]:
         """Retrieve all knowledge service queries needed for this assembly."""
         query_ids = list(assembly_specification.knowledge_service_queries.values())
 
@@ -351,8 +352,8 @@ class ExtractAssembleDataUseCase:
         self,
         document: Document,
         assembly_specification: AssemblySpecification,
-        document_registrations: Dict[str, str],
-        queries: Dict[str, KnowledgeServiceQuery],
+        document_registrations: dict[str, str],
+        queries: dict[str, KnowledgeServiceQuery],
     ) -> str:
         """
         Perform a single assembly iteration using knowledge services.
@@ -379,7 +380,7 @@ class ExtractAssembleDataUseCase:
 
         """
         # Initialize the result data structure
-        assembled_data: Dict[str, Any] = {}
+        assembled_data: dict[str, Any] = {}
 
         # Process each knowledge service query
         # TODO: This is where we may want to fan-out/fan-in to do these
@@ -470,7 +471,7 @@ class ExtractAssembleDataUseCase:
         return document
 
     def _extract_schema_section(
-        self, jsonschema: Dict[str, Any], schema_pointer: str
+        self, jsonschema: dict[str, Any], schema_pointer: str
     ) -> Any:
         """Extract relevant section of JSON schema using JSON Pointer."""
         if not schema_pointer:
@@ -495,7 +496,7 @@ Please structure your response according to this JSON schema:
 Return only valid JSON that conforms to this schema, without any surrounding
 text or markdown formatting."""
 
-    def _parse_query_result(self, result_data: Dict[str, Any]) -> Any:
+    def _parse_query_result(self, result_data: dict[str, Any]) -> Any:
         """Parse the query result to extract the JSON response."""
         response_text = result_data.get("response", "")
         if not response_text:
@@ -514,7 +515,7 @@ text or markdown formatting."""
 
     def _store_result_in_assembled_data(
         self,
-        assembled_data: Dict[str, Any],
+        assembled_data: dict[str, Any],
         schema_pointer: str,
         result_data: Any,
     ) -> None:
@@ -572,7 +573,7 @@ text or markdown formatting."""
     @try_use_case_step("assembled_document_creation")
     async def _create_assembled_document(
         self,
-        assembled_data: Dict[str, Any],
+        assembled_data: dict[str, Any],
         assembly_specification: AssemblySpecification,
     ) -> str:
         """Create and store the assembled document."""
@@ -605,7 +606,7 @@ text or markdown formatting."""
 
     def _validate_assembled_data(
         self,
-        assembled_data: Dict[str, Any],
+        assembled_data: dict[str, Any],
         assembly_specification: AssemblySpecification,
     ) -> None:
         """Validate that the assembled data conforms to the JSON schema."""

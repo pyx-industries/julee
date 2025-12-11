@@ -86,7 +86,7 @@ def fixture_configs() -> list[dict]:
 
     assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
-    with open(fixture_path, "r", encoding="utf-8") as f:
+    with open(fixture_path, encoding="utf-8") as f:
         fixture_data = yaml.safe_load(f)
 
     assert "knowledge_services" in fixture_data
@@ -320,7 +320,7 @@ class TestYamlFixtureIntegration:
         assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
         # Verify file can be parsed
-        with open(fixture_path, "r", encoding="utf-8") as f:
+        with open(fixture_path, encoding="utf-8") as f:
             fixture_data = yaml.safe_load(f)
 
         # Verify structure

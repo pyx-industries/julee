@@ -12,10 +12,11 @@ All operations are still async to maintain interface compatibility.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from julee.domain.models.assembly import Assembly
 from julee.domain.repositories.assembly import AssemblyRepository
+
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -34,11 +35,11 @@ class MemoryAssemblyRepository(AssemblyRepository, MemoryRepositoryMixin[Assembl
         """Initialize repository with empty in-memory storage."""
         self.logger = logger
         self.entity_name = "Assembly"
-        self.storage_dict: Dict[str, Assembly] = {}
+        self.storage_dict: dict[str, Assembly] = {}
 
         logger.debug("Initializing MemoryAssemblyRepository")
 
-    async def get(self, assembly_id: str) -> Optional[Assembly]:
+    async def get(self, assembly_id: str) -> Assembly | None:
         """Retrieve an assembly by ID.
 
         Args:
@@ -65,7 +66,7 @@ class MemoryAssemblyRepository(AssemblyRepository, MemoryRepositoryMixin[Assembl
         """
         return self.generate_entity_id("assembly")
 
-    async def get_many(self, assembly_ids: List[str]) -> Dict[str, Optional[Assembly]]:
+    async def get_many(self, assembly_ids: list[str]) -> dict[str, Assembly | None]:
         """Retrieve multiple assemblies by ID.
 
         Args:
@@ -77,7 +78,7 @@ class MemoryAssemblyRepository(AssemblyRepository, MemoryRepositoryMixin[Assembl
         return self.get_many_entities(assembly_ids)
 
     def _add_entity_specific_log_data(
-        self, entity: Assembly, log_data: Dict[str, Any]
+        self, entity: Assembly, log_data: dict[str, Any]
     ) -> None:
         """Add assembly-specific data to log entries."""
         super()._add_entity_specific_log_data(entity, log_data)

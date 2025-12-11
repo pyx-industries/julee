@@ -8,14 +8,15 @@ Document domain objects with sensible defaults.
 import io
 from datetime import datetime, timezone
 from typing import Any
-from factory.base import Factory
-from factory.faker import Faker
-from factory.declarations import LazyAttribute, LazyFunction
 
-from julee.domain.models.document import Document, DocumentStatus
+from factory.base import Factory
+from factory.declarations import LazyAttribute, LazyFunction
+from factory.faker import Faker
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.domain.models.document import Document, DocumentStatus
 
 
 # Helper functions to generate content bytes consistently

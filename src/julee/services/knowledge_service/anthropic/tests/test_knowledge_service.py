@@ -6,18 +6,19 @@ KnowledgeService protocol, verifying file registration and query
 execution functionality.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timezone
 import io
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from julee.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-)
-from julee.domain.models.document import Document, DocumentStatus
-from julee.domain.models.knowledge_service_config import ServiceApi
+import pytest
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
+)
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
 )
 from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks,
@@ -184,7 +185,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query handles API errors gracefully."""
         mock_client = MagicMock()
-        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
+        mock_client.messages.create = AsyncMock(side_effect=RuntimeError("API Error"))
 
         with patch(
             "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
@@ -193,7 +194,7 @@ class TestAnthropicKnowledgeService:
 
             service = anthropic_ks.AnthropicKnowledgeService()
 
-            with pytest.raises(Exception):
+            with pytest.raises(RuntimeError):
                 await service.execute_query(knowledge_service_config, "Test query")
 
     @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})

@@ -7,20 +7,20 @@ This allows domain models to implement context-aware validation that can
 be more permissive during Temporal serialization/deserialization.
 """
 
-from typing import Any, Optional, Type
+from typing import Any
 
+import temporalio.api.common.v1
 from pydantic import TypeAdapter
 from temporalio.contrib.pydantic import (
     PydanticJSONPlainPayloadConverter,
     ToJsonOptions,
 )
 from temporalio.converter import (
-    DataConverter,
     CompositePayloadConverter,
+    DataConverter,
     DefaultPayloadConverter,
     JSONPlainPayloadConverter,
 )
-import temporalio.api.common.v1
 
 
 class TemporalValidationPydanticConverter(PydanticJSONPlainPayloadConverter):
@@ -36,7 +36,7 @@ class TemporalValidationPydanticConverter(PydanticJSONPlainPayloadConverter):
     def from_payload(
         self,
         payload: temporalio.api.common.v1.Payload,
-        type_hint: Optional[Type] = None,
+        type_hint: type | None = None,
     ) -> Any:
         """Deserialize payload with temporal_validation context.
 
@@ -69,7 +69,7 @@ class TemporalValidationPayloadConverter(CompositePayloadConverter):
     ensuring all Pydantic models get temporal_validation context.
     """
 
-    def __init__(self, to_json_options: Optional[ToJsonOptions] = None) -> None:
+    def __init__(self, to_json_options: ToJsonOptions | None = None) -> None:
         """Initialize with custom JSON converter adding temporal context."""
         # Create our custom JSON converter with temporal validation
         json_payload_converter = TemporalValidationPydanticConverter(to_json_options)
@@ -89,7 +89,7 @@ class TemporalValidationPayloadConverter(CompositePayloadConverter):
 
 
 def create_temporal_data_converter(
-    to_json_options: Optional[ToJsonOptions] = None,
+    to_json_options: ToJsonOptions | None = None,
 ) -> DataConverter:
     """Create a data converter with temporal validation support.
 

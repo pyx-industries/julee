@@ -6,20 +6,20 @@ KnowledgeService instances based on the service API configuration.
 """
 
 import logging
+from typing import Any
 
+from julee.domain.models.document import Document
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from .knowledge_service import KnowledgeService
-from .anthropic import AnthropicKnowledgeService
-from julee.domain.models.document import Document
 from julee.services.knowledge_service import (
-    QueryResult,
     FileRegistrationResult,
+    QueryResult,
 )
-from typing import Dict, Any, List, Optional
 
+from .anthropic import AnthropicKnowledgeService
+from .knowledge_service import KnowledgeService
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,9 @@ class ConfigurableKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
-        service_file_ids: Optional[List[str]] = None,
-        query_metadata: Optional[Dict[str, Any]] = None,
-        assistant_prompt: Optional[str] = None,
+        service_file_ids: list[str] | None = None,
+        query_metadata: dict[str, Any] | None = None,
+        assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query against the knowledge service."""
         service = knowledge_service_factory(config)

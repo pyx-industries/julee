@@ -7,8 +7,9 @@ following the patterns established in the sample use cases.
 """
 
 import logging
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, TypeVar, Awaitable
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ F = TypeVar("F", bound=Callable[..., Awaitable[Any]])
 
 def try_use_case_step(
     step_name: str,
-    extra_context: Optional[Dict[str, Any]] = None,
+    extra_context: dict[str, Any] | None = None,
 ) -> Callable[[F], F]:
     """
     Decorator that wraps use case steps with consistent error handling and

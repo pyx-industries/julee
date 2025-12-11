@@ -14,18 +14,19 @@ These routes are mounted at /knowledge_service_queries in the main app.
 """
 
 import logging
-from typing import Optional, cast
+from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
 
-from julee.domain.models import KnowledgeServiceQuery
-from julee.domain.repositories.knowledge_service_query import (
-    KnowledgeServiceQueryRepository,
-)
 from julee.api.dependencies import (
     get_knowledge_service_query_repository,
 )
 from julee.api.requests import CreateKnowledgeServiceQueryRequest
+from julee.domain.models import KnowledgeServiceQuery
+from julee.domain.repositories.knowledge_service_query import (
+    KnowledgeServiceQueryRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ router = APIRouter()
 
 @router.get("/", response_model=Page[KnowledgeServiceQuery])
 async def get_knowledge_service_queries(
-    ids: Optional[str] = Query(
+    ids: str | None = Query(
         None,
         description="Comma-separated list of query IDs for bulk retrieval",
         openapi_examples={

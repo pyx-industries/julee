@@ -25,6 +25,7 @@ from typing import Protocol, runtime_checkable
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
+
 from .base import BaseRepository
 
 

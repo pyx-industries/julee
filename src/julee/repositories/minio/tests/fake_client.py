@@ -7,15 +7,17 @@ state-based testing where you can verify actual storage state rather than
 just mocking method calls.
 """
 
-from typing import Dict, Any, Optional, Callable, BinaryIO, Union, List
-from functools import wraps
-from unittest.mock import Mock
+from collections.abc import Callable
 from datetime import datetime, timezone
-from minio.error import S3Error
-from minio.datatypes import Object
+from functools import wraps
+from typing import Any, BinaryIO
+from unittest.mock import Mock
+
 from minio.api import ObjectWriteResult
-from urllib3.response import BaseHTTPResponse
+from minio.datatypes import Object
+from minio.error import S3Error
 from urllib3 import HTTPHeaderDict
+from urllib3.response import BaseHTTPResponse
 
 from ..client import MinioClient
 
@@ -83,8 +85,8 @@ class FakeMinioClient(MinioClient):
     """
 
     def __init__(self) -> None:
-        self._buckets: Dict[str, Dict[str, Any]] = {}
-        self._objects: Dict[str, Dict[str, Dict[str, Any]]] = {}
+        self._buckets: dict[str, dict[str, Any]] = {}
+        self._objects: dict[str, dict[str, dict[str, Any]]] = {}
 
     def bucket_exists(self, bucket_name: str) -> bool:
         """Check if a bucket exists."""
@@ -112,7 +114,7 @@ class FakeMinioClient(MinioClient):
         data: BinaryIO,
         length: int,
         content_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, Union[str, List[str], tuple[str]]]] = None,
+        metadata: dict[str, str | list[str] | tuple[str]] | None = None,
     ) -> ObjectWriteResult:
         """Store an object in the bucket."""
 
@@ -195,7 +197,7 @@ class FakeMinioClient(MinioClient):
         del self._objects[bucket_name][object_name]
 
     # Inspection methods for testing
-    def get_stored_objects(self, bucket_name: str) -> Dict[str, Dict[str, Any]]:
+    def get_stored_objects(self, bucket_name: str) -> dict[str, dict[str, Any]]:
         """Get all stored objects in a bucket (for testing purposes)."""
         return self._objects.get(bucket_name, {}).copy()
 

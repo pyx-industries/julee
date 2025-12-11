@@ -7,9 +7,10 @@ to domain model class methods and reuse field descriptions to avoid
 duplication while maintaining single source of truth in the domain layer.
 """
 
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from datetime import datetime, timezone
+from typing import Any
+
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 from julee.domain.models import (
     AssemblySpecification,
@@ -38,10 +39,10 @@ class CreateAssemblySpecificationRequest(BaseModel):
     applicability: str = Field(
         description=AssemblySpecification.model_fields["applicability"].description
     )
-    jsonschema: Dict[str, Any] = Field(
+    jsonschema: dict[str, Any] = Field(
         description=AssemblySpecification.model_fields["jsonschema"].description
     )
-    knowledge_service_queries: Dict[str, str] = Field(
+    knowledge_service_queries: dict[str, str] = Field(
         default_factory=dict,
         description=AssemblySpecification.model_fields[
             "knowledge_service_queries"
@@ -65,14 +66,14 @@ class CreateAssemblySpecificationRequest(BaseModel):
 
     @field_validator("jsonschema")
     @classmethod
-    def validate_jsonschema(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_jsonschema(cls, v: dict[str, Any]) -> dict[str, Any]:
         return AssemblySpecification.jsonschema_must_be_valid(v)
 
     @field_validator("knowledge_service_queries")
     @classmethod
     def validate_knowledge_service_queries(
-        cls, v: Dict[str, str], info: ValidationInfo
-    ) -> Dict[str, str]:
+        cls, v: dict[str, str], info: ValidationInfo
+    ) -> dict[str, str]:
         return AssemblySpecification.knowledge_service_queries_must_be_valid(v, info)
 
     @field_validator("version")
@@ -128,11 +129,11 @@ class CreateKnowledgeServiceQueryRequest(BaseModel):
     prompt: str = Field(
         description=KnowledgeServiceQuery.model_fields["prompt"].description
     )
-    query_metadata: Dict[str, Any] = Field(
+    query_metadata: dict[str, Any] = Field(
         default_factory=dict,
         description=KnowledgeServiceQuery.model_fields["query_metadata"].description,
     )
-    assistant_prompt: Optional[str] = Field(
+    assistant_prompt: str | None = Field(
         default=KnowledgeServiceQuery.model_fields["assistant_prompt"].default,
         description=KnowledgeServiceQuery.model_fields["assistant_prompt"].description,
     )

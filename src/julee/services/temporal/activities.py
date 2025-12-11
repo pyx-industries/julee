@@ -13,23 +13,23 @@ The class follows the naming pattern documented in systemPatterns.org:
 
 import io
 import logging
+
 from typing_extensions import override
 
-from julee.util.temporal.decorators import temporal_activity_registration
-from julee.services.knowledge_service.factory import (
-    ConfigurableKnowledgeService,
-)
-from julee.domain.repositories.document import DocumentRepository
+from julee.domain.models.document import Document
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.models.document import Document
-from ..knowledge_service import FileRegistrationResult
-
-# Import activity name bases from shared module
+from julee.domain.repositories.document import DocumentRepository
+from julee.services.knowledge_service.factory import (
+    ConfigurableKnowledgeService,
+)
 from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
+from julee.util.temporal.decorators import temporal_activity_registration
+
+from ..knowledge_service import FileRegistrationResult
 
 
 @temporal_activity_registration(KNOWLEDGE_SERVICE_ACTIVITY_BASE)
@@ -79,7 +79,7 @@ class TemporalKnowledgeService(ConfigurableKnowledgeService):
         return await super().register_file(config, document)
 
 
-# Export the temporal service class for use in worker.py
+# Export the temporal service classes for use in worker.py
 __all__ = [
     "TemporalKnowledgeService",
     "KNOWLEDGE_SERVICE_ACTIVITY_BASE",

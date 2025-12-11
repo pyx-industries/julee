@@ -10,11 +10,6 @@ Re-exports commonly used models for convenient importing:
 """
 
 # Document models
-from .document import Document, DocumentStatus
-
-# Custom field types
-from .custom_fields.content_stream import ContentStream
-
 # Assembly models
 from .assembly import Assembly, AssemblyStatus
 from .assembly_specification import (
@@ -23,11 +18,15 @@ from .assembly_specification import (
     KnowledgeServiceQuery,
 )
 
+# Custom field types
+from .custom_fields.content_stream import ContentStream
+from .document import Document, DocumentStatus
+
 # Configuration models
 from .knowledge_service_config import KnowledgeServiceConfig
 
 # Policy models
-from .policy import Policy, PolicyStatus, DocumentPolicyValidation
+from .policy import DocumentPolicyValidation, Policy, PolicyStatus
 
 __all__ = [
     # Document models

@@ -6,9 +6,9 @@ specification repository implementation, using the fake client to avoid
 external dependencies during testing.
 """
 
-import pytest
 from datetime import datetime, timezone
 
+import pytest
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -17,6 +17,7 @@ from julee.domain.models.assembly_specification import (
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
+
 from .fake_client import FakeMinioClient
 
 

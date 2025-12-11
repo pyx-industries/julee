@@ -6,19 +6,22 @@ KnowledgeService protocol, verifying file registration storage and
 canned query response functionality.
 """
 
-import pytest
+import io
 from datetime import datetime, timezone
-from julee.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-)
-from julee.domain.models.document import Document, DocumentStatus
-from julee.domain.models.knowledge_service_config import ServiceApi
+
+import pytest
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.domain.models.document import Document, DocumentStatus
+from julee.domain.models.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
+)
+
 from ..knowledge_service import QueryResult
 from .knowledge_service import MemoryKnowledgeService
-import io
 
 
 @pytest.fixture

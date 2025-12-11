@@ -5,16 +5,17 @@ This module provides tests for system-level endpoints including health checks
 and other operational endpoints.
 """
 
-import pytest
 import time
+from collections.abc import Generator
 from datetime import datetime
-from typing import Generator
 from unittest.mock import patch
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
 
-from julee.api.routers.system import router
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from julee.api.responses import ServiceStatus
+from julee.api.routers.system import router
 
 
 @pytest.fixture

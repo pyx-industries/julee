@@ -7,8 +7,9 @@ repository that differs from the inherited mixins. Uses the fake client to
 avoid external dependencies during testing.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 
 from julee.domain.models.policy import (
     DocumentPolicyValidation,
@@ -17,6 +18,7 @@ from julee.domain.models.policy import (
 from julee.repositories.minio.document_policy_validation import (
     MinioDocumentPolicyValidationRepository,
 )
+
 from .fake_client import FakeMinioClient
 
 

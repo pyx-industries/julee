@@ -19,10 +19,12 @@ Design decisions documented:
 """
 
 import pytest
+from pydantic import ValidationError
 
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
+
 from .factories import KnowledgeServiceQueryFactory
 
 
@@ -137,7 +139,7 @@ class TestKnowledgeServiceQueryInstantiation:
             assert query.prompt == prompt.strip()
         else:
             # Should raise validation error
-            with pytest.raises(Exception):  # Could be ValueError or ValidationError
+            with pytest.raises((ValueError, ValidationError)):
                 KnowledgeServiceQuery(
                     query_id=query_id,
                     name=name,

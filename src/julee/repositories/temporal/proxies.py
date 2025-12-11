@@ -11,12 +11,14 @@ workflow.execute_activity() with the appropriate activity names, timeouts,
 and retry policies.
 """
 
-from julee.util.temporal.decorators import temporal_workflow_proxy
 from julee.domain.repositories.assembly import AssemblyRepository
 from julee.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 from julee.domain.repositories.document import DocumentRepository
+from julee.domain.repositories.document_policy_validation import (
+    DocumentPolicyValidationRepository,
+)
 from julee.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
@@ -24,20 +26,18 @@ from julee.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 from julee.domain.repositories.policy import PolicyRepository
-from julee.domain.repositories.document_policy_validation import (
-    DocumentPolicyValidationRepository,
-)
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
     ASSEMBLY_ACTIVITY_BASE,
     ASSEMBLY_SPECIFICATION_ACTIVITY_BASE,
     DOCUMENT_ACTIVITY_BASE,
+    DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE,
     KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE,
     KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE,
     POLICY_ACTIVITY_BASE,
-    DOCUMENT_POLICY_VALIDATION_ACTIVITY_BASE,
 )
+from julee.util.temporal.decorators import temporal_workflow_proxy
 
 
 @temporal_workflow_proxy(
