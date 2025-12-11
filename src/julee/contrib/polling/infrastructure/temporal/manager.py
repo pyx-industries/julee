@@ -1,0 +1,248 @@
+"""
+PollingManager for high-level HTTP endpoint polling operations.
+
+This module provides a simple, framework-agnostic API for managing
+HTTP endpoint polling with automatic change detection and pipeline
+triggering. It abstracts away the underlying Temporal scheduling
+implementation.
+"""
+
+from datetime import timedelta
+from typing import Any
+
+from temporalio.client import (
+    Client,
+    Schedule,
+    ScheduleActionStartWorkflow,
+    ScheduleIntervalSpec,
+    ScheduleSpec,
+)
+
+from julee.contrib.polling.domain.models.polling_config import PollingConfig
+
+
+class PollingManager:
+    """
+    High-level manager for HTTP endpoint polling operations.
+
+    This class provides a simple API for starting and stopping polling
+    operations using Temporal schedules for reliable execution. Users
+    must provide a Temporal client during initialization, following the
+    same pattern as other Julee infrastructure components.
+
+    The manager handles:
+    - Creating and managing Temporal schedules for polling
+    - Tracking active polling operations
+    - Providing status and control operations (pause/resume/stop)
+    """
+
+    def __init__(self, temporal_client: Client | None = None) -> None:
+        """
+        Initialize the polling manager.
+
+        Args:
+            temporal_client: Temporal client for schedule management.
+                           Typically created at application startup level
+                           (worker, API) and passed to the manager.
+        """
+        self._temporal_client = temporal_client
+        self._active_polls: dict[str, dict[str, Any]] = {}
+
+    async def start_polling(
+        self,
+        endpoint_id: str,
+        config: PollingConfig,
+        interval_seconds: int,
+        downstream_pipeline: str | None = None,
+    ) -> str:
+        """
+        Start polling an HTTP endpoint at regular intervals.
+
+        Args:
+            endpoint_id: Unique identifier for this polling operation
+            config: Configuration for the polling operation
+            interval_seconds: How often to poll (in seconds)
+            downstream_pipeline: Optional pipeline to trigger when new data detected
+
+        Returns:
+            Schedule ID that was created
+
+        Raises:
+            ValueError: If endpoint_id is already being polled
+            RuntimeError: If Temporal client is not available
+        """
+        if endpoint_id in self._active_polls:
+            raise ValueError(f"Endpoint {endpoint_id} is already being polled")
+
+        if self._temporal_client is None:
+            raise RuntimeError("Temporal client not available")
+
+        schedule_id = f"poll-{endpoint_id}"
+
+        schedule = Schedule(
+            action=ScheduleActionStartWorkflow(
+                "NewDataDetectionPipeline",
+                args=[config, downstream_pipeline],
+                id=f"{schedule_id}-{{.timestamp}}",
+                task_queue="julee-polling-queue",
+            ),
+            spec=ScheduleSpec(
+                intervals=[
+                    ScheduleIntervalSpec(every=timedelta(seconds=interval_seconds))
+                ]
+            ),
+        )
+
+        await self._temporal_client.create_schedule(id=schedule_id, schedule=schedule)
+
+        # Track the active polling operation
+        self._active_polls[endpoint_id] = {
+            "schedule_id": schedule_id,
+            "config": config,
+            "interval_seconds": interval_seconds,
+            "downstream_pipeline": downstream_pipeline,
+        }
+
+        return schedule_id
+
+    async def stop_polling(self, endpoint_id: str) -> bool:
+        """
+        Stop polling an endpoint.
+
+        Args:
+            endpoint_id: The endpoint ID to stop polling
+
+        Returns:
+            True if polling was stopped, False if not found
+
+        Raises:
+            RuntimeError: If Temporal client is not available
+        """
+        if endpoint_id not in self._active_polls:
+            return False
+
+        if self._temporal_client is None:
+            raise RuntimeError("Temporal client not available")
+
+        poll_info = self._active_polls[endpoint_id]
+        schedule_id = poll_info["schedule_id"]
+
+        # Delete the Temporal schedule
+        schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+        await schedule_handle.delete()
+
+        # Remove from tracking
+        del self._active_polls[endpoint_id]
+
+        return True
+
+    async def list_active_polling(self) -> list[dict[str, Any]]:
+        """
+        List all active polling operations.
+
+        Returns:
+            List of dictionaries containing polling operation details
+        """
+        active_polls = []
+
+        for endpoint_id, poll_info in self._active_polls.items():
+            active_polls.append(
+                {
+                    "endpoint_id": endpoint_id,
+                    "schedule_id": poll_info["schedule_id"],
+                    "interval_seconds": poll_info["interval_seconds"],
+                    "endpoint_identifier": poll_info["config"].endpoint_identifier,
+                    "polling_protocol": poll_info["config"].polling_protocol.value,
+                    "downstream_pipeline": poll_info.get("downstream_pipeline"),
+                }
+            )
+
+        return active_polls
+
+    async def get_polling_status(self, endpoint_id: str) -> dict[str, Any] | None:
+        """
+        Get the status of a specific polling operation.
+
+        Args:
+            endpoint_id: The endpoint ID to check
+
+        Returns:
+            Dictionary with status information or None if not found
+
+        Raises:
+            RuntimeError: If Temporal client is not available
+        """
+        if endpoint_id not in self._active_polls:
+            return None
+
+        if self._temporal_client is None:
+            raise RuntimeError("Temporal client not available")
+
+        poll_info = self._active_polls[endpoint_id]
+        schedule_id = poll_info["schedule_id"]
+
+        # Get schedule information from Temporal
+        schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+        schedule_description = await schedule_handle.describe()
+
+        return {
+            "endpoint_id": endpoint_id,
+            "schedule_id": schedule_id,
+            "interval_seconds": poll_info["interval_seconds"],
+            "is_paused": schedule_description.schedule.state.paused,
+            "downstream_pipeline": poll_info.get("downstream_pipeline"),
+        }
+
+    async def pause_polling(self, endpoint_id: str) -> bool:
+        """
+        Pause polling for an endpoint (without deleting the schedule).
+
+        Args:
+            endpoint_id: The endpoint ID to pause
+
+        Returns:
+            True if paused successfully, False if not found
+
+        Raises:
+            RuntimeError: If Temporal client is not available
+        """
+        if endpoint_id not in self._active_polls:
+            return False
+
+        if self._temporal_client is None:
+            raise RuntimeError("Temporal client not available")
+
+        poll_info = self._active_polls[endpoint_id]
+        schedule_id = poll_info["schedule_id"]
+
+        schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+        await schedule_handle.pause()
+
+        return True
+
+    async def resume_polling(self, endpoint_id: str) -> bool:
+        """
+        Resume a paused polling operation.
+
+        Args:
+            endpoint_id: The endpoint ID to resume
+
+        Returns:
+            True if resumed successfully, False if not found
+
+        Raises:
+            RuntimeError: If Temporal client is not available
+        """
+        if endpoint_id not in self._active_polls:
+            return False
+
+        if self._temporal_client is None:
+            raise RuntimeError("Temporal client not available")
+
+        poll_info = self._active_polls[endpoint_id]
+        schedule_id = poll_info["schedule_id"]
+
+        schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+        await schedule_handle.unpause()
+
+        return True
