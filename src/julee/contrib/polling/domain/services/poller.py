@@ -10,7 +10,7 @@ mechanisms and are created via factory functions.
 
 from typing import Protocol, runtime_checkable
 
-from ..models import PollingConfig, PollingResult
+from ..models.polling_config import PollingConfig, PollingResult
 
 
 @runtime_checkable

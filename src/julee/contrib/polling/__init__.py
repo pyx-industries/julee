@@ -12,8 +12,10 @@ The polling module includes:
 - Co-located tests and examples
 
 Example usage:
-    from julee.contrib.polling import PollingConfig, HttpPollerService
-    from julee.contrib.polling import PollingProtocol, PollingResult
+    from julee.contrib.polling.domain.models.polling_config import PollingConfig, PollingProtocol
+    from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService
+    from julee.contrib.polling.domain.services.poller import PollerService
+    from julee.contrib.polling.domain.models.polling_config import PollingResult
 
     # Configure polling
     config = PollingConfig(
@@ -26,22 +28,23 @@ Example usage:
     # Poll the endpoint
     service = HttpPollerService()
     result = await service.poll_endpoint(config)
+
+Note: All imports must be explicit to avoid import chains that can pull
+non-deterministic code into Temporal workflows. Import directly from
+the specific modules you need rather than using this convenience module.
 """
 
-from .domain import PollerService, PollingConfig, PollingProtocol, PollingResult
-from .infrastructure import HttpPollerService, TemporalPollerService
-from .infrastructure.temporal import WorkflowPollerServiceProxy
+# No re-exports to avoid import chains that pull non-deterministic code
+# into Temporal workflows. Import from specific submodules instead:
+#
+# Domain:
+# - from julee.contrib.polling.domain.models.polling_config import PollingConfig, PollingProtocol, PollingResult
+# - from julee.contrib.polling.domain.services.poller import PollerService
+#
+# Infrastructure:
+# - from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService
+# - from julee.contrib.polling.infrastructure.temporal.manager import PollingManager
+# - from julee.contrib.polling.infrastructure.temporal.proxies import WorkflowPollerServiceProxy
+# - from julee.contrib.polling.infrastructure.temporal.activities import TemporalPollerService
 
-__all__ = [
-    # Domain models
-    "PollingConfig",
-    "PollingProtocol",
-    "PollingResult",
-    # Domain services
-    "PollerService",
-    # Infrastructure implementations
-    "HttpPollerService",
-    # Temporal integration
-    "TemporalPollerService",
-    "WorkflowPollerServiceProxy",
-]
+__all__ = []
