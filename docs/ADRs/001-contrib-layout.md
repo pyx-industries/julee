@@ -80,7 +80,9 @@ src/julee/contrib/
 │   │
 │   ├── deploy/                           # Deployment artifacts (optional)
 │   │   ├── docker/
-│   │   │   ├── docker-compose.yml        # Single file with profiles
+│   │   │   ├── docker-compose.yml        # Base/production configuration
+│   │   │   ├── docker-compose.dev.yaml   # Development overrides
+│   │   │   ├── docker-compose.test.yaml  # Test environment overrides
 │   │   │   ├── Dockerfile.api
 │   │   │   └── Dockerfile.worker
 │   │   └── ansible/                      # Infrastructure as Code (optional)
@@ -193,23 +195,27 @@ app.include_router(ceap_router, prefix="/ceap")
 
 The optional `deploy/` directory enables a contrib module to run as a standalone service:
 
-- **`deploy/docker/`**: Docker Compose configuration with profiles
+- **`deploy/docker/`**: Docker Compose configuration with environment-specific overrides
 - **`deploy/ansible/`**: Infrastructure as Code for production deployment
 
-**Docker Compose Profiles**:
+**Docker Compose with Override Files**:
+
+Use separate compose files for different environments rather than profiles. Profiles are better suited for selecting *which services* to run, not *how* to run them.
 
 ```bash
-# Run the contrib module standalone with infrastructure
-docker compose --profile dev up
-
-# Just infrastructure for local development
-docker compose --profile infra up
+# Development environment
+docker compose -f docker-compose.yml -f docker-compose.dev.yaml up
 
 # Test environment
-docker compose --profile test up
+docker compose -f docker-compose.yml -f docker-compose.test.yaml up
+
+# Production (base file only)
+docker compose up
 ```
 
-When a contrib module is imported into a larger solution, the solution provides its own deployment configuration. The contrib module's `deploy/` directory is for standalone operation or reference.
+When a contrib module is imported into a larger solution, the solution provides its own deployment configuration. The solution's compose file can use **profiles** to selectively enable/disable contrib module services.
+
+The contrib module's `deploy/` directory is for standalone operation or reference.
 
 ### Optional Components
 
