@@ -19,17 +19,20 @@ Provides directives:
 
 import ast
 import os
-import re
 from pathlib import Path
+
 from docutils import nodes
 from docutils.parsers.rst import directives
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 from .config import get_config
 from .utils import (
-    normalize_name, slugify, kebab_to_snake, path_to_root,
-    parse_list_option, parse_integration_options
+    kebab_to_snake,
+    normalize_name,
+    parse_integration_options,
+    parse_list_option,
+    path_to_root,
 )
 
 logger = logging.getLogger(__name__)
@@ -40,14 +43,14 @@ _code_registry: dict = {}
 
 def get_accelerator_registry(env):
     """Get the accelerator registry from env, creating if needed."""
-    if not hasattr(env, 'accelerator_registry'):
+    if not hasattr(env, "accelerator_registry"):
         env.accelerator_registry = {}
     return env.accelerator_registry
 
 
 def get_documented_accelerators(env):
     """Get the set of documented accelerators from env, creating if needed."""
-    if not hasattr(env, 'documented_accelerators'):
+    if not hasattr(env, "documented_accelerators"):
         env.documented_accelerators = set()
     return env.documented_accelerators
 
@@ -69,16 +72,18 @@ def scan_python_classes(directory: Path) -> list[dict]:
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     docstring = ast.get_docstring(node) or ""
-                    first_line = docstring.split('\n')[0].strip() if docstring else ""
-                    classes.append({
-                        'name': node.name,
-                        'docstring': first_line,
-                        'file': py_file.name,
-                    })
+                    first_line = docstring.split("\n")[0].strip() if docstring else ""
+                    classes.append(
+                        {
+                            "name": node.name,
+                            "docstring": first_line,
+                            "file": py_file.name,
+                        }
+                    )
         except Exception as e:
             logger.warning(f"Could not parse {py_file}: {e}")
 
-    return sorted(classes, key=lambda c: c['name'])
+    return sorted(classes, key=lambda c: c["name"])
 
 
 def get_module_docstring(module_path: Path) -> tuple[str | None, str | None]:
@@ -91,7 +96,7 @@ def get_module_docstring(module_path: Path) -> tuple[str | None, str | None]:
             tree = ast.parse(f.read(), filename=str(module_path))
         docstring = ast.get_docstring(tree)
         if docstring:
-            first_line = docstring.split('\n')[0].strip()
+            first_line = docstring.split("\n")[0].strip()
             return first_line, docstring
     except Exception as e:
         logger.warning(f"Could not parse {module_path}: {e}")
@@ -103,7 +108,7 @@ def scan_bounded_context(slug: str, project_root: Path) -> dict | None:
     """Introspect src/{slug}/ for ADR 001-compliant code structure."""
     snake_slug = kebab_to_snake(slug)
     config = get_config()
-    src_dir = config.get_path('bounded_contexts')
+    src_dir = config.get_path("bounded_contexts")
     context_dir = src_dir / snake_slug
 
     if not context_dir.exists() and snake_slug != slug:
@@ -117,14 +122,16 @@ def scan_bounded_context(slug: str, project_root: Path) -> dict | None:
     objective, full_docstring = get_module_docstring(init_file)
 
     return {
-        'entities': scan_python_classes(context_dir / "domain" / "models"),
-        'use_cases': scan_python_classes(context_dir / "use_cases"),
-        'repository_protocols': scan_python_classes(context_dir / "domain" / "repositories"),
-        'service_protocols': scan_python_classes(context_dir / "domain" / "services"),
-        'has_infrastructure': (context_dir / "infrastructure").exists(),
-        'code_dir': context_dir.name,
-        'objective': objective,
-        'docstring': full_docstring,
+        "entities": scan_python_classes(context_dir / "domain" / "models"),
+        "use_cases": scan_python_classes(context_dir / "use_cases"),
+        "repository_protocols": scan_python_classes(
+            context_dir / "domain" / "repositories"
+        ),
+        "service_protocols": scan_python_classes(context_dir / "domain" / "services"),
+        "has_infrastructure": (context_dir / "infrastructure").exists(),
+        "code_dir": context_dir.name,
+        "objective": objective,
+        "docstring": full_docstring,
     }
 
 
@@ -134,7 +141,7 @@ def scan_code_structure(app):
     _code_registry = {}
 
     config = get_config()
-    src_dir = config.get_path('bounded_contexts')
+    src_dir = config.get_path("bounded_contexts")
 
     if not src_dir.exists():
         logger.info("src/ directory not found - no code to introspect yet")
@@ -150,19 +157,22 @@ def scan_code_structure(app):
         code_info = scan_bounded_context(slug, config.project_root)
         if code_info:
             _code_registry[slug] = code_info
-            logger.info(f"Introspected bounded context '{slug}': "
-                       f"{len(code_info['entities'])} entities, "
-                       f"{len(code_info['use_cases'])} use cases")
+            logger.info(
+                f"Introspected bounded context '{slug}': "
+                f"{len(code_info['entities'])} entities, "
+                f"{len(code_info['use_cases'])} use cases"
+            )
 
 
 def get_apps_for_accelerator(accelerator_slug: str) -> list[str]:
     """Get apps that expose this accelerator (from app manifests)."""
     from . import apps
+
     _app_registry = apps.get_app_registry()
 
     result = []
     for app_slug, app_data in _app_registry.items():
-        if accelerator_slug in app_data.get('accelerators', []):
+        if accelerator_slug in app_data.get("accelerators", []):
             result.append(app_slug)
     return sorted(result)
 
@@ -170,13 +180,14 @@ def get_apps_for_accelerator(accelerator_slug: str) -> list[str]:
 def get_stories_for_accelerator(accelerator_slug: str) -> list[dict]:
     """Get stories for apps that use this accelerator."""
     from . import stories
+
     _story_registry = stories.get_story_registry()
 
     app_slugs = get_apps_for_accelerator(accelerator_slug)
     result = []
 
     for story in _story_registry:
-        if story['app'] in app_slugs:
+        if story["app"] in app_slugs:
             result.append(story)
 
     return result
@@ -185,16 +196,17 @@ def get_stories_for_accelerator(accelerator_slug: str) -> list[dict]:
 def get_journeys_for_accelerator(accelerator_slug: str, env) -> list[str]:
     """Get journeys that include stories from this accelerator's apps."""
     from . import journeys
+
     journey_registry = journeys.get_journey_registry(env)
 
     story_list = get_stories_for_accelerator(accelerator_slug)
-    story_titles = {normalize_name(s['feature']) for s in story_list}
+    story_titles = {normalize_name(s["feature"]) for s in story_list}
 
     result = []
     for slug, journey in journey_registry.items():
-        for step in journey.get('steps', []):
-            if step.get('type') == 'story':
-                if normalize_name(step['ref']) in story_titles:
+        for step in journey.get("steps", []):
+            if step.get("type") == "story":
+                if normalize_name(step["ref"]) in story_titles:
                     result.append(slug)
                     break
 
@@ -220,13 +232,13 @@ class DefineAcceleratorDirective(SphinxDirective):
     required_arguments = 1
     has_content = True
     option_spec = {
-        'status': directives.unchanged,
-        'milestone': directives.unchanged,
-        'acceptance': directives.unchanged,
-        'sources_from': directives.unchanged,
-        'feeds_into': directives.unchanged,
-        'publishes_to': directives.unchanged,
-        'depends_on': directives.unchanged,
+        "status": directives.unchanged,
+        "milestone": directives.unchanged,
+        "acceptance": directives.unchanged,
+        "sources_from": directives.unchanged,
+        "feeds_into": directives.unchanged,
+        "publishes_to": directives.unchanged,
+        "depends_on": directives.unchanged,
     }
 
     def run(self):
@@ -234,31 +246,31 @@ class DefineAcceleratorDirective(SphinxDirective):
 
         get_documented_accelerators(self.env).add(slug)
 
-        status = self.options.get('status', '').strip()
-        milestone = self.options.get('milestone', '').strip()
-        acceptance = self.options.get('acceptance', '').strip()
-        sources_from = parse_integration_options(self.options.get('sources_from', ''))
-        feeds_into = parse_list_option(self.options.get('feeds_into', ''))
-        publishes_to = parse_integration_options(self.options.get('publishes_to', ''))
-        depends_on = parse_list_option(self.options.get('depends_on', ''))
+        status = self.options.get("status", "").strip()
+        milestone = self.options.get("milestone", "").strip()
+        acceptance = self.options.get("acceptance", "").strip()
+        sources_from = parse_integration_options(self.options.get("sources_from", ""))
+        feeds_into = parse_list_option(self.options.get("feeds_into", ""))
+        publishes_to = parse_integration_options(self.options.get("publishes_to", ""))
+        depends_on = parse_list_option(self.options.get("depends_on", ""))
 
-        objective = '\n'.join(self.content).strip()
+        objective = "\n".join(self.content).strip()
 
         get_accelerator_registry(self.env)[slug] = {
-            'slug': slug,
-            'status': status,
-            'milestone': milestone,
-            'acceptance': acceptance,
-            'objective': objective,
-            'sources_from': sources_from,
-            'feeds_into': feeds_into,
-            'publishes_to': publishes_to,
-            'depends_on': depends_on,
-            'docname': self.env.docname,
+            "slug": slug,
+            "status": status,
+            "milestone": milestone,
+            "acceptance": acceptance,
+            "objective": objective,
+            "sources_from": sources_from,
+            "feeds_into": feeds_into,
+            "publishes_to": publishes_to,
+            "depends_on": depends_on,
+            "docname": self.env.docname,
         }
 
         node = DefineAcceleratorPlaceholder()
-        node['accelerator_slug'] = slug
+        node["accelerator_slug"] = slug
         return [node]
 
 
@@ -285,7 +297,7 @@ class AcceleratorStatusDirective(SphinxDirective):
 
     def run(self):
         node = AcceleratorStatusPlaceholder()
-        node['accelerator_slug'] = self.arguments[0]
+        node["accelerator_slug"] = self.arguments[0]
         return [node]
 
 
@@ -300,7 +312,7 @@ class AcceleratorsForAppDirective(SphinxDirective):
 
     def run(self):
         node = AcceleratorsForAppPlaceholder()
-        node['app_slug'] = self.arguments[0]
+        node["app_slug"] = self.arguments[0]
         return [node]
 
 
@@ -312,12 +324,12 @@ class DependentAcceleratorsDirective(SphinxDirective):
     """List accelerators that depend on or publish to an integration."""
 
     option_spec = {
-        'relationship': directives.unchanged_required,
+        "relationship": directives.unchanged_required,
     }
 
     def run(self):
-        relationship = self.options.get('relationship', '').strip()
-        if relationship not in ('sources_from', 'publishes_to'):
+        relationship = self.options.get("relationship", "").strip()
+        if relationship not in ("sources_from", "publishes_to"):
             error = self.state_machine.reporter.error(
                 f"Invalid relationship '{relationship}'. "
                 f"Must be 'sources_from' or 'publishes_to'.",
@@ -326,11 +338,11 @@ class DependentAcceleratorsDirective(SphinxDirective):
             return [error]
 
         docname = self.env.docname
-        integration_slug = docname.split('/')[-1]
+        integration_slug = docname.split("/")[-1]
 
         node = DependentAcceleratorsPlaceholder()
-        node['integration_slug'] = integration_slug
-        node['relationship'] = relationship
+        node["integration_slug"] = integration_slug
+        node["relationship"] = relationship
         return [node]
 
 
@@ -345,7 +357,7 @@ class AcceleratorDependencyDiagramDirective(SphinxDirective):
 
     def run(self):
         node = AcceleratorDependencyDiagramPlaceholder()
-        node['accelerator_slug'] = self.arguments[0]
+        node["accelerator_slug"] = self.arguments[0]
         return [node]
 
 
@@ -360,7 +372,7 @@ class SrcAcceleratorBacklinksDirective(SphinxDirective):
 
     def run(self):
         node = SrcAcceleratorBacklinksPlaceholder()
-        node['accelerator_slug'] = self.arguments[0]
+        node["accelerator_slug"] = self.arguments[0]
         return [node]
 
 
@@ -375,7 +387,7 @@ class SrcAppBacklinksDirective(SphinxDirective):
 
     def run(self):
         node = SrcAppBacklinksPlaceholder()
-        node['app_slug'] = self.arguments[0]
+        node["app_slug"] = self.arguments[0]
         return [node]
 
 
@@ -395,22 +407,22 @@ def build_accelerator_status(slug: str, env) -> list:
     accel = accelerator_registry[slug]
     result_nodes = []
 
-    if accel['status'] or accel['milestone']:
+    if accel["status"] or accel["milestone"]:
         status_para = nodes.paragraph()
-        if accel['status']:
+        if accel["status"]:
             status_para += nodes.strong(text="Status: ")
-            status_para += nodes.Text(accel['status'].title())
-        if accel['status'] and accel['milestone']:
+            status_para += nodes.Text(accel["status"].title())
+        if accel["status"] and accel["milestone"]:
             status_para += nodes.Text(" | ")
-        if accel['milestone']:
+        if accel["milestone"]:
             status_para += nodes.strong(text="Milestone: ")
-            status_para += nodes.Text(accel['milestone'])
+            status_para += nodes.Text(accel["milestone"])
         result_nodes.append(status_para)
 
-    if accel['acceptance']:
+    if accel["acceptance"]:
         accept_para = nodes.paragraph()
         accept_para += nodes.strong(text="Acceptance: ")
-        accept_para += nodes.Text(accel['acceptance'])
+        accept_para += nodes.Text(accel["acceptance"])
         result_nodes.append(accept_para)
 
     return result_nodes
@@ -437,10 +449,10 @@ def build_accelerator_content(slug: str, docname: str, env) -> list:
     code_info = _code_registry.get(slug) or _code_registry.get(snake_slug)
 
     objective = None
-    if code_info and code_info.get('objective'):
-        objective = code_info['objective']
-    elif accel['objective']:
-        objective = accel['objective']
+    if code_info and code_info.get("objective"):
+        objective = code_info["objective"]
+    elif accel["objective"]:
+        objective = accel["objective"]
 
     if objective:
         obj_para = nodes.paragraph()
@@ -450,11 +462,22 @@ def build_accelerator_content(slug: str, docname: str, env) -> list:
     seealso_items = []
 
     if code_info:
-        code_dir = code_info.get('code_dir', snake_slug)
+        code_dir = code_info.get("code_dir", snake_slug)
         autodoc_path = f"{prefix}source/_autosummary/rba.{code_dir}.html"
-        seealso_items.append(('Source', [(autodoc_path, f"rba.{code_dir}", True)]))
+        seealso_items.append(("Source", [(autodoc_path, f"rba.{code_dir}", True)]))
     else:
-        seealso_items.append(('Source', [(None, f"No implementation yet — expecting code at src/{snake_slug}/", False)]))
+        seealso_items.append(
+            (
+                "Source",
+                [
+                    (
+                        None,
+                        f"No implementation yet — expecting code at src/{snake_slug}/",
+                        False,
+                    )
+                ],
+            )
+        )
 
     apps = get_apps_for_accelerator(slug)
     if apps:
@@ -462,51 +485,71 @@ def build_accelerator_content(slug: str, docname: str, env) -> list:
         for app_slug in apps:
             app_path = f"{prefix}{config.get_doc_path('applications')}/{app_slug}.html"
             app_links.append((app_path, app_slug.replace("-", " ").title(), False))
-        seealso_items.append(('Exposed By', app_links))
+        seealso_items.append(("Exposed By", app_links))
 
     journeys = get_journeys_for_accelerator(slug, env)
     if journeys:
         journey_links = []
         for journey_slug in journeys:
-            journey_path = f"{prefix}{config.get_doc_path('journeys')}/{journey_slug}.html"
-            journey_links.append((journey_path, journey_slug.replace("-", " ").title(), False))
-        seealso_items.append(('Journeys', journey_links))
+            journey_path = (
+                f"{prefix}{config.get_doc_path('journeys')}/{journey_slug}.html"
+            )
+            journey_links.append(
+                (journey_path, journey_slug.replace("-", " ").title(), False)
+            )
+        seealso_items.append(("Journeys", journey_links))
 
-    if accel['depends_on']:
+    if accel["depends_on"]:
         accel_links = []
-        for dep_slug in accel['depends_on']:
+        for dep_slug in accel["depends_on"]:
             if dep_slug in accelerator_registry:
-                accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html"
-                accel_links.append((accel_path, dep_slug.replace("-", " ").title(), False))
+                accel_path = (
+                    f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html"
+                )
+                accel_links.append(
+                    (accel_path, dep_slug.replace("-", " ").title(), False)
+                )
             else:
-                accel_links.append((None, f"{dep_slug.replace('-', ' ').title()} [not found]", False))
-        seealso_items.append(('Depends On', accel_links))
+                accel_links.append(
+                    (None, f"{dep_slug.replace('-', ' ').title()} [not found]", False)
+                )
+        seealso_items.append(("Depends On", accel_links))
 
-    if accel['feeds_into']:
+    if accel["feeds_into"]:
         accel_links = []
-        for feed_slug in accel['feeds_into']:
+        for feed_slug in accel["feeds_into"]:
             if feed_slug in accelerator_registry:
-                accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{feed_slug}.html"
-                accel_links.append((accel_path, feed_slug.replace("-", " ").title(), False))
+                accel_path = (
+                    f"{prefix}{config.get_doc_path('accelerators')}/{feed_slug}.html"
+                )
+                accel_links.append(
+                    (accel_path, feed_slug.replace("-", " ").title(), False)
+                )
             else:
-                accel_links.append((None, f"{feed_slug.replace('-', ' ').title()} [not found]", False))
-        seealso_items.append(('Feeds Into', accel_links))
+                accel_links.append(
+                    (None, f"{feed_slug.replace('-', ' ').title()} [not found]", False)
+                )
+        seealso_items.append(("Feeds Into", accel_links))
 
-    if accel['sources_from']:
+    if accel["sources_from"]:
         int_links = []
-        for source in accel['sources_from']:
-            int_path = f"{prefix}{config.get_doc_path('integrations')}/{source['slug']}.html"
-            label = source['slug'].replace("-", " ").title()
+        for source in accel["sources_from"]:
+            int_path = (
+                f"{prefix}{config.get_doc_path('integrations')}/{source['slug']}.html"
+            )
+            label = source["slug"].replace("-", " ").title()
             int_links.append((int_path, label, False))
-        seealso_items.append(('Sources From', int_links))
+        seealso_items.append(("Sources From", int_links))
 
-    if accel['publishes_to']:
+    if accel["publishes_to"]:
         int_links = []
-        for target in accel['publishes_to']:
-            int_path = f"{prefix}{config.get_doc_path('integrations')}/{target['slug']}.html"
-            label = target['slug'].replace("-", " ").title()
+        for target in accel["publishes_to"]:
+            int_path = (
+                f"{prefix}{config.get_doc_path('integrations')}/{target['slug']}.html"
+            )
+            label = target["slug"].replace("-", " ").title()
             int_links.append((int_path, label, False))
-        seealso_items.append(('Publishes To', int_links))
+        seealso_items.append(("Publishes To", int_links))
 
     if seealso_items:
         seealso_node = seealso()
@@ -548,21 +591,21 @@ def build_accelerator_index(docname: str, env) -> list:
         para += nodes.emphasis(text="No accelerators defined")
         return [para]
 
-    by_status = {'alpha': [], 'future': [], 'production': [], 'other': []}
+    by_status = {"alpha": [], "future": [], "production": [], "other": []}
     for slug, accel in accelerator_registry.items():
-        status = accel.get('status', '').lower()
+        status = accel.get("status", "").lower()
         if status in by_status:
             by_status[status].append((slug, accel))
         else:
-            by_status['other'].append((slug, accel))
+            by_status["other"].append((slug, accel))
 
     result_nodes = []
 
     status_sections = [
-        ('alpha', 'Alpha Phase'),
-        ('production', 'Production'),
-        ('future', 'Future'),
-        ('other', 'Other'),
+        ("alpha", "Alpha Phase"),
+        ("production", "Production"),
+        ("future", "Future"),
+        ("other", "Other"),
     ]
 
     for status_key, status_label in status_sections:
@@ -585,7 +628,7 @@ def build_accelerator_index(docname: str, env) -> list:
             ref += nodes.Text(slug.replace("-", " ").title())
             para += ref
 
-            if accel.get('milestone'):
+            if accel.get("milestone"):
                 para += nodes.Text(f" — {accel['milestone']}")
 
             if slug in _code_registry:
@@ -593,9 +636,9 @@ def build_accelerator_index(docname: str, env) -> list:
 
             item += para
 
-            if accel.get('objective'):
+            if accel.get("objective"):
                 obj_para = nodes.paragraph()
-                obj_text = accel['objective']
+                obj_text = accel["objective"]
                 if len(obj_text) > 100:
                     obj_text = obj_text[:100] + "..."
                 obj_para += nodes.Text(obj_text)
@@ -625,7 +668,7 @@ def build_accelerators_for_app(app_slug: str, docname: str, env) -> list:
         para += nodes.emphasis(text=f"App '{app_slug}' not found")
         return [para]
 
-    accel_slugs = app_data.get('accelerators', [])
+    accel_slugs = app_data.get("accelerators", [])
     if not accel_slugs:
         para = nodes.paragraph()
         para += nodes.emphasis(text="No accelerators")
@@ -643,7 +686,7 @@ def build_accelerators_for_app(app_slug: str, docname: str, env) -> list:
         para += ref
 
         if slug in accelerator_registry:
-            objective = accelerator_registry[slug].get('objective', '')
+            objective = accelerator_registry[slug].get("objective", "")
             if objective:
                 para += nodes.Text(f" — {objective[:60]}...")
 
@@ -653,7 +696,9 @@ def build_accelerators_for_app(app_slug: str, docname: str, env) -> list:
     return [bullet_list]
 
 
-def build_dependent_accelerators(integration_slug: str, relationship: str, docname: str, env) -> list:
+def build_dependent_accelerators(
+    integration_slug: str, relationship: str, docname: str, env
+) -> list:
     """Build table of accelerators that depend on or publish to an integration."""
     config = get_config()
     accelerator_registry = get_accelerator_registry(env)
@@ -664,11 +709,13 @@ def build_dependent_accelerators(integration_slug: str, relationship: str, docna
     for accel_slug, accel in accelerator_registry.items():
         rel_list = accel.get(relationship, [])
         for rel in rel_list:
-            if rel['slug'] == integration_slug:
-                matches.append({
-                    'slug': accel_slug,
-                    'description': rel.get('description'),
-                })
+            if rel["slug"] == integration_slug:
+                matches.append(
+                    {
+                        "slug": accel_slug,
+                        "description": rel.get("description"),
+                    }
+                )
                 break
 
     if not matches:
@@ -693,7 +740,7 @@ def build_dependent_accelerators(integration_slug: str, relationship: str, docna
     header_row += accel_header
 
     data_header = nodes.entry()
-    if relationship == 'sources_from':
+    if relationship == "sources_from":
         data_header += nodes.paragraph(text="What it sources")
     else:
         data_header += nodes.paragraph(text="What it publishes")
@@ -702,23 +749,25 @@ def build_dependent_accelerators(integration_slug: str, relationship: str, docna
     tbody = nodes.tbody()
     tgroup += tbody
 
-    for match in sorted(matches, key=lambda m: m['slug']):
+    for match in sorted(matches, key=lambda m: m["slug"]):
         row = nodes.row()
         tbody += row
 
         accel_cell = nodes.entry()
         accel_para = nodes.paragraph()
-        accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{match['slug']}.html"
+        accel_path = (
+            f"{prefix}{config.get_doc_path('accelerators')}/{match['slug']}.html"
+        )
         ref = nodes.reference("", "", refuri=accel_path)
-        ref += nodes.strong(text=match['slug'].replace("-", " ").title())
+        ref += nodes.strong(text=match["slug"].replace("-", " ").title())
         accel_para += ref
         accel_cell += accel_para
         row += accel_cell
 
         desc_cell = nodes.entry()
         desc_para = nodes.paragraph()
-        if match['description']:
-            desc_para += nodes.Text(match['description'])
+        if match["description"]:
+            desc_para += nodes.Text(match["description"])
         else:
             desc_para += nodes.emphasis(text="(not specified)")
         desc_cell += desc_para
@@ -740,8 +789,8 @@ def build_accelerator_dependency_diagram(slug: str, docname: str, env) -> list:
 
     accel = accelerator_registry[slug]
     apps = get_apps_for_accelerator(slug)
-    sources_from = accel.get('sources_from', [])
-    publishes_to = accel.get('publishes_to', [])
+    sources_from = accel.get("sources_from", [])
+    publishes_to = accel.get("publishes_to", [])
 
     lines = [
         "@startuml",
@@ -779,17 +828,19 @@ def build_accelerator_dependency_diagram(slug: str, docname: str, env) -> list:
         lines.append("' Integration dependencies")
 
         for source in sources_from:
-            source_slug = source['slug']
+            source_slug = source["slug"]
             source_id = safe_id(source_slug)
             source_name = source_slug.replace("-", " ").title()
             lines.append(f'component "{source_name}" as {source_id} <<integration>>')
 
         for target in publishes_to:
-            target_slug = target['slug']
+            target_slug = target["slug"]
             target_id = safe_id(target_slug)
-            if not any(s['slug'] == target_slug for s in sources_from):
+            if not any(s["slug"] == target_slug for s in sources_from):
                 target_name = target_slug.replace("-", " ").title()
-                lines.append(f'component "{target_name}" as {target_id} <<integration>>')
+                lines.append(
+                    f'component "{target_name}" as {target_id} <<integration>>'
+                )
 
         lines.append("")
 
@@ -800,20 +851,20 @@ def build_accelerator_dependency_diagram(slug: str, docname: str, env) -> list:
         lines.append(f"{app_id} --> {accel_id} : exposes")
 
     for source in sources_from:
-        source_id = safe_id(source['slug'])
+        source_id = safe_id(source["slug"])
         label = "sources from"
-        if source.get('description'):
-            desc = source['description']
+        if source.get("description"):
+            desc = source["description"]
             if len(desc) > 30:
                 desc = desc[:27] + "..."
             label = desc
         lines.append(f'{accel_id} --> {source_id} : "{label}"')
 
     for target in publishes_to:
-        target_id = safe_id(target['slug'])
+        target_id = safe_id(target["slug"])
         label = "publishes to"
-        if target.get('description'):
-            desc = target['description']
+        if target.get("description"):
+            desc = target["description"]
             if len(desc) > 30:
                 desc = desc[:27] + "..."
             label = desc
@@ -825,9 +876,9 @@ def build_accelerator_dependency_diagram(slug: str, docname: str, env) -> list:
     puml_source = "\n".join(lines)
 
     node = plantuml(puml_source)
-    node['uml'] = puml_source
-    node['incdir'] = os.path.dirname(docname)
-    node['filename'] = os.path.basename(docname) + ".rst"
+    node["uml"] = puml_source
+    node["incdir"] = os.path.dirname(docname)
+    node["filename"] = os.path.basename(docname) + ".rst"
 
     return [node]
 
@@ -835,6 +886,7 @@ def build_accelerator_dependency_diagram(slug: str, docname: str, env) -> list:
 def build_accelerator_backlinks(slug: str, docname: str, env) -> nodes.Element:
     """Build seealso node with backlinks for an accelerator."""
     from sphinx.addnodes import seealso
+
     from . import apps
 
     config = get_config()
@@ -849,26 +901,40 @@ def build_accelerator_backlinks(slug: str, docname: str, env) -> nodes.Element:
 
     accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{slug}.html"
     accel_data = accelerator_registry.get(slug, {})
-    accel_desc = accel_data.get('objective', '').strip()
+    accel_desc = accel_data.get("objective", "").strip()
     if not accel_desc:
         accel_desc = f"Business accelerator for {slug.replace('-', ' ')} capabilities"
     if len(accel_desc) > 120:
         accel_desc = accel_desc[:117] + "..."
-    items.append((accel_path, f"{slug.replace('-', ' ').title()} Accelerator", accel_desc))
+    items.append(
+        (accel_path, f"{slug.replace('-', ' ').title()} Accelerator", accel_desc)
+    )
 
     app_list = get_apps_for_accelerator(slug)
     for app_slug in app_list:
         app_path = f"{prefix}{config.get_doc_path('applications')}/{app_slug}.html"
         app_data = _app_registry.get(app_slug, {})
-        app_desc = app_data.get('description', 'Application documentation')
+        app_desc = app_data.get("description", "Application documentation")
         if len(app_desc) > 120:
             app_desc = app_desc[:117] + "..."
-        items.append((app_path, app_data.get('name', app_slug.replace("-", " ").title()), app_desc))
+        items.append(
+            (
+                app_path,
+                app_data.get("name", app_slug.replace("-", " ").title()),
+                app_desc,
+            )
+        )
 
     if app_list:
         for app_slug in app_list[:2]:
             story_path = f"{prefix}{config.get_doc_path('stories')}/{app_slug}.html"
-            items.append((story_path, f"{app_slug.replace('-', ' ').title()} Stories", "User stories"))
+            items.append(
+                (
+                    story_path,
+                    f"{app_slug.replace('-', ' ').title()} Stories",
+                    "User stories",
+                )
+            )
 
     def_list = nodes.definition_list()
     for path, title, description in items:
@@ -895,7 +961,8 @@ def build_accelerator_backlinks(slug: str, docname: str, env) -> nodes.Element:
 def build_app_backlinks(app_slug: str, docname: str, env) -> nodes.Element:
     """Build seealso node with backlinks for an app."""
     from sphinx.addnodes import seealso
-    from . import apps, stories, journeys
+
+    from . import apps, journeys, stories
 
     config = get_config()
     accelerator_registry = get_accelerator_registry(env)
@@ -912,38 +979,62 @@ def build_app_backlinks(app_slug: str, docname: str, env) -> nodes.Element:
 
     if app_data:
         app_path = f"{prefix}{config.get_doc_path('applications')}/{app_slug}.html"
-        app_desc = app_data.get('description', 'Application documentation')
+        app_desc = app_data.get("description", "Application documentation")
         if len(app_desc) > 120:
             app_desc = app_desc[:117] + "..."
-        items.append((app_path, app_data.get('name', app_slug.replace("-", " ").title()), app_desc))
+        items.append(
+            (
+                app_path,
+                app_data.get("name", app_slug.replace("-", " ").title()),
+                app_desc,
+            )
+        )
 
-        accelerators = app_data.get('accelerators', [])
+        accelerators = app_data.get("accelerators", [])
         for accel_slug in accelerators[:4]:
-            accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{accel_slug}.html"
+            accel_path = (
+                f"{prefix}{config.get_doc_path('accelerators')}/{accel_slug}.html"
+            )
             accel_data = accelerator_registry.get(accel_slug, {})
-            accel_desc = accel_data.get('objective', '').strip()
+            accel_desc = accel_data.get("objective", "").strip()
             if not accel_desc:
                 accel_desc = f"Business accelerator for {accel_slug.replace('-', ' ')} capabilities"
             if len(accel_desc) > 120:
                 accel_desc = accel_desc[:117] + "..."
-            items.append((accel_path, f"{accel_slug.replace('-', ' ').title()} Accelerator", accel_desc))
+            items.append(
+                (
+                    accel_path,
+                    f"{accel_slug.replace('-', ' ').title()} Accelerator",
+                    accel_desc,
+                )
+            )
 
     app_normalized = normalize_name(app_slug)
     if app_normalized in {normalize_name(a) for a in _apps_with_stories}:
         story_path = f"{prefix}{config.get_doc_path('stories')}/{app_slug}.html"
-        items.append((story_path, f"{app_slug.replace('-', ' ').title()} Stories", "User stories"))
+        items.append(
+            (
+                story_path,
+                f"{app_slug.replace('-', ' ').title()} Stories",
+                "User stories",
+            )
+        )
 
     def get_journeys_for_app_slug(slug):
         journey_registry = journeys.get_journey_registry(env)
         _story_registry = stories.get_story_registry()
-        story_list = [s for s in _story_registry if normalize_name(s['app']) == normalize_name(slug)]
-        story_titles = {normalize_name(s['feature']) for s in story_list}
+        story_list = [
+            s
+            for s in _story_registry
+            if normalize_name(s["app"]) == normalize_name(slug)
+        ]
+        story_titles = {normalize_name(s["feature"]) for s in story_list}
 
         result = []
         for j_slug, journey in journey_registry.items():
-            for step in journey.get('steps', []):
-                if step.get('type') == 'story':
-                    if normalize_name(step['ref']) in story_titles:
+            for step in journey.get("steps", []):
+                if step.get("type") == "story":
+                    if normalize_name(step["ref"]) in story_titles:
                         result.append(j_slug)
                         break
         return sorted(set(result))
@@ -951,7 +1042,9 @@ def build_app_backlinks(app_slug: str, docname: str, env) -> nodes.Element:
     journey_list = get_journeys_for_app_slug(app_slug)
     for journey_slug in journey_list[:3]:
         journey_path = f"{prefix}{config.get_doc_path('journeys')}/{journey_slug}.html"
-        items.append((journey_path, f"{journey_slug.replace('-', ' ').title()}", "User journey"))
+        items.append(
+            (journey_path, f"{journey_slug.replace('-', ' ').title()}", "User journey")
+        )
 
     def_list = nodes.definition_list()
     for path, title, description in items:
@@ -984,7 +1077,7 @@ def validate_accelerators(app, env):
 
     referenced_accelerators = set()
     for app_data in _app_registry.values():
-        for accel in app_data.get('accelerators', []):
+        for accel in app_data.get("accelerators", []):
             referenced_accelerators.add(accel)
 
     for accel in referenced_accelerators:
@@ -1008,12 +1101,12 @@ def process_accelerator_placeholders(app, doctree, docname):
     env = app.env
 
     for node in doctree.traverse(DefineAcceleratorPlaceholder):
-        slug = node['accelerator_slug']
+        slug = node["accelerator_slug"]
         content = build_accelerator_content(slug, docname, env)
         node.replace_self(content)
 
     for node in doctree.traverse(AcceleratorStatusPlaceholder):
-        slug = node['accelerator_slug']
+        slug = node["accelerator_slug"]
         content = build_accelerator_status(slug, env)
         node.replace_self(content)
 
@@ -1022,28 +1115,30 @@ def process_accelerator_placeholders(app, doctree, docname):
         node.replace_self(content)
 
     for node in doctree.traverse(AcceleratorsForAppPlaceholder):
-        app_slug = node['app_slug']
+        app_slug = node["app_slug"]
         content = build_accelerators_for_app(app_slug, docname, env)
         node.replace_self(content)
 
     for node in doctree.traverse(DependentAcceleratorsPlaceholder):
-        integration_slug = node['integration_slug']
-        relationship = node['relationship']
-        content = build_dependent_accelerators(integration_slug, relationship, docname, env)
+        integration_slug = node["integration_slug"]
+        relationship = node["relationship"]
+        content = build_dependent_accelerators(
+            integration_slug, relationship, docname, env
+        )
         node.replace_self(content)
 
     for node in doctree.traverse(AcceleratorDependencyDiagramPlaceholder):
-        slug = node['accelerator_slug']
+        slug = node["accelerator_slug"]
         content = build_accelerator_dependency_diagram(slug, docname, env)
         node.replace_self(content)
 
     for node in doctree.traverse(SrcAcceleratorBacklinksPlaceholder):
-        slug = node['accelerator_slug']
+        slug = node["accelerator_slug"]
         content = build_accelerator_backlinks(slug, docname, env)
         node.replace_self([content])
 
     for node in doctree.traverse(SrcAppBacklinksPlaceholder):
-        app_slug = node['app_slug']
+        app_slug = node["app_slug"]
         content = build_app_backlinks(app_slug, docname, env)
         node.replace_self([content])
 
@@ -1058,7 +1153,9 @@ def setup(app):
     app.add_directive("accelerator-status", AcceleratorStatusDirective)
     app.add_directive("accelerators-for-app", AcceleratorsForAppDirective)
     app.add_directive("dependent-accelerators", DependentAcceleratorsDirective)
-    app.add_directive("accelerator-dependency-diagram", AcceleratorDependencyDiagramDirective)
+    app.add_directive(
+        "accelerator-dependency-diagram", AcceleratorDependencyDiagramDirective
+    )
     app.add_directive("src-accelerator-backlinks", SrcAcceleratorBacklinksDirective)
     app.add_directive("src-app-backlinks", SrcAppBacklinksDirective)
 

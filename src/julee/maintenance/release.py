@@ -13,7 +13,9 @@ import sys
 from pathlib import Path
 
 
-def run(cmd: str, check: bool = True, capture: bool = True) -> subprocess.CompletedProcess:
+def run(
+    cmd: str, check: bool = True, capture: bool = True
+) -> subprocess.CompletedProcess:
     """Run a shell command."""
     result = subprocess.run(cmd, shell=True, capture_output=capture, text=True)
     if check and result.returncode != 0:
@@ -35,7 +37,9 @@ def get_package_init(repo_root: Path) -> Path | None:
     src_dir = repo_root / "src"
     if not src_dir.exists():
         return None
-    packages = [p for p in src_dir.iterdir() if p.is_dir() and not p.name.startswith("_")]
+    packages = [
+        p for p in src_dir.iterdir() if p.is_dir() and not p.name.startswith("_")
+    ]
     if len(packages) != 1:
         # Multiple packages (bounded contexts) - no single __init__.py to update
         return None
@@ -48,7 +52,10 @@ def get_package_init(repo_root: Path) -> Path | None:
 def validate_version(version: str) -> None:
     """Validate version string format."""
     if not re.match(r"^\d+\.\d+\.\d+$", version):
-        print(f"ERROR: Invalid version format '{version}'. Expected X.Y.Z", file=sys.stderr)
+        print(
+            f"ERROR: Invalid version format '{version}'. Expected X.Y.Z",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
@@ -65,18 +72,26 @@ def validate_git_state(require_master: bool = True) -> None:
         result = run("git branch --show-current")
         branch = result.stdout.strip()
         if branch not in ("master", "main"):
-            print(f"ERROR: Must be on master or main branch, currently on '{branch}'", file=sys.stderr)
+            print(
+                f"ERROR: Must be on master or main branch, currently on '{branch}'",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         # Check we're up to date with remote
         run("git fetch origin")
-        result = run("git rev-list HEAD...origin/master --count 2>/dev/null || git rev-list HEAD...origin/main --count", check=False)
+        result = run(
+            "git rev-list HEAD...origin/master --count 2>/dev/null || git rev-list HEAD...origin/main --count",
+            check=False,
+        )
         if result.stdout.strip() != "0":
             print("ERROR: Branch is not up to date with remote", file=sys.stderr)
             sys.exit(1)
 
 
-def update_version_in_file(file_path: Path, version: str, pattern: str, replacement: str) -> None:
+def update_version_in_file(
+    file_path: Path, version: str, pattern: str, replacement: str
+) -> None:
     """Update version string in a file."""
     content = file_path.read_text()
     new_content = re.sub(pattern, replacement, content, flags=re.MULTILINE)
@@ -135,7 +150,9 @@ def prepare(version: str) -> None:
     if result.returncode != 0:
         print(f"\nTo create PR manually:\n  gh pr create --title 'Release v{version}'")
 
-    print(f"\nRelease branch ready. After PR is merged, run:\n  ./maintenance/release.py tag {version}")
+    print(
+        f"\nRelease branch ready. After PR is merged, run:\n  ./maintenance/release.py tag {version}"
+    )
 
 
 def tag(version: str) -> None:

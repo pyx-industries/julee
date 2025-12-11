@@ -8,17 +8,19 @@ Provides directives:
 """
 
 from collections import defaultdict
-from docutils import nodes
-from sphinx.util.docutils import SphinxDirective
-from sphinx.util import logging
 
-from .config import get_config
+from docutils import nodes
+from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
+
 from .utils import normalize_name, slugify
 
 logger = logging.getLogger(__name__)
 
 
-def get_epics_for_persona(persona_name: str, epic_registry: dict, story_registry: list) -> list[tuple[str, dict]]:
+def get_epics_for_persona(
+    persona_name: str, epic_registry: dict, story_registry: list
+) -> list[tuple[str, dict]]:
     """Get epics that contain stories for a given persona.
 
     Args:
@@ -34,12 +36,12 @@ def get_epics_for_persona(persona_name: str, epic_registry: dict, story_registry
     # Build lookup of story title -> persona
     story_personas = {}
     for story in story_registry:
-        story_personas[normalize_name(story['feature'])] = story['persona_normalized']
+        story_personas[normalize_name(story["feature"])] = story["persona_normalized"]
 
     matching_epics = []
     for slug, epic in epic_registry.items():
         # Check if any story in this epic belongs to the persona
-        for story_title in epic.get('stories', []):
+        for story_title in epic.get("stories", []):
             story_normalized = normalize_name(story_title)
             if story_personas.get(story_normalized) == persona_normalized:
                 matching_epics.append((slug, epic))
@@ -63,9 +65,9 @@ def get_apps_for_epic(epic: dict, story_registry: list) -> set[str]:
     # Build lookup of story title -> app
     story_apps = {}
     for story in story_registry:
-        story_apps[normalize_name(story['feature'])] = story['app']
+        story_apps[normalize_name(story["feature"])] = story["app"]
 
-    for story_title in epic.get('stories', []):
+    for story_title in epic.get("stories", []):
         story_normalized = normalize_name(story_title)
         if story_normalized in story_apps:
             apps.add(story_apps[story_normalized])
@@ -87,14 +89,18 @@ def get_apps_for_persona(persona_name: str, story_registry: list) -> set[str]:
     apps = set()
 
     for story in story_registry:
-        if story['persona_normalized'] == persona_normalized:
-            apps.add(story['app'])
+        if story["persona_normalized"] == persona_normalized:
+            apps.add(story["app"])
 
     return apps
 
 
-def generate_persona_plantuml(persona_name: str, epics: list[tuple[str, dict]],
-                               story_registry: list, app_registry: dict) -> str:
+def generate_persona_plantuml(
+    persona_name: str,
+    epics: list[tuple[str, dict]],
+    story_registry: list,
+    app_registry: dict,
+) -> str:
     """Generate PlantUML for a single persona's use case diagram.
 
     Args:
@@ -106,7 +112,7 @@ def generate_persona_plantuml(persona_name: str, epics: list[tuple[str, dict]],
     Returns:
         PlantUML source string
     """
-    persona_id = slugify(persona_name).replace('-', '_')
+    persona_id = slugify(persona_name).replace("-", "_")
 
     lines = [
         f"@startuml persona-{slugify(persona_name)}",
@@ -128,32 +134,34 @@ def generate_persona_plantuml(persona_name: str, epics: list[tuple[str, dict]],
 
     # Generate component declarations for apps
     for app_slug in sorted(all_apps):
-        app_id = app_slug.replace('-', '_')
-        app_name = app_registry.get(app_slug, {}).get('name', app_slug.replace('-', ' ').title())
+        app_id = app_slug.replace("-", "_")
+        app_name = app_registry.get(app_slug, {}).get(
+            "name", app_slug.replace("-", " ").title()
+        )
         lines.append(f'component "{app_name}" as {app_id}')
 
     lines.append("")
 
     # Generate usecase declarations for epics
-    for epic_slug, epic in epics:
-        epic_id = epic_slug.replace('-', '_')
-        epic_name = epic_slug.replace('-', ' ').title()
+    for epic_slug, _epic in epics:
+        epic_id = epic_slug.replace("-", "_")
+        epic_name = epic_slug.replace("-", " ").title()
         lines.append(f'usecase "{epic_name}" as {epic_id}')
 
     lines.append("")
 
     # Generate persona -> epic connections
-    for epic_slug, epic in epics:
-        epic_id = epic_slug.replace('-', '_')
+    for epic_slug, _epic in epics:
+        epic_id = epic_slug.replace("-", "_")
         lines.append(f"{persona_id} --> {epic_id}")
 
     lines.append("")
 
     # Generate epic -> app connections
-    for epic_slug, epic in epics:
-        epic_id = epic_slug.replace('-', '_')
+    for epic_slug, _epic in epics:
+        epic_id = epic_slug.replace("-", "_")
         for app_slug in sorted(epic_apps.get(epic_slug, [])):
-            app_id = app_slug.replace('-', '_')
+            app_id = app_slug.replace("-", "_")
             lines.append(f"{epic_id} --> {app_id}")
 
     lines.append("")
@@ -162,9 +170,13 @@ def generate_persona_plantuml(persona_name: str, epics: list[tuple[str, dict]],
     return "\n".join(lines)
 
 
-def generate_persona_index_plantuml(persona_type: str, personas: list[str],
-                                     epic_registry: dict, story_registry: list,
-                                     app_registry: dict) -> str:
+def generate_persona_index_plantuml(
+    persona_type: str,
+    personas: list[str],
+    epic_registry: dict,
+    story_registry: list,
+    app_registry: dict,
+) -> str:
     """Generate PlantUML for a group of personas (staff or external).
 
     Args:
@@ -201,15 +213,17 @@ def generate_persona_index_plantuml(persona_type: str, personas: list[str],
 
     # Generate actor declarations
     for persona_name in sorted(personas):
-        persona_id = slugify(persona_name).replace('-', '_')
+        persona_id = slugify(persona_name).replace("-", "_")
         lines.append(f'actor "{persona_name}" as {persona_id}')
 
     lines.append("")
 
     # Generate component declarations for apps
     for app_slug in sorted(all_apps):
-        app_id = app_slug.replace('-', '_')
-        app_name = app_registry.get(app_slug, {}).get('name', app_slug.replace('-', ' ').title())
+        app_id = app_slug.replace("-", "_")
+        app_name = app_registry.get(app_slug, {}).get(
+            "name", app_slug.replace("-", " ").title()
+        )
         lines.append(f'component "{app_name}" as {app_id}')
 
     lines.append("")
@@ -221,26 +235,26 @@ def generate_persona_index_plantuml(persona_type: str, personas: list[str],
 
     # Generate usecase declarations for epics
     for epic_slug in sorted(all_epics):
-        epic_id = epic_slug.replace('-', '_')
-        epic_name = epic_slug.replace('-', ' ').title()
+        epic_id = epic_slug.replace("-", "_")
+        epic_name = epic_slug.replace("-", " ").title()
         lines.append(f'usecase "{epic_name}" as {epic_id}')
 
     lines.append("")
 
     # Generate persona -> epic connections
     for persona_name in sorted(personas):
-        persona_id = slugify(persona_name).replace('-', '_')
+        persona_id = slugify(persona_name).replace("-", "_")
         for epic_slug in sorted(persona_epics.get(persona_name, [])):
-            epic_id = epic_slug.replace('-', '_')
+            epic_id = epic_slug.replace("-", "_")
             lines.append(f"{persona_id} --> {epic_id}")
 
     lines.append("")
 
     # Generate epic -> app connections
     for epic_slug in sorted(all_epics):
-        epic_id = epic_slug.replace('-', '_')
+        epic_id = epic_slug.replace("-", "_")
         for app_slug in sorted(epic_app_map.get(epic_slug, [])):
-            app_id = app_slug.replace('-', '_')
+            app_id = app_slug.replace("-", "_")
             lines.append(f"{epic_id} --> {app_id}")
 
     lines.append("")
@@ -270,12 +284,13 @@ class PersonaDiagramDirective(SphinxDirective):
 
         # Return placeholder - actual rendering in doctree-resolved
         node = PersonaDiagramPlaceholder()
-        node['persona'] = persona_name
+        node["persona"] = persona_name
         return [node]
 
 
 class PersonaDiagramPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for persona-diagram, replaced at doctree-resolved."""
+
     pass
 
 
@@ -301,16 +316,19 @@ class PersonaIndexDiagramDirective(SphinxDirective):
 
         # Return placeholder - actual rendering in doctree-resolved
         node = PersonaIndexDiagramPlaceholder()
-        node['group_type'] = group_type
+        node["group_type"] = group_type
         return [node]
 
 
 class PersonaIndexDiagramPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for persona-index-diagram, replaced at doctree-resolved."""
+
     pass
 
 
-def get_personas_by_app_type(story_registry: list, app_registry: dict) -> dict[str, set[str]]:
+def get_personas_by_app_type(
+    story_registry: list, app_registry: dict
+) -> dict[str, set[str]]:
     """Group personas by the type of apps they use.
 
     Args:
@@ -323,14 +341,14 @@ def get_personas_by_app_type(story_registry: list, app_registry: dict) -> dict[s
     personas_by_type = defaultdict(set)
 
     for story in story_registry:
-        app_slug = story['app']
-        persona = story['persona']
+        app_slug = story["app"]
+        persona = story["persona"]
 
-        if persona == 'unknown':
+        if persona == "unknown":
             continue
 
         app_data = app_registry.get(app_slug, {})
-        app_type = app_data.get('type', 'unknown').lower()
+        app_type = app_data.get("type", "unknown").lower()
 
         personas_by_type[app_type].add(persona)
 
@@ -339,9 +357,11 @@ def get_personas_by_app_type(story_registry: list, app_registry: dict) -> dict[s
 
 def build_persona_diagram(persona_name: str, env, docname: str):
     """Build the PlantUML diagram for a single persona."""
-    from . import stories, epics, apps
-    from sphinxcontrib.plantuml import plantuml
     import os
+
+    from sphinxcontrib.plantuml import plantuml
+
+    from . import apps, epics, stories
 
     story_registry = stories.get_story_registry()
     epic_registry = epics.get_epic_registry(env)
@@ -362,18 +382,20 @@ def build_persona_diagram(persona_name: str, env, docname: str):
 
     # Create plantuml node with required attributes
     node = plantuml(puml_source)
-    node['uml'] = puml_source
-    node['incdir'] = os.path.dirname(docname)
-    node['filename'] = os.path.basename(docname)
+    node["uml"] = puml_source
+    node["incdir"] = os.path.dirname(docname)
+    node["filename"] = os.path.basename(docname)
 
     return [node]
 
 
 def build_persona_index_diagram(group_type: str, env, docname: str):
     """Build the PlantUML diagram for a persona group."""
-    from . import stories, epics, apps
-    from sphinxcontrib.plantuml import plantuml
     import os
+
+    from sphinxcontrib.plantuml import plantuml
+
+    from . import apps, epics, stories
 
     story_registry = stories.get_story_registry()
     epic_registry = epics.get_epic_registry(env)
@@ -395,9 +417,9 @@ def build_persona_index_diagram(group_type: str, env, docname: str):
 
     # Create plantuml node with required attributes
     node = plantuml(puml_source)
-    node['uml'] = puml_source
-    node['incdir'] = os.path.dirname(docname)
-    node['filename'] = os.path.basename(docname)
+    node["uml"] = puml_source
+    node["incdir"] = os.path.dirname(docname)
+    node["filename"] = os.path.basename(docname)
 
     return [node]
 
@@ -408,13 +430,13 @@ def process_persona_placeholders(app, doctree, docname):
 
     # Process persona-diagram placeholders
     for node in doctree.traverse(PersonaDiagramPlaceholder):
-        persona = node['persona']
+        persona = node["persona"]
         content = build_persona_diagram(persona, env, docname)
         node.replace_self(content)
 
     # Process persona-index-diagram placeholders
     for node in doctree.traverse(PersonaIndexDiagramPlaceholder):
-        group_type = node['group_type']
+        group_type = node["group_type"]
         content = build_persona_index_diagram(group_type, env, docname)
         node.replace_self(content)
 

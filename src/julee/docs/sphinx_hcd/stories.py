@@ -18,15 +18,14 @@ Legacy aliases (deprecated, emit warnings):
 """
 
 import re
-import warnings
-from pathlib import Path
 from collections import defaultdict
+
 from docutils import nodes
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 from .config import get_config
-from .utils import normalize_name, slugify, path_to_root
+from .utils import normalize_name, path_to_root, slugify
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +59,13 @@ def get_apps_with_stories() -> set[str]:
 def get_epics_for_story(story_title: str, env) -> list[str]:
     """Find epics that reference this story."""
     from . import epics
+
     epic_registry = epics.get_epic_registry(env)
     story_normalized = normalize_name(story_title)
 
     matching_epics = []
     for slug, epic in epic_registry.items():
-        for epic_story in epic.get('stories', []):
+        for epic_story in epic.get("stories", []):
             if normalize_name(epic_story) == story_normalized:
                 matching_epics.append(slug)
                 break
@@ -76,14 +76,15 @@ def get_epics_for_story(story_title: str, env) -> list[str]:
 def get_journeys_for_story(story_title: str, env) -> list[str]:
     """Find journeys that reference this story (directly or via epic)."""
     from . import journeys
+
     journey_registry = journeys.get_journey_registry(env)
     story_normalized = normalize_name(story_title)
 
     matching_journeys = []
     for slug, journey in journey_registry.items():
-        for step in journey.get('steps', []):
-            if step.get('type') == 'story':
-                if normalize_name(step['ref']) == story_normalized:
+        for step in journey.get("steps", []):
+            if step.get("type") == "story":
+                if normalize_name(step["ref"]) == story_normalized:
                     matching_journeys.append(slug)
                     break
 
@@ -98,38 +99,38 @@ def build_story_seealso(story: dict, env, docname: str):
     links = []
 
     # Persona link
-    persona = story.get('persona')
-    if persona and persona != 'unknown':
+    persona = story.get("persona")
+    if persona and persona != "unknown":
         persona_slug = slugify(persona)
         persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
-        links.append(('Persona', persona, persona_path))
+        links.append(("Persona", persona, persona_path))
 
     # App link
-    app = story.get('app')
+    app = story.get("app")
     if app:
         app_path = f"{prefix}{config.get_doc_path('applications')}/{app}.html"
-        links.append(('App', app.replace("-", " ").title(), app_path))
+        links.append(("App", app.replace("-", " ").title(), app_path))
 
     # Epic links
-    epics_list = get_epics_for_story(story['feature'], env)
+    epics_list = get_epics_for_story(story["feature"], env)
     for epic_slug in epics_list:
         epic_title = epic_slug.replace("-", " ").title()
         epic_path = f"{prefix}{config.get_doc_path('epics')}/{epic_slug}.html"
-        links.append(('Epic', epic_title, epic_path))
+        links.append(("Epic", epic_title, epic_path))
 
     # Journey links
-    journeys_list = get_journeys_for_story(story['feature'], env)
+    journeys_list = get_journeys_for_story(story["feature"], env)
     for journey_slug in journeys_list:
         journey_title = journey_slug.replace("-", " ").title()
         journey_path = f"{prefix}{config.get_doc_path('journeys')}/{journey_slug}.html"
-        links.append(('Journey', journey_title, journey_path))
+        links.append(("Journey", journey_title, journey_path))
 
     if not links:
         return None
 
     # Build seealso block with line_block for tight spacing
-    seealso = nodes.admonition(classes=['seealso'])
-    seealso += nodes.title(text='See also')
+    seealso = nodes.admonition(classes=["seealso"])
+    seealso += nodes.title(text="See also")
 
     line_block = nodes.line_block()
     for link_type, link_text, link_path in links:
@@ -146,6 +147,7 @@ def build_story_seealso(story: dict, env, docname: str):
 
 class StorySeeAlsoPlaceholder(nodes.General, nodes.Element):
     """Placeholder for story seealso block, replaced at doctree-read."""
+
     pass
 
 
@@ -157,10 +159,12 @@ def scan_feature_files(app):
 
     config = get_config()
     project_root = config.project_root
-    tests_dir = config.get_path('feature_files')
+    tests_dir = config.get_path("feature_files")
 
     if not tests_dir.exists():
-        logger.info(f"Feature files directory not found at {tests_dir} - no stories to index")
+        logger.info(
+            f"Feature files directory not found at {tests_dir} - no stories to index"
+        )
         return
 
     # Scan for feature files
@@ -178,7 +182,7 @@ def scan_feature_files(app):
         try:
             with open(feature_file) as f:
                 content = f.read()
-                lines = content.split('\n')
+                lines = content.split("\n")
         except Exception as e:
             logger.warning(f"Could not read {feature_file}: {e}")
             continue
@@ -193,11 +197,13 @@ def scan_feature_files(app):
         snippet_lines = []
         for line in lines:
             stripped = line.strip()
-            if stripped.startswith(('Scenario', 'Background', '@', 'Given', 'When', 'Then', 'And', 'But')):
+            if stripped.startswith(
+                ("Scenario", "Background", "@", "Given", "When", "Then", "And", "But")
+            ):
                 break
             if stripped:
                 snippet_lines.append(line)
-        gherkin_snippet = '\n'.join(snippet_lines)
+        gherkin_snippet = "\n".join(snippet_lines)
 
         feature_title = feature_match.group(1) if feature_match else "Unknown"
         story = {
@@ -206,7 +212,9 @@ def scan_feature_files(app):
             "feature": feature_title,
             "slug": slugify(feature_title),
             "persona": as_a_match.group(1) if as_a_match else "unknown",
-            "persona_normalized": normalize_name(as_a_match.group(1)) if as_a_match else "unknown",
+            "persona_normalized": (
+                normalize_name(as_a_match.group(1)) if as_a_match else "unknown"
+            ),
             "i_want": i_want_match.group(1) if i_want_match else "do something",
             "so_that": so_that_match.group(1) if so_that_match else "achieve a goal",
             "path": str(rel_path),
@@ -229,7 +237,7 @@ def scan_known_entities(app):
     docs_dir = config.docs_dir
 
     # Scan applications
-    apps_dir = docs_dir / config.get_doc_path('applications')
+    apps_dir = docs_dir / config.get_doc_path("applications")
     if apps_dir.exists():
         for rst_file in apps_dir.glob("*.rst"):
             if rst_file.name != "index.rst":
@@ -237,7 +245,7 @@ def scan_known_entities(app):
                 _known_apps.add(normalize_name(app_name))
 
     # Scan personas
-    personas_dir = docs_dir / config.get_doc_path('personas')
+    personas_dir = docs_dir / config.get_doc_path("personas")
     if personas_dir.exists():
         for rst_file in personas_dir.glob("*.rst"):
             if rst_file.name != "index.rst":
@@ -270,7 +278,9 @@ def builder_inited(app):
 
     # Warn about stories referencing undocumented entities
     for app_name in sorted(unknown_apps):
-        logger.warning(f"Gherkin story references undocumented application: '{app_name}'")
+        logger.warning(
+            f"Gherkin story references undocumented application: '{app_name}'"
+        )
     for persona in sorted(unknown_personas):
         logger.warning(f"Gherkin story references undocumented persona: '{persona}'")
 
@@ -295,13 +305,15 @@ def get_story_ref_target(story: dict, from_docname: str) -> tuple[str, str]:
     return f"{config.get_doc_path('stories')}/{app_slug}", story_slug
 
 
-def make_story_reference(story: dict, from_docname: str, link_text: str | None = None) -> nodes.reference:
+def make_story_reference(
+    story: dict, from_docname: str, link_text: str | None = None
+) -> nodes.reference:
     """Create a reference node linking to a story's anchor on its app page."""
     target_doc, anchor = get_story_ref_target(story, from_docname)
 
     # Calculate relative path from current doc to target
-    from_parts = from_docname.split('/')
-    target_parts = target_doc.split('/')
+    from_parts = from_docname.split("/")
+    target_parts = target_doc.split("/")
 
     # Find common prefix
     common = 0
@@ -313,12 +325,12 @@ def make_story_reference(story: dict, from_docname: str, link_text: str | None =
 
     # Build relative path
     up_levels = len(from_parts) - common - 1
-    down_path = '/'.join(target_parts[common:])
+    down_path = "/".join(target_parts[common:])
 
     if up_levels > 0:
-        rel_path = '../' * up_levels + down_path + '.html'
+        rel_path = "../" * up_levels + down_path + ".html"
     else:
-        rel_path = down_path + '.html'
+        rel_path = down_path + ".html"
 
     ref_uri = f"{rel_path}#{anchor}"
 
@@ -348,8 +360,7 @@ class StoryAppDirective(SphinxDirective):
         app_normalized = normalize_name(app_arg)
 
         # Filter stories for this app
-        stories = [s for s in _story_registry
-                   if s["app_normalized"] == app_normalized]
+        stories = [s for s in _story_registry if s["app_normalized"] == app_normalized]
 
         if not stories:
             para = nodes.paragraph()
@@ -394,7 +405,9 @@ class StoryAppDirective(SphinxDirective):
             persona = list(by_persona.keys())[0]
             persona_valid = normalize_name(persona) in _known_personas
             persona_slug = persona.lower().replace(" ", "-")
-            persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            persona_path = (
+                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            )
 
             if total_stories != 1:
                 intro_para += nodes.Text("for ")
@@ -416,7 +429,9 @@ class StoryAppDirective(SphinxDirective):
                 count = len(by_persona[persona])
                 persona_valid = normalize_name(persona) in _known_personas
                 persona_slug = persona.lower().replace(" ", "-")
-                persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+                persona_path = (
+                    f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+                )
 
                 if persona_valid:
                     persona_ref = nodes.reference("", "", refuri=persona_path)
@@ -456,7 +471,7 @@ class StoryAppDirective(SphinxDirective):
 
                 # Gherkin snippet as literal block
                 snippet = nodes.literal_block(text=story["gherkin_snippet"])
-                snippet['language'] = 'gherkin'
+                snippet["language"] = "gherkin"
                 story_section += snippet
 
                 # Feature file path (for reference, not as broken link)
@@ -467,9 +482,9 @@ class StoryAppDirective(SphinxDirective):
 
                 # Placeholder for seealso (filled in doctree-read when registries are complete)
                 seealso_placeholder = StorySeeAlsoPlaceholder()
-                seealso_placeholder['story_feature'] = story["feature"]
-                seealso_placeholder['story_persona'] = story["persona"]
-                seealso_placeholder['story_app'] = story["app"]
+                seealso_placeholder["story_feature"] = story["feature"]
+                seealso_placeholder["story_persona"] = story["persona"]
+                seealso_placeholder["story_app"] = story["app"]
                 story_section += seealso_placeholder
 
                 persona_section += story_section
@@ -496,8 +511,9 @@ class StoryListForPersonaDirective(SphinxDirective):
         persona_normalized = normalize_name(persona_arg)
 
         # Filter stories for this persona
-        stories = [s for s in _story_registry
-                   if s["persona_normalized"] == persona_normalized]
+        stories = [
+            s for s in _story_registry if s["persona_normalized"] == persona_normalized
+        ]
 
         if not stories:
             para = nodes.paragraph()
@@ -513,7 +529,7 @@ class StoryListForPersonaDirective(SphinxDirective):
         # Simple bullet list: "story name (App Name)"
         story_list = nodes.bullet_list()
 
-        for story in sorted(stories, key=lambda s: s['feature'].lower()):
+        for story in sorted(stories, key=lambda s: s["feature"].lower()):
             story_item = nodes.list_item()
             story_para = nodes.paragraph()
 
@@ -522,15 +538,17 @@ class StoryListForPersonaDirective(SphinxDirective):
 
             # App in parentheses
             story_para += nodes.Text(" (")
-            app_path = f"{prefix}{config.get_doc_path('applications')}/{story['app']}.html"
-            app_valid = normalize_name(story['app']) in _known_apps
+            app_path = (
+                f"{prefix}{config.get_doc_path('applications')}/{story['app']}.html"
+            )
+            app_valid = normalize_name(story["app"]) in _known_apps
 
             if app_valid:
                 app_ref = nodes.reference("", "", refuri=app_path)
-                app_ref += nodes.Text(story['app'].replace("-", " ").title())
+                app_ref += nodes.Text(story["app"].replace("-", " ").title())
                 story_para += app_ref
             else:
-                story_para += nodes.Text(story['app'].replace("-", " ").title())
+                story_para += nodes.Text(story["app"].replace("-", " ").title())
 
             story_para += nodes.Text(")")
 
@@ -558,8 +576,7 @@ class StoryListForAppDirective(SphinxDirective):
         app_normalized = normalize_name(app_arg)
 
         # Filter stories for this app
-        stories = [s for s in _story_registry
-                   if s["app_normalized"] == app_normalized]
+        stories = [s for s in _story_registry if s["app_normalized"] == app_normalized]
 
         if not stories:
             para = nodes.paragraph()
@@ -584,7 +601,9 @@ class StoryListForAppDirective(SphinxDirective):
             # Persona heading (strong with link)
             persona_heading = nodes.paragraph()
             persona_slug = persona.lower().replace(" ", "-")
-            persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            persona_path = (
+                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            )
 
             if persona_valid:
                 persona_ref = nodes.reference("", "", refuri=persona_path)
@@ -666,7 +685,9 @@ class StoryIndexDirective(SphinxDirective):
 
             # Link to app's story page
             app_ref = nodes.reference("", "", refuri=f"{app}.html")
-            app_ref += nodes.strong(text=app.replace("-", " ").replace("_", " ").title())
+            app_ref += nodes.strong(
+                text=app.replace("-", " ").replace("_", " ").title()
+            )
             app_para += app_ref
             app_para += nodes.Text(f" ({count} stories)")
 
@@ -734,7 +755,9 @@ class StoriesDirective(SphinxDirective):
             # Persona heading (strong)
             persona_heading = nodes.paragraph()
             persona_slug = persona.lower().replace(" ", "-")
-            persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            persona_path = (
+                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            )
             persona_valid = normalize_name(persona) in _known_personas
 
             if persona_valid:
@@ -783,7 +806,9 @@ class StoriesDirective(SphinxDirective):
                         app_ref += nodes.Text(story["app"].replace("-", " ").title())
                         feature_para += app_ref
                     else:
-                        feature_para += nodes.Text(story["app"].replace("-", " ").title())
+                        feature_para += nodes.Text(
+                            story["app"].replace("-", " ").title()
+                        )
                         feature_para += nodes.emphasis(text=" (?)")
 
                     feature_para += nodes.Text(")")
@@ -836,6 +861,7 @@ class StoryRefDirective(SphinxDirective):
 
 # Deprecated alias directives - emit warnings and delegate to new names
 
+
 def _make_deprecated_directive(new_directive_class, old_name: str, new_name: str):
     """Create a deprecated alias directive that warns and delegates."""
 
@@ -859,15 +885,15 @@ def process_story_seealso_placeholders(app, doctree):
     docname = env.docname
 
     for node in doctree.traverse(StorySeeAlsoPlaceholder):
-        story_feature = node['story_feature']
-        story_persona = node['story_persona']
-        story_app = node.get('story_app')
+        story_feature = node["story_feature"]
+        story_persona = node["story_persona"]
+        story_app = node.get("story_app")
 
         # Build a minimal story dict for the helper function
         story = {
-            'feature': story_feature,
-            'persona': story_persona,
-            'app': story_app,
+            "feature": story_feature,
+            "persona": story_persona,
+            "app": story_app,
         }
 
         seealso = build_story_seealso(story, env, docname)
@@ -892,35 +918,37 @@ def setup(app):
     # Deprecated aliases (gherkin-* -> story-*)
     app.add_directive(
         "gherkin-story",
-        _make_deprecated_directive(StoryRefDirective, "gherkin-story", "story")
+        _make_deprecated_directive(StoryRefDirective, "gherkin-story", "story"),
     )
     app.add_directive(
         "gherkin-stories",
-        _make_deprecated_directive(StoriesDirective, "gherkin-stories", "stories")
+        _make_deprecated_directive(StoriesDirective, "gherkin-stories", "stories"),
     )
     app.add_directive(
         "gherkin-stories-for-persona",
         _make_deprecated_directive(
             StoryListForPersonaDirective,
             "gherkin-stories-for-persona",
-            "story-list-for-persona"
-        )
+            "story-list-for-persona",
+        ),
     )
     app.add_directive(
         "gherkin-stories-for-app",
         _make_deprecated_directive(
-            StoryListForAppDirective,
-            "gherkin-stories-for-app",
-            "story-list-for-app"
-        )
+            StoryListForAppDirective, "gherkin-stories-for-app", "story-list-for-app"
+        ),
     )
     app.add_directive(
         "gherkin-stories-index",
-        _make_deprecated_directive(StoryIndexDirective, "gherkin-stories-index", "story-index")
+        _make_deprecated_directive(
+            StoryIndexDirective, "gherkin-stories-index", "story-index"
+        ),
     )
     app.add_directive(
         "gherkin-app-stories",
-        _make_deprecated_directive(StoryAppDirective, "gherkin-app-stories", "story-app")
+        _make_deprecated_directive(
+            StoryAppDirective, "gherkin-app-stories", "story-app"
+        ),
     )
 
     app.add_node(StorySeeAlsoPlaceholder)

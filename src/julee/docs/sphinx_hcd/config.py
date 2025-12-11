@@ -8,25 +8,25 @@ from copy import deepcopy
 from pathlib import Path
 
 DEFAULT_CONFIG = {
-    'paths': {
+    "paths": {
         # Where to find Gherkin feature files: {app}/features/*.feature
-        'feature_files': 'tests/e2e/',
+        "feature_files": "tests/e2e/",
         # Where to find app manifests: */app.yaml
-        'app_manifests': 'apps/',
+        "app_manifests": "apps/",
         # Where to find integration manifests: */integration.yaml
-        'integration_manifests': 'src/integrations/',
+        "integration_manifests": "src/integrations/",
         # Where to find bounded context code: {slug}/ directories
-        'bounded_contexts': 'src/',
+        "bounded_contexts": "src/",
     },
-    'docs_structure': {
+    "docs_structure": {
         # RST file locations relative to docs root
-        'applications': 'applications',
-        'personas': 'users/personas',
-        'journeys': 'users/journeys',
-        'epics': 'users/epics',
-        'accelerators': 'domain/accelerators',
-        'integrations': 'integrations',
-        'stories': 'users/stories',
+        "applications": "applications",
+        "personas": "users/personas",
+        "journeys": "users/journeys",
+        "epics": "users/epics",
+        "accelerators": "domain/accelerators",
+        "integrations": "integrations",
+        "stories": "users/stories",
     },
 }
 
@@ -76,7 +76,7 @@ class HCDConfig:
         self._project_root = self._docs_dir.parent
 
         # Merge user config with defaults
-        user_config = getattr(app.config, 'sphinx_hcd', {}) or {}
+        user_config = getattr(app.config, "sphinx_hcd", {}) or {}
         self._config = _deep_merge(DEFAULT_CONFIG, user_config)
 
     @property
@@ -98,7 +98,7 @@ class HCDConfig:
         Returns:
             Absolute Path resolved relative to project root
         """
-        rel_path = self._config['paths'].get(key, '')
+        rel_path = self._config["paths"].get(key, "")
         return self._project_root / rel_path
 
     def get_doc_path(self, key: str) -> str:
@@ -110,7 +110,7 @@ class HCDConfig:
         Returns:
             Relative path string for use in doc references
         """
-        return self._config['docs_structure'].get(key, key)
+        return self._config["docs_structure"].get(key, key)
 
 
 # Module-level config instance, set by setup()

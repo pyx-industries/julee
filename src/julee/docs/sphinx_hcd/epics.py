@@ -8,8 +8,8 @@ Provides directives:
 """
 
 from docutils import nodes
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 from .config import get_config
 from .utils import normalize_name, path_to_root
@@ -19,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 def get_epic_registry(env):
     """Get or create the epic registry on the environment."""
-    if not hasattr(env, 'epic_registry'):
+    if not hasattr(env, "epic_registry"):
         env.epic_registry = {}
     return env.epic_registry
 
 
 def get_current_epic(env):
     """Get or create the current epic tracker on the environment."""
-    if not hasattr(env, 'epic_current'):
+    if not hasattr(env, "epic_current"):
         env.epic_current = {}
     return env.epic_current
 
@@ -51,17 +51,17 @@ class DefineEpicDirective(SphinxDirective):
         docname = self.env.docname
 
         # Description is the directive content
-        description = '\n'.join(self.content).strip()
+        description = "\n".join(self.content).strip()
 
         # Register the epic in environment
         epic_registry = get_epic_registry(self.env)
         current_epic = get_current_epic(self.env)
 
         epic_data = {
-            'slug': epic_slug,
-            'description': description,
-            'stories': [],  # Will be populated by epic-story
-            'docname': docname,
+            "slug": epic_slug,
+            "description": description,
+            "stories": [],  # Will be populated by epic-story
+            "docname": docname,
         }
         epic_registry[epic_slug] = epic_data
         current_epic[docname] = epic_slug
@@ -76,8 +76,8 @@ class DefineEpicDirective(SphinxDirective):
 
         # Add a placeholder for stories (will be filled in doctree-resolved)
         stories_placeholder = nodes.container()
-        stories_placeholder['classes'].append('epic-stories-placeholder')
-        stories_placeholder['epic_slug'] = epic_slug
+        stories_placeholder["classes"].append("epic-stories-placeholder")
+        stories_placeholder["epic_slug"] = epic_slug
         result_nodes.append(stories_placeholder)
 
         return result_nodes
@@ -104,7 +104,7 @@ class EpicStoryDirective(SphinxDirective):
 
         epic_slug = current_epic.get(docname)
         if epic_slug and epic_slug in epic_registry:
-            epic_registry[epic_slug]['stories'].append(story_title)
+            epic_registry[epic_slug]["stories"].append(story_title)
 
         # Return empty - rendering happens in doctree-resolved
         return []
@@ -126,6 +126,7 @@ class EpicIndexDirective(SphinxDirective):
 
 class EpicIndexPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for epic index, replaced at doctree-resolved."""
+
     pass
 
 
@@ -143,12 +144,13 @@ class EpicsForPersonaDirective(SphinxDirective):
     def run(self):
         # Return placeholder - actual rendering in doctree-resolved
         node = EpicsForPersonaPlaceholder()
-        node['persona'] = self.arguments[0]
+        node["persona"] = self.arguments[0]
         return [node]
 
 
 class EpicsForPersonaPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for epics-for-persona, replaced at doctree-resolved."""
+
     pass
 
 
@@ -161,8 +163,7 @@ def clear_epic_state(app, env, docname):
         del current_epic[docname]
 
     # Remove epics defined in this document
-    to_remove = [slug for slug, e in epic_registry.items()
-                 if e['docname'] == docname]
+    to_remove = [slug for slug, e in epic_registry.items() if e["docname"] == docname]
     for slug in to_remove:
         del epic_registry[slug]
 
@@ -173,11 +174,11 @@ def validate_epics(app, env):
 
     epic_registry = get_epic_registry(env)
     _story_registry = stories.get_story_registry()
-    story_titles = {normalize_name(s['feature']) for s in _story_registry}
+    story_titles = {normalize_name(s["feature"]) for s in _story_registry}
 
     for slug, epic in epic_registry.items():
         # Validate story references
-        for story_title in epic['stories']:
+        for story_title in epic["stories"]:
             if normalize_name(story_title) not in story_titles:
                 logger.warning(
                     f"Epic '{slug}' references unknown story: '{story_title}'"
@@ -187,16 +188,18 @@ def validate_epics(app, env):
 def get_personas_for_epic(epic: dict, story_registry: list) -> set[str]:
     """Get the set of personas for an epic based on its stories."""
     personas = set()
-    for story_title in epic['stories']:
+    for story_title in epic["stories"]:
         story_normalized = normalize_name(story_title)
         for story in story_registry:
-            if normalize_name(story['feature']) == story_normalized:
-                personas.add(story['persona'])
+            if normalize_name(story["feature"]) == story_normalized:
+                personas.add(story["persona"])
                 break
     return personas
 
 
-def render_epic_stories(epic: dict, docname: str, story_registry: list, known_personas: set):
+def render_epic_stories(
+    epic: dict, docname: str, story_registry: list, known_personas: set
+):
     """Render epic stories as a simple bullet list."""
     from . import stories
 
@@ -204,10 +207,10 @@ def render_epic_stories(epic: dict, docname: str, story_registry: list, known_pe
     _known_apps = stories.get_known_apps()
 
     stories_data = []
-    for story_title in epic['stories']:
+    for story_title in epic["stories"]:
         story_normalized = normalize_name(story_title)
         for story in story_registry:
-            if normalize_name(story['feature']) == story_normalized:
+            if normalize_name(story["feature"]) == story_normalized:
                 stories_data.append(story)
                 break
 
@@ -227,7 +230,7 @@ def render_epic_stories(epic: dict, docname: str, story_registry: list, known_pe
     # Simple bullet list: "story name (App Name)"
     story_list = nodes.bullet_list()
 
-    for story in sorted(stories_data, key=lambda s: s['feature'].lower()):
+    for story in sorted(stories_data, key=lambda s: s["feature"].lower()):
         story_item = nodes.list_item()
         story_para = nodes.paragraph()
 
@@ -237,14 +240,14 @@ def render_epic_stories(epic: dict, docname: str, story_registry: list, known_pe
         # App in parentheses
         story_para += nodes.Text(" (")
         app_path = f"{prefix}{config.get_doc_path('applications')}/{story['app']}.html"
-        app_valid = story['app_normalized'] in _known_apps
+        app_valid = story["app_normalized"] in _known_apps
 
         if app_valid:
             app_ref = nodes.reference("", "", refuri=app_path)
-            app_ref += nodes.Text(story['app'].replace("-", " ").title())
+            app_ref += nodes.Text(story["app"].replace("-", " ").title())
             story_para += app_ref
         else:
-            story_para += nodes.Text(story['app'].replace("-", " ").title())
+            story_para += nodes.Text(story["app"].replace("-", " ").title())
 
         story_para += nodes.Text(")")
 
@@ -260,7 +263,7 @@ def process_epic_placeholders(app, doctree, docname):
     """Replace epic placeholders with rendered content."""
     from . import stories
 
-    config = get_config()
+    get_config()
     env = app.env
     epic_registry = get_epic_registry(env)
     current_epic = get_current_epic(env)
@@ -273,7 +276,7 @@ def process_epic_placeholders(app, doctree, docname):
         epic = epic_registry[epic_slug]
 
         for node in doctree.traverse(nodes.container):
-            if 'epic-stories-placeholder' in node.get('classes', []):
+            if "epic-stories-placeholder" in node.get("classes", []):
                 stories_nodes = render_epic_stories(
                     epic, docname, _story_registry, _known_personas
                 )
@@ -290,10 +293,8 @@ def process_epic_placeholders(app, doctree, docname):
 
     # Process epics-for-persona placeholder
     for node in doctree.traverse(EpicsForPersonaPlaceholder):
-        persona = node['persona']
-        epics_node = build_epics_for_persona(
-            env, docname, persona, _story_registry
-        )
+        persona = node["persona"]
+        epics_node = build_epics_for_persona(env, docname, persona, _story_registry)
         node.replace_self(epics_node)
 
 
@@ -316,7 +317,7 @@ def build_epic_index(env, docname: str, story_registry: list):
     # Collect all stories assigned to epics
     assigned_stories = set()
     for epic in epic_registry.values():
-        for story_title in epic['stories']:
+        for story_title in epic["stories"]:
             assigned_stories.add(normalize_name(story_title))
 
     for slug in sorted(epic_registry.keys()):
@@ -332,7 +333,7 @@ def build_epic_index(env, docname: str, story_registry: list):
         para += epic_ref
 
         # Story count
-        story_count = len(epic['stories'])
+        story_count = len(epic["stories"])
         para += nodes.Text(f" ({story_count} stories)")
 
         item += para
@@ -343,7 +344,7 @@ def build_epic_index(env, docname: str, story_registry: list):
     # Find unassigned stories
     unassigned_stories = []
     for story in story_registry:
-        if normalize_name(story['feature']) not in assigned_stories:
+        if normalize_name(story["feature"]) not in assigned_stories:
             unassigned_stories.append(story)
 
     if unassigned_stories:
@@ -356,12 +357,14 @@ def build_epic_index(env, docname: str, story_registry: list):
         result_nodes.append(heading)
 
         intro = nodes.paragraph()
-        intro += nodes.Text(f"{len(unassigned_stories)} stories not yet assigned to an epic:")
+        intro += nodes.Text(
+            f"{len(unassigned_stories)} stories not yet assigned to an epic:"
+        )
         result_nodes.append(intro)
 
         # List unassigned stories
         unassigned_list = nodes.bullet_list()
-        for story in sorted(unassigned_stories, key=lambda s: s['feature'].lower()):
+        for story in sorted(unassigned_stories, key=lambda s: s["feature"].lower()):
             item = nodes.list_item()
             para = nodes.paragraph()
 
@@ -370,15 +373,17 @@ def build_epic_index(env, docname: str, story_registry: list):
 
             # App in parentheses
             para += nodes.Text(" (")
-            app_path = f"{prefix}{config.get_doc_path('applications')}/{story['app']}.html"
-            app_valid = story['app_normalized'] in _known_apps
+            app_path = (
+                f"{prefix}{config.get_doc_path('applications')}/{story['app']}.html"
+            )
+            app_valid = story["app_normalized"] in _known_apps
 
             if app_valid:
                 app_ref = nodes.reference("", "", refuri=app_path)
-                app_ref += nodes.Text(story['app'].replace("-", " ").title())
+                app_ref += nodes.Text(story["app"].replace("-", " ").title())
                 para += app_ref
             else:
-                para += nodes.Text(story['app'].replace("-", " ").title())
+                para += nodes.Text(story["app"].replace("-", " ").title())
 
             para += nodes.Text(")")
 
@@ -413,7 +418,7 @@ def build_epics_for_persona(env, docname: str, persona_arg: str, story_registry:
 
     bullet_list = nodes.bullet_list()
 
-    for slug, epic in sorted(matching_epics, key=lambda x: x[0]):
+    for slug, _epic in sorted(matching_epics, key=lambda x: x[0]):
         item = nodes.list_item()
         para = nodes.paragraph()
 

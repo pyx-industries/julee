@@ -37,7 +37,7 @@ Usage in conf.py::
 
 from sphinx.util import logging
 
-from .config import init_config, config_factory
+from .config import config_factory, init_config
 
 logger = logging.getLogger(__name__)
 
@@ -45,19 +45,13 @@ logger = logging.getLogger(__name__)
 def setup(app):
     """Set up all HCD extensions for Sphinx."""
     # Register configuration value first
-    app.add_config_value('sphinx_hcd', {}, 'env')
+    app.add_config_value("sphinx_hcd", {}, "env")
 
     # Initialize config when builder starts (after conf.py is loaded)
-    app.connect('builder-inited', _init_config_handler, priority=0)
+    app.connect("builder-inited", _init_config_handler, priority=0)
 
     # Import and setup each extension module
-    from . import stories
-    from . import journeys
-    from . import epics
-    from . import apps
-    from . import accelerators
-    from . import integrations
-    from . import personas
+    from . import accelerators, apps, epics, integrations, journeys, personas, stories
 
     # Call setup on each module
     stories.setup(app)

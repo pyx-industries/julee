@@ -136,7 +136,7 @@ class Document(BaseModel):
 
         has_content = self.content is not None
         has_content_bytes = self.content_bytes is not None
-        
+
         if not (has_content or has_content_bytes):
             raise ValueError("Document must have one of: content, or content_bytes.")
 

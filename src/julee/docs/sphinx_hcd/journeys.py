@@ -14,28 +14,33 @@ Provides directives:
 - journeys-for-persona: List journeys for a specific persona
 """
 
-import re
 from docutils import nodes
 from docutils.parsers.rst import directives
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 from .config import get_config
-from .utils import normalize_name, slugify, path_to_root, parse_list_option, parse_csv_option
+from .utils import (
+    normalize_name,
+    parse_csv_option,
+    parse_list_option,
+    path_to_root,
+    slugify,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def get_journey_registry(env):
     """Get or create the journey registry on the environment."""
-    if not hasattr(env, 'journey_registry'):
+    if not hasattr(env, "journey_registry"):
         env.journey_registry = {}
     return env.journey_registry
 
 
 def get_current_journey(env):
     """Get or create the current journey tracker on the environment."""
-    if not hasattr(env, 'journey_current'):
+    if not hasattr(env, "journey_current"):
         env.journey_current = {}
     return env.journey_current
 
@@ -89,12 +94,12 @@ class DefineJourneyDirective(SphinxDirective):
     required_arguments = 1  # journey slug
     has_content = True
     option_spec = {
-        'persona': directives.unchanged_required,
-        'intent': directives.unchanged,
-        'outcome': directives.unchanged,
-        'depends-on': directives.unchanged,
-        'preconditions': directives.unchanged,
-        'postconditions': directives.unchanged,
+        "persona": directives.unchanged_required,
+        "intent": directives.unchanged,
+        "outcome": directives.unchanged,
+        "depends-on": directives.unchanged,
+        "preconditions": directives.unchanged,
+        "postconditions": directives.unchanged,
     }
 
     def run(self):
@@ -105,32 +110,32 @@ class DefineJourneyDirective(SphinxDirective):
         docname = self.env.docname
 
         # Parse options
-        persona = self.options.get('persona', '').strip()
-        intent = self.options.get('intent', '').strip()
-        outcome = self.options.get('outcome', '').strip()
-        depends_on = parse_csv_option(self.options.get('depends-on', ''))
-        preconditions = parse_list_option(self.options.get('preconditions', ''))
-        postconditions = parse_list_option(self.options.get('postconditions', ''))
+        persona = self.options.get("persona", "").strip()
+        intent = self.options.get("intent", "").strip()
+        outcome = self.options.get("outcome", "").strip()
+        depends_on = parse_csv_option(self.options.get("depends-on", ""))
+        preconditions = parse_list_option(self.options.get("preconditions", ""))
+        postconditions = parse_list_option(self.options.get("postconditions", ""))
 
         # Goal is the directive content (what they do)
-        goal = '\n'.join(self.content).strip()
+        goal = "\n".join(self.content).strip()
 
         # Register the journey in environment
         journey_registry = get_journey_registry(self.env)
         current_journey = get_current_journey(self.env)
 
         journey_data = {
-            'slug': journey_slug,
-            'persona': persona,
-            'persona_normalized': normalize_name(persona),
-            'intent': intent,
-            'outcome': outcome,
-            'goal': goal,
-            'depends_on': depends_on,
-            'preconditions': preconditions,
-            'postconditions': postconditions,
-            'steps': [],  # Will be populated by step-story/step-epic/step-phase
-            'docname': docname,
+            "slug": journey_slug,
+            "persona": persona,
+            "persona_normalized": normalize_name(persona),
+            "intent": intent,
+            "outcome": outcome,
+            "goal": goal,
+            "depends_on": depends_on,
+            "preconditions": preconditions,
+            "postconditions": postconditions,
+            "steps": [],  # Will be populated by step-story/step-epic/step-phase
+            "docname": docname,
         }
         journey_registry[journey_slug] = journey_data
         current_journey[docname] = journey_slug
@@ -151,7 +156,9 @@ class DefineJourneyDirective(SphinxDirective):
             intro_para += nodes.Text("The ")
 
             persona_slug = slugify(persona)
-            persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            persona_path = (
+                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            )
             persona_valid = normalize_name(persona) in _known_personas
 
             if persona_valid:
@@ -181,7 +188,9 @@ class DefineJourneyDirective(SphinxDirective):
             intro_para += nodes.Text("The goal of the ")
 
             persona_slug = slugify(persona)
-            persona_path = f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            persona_path = (
+                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
+            )
             persona_valid = normalize_name(persona) in _known_personas
 
             if persona_valid:
@@ -203,8 +212,8 @@ class DefineJourneyDirective(SphinxDirective):
 
         # Add a placeholder for steps (will be filled in doctree-resolved)
         steps_placeholder = nodes.container()
-        steps_placeholder['classes'].append('journey-steps-placeholder')
-        steps_placeholder['journey_slug'] = journey_slug
+        steps_placeholder["classes"].append("journey-steps-placeholder")
+        steps_placeholder["journey_slug"] = journey_slug
         result_nodes.append(steps_placeholder)
 
         return result_nodes
@@ -231,10 +240,12 @@ class StepStoryDirective(SphinxDirective):
 
         journey_slug = current_journey.get(docname)
         if journey_slug and journey_slug in journey_registry:
-            journey_registry[journey_slug]['steps'].append({
-                'type': 'story',
-                'ref': story_title,
-            })
+            journey_registry[journey_slug]["steps"].append(
+                {
+                    "type": "story",
+                    "ref": story_title,
+                }
+            )
 
         # Return empty - rendering happens in doctree-resolved
         return []
@@ -260,10 +271,12 @@ class StepEpicDirective(SphinxDirective):
 
         journey_slug = current_journey.get(docname)
         if journey_slug and journey_slug in journey_registry:
-            journey_registry[journey_slug]['steps'].append({
-                'type': 'epic',
-                'ref': epic_slug,
-            })
+            journey_registry[journey_slug]["steps"].append(
+                {
+                    "type": "epic",
+                    "ref": epic_slug,
+                }
+            )
 
         # Return empty - rendering happens in doctree-resolved
         return []
@@ -286,7 +299,7 @@ class StepPhaseDirective(SphinxDirective):
     def run(self):
         phase_title = self.arguments[0]
         docname = self.env.docname
-        description = '\n'.join(self.content).strip()
+        description = "\n".join(self.content).strip()
 
         # Add to current journey's steps
         journey_registry = get_journey_registry(self.env)
@@ -294,11 +307,13 @@ class StepPhaseDirective(SphinxDirective):
 
         journey_slug = current_journey.get(docname)
         if journey_slug and journey_slug in journey_registry:
-            journey_registry[journey_slug]['steps'].append({
-                'type': 'phase',
-                'ref': phase_title,
-                'description': description,
-            })
+            journey_registry[journey_slug]["steps"].append(
+                {
+                    "type": "phase",
+                    "ref": phase_title,
+                    "description": description,
+                }
+            )
 
         # Return empty - rendering happens in doctree-resolved
         return []
@@ -320,8 +335,6 @@ class JourneyIndexDirective(SphinxDirective):
             para += nodes.emphasis(text="No journeys defined")
             return [para]
 
-        docname = self.env.docname
-
         result_nodes = []
         bullet_list = nodes.bullet_list()
 
@@ -338,13 +351,13 @@ class JourneyIndexDirective(SphinxDirective):
             para += journey_ref
 
             # Persona in parentheses
-            if journey['persona']:
+            if journey["persona"]:
                 para += nodes.Text(f" ({journey['persona']})")
 
             item += para
 
             # Intent as sub-paragraph (preferred), fall back to goal
-            display_text = journey.get('intent') or journey.get('goal', '')
+            display_text = journey.get("intent") or journey.get("goal", "")
             if display_text:
                 desc_para = nodes.paragraph()
                 # Truncate if too long
@@ -361,6 +374,7 @@ class JourneyIndexDirective(SphinxDirective):
 
 class JourneyDependencyGraphPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for journey dependency graph, replaced at doctree-resolved."""
+
     pass
 
 
@@ -401,13 +415,13 @@ def build_dependency_graph_node(env):
     # Add all journeys as components
     for slug in sorted(journey_registry.keys()):
         title = slug.replace("-", " ").title()
-        lines.append(f'[{title}] as {slug.replace("-", "_")}')
+        lines.append(f"[{title}] as {slug.replace('-', '_')}")
 
     lines.append("")
 
     # Add dependency arrows (A depends on B => A --> B)
     for slug, journey in sorted(journey_registry.items()):
-        for dep in journey['depends_on']:
+        for dep in journey["depends_on"]:
             if dep in journey_registry:
                 from_id = slug.replace("-", "_")
                 to_id = dep.replace("-", "_")
@@ -420,9 +434,9 @@ def build_dependency_graph_node(env):
 
     # Use the sphinxcontrib.plantuml extension's node type
     puml_node = plantuml(puml_content)
-    puml_node['uml'] = puml_content
-    puml_node['incdir'] = ''
-    puml_node['filename'] = 'journey-dependency-graph'
+    puml_node["uml"] = puml_content
+    puml_node["incdir"] = ""
+    puml_node["filename"] = "journey-dependency-graph"
 
     return puml_node
 
@@ -460,25 +474,32 @@ class JourneysForPersonaDirective(SphinxDirective):
         journey_registry = get_journey_registry(self.env)
 
         # Find journeys for this persona
-        journeys = [j for j in journey_registry.values()
-                    if j['persona_normalized'] == persona_normalized]
+        journeys = [
+            j
+            for j in journey_registry.values()
+            if j["persona_normalized"] == persona_normalized
+        ]
 
         if not journeys:
             para = nodes.paragraph()
-            para += nodes.emphasis(text=f"No journeys found for persona '{persona_arg}'")
+            para += nodes.emphasis(
+                text=f"No journeys found for persona '{persona_arg}'"
+            )
             return [para]
 
         prefix = path_to_root(docname)
 
         bullet_list = nodes.bullet_list()
 
-        for journey in sorted(journeys, key=lambda j: j['slug']):
+        for journey in sorted(journeys, key=lambda j: j["slug"]):
             item = nodes.list_item()
             para = nodes.paragraph()
 
-            journey_path = f"{prefix}{config.get_doc_path('journeys')}/{journey['slug']}.html"
+            journey_path = (
+                f"{prefix}{config.get_doc_path('journeys')}/{journey['slug']}.html"
+            )
             journey_ref = nodes.reference("", "", refuri=journey_path)
-            journey_ref += nodes.Text(journey['slug'].replace("-", " ").title())
+            journey_ref += nodes.Text(journey["slug"].replace("-", " ").title())
             para += journey_ref
 
             item += para
@@ -496,8 +517,9 @@ def clear_journey_state(app, env, docname):
         del current_journey[docname]
 
     # Remove journeys defined in this document
-    to_remove = [slug for slug, j in journey_registry.items()
-                 if j['docname'] == docname]
+    to_remove = [
+        slug for slug, j in journey_registry.items() if j["docname"] == docname
+    ]
     for slug in to_remove:
         del journey_registry[slug]
 
@@ -510,26 +532,26 @@ def validate_journeys(app, env):
     _story_registry = stories.get_story_registry()
     _known_personas = stories.get_known_personas()
 
-    story_titles = {normalize_name(s['feature']) for s in _story_registry}
+    story_titles = {normalize_name(s["feature"]) for s in _story_registry}
 
     for slug, journey in journey_registry.items():
         # Validate persona
-        if journey['persona'] and journey['persona_normalized'] not in _known_personas:
+        if journey["persona"] and journey["persona_normalized"] not in _known_personas:
             logger.warning(
                 f"Journey '{slug}' references unknown persona: '{journey['persona']}'"
             )
 
         # Validate depends-on journeys
-        for dep in journey['depends_on']:
+        for dep in journey["depends_on"]:
             if dep not in journey_registry:
                 logger.warning(
                     f"Journey '{slug}' references unknown dependency: '{dep}'"
                 )
 
         # Validate story steps
-        for step in journey['steps']:
-            if step['type'] == 'story':
-                if normalize_name(step['ref']) not in story_titles:
+        for step in journey["steps"]:
+            if step["type"] == "story":
+                if normalize_name(step["ref"]) not in story_titles:
                     logger.warning(
                         f"Journey '{slug}' references unknown story: '{step['ref']}'"
                     )
@@ -594,7 +616,7 @@ def build_epic_node(epic_slug: str, docname: str):
 
 def render_journey_steps(journey: dict, docname: str):
     """Render journey steps as a numbered list with phases grouping stories."""
-    steps = journey['steps']
+    steps = journey["steps"]
     if not steps:
         return None
 
@@ -603,50 +625,46 @@ def render_journey_steps(journey: dict, docname: str):
     current_phase = None
 
     for step in steps:
-        if step['type'] == 'phase':
+        if step["type"] == "phase":
             # Start a new phase
             current_phase = {
-                'title': step['ref'],
-                'description': step.get('description', ''),
-                'items': []
+                "title": step["ref"],
+                "description": step.get("description", ""),
+                "items": [],
             }
             phases.append(current_phase)
-        elif step['type'] in ('story', 'epic'):
+        elif step["type"] in ("story", "epic"):
             if current_phase is None:
                 # Stories before any phase - create implicit phase
-                current_phase = {
-                    'title': None,
-                    'description': '',
-                    'items': []
-                }
+                current_phase = {"title": None, "description": "", "items": []}
                 phases.append(current_phase)
-            current_phase['items'].append(step)
+            current_phase["items"].append(step)
 
     # Build enumerated list
     enum_list = nodes.enumerated_list()
-    enum_list['enumtype'] = 'arabic'
+    enum_list["enumtype"] = "arabic"
 
     for phase in phases:
         list_item = nodes.list_item()
 
         # Phase header paragraph: "Title — Description" or just items if no title
-        if phase['title']:
+        if phase["title"]:
             header_para = nodes.paragraph()
-            header_para += nodes.strong(text=phase['title'])
-            if phase['description']:
+            header_para += nodes.strong(text=phase["title"])
+            if phase["description"]:
                 header_para += nodes.Text(" — ")
-                header_para += nodes.Text(phase['description'])
+                header_para += nodes.Text(phase["description"])
             list_item += header_para
 
         # Nested bullet list for stories/epics
-        if phase['items']:
+        if phase["items"]:
             bullet_list = nodes.bullet_list()
-            for item in phase['items']:
+            for item in phase["items"]:
                 bullet_item = nodes.list_item()
-                if item['type'] == 'story':
-                    bullet_item += build_story_node(item['ref'], docname)
-                elif item['type'] == 'epic':
-                    bullet_item += build_epic_node(item['ref'], docname)
+                if item["type"] == "story":
+                    bullet_item += build_story_node(item["ref"], docname)
+                elif item["type"] == "epic":
+                    bullet_item += build_epic_node(item["ref"], docname)
                 bullet_list += bullet_item
             list_item += bullet_list
 
@@ -655,14 +673,15 @@ def render_journey_steps(journey: dict, docname: str):
     return enum_list
 
 
-def make_labelled_list(term: str, items: list, env, docname: str = None, item_type: str = 'text'):
+def make_labelled_list(
+    term: str, items: list, env, docname: str = None, item_type: str = "text"
+):
     """Create a labelled bullet list with term as heading.
 
     Uses 'simple' class on bullet list for compact vertical spacing.
 
     item_type can be 'text' (plain text) or 'journey' (journey links).
     """
-    config = get_config()
     journey_registry = get_journey_registry(env)
     container = nodes.container()
 
@@ -679,7 +698,7 @@ def make_labelled_list(term: str, items: list, env, docname: str = None, item_ty
         # Use inline container for content to avoid paragraph gaps
         inline = nodes.inline()
 
-        if item_type == 'journey':
+        if item_type == "journey":
             related_slug = item
             related_path = f"{related_slug}.html"
             if related_slug in journey_registry:
@@ -719,7 +738,7 @@ def process_journey_steps(app, doctree):
 
     # Find and replace the steps placeholder
     for node in doctree.traverse(nodes.container):
-        if 'journey-steps-placeholder' in node.get('classes', []):
+        if "journey-steps-placeholder" in node.get("classes", []):
             steps_node = render_journey_steps(journey, docname)
             if steps_node:
                 node.replace_self(steps_node)
@@ -728,31 +747,26 @@ def process_journey_steps(app, doctree):
             break
 
     # Add preconditions if present (after steps)
-    if journey['preconditions']:
-        doctree += make_labelled_list(
-            "Preconditions", journey['preconditions'], env
-        )
+    if journey["preconditions"]:
+        doctree += make_labelled_list("Preconditions", journey["preconditions"], env)
 
     # Add postconditions if present
-    if journey['postconditions']:
-        doctree += make_labelled_list(
-            "Postconditions", journey['postconditions'], env
-        )
+    if journey["postconditions"]:
+        doctree += make_labelled_list("Postconditions", journey["postconditions"], env)
 
     # Add depends-on journeys if present
-    if journey['depends_on']:
+    if journey["depends_on"]:
         doctree += make_labelled_list(
-            "Depends On", journey['depends_on'], env, docname, item_type='journey'
+            "Depends On", journey["depends_on"], env, docname, item_type="journey"
         )
 
     # Add depended-on-by journeys (inferred from other journeys' depends_on)
     depended_on_by = [
-        j['slug'] for j in journey_registry.values()
-        if journey_slug in j['depends_on']
+        j["slug"] for j in journey_registry.values() if journey_slug in j["depends_on"]
     ]
     if depended_on_by:
         doctree += make_labelled_list(
-            "Depended On By", sorted(depended_on_by), env, docname, item_type='journey'
+            "Depended On By", sorted(depended_on_by), env, docname, item_type="journey"
         )
 
 
