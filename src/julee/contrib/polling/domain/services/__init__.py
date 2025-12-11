@@ -4,8 +4,8 @@ Polling domain services.
 This module contains the service protocols for the polling contrib module.
 """
 
-from .polling import PollingService
+from .poller import PollerService
 
 __all__ = [
-    "PollingService",
+    "PollerService",
 ]

@@ -1,5 +1,5 @@
 """
-HTTP implementation of the PollingService protocol.
+HTTP implementation of the PollerService protocol.
 
 This module provides HTTP-specific polling functionality including
 REST API endpoints, webhooks, and other HTTP-based data sources.
@@ -12,11 +12,11 @@ from typing import Any
 import httpx
 
 from julee.contrib.polling.domain.models import PollingConfig, PollingResult
-from julee.contrib.polling.domain.services import PollingService
+from julee.contrib.polling.domain.services import PollerService
 
 
-class HttpPollingService(PollingService):
-    """HTTP implementation of PollingService protocol."""
+class HttpPollerService(PollerService):
+    """HTTP implementation of PollerService protocol."""
 
     def __init__(self) -> None:
         self.client = httpx.AsyncClient()
@@ -71,7 +71,7 @@ class HttpPollingService(PollingService):
         """Close the HTTP client connection."""
         await self.client.aclose()
 
-    async def __aenter__(self) -> "HttpPollingService":
+    async def __aenter__(self) -> "HttpPollerService":
         """Async context manager entry."""
         return self
 
