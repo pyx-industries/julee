@@ -25,7 +25,7 @@ stakeholders.
 Human-Centered Design (HCD) provides the common language that allows business
 and engineering to communicate. Documentation organised around personas,
 journeys, epics, and stories will facilitate this. We need a way to naturally
-map that kind of documentatio to the clean code.
+map that kind of documentation to the clean code.
 
 Two problems emerge:
 
