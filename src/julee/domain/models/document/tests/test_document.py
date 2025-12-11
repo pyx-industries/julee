@@ -203,32 +203,12 @@ class TestDocumentSerialization:
 
 
 class TestDocumentContentValidation:
-    """Test Document content and content_string validation rules."""
+    """Test Document content and content_bytes validation rules."""
 
-    def test_document_with_both_content_and_content_string_fails(
-        self,
-    ) -> None:
-        """Test that both content and content_string raises error."""
-        content_stream = ContentStreamFactory.build()
-        content_string = '{"type": "string"}'
-
+    def test_document_without_content_or_content_bytes_fails(self) -> None:
+        """Test that no content or content_bytes raises error."""
         with pytest.raises(
-            ValueError, match="cannot have both content and content_string"
-        ):
-            Document(
-                document_id="test-doc-both",
-                original_filename="both.json",
-                content_type="application/json",
-                size_bytes=100,
-                content_multihash="test_hash",
-                content=content_stream,
-                content_string=content_string,
-            )
-
-    def test_document_without_content_or_content_string_fails(self) -> None:
-        """Test that no content or content_string raises error."""
-        with pytest.raises(
-            ValueError, match="must have either content or content_string"
+            ValueError, match="must have one of: content, or content_bytes."
         ):
             Document(
                 document_id="test-doc-no-content",
@@ -237,7 +217,7 @@ class TestDocumentContentValidation:
                 size_bytes=100,
                 content_multihash="test_hash",
                 content=None,
-                content_string=None,
+                content_bytes=None,
             )
 
     def test_document_with_content_only_succeeds(self) -> None:
@@ -251,15 +231,15 @@ class TestDocumentContentValidation:
             size_bytes=100,
             content_multihash="test_hash",
             content=content_stream,
-            content_string=None,
+            content_bytes=None,
         )
 
         assert doc.content is not None
-        assert doc.content_string is None
+        assert doc.content_bytes is None
 
-    def test_document_with_content_string_only_succeeds(self) -> None:
-        """Test that document with only content_string field succeeds."""
-        content_string = '{"type": "string"}'
+    def test_document_with_content_bytes_only_succeeds(self) -> None:
+        """Test that document with only content_bytes field succeeds."""
+        content_bytes = b'{"type": "string"}'
 
         doc = Document(
             document_id="test-doc-string",
@@ -268,11 +248,11 @@ class TestDocumentContentValidation:
             size_bytes=100,
             content_multihash="test_hash",
             content=None,
-            content_string=content_string,
+            content_bytes=content_bytes,
         )
 
         assert doc.content is None
-        assert doc.content_string == content_string
+        assert doc.content_bytes == content_bytes
 
     def test_document_deserialization_with_empty_content_succeeds(
         self,
@@ -287,7 +267,7 @@ class TestDocumentContentValidation:
             "size_bytes": 100,
             "content_multihash": "test_hash",
             "content": None,
-            "content_string": None,
+            "content_bytes": None,
         }
 
         # Should succeed with temporal_validation context
@@ -297,4 +277,4 @@ class TestDocumentContentValidation:
 
         assert doc.document_id == "test-temporal"
         assert doc.content is None
-        assert doc.content_string is None
+        assert doc.content_bytes is None

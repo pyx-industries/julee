@@ -175,27 +175,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
 
         try:
             # Handle content_string conversion (only if no content provided)
-            if document.content_string is not None:
-                # Convert content_string to ContentStream
-                assert document.content_string is not None  # For MyPy
-                content_bytes = document.content_string.encode("utf-8")
-                content_stream = ContentStream(io.BytesIO(content_bytes))
-
-                # Create new document with ContentStream
-                document = document.model_copy(
-                    update={
-                        "content": content_stream,
-                        "size_bytes": len(content_bytes),
-                    }
-                )
-
-                self.logger.debug(
-                    "Converted content_string to ContentStream",
-                    extra={
-                        "document_id": document.document_id,
-                        "content_length": len(content_bytes),
-                    },
-                )
+            document = self._normalize_document_content(document)
 
             # Store content first and get calculated multihash
             calculated_multihash = await self._store_content(document)
@@ -449,6 +429,30 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
             raise
 
+
+    def _normalize_document_content(self, document: Document) -> Document:
+        """Ensure document has a ContentStream in content"""
+        if document.content is not None:
+            return document
+
+        content_bytes = document.content_bytes
+        if content_bytes is not None:
+            if isinstance(content_bytes, str):
+                content_bytes = content_bytes.encode("utf-8")
+
+            stream = ContentStream(io.BytesIO(content_bytes))
+            size_bytes = len(content_bytes)
+            return document.model_copy(
+                update={
+                    "content": stream,
+                    "size_bytes": size_bytes,
+                }
+            )
+
+        raise ValueError(
+            f"Document {document.document_id} has no content, content_bytes"
+        )
+
     def _calculate_multihash_from_stream(self, content_stream: ContentStream) -> str:
         """Calculate multihash from content stream."""
         if not content_stream:
@@ -471,7 +475,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
 
         # Serialize metadata (content stream and content_string excluded)
         metadata_json = document.model_dump_json(
-            exclude={"content", "content_string"}
+            exclude={"content", "content_string", "content_bytes"}
         ).encode("utf-8")
 
         try:

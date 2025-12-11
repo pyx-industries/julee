@@ -61,7 +61,7 @@ def sample_documents() -> list[Document]:
             created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             additional_metadata={"type": "test"},
-            content_string="test content",
+            content_bytes="test content",
         ),
         Document(
             document_id="doc-2",
@@ -73,7 +73,7 @@ def sample_documents() -> list[Document]:
             created_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc),
             updated_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc),
             additional_metadata={"type": "report"},
-            content_string="pdf content",
+            content_bytes="pdf content",
         ),
     ]
 
@@ -203,7 +203,7 @@ class TestGetDocument:
         assert data["additional_metadata"] == doc.additional_metadata
 
         # Content should NOT be included in metadata endpoint
-        assert data["content_string"] is None
+        assert data["content_bytes"] is None
         # Content field is excluded from JSON response
         assert "content" not in data
 
@@ -273,7 +273,7 @@ class TestGetDocumentContent:
         memory_repo: MemoryDocumentRepository,
     ) -> None:
         """Test content retrieval when document has no content."""
-        # Create document with content_string first to pass validation
+        # Create document with content_bytes first to pass validation
         doc = Document(
             document_id="doc-no-content",
             original_filename="empty.txt",
@@ -282,7 +282,7 @@ class TestGetDocumentContent:
             content_multihash="empty_hash",
             status=DocumentStatus.CAPTURED,
             additional_metadata={"type": "empty"},
-            content_string="temp",
+            content_bytes="temp",
         )
 
         # Save document normally, then manually remove content from storage
@@ -290,7 +290,7 @@ class TestGetDocumentContent:
         stored_doc = memory_repo.storage_dict[doc.document_id]
         # Remove content from the stored document
         memory_repo.storage_dict[doc.document_id] = stored_doc.model_copy(
-            update={"content": None, "content_string": None}
+            update={"content": None, "content_bytes": None}
         )
 
         # Make request

@@ -60,7 +60,7 @@ export default function Layout({ children }: LayoutProps) {
                 to="/"
                 className="flex items-center space-x-2 text-xl font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
                   <Activity className="h-5 w-5" />
                 </div>
                 <span>Julee Example</span>

@@ -60,46 +60,52 @@ class MemoryDocumentRepository(DocumentRepository, MemoryRepositoryMixin[Documen
     async def save(self, document: Document) -> None:
         """Save a document with its content and metadata.
 
-        If the document has content_string, it will be converted to a
-        ContentStream and the content hash will be calculated automatically.
+        If the document has content_bytes, it will be normalized to bytes
+        (encoding str as UTF-8), converted to a ContentStream and the
+        content hash will be calculated automatically.
 
         Args:
             document: Document object to save
 
         Raises:
-            ValueError: If document has no content or content_string
+            ValueError: If document has no content or content_bytes
+            TypeError: If content_bytes is not bytes or str
         """
         # Handle content_string conversion (only if no content provided)
-        if document.content_string is not None:
-            # Convert content_string to ContentStream
-            assert document.content_string is not None  # For MyPy
-            content_bytes = document.content_string.encode("utf-8")
-            content_stream = ContentStream(io.BytesIO(content_bytes))
+        if document.content_bytes is not None:
+            if isinstance(document.content_bytes, str):
+                raw_bytes = document.content_bytes.encode("utf-8")
+            elif isinstance(document.content_bytes, bytes):
+                raw_bytes = document.content_bytes
+            else:
+                raise TypeError("content_bytes must be of type 'bytes' or 'str'.")
+
+            content_stream = ContentStream(io.BytesIO(raw_bytes))
 
             # Calculate content hash
-            content_hash = hashlib.sha256(content_bytes).hexdigest()
+            content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
             # Create new document with ContentStream and calculated hash
             document = document.model_copy(
                 update={
                     "content": content_stream,
                     "content_multihash": content_hash,
-                    "size_bytes": len(content_bytes),
+                    "size_bytes": len(raw_bytes),
                 }
             )
 
             self.logger.debug(
-                "Converted content_string to ContentStream for document save",
+                "Converted content_bytes to ContentStream for document save",
                 extra={
                     "document_id": document.document_id,
                     "content_hash": content_hash,
-                    "content_length": len(content_bytes),
+                    "content_length": len(raw_bytes),
                 },
             )
 
         # Create a copy without content_string (content saved
         # in separate content-addressable storage)
-        document_for_storage = document.model_copy(update={"content_string": None})
+        document_for_storage = document.model_copy(update={"content_bytes": None})
         self.save_entity(document_for_storage, "document_id")
 
     async def generate_id(self) -> str:

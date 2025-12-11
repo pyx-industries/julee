@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+import json
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -535,54 +536,69 @@ class InitializeSystemDataUseCase:
 
     def _load_fixture_assembly_specifications(self) -> list[dict[str, Any]]:
         """
-        Load assembly specifications from the YAML fixture file.
-
+        Load assembly specifications from a YAML or JSON fixture file.
+    
         Returns:
             List of specification dictionaries from the fixture file
-
+    
         Raises:
             FileNotFoundError: If the fixture file doesn't exist
             yaml.YAMLError: If the fixture file is invalid YAML
+            json.JSONDecodeError: If the fixture file is invalid JSON
             KeyError: If required fields are missing from the fixture
+            ValueError: If the specification section is malformed
         """
-        fixture_path = self._get_demo_fixture_path("assembly_specifications.yaml")
-
+        # Accept both .yaml and .json files
+        fixture_path = None
+        for ext in ("json", "yaml"):
+            candidate = self._get_demo_fixture_path(f"assembly_specifications.{ext}")
+            if candidate.exists():
+                fixture_path = candidate
+                break
+    
+        if fixture_path is None:
+            raise FileNotFoundError(
+                "Assembly specifications fixture file not found (.yaml or .json)"
+            )
+    
         self.logger.debug(
             "Loading assembly specifications fixture file",
             extra={"fixture_path": str(fixture_path)},
         )
-
-        if not fixture_path.exists():
-            raise FileNotFoundError(
-                f"Assembly specifications fixture file not found: {fixture_path}"
-            )
-
+    
         try:
-            with open(fixture_path, encoding="utf-8") as f:
-                fixture_data = yaml.safe_load(f)
-
+            with open(fixture_path, "r", encoding="utf-8") as f:
+                if fixture_path.suffix.lower() == ".json":
+                    fixture_data = json.load(f)
+                else:
+                    fixture_data = yaml.safe_load(f)
+    
             if not fixture_data or "assembly_specifications" not in fixture_data:
-                raise KeyError(
-                    "Fixture file must contain 'assembly_specifications' key"
-                )
-
+                raise KeyError("Fixture file must contain 'assembly_specifications' key")
+    
             specs = fixture_data["assembly_specifications"]
             if not isinstance(specs, list):
                 raise ValueError(
-                    "'assembly_specifications' must be a list of "
-                    "specification configurations"
+                    "'assembly_specifications' must be a list of specification configurations"
                 )
-
+    
             self.logger.debug(
                 "Loaded fixture assembly specifications",
                 extra={"count": len(specs)},
             )
-
+    
             return specs
-
+    
         except yaml.YAMLError as e:
             raise yaml.YAMLError(
                 f"Invalid YAML in assembly specifications fixture file: {e}"
+            )
+    
+        except json.JSONDecodeError as e:
+            raise json.JSONDecodeError(
+                f"Invalid JSON in assembly specifications fixture file: {e}",
+                e.doc,
+                e.pos,
             )
 
     def _create_assembly_spec_from_fixture_data(
@@ -782,24 +798,62 @@ class InitializeSystemDataUseCase:
             "document_id",
             "original_filename",
             "content_type",
-            "content",
         ]
 
-        # Validate required fields
         for field in required_fields:
             if field not in doc_data:
                 raise KeyError(f"Required field '{field}' missing from document")
 
-        # Get content and calculate hash
-        content = doc_data["content"]
-        content_bytes = content.encode("utf-8")
-        size_bytes = len(content_bytes)
+        content_type = doc_data["content_type"]
+        is_text = content_type.startswith("text/") or content_type in {
+            "application/json",
+            "application/xml",
+            "application/javascript",
+        }
 
-        # Create multihash (using SHA-256)
+        if "content" in doc_data:
+            content = doc_data["content"]
+
+            if isinstance(content, bytes):
+                content_bytes = content
+            elif isinstance(content, str):
+                content_bytes = content.encode("utf-8")
+            else:
+                raise TypeError(
+                    f"Unsupported type for 'content': {type(content)!r}. Expected str or bytes."
+                )
+        else:
+            current_file = Path(__file__)
+            julee_dir = current_file.parent.parent.parent
+            fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
+
+            open_mode = "r" if is_text else "rb"
+            encoding = "utf-8" if is_text else None
+
+            try:
+                with fixture_path.open(open_mode, encoding=encoding) as f:
+                    content = f.read()
+            except FileNotFoundError as e:
+                self.logger.error(
+                    "Fixture file not found for document",
+                    extra={
+                        "document_id": doc_data["document_id"],
+                        "fixture_path": str(fixture_path),
+                    },
+                )
+                raise FileNotFoundError(
+                    f"Fixture file '{fixture_path}' not found for document "
+                    f"{doc_data['document_id']}"
+                ) from e
+
+            content_bytes = content.encode("utf-8") if is_text else content
+
+            self.logger.info(content_bytes)
+
+        size_bytes = len(content_bytes)
         sha256_hash = hashlib.sha256(content_bytes).hexdigest()
         content_multihash = f"sha256-{sha256_hash}"
 
-        # Parse status
         status = DocumentStatus.CAPTURED
         if "status" in doc_data:
             try:
@@ -809,12 +863,10 @@ class InitializeSystemDataUseCase:
                     f"Invalid status '{doc_data['status']}', using default 'captured'"
                 )
 
-        # Get optional fields
         knowledge_service_id = doc_data.get("knowledge_service_id")
         assembly_types = doc_data.get("assembly_types", [])
         additional_metadata = doc_data.get("additional_metadata", {})
 
-        # Create document
         document = Document(
             document_id=doc_data["document_id"],
             original_filename=doc_data["original_filename"],
@@ -827,7 +879,7 @@ class InitializeSystemDataUseCase:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
             additional_metadata=additional_metadata,
-            content_string=content,  # Store content as string for fixtures
+            content_bytes=content_bytes,
         )
 
         self.logger.debug(
