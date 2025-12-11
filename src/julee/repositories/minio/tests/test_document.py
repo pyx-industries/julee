@@ -429,16 +429,16 @@ class TestMinioDocumentRepositoryMultihash:
         assert len(multihash_result) > 0
 
 
-class TestMinioDocumentRepositoryContentString:
-    """Test content_string functionality."""
+class TestMinioDocumentRepositoryContentBytes:
+    """Test content_bytes functionality."""
 
-    async def test_save_document_with_content_string(
+    async def test_save_document_with_content_bytes(
         self, repository: MinioDocumentRepository
     ) -> None:
-        """Test saving document with content_string (small content)."""
+        """Test saving document with content_bytes (small content)."""
         content = '{"assembled": "document", "data": "test"}'
 
-        # Create document with content_string
+        # Create document with content_bytes
         document = Document(
             document_id="test-doc-content-string",
             original_filename="assembled.json",
@@ -446,27 +446,27 @@ class TestMinioDocumentRepositoryContentString:
             size_bytes=100,  # Will be updated automatically
             content_multihash="placeholder",  # Will be updated automatically
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
-        # Act - save should convert content_string to ContentStream
+        # Act - save should convert content_bytes to ContentStream
         await repository.save(document)
 
         # Assert document was saved successfully
         retrieved = await repository.get(document.document_id)
         assert retrieved is not None
         assert retrieved.content_multihash != "placeholder"  # Hash was calculated
-        assert retrieved.size_bytes == len(content.encode("utf-8"))
+        assert retrieved.size_bytes == len(content)
 
         # Verify content can be read
         assert retrieved.content is not None
         retrieved_content = retrieved.content.read().decode("utf-8")
         assert retrieved_content == content
 
-    async def test_save_document_with_content_string_unicode(
+    async def test_save_document_with_content_bytes_unicode(
         self, repository: MinioDocumentRepository
     ) -> None:
-        """Test saving document with unicode content_string."""
+        """Test saving document with unicode content_bytes."""
         content = '{"title": "测试文档", "emoji": "🚀", "content": "éñ"}'
 
         document = Document(
@@ -476,7 +476,7 @@ class TestMinioDocumentRepositoryContentString:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
         await repository.save(document)
@@ -490,12 +490,12 @@ class TestMinioDocumentRepositoryContentString:
     # Note: Empty content test removed because domain model requires
     # size_bytes > 0
 
-    async def test_save_excludes_content_string_from_metadata(
+    async def test_save_excludes_content_bytes_from_metadata(
         self,
         repository: MinioDocumentRepository,
         fake_minio_client: FakeMinioClient,
     ) -> None:
-        """Test that content_string is not stored in metadata."""
+        """Test that content_bytes is not stored in metadata."""
         content = '{"test": "data that should not be in metadata"}'
 
         document = Document(
@@ -505,7 +505,7 @@ class TestMinioDocumentRepositoryContentString:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
         await repository.save(document)
@@ -521,8 +521,8 @@ class TestMinioDocumentRepositoryContentString:
 
         metadata_dict = json.loads(metadata_json)
 
-        # Verify content_string is not in stored metadata
-        assert "content_string" not in metadata_dict
+        # Verify content_bytes is not in stored metadata
+        assert "content_bytes" not in metadata_dict
         assert "content" not in metadata_dict
 
         # Verify essential fields are still present

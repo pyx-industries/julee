@@ -3,7 +3,7 @@ Unit tests for MemoryDocumentRepository.
 
 These tests verify the memory implementation logic without requiring external
 dependencies. They follow the Clean Architecture testing patterns and verify
-idempotency, error handling, and content operations including content_string.
+idempotency, error handling, and content operations including content_bytes.
 """
 
 import io
@@ -46,16 +46,16 @@ def sample_document(sample_content: ContentStream) -> Document:
     )
 
 
-class TestMemoryDocumentRepositoryContentString:
-    """Test content_string functionality."""
+class TestMemoryDocumentRepositoryContentBytes:
+    """Test content_bytes functionality."""
 
-    async def test_save_document_with_content_string(
+    async def test_save_document_with_content_bytes(
         self, repository: MemoryDocumentRepository
     ) -> None:
-        """Test saving document with content_string (small content)."""
+        """Test saving document with content_bytes."""
         content = '{"assembled": "document", "data": "test"}'
 
-        # Create document with content_string
+        # Create document with content_bytes
         document = Document(
             document_id="test-doc-content-string",
             original_filename="assembled.json",
@@ -63,10 +63,10 @@ class TestMemoryDocumentRepositoryContentString:
             size_bytes=100,  # Will be updated automatically
             content_multihash="placeholder",  # Will be updated automatically
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
-        # Act - save should convert content_string to ContentStream
+        # Act - save should convert content_bytes to ContentStream
         await repository.save(document)
 
         # Assert document was saved successfully
@@ -80,10 +80,10 @@ class TestMemoryDocumentRepositoryContentString:
         retrieved_content = retrieved.content.read().decode("utf-8")
         assert retrieved_content == content
 
-    async def test_save_document_with_content_string_unicode(
+    async def test_save_document_with_content_bytes_unicode(
         self, repository: MemoryDocumentRepository
     ) -> None:
-        """Test saving document with unicode content_string."""
+        """Test saving document with unicode content_bytes."""
         content = '{"title": "测试文档", "emoji": "🚀", "content": "éñ"}'
 
         document = Document(
@@ -93,7 +93,7 @@ class TestMemoryDocumentRepositoryContentString:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
         await repository.save(document)
@@ -107,10 +107,10 @@ class TestMemoryDocumentRepositoryContentString:
     # Note: Empty content test removed because domain model requires
     # size_bytes > 0
 
-    async def test_save_excludes_content_string_from_storage(
+    async def test_save_excludes_content_bytes_from_storage(
         self, repository: MemoryDocumentRepository
     ) -> None:
-        """Test that content_string is not stored in memory storage."""
+        """Test that content_bytes is not stored in memory storage."""
         content = '{"test": "data that should not be in storage"}'
 
         document = Document(
@@ -120,7 +120,7 @@ class TestMemoryDocumentRepositoryContentString:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_string=content,
+            content_bytes=content,
         )
 
         await repository.save(document)
@@ -129,8 +129,8 @@ class TestMemoryDocumentRepositoryContentString:
         stored_document = repository.storage_dict.get("test-storage-exclusion")
         assert stored_document is not None
 
-        # Verify content_string is not in stored document
-        assert stored_document.content_string is None
+        # Verify content_bytes is not in stored document
+        assert stored_document.content_bytes is None
 
         # Verify essential fields are still present
         assert stored_document.document_id == "test-storage-exclusion"
@@ -195,7 +195,7 @@ class TestMemoryDocumentRepositoryErrorHandling:
                 size_bytes=100,
                 content_multihash="test_hash",
                 status=DocumentStatus.CAPTURED,
-                content_string="test content",
+                content_bytes="test content",
             )
 
     async def test_save_handles_empty_filename(
@@ -210,5 +210,5 @@ class TestMemoryDocumentRepositoryErrorHandling:
                 size_bytes=100,
                 content_multihash="test_hash",
                 status=DocumentStatus.CAPTURED,
-                content_string="test content",
+                content_bytes="test content",
             )

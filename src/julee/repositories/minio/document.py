@@ -441,7 +441,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                 content_bytes = content_bytes.encode("utf-8")
 
             stream = ContentStream(io.BytesIO(content_bytes))
-            size_bytes = document.size_bytes or len(content_bytes)
+            size_bytes = len(content_bytes)
             return document.model_copy(
                 update={
                     "content": stream,
