@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [master, develop]
 
 jobs:
   quality-checks:
@@ -15,37 +15,37 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Create virtual environment
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        echo "VIRTUAL_ENV=$(pwd)/venv" >> $GITHUB_ENV
-        echo "$(pwd)/venv/bin" >> $GITHUB_PATH
+      - name: Create virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          echo "VIRTUAL_ENV=$(pwd)/venv" >> $GITHUB_ENV
+          echo "$(pwd)/venv/bin" >> $GITHUB_PATH
 
-    - name: Install dependencies
-      run: |
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
-    - name: Run quality checks
-      run: |
-        source venv/bin/activate
-        make quality-fast
+      - name: Run quality checks
+        run: |
+          source venv/bin/activate
+          make quality-fast
 
-    - name: Upload coverage reports
-      if: matrix.python-version == '3.12'
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-reports
-        path: |
-          .coverage
-          htmlcov/
-        retention-days: 7
+      - name: Upload coverage reports
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            .coverage
+            htmlcov/
+          retention-days: 7
