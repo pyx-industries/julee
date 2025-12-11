@@ -7,11 +7,11 @@ protocols that govern polling operations.
 """
 
 from .models import PollingConfig, PollingProtocol, PollingResult
-from .services import PollingService
+from .services import PollerService
 
 __all__ = [
     "PollingConfig",
     "PollingProtocol",
     "PollingResult",
-    "PollingService",
+    "PollerService",
 ]

@@ -5,8 +5,8 @@ This module provides HTTP-specific polling functionality for the polling
 contrib module.
 """
 
-from .http_polling_service import HttpPollingService
+from .http_poller_service import HttpPollerService
 
 __all__ = [
-    "HttpPollingService",
+    "HttpPollerService",
 ]

@@ -12,7 +12,7 @@ The polling module includes:
 - Co-located tests and examples
 
 Example usage:
-    from julee.contrib.polling import PollingConfig, HttpPollingService
+    from julee.contrib.polling import PollingConfig, HttpPollerService
     from julee.contrib.polling import PollingProtocol, PollingResult
 
     # Configure polling
@@ -24,13 +24,13 @@ Example usage:
     )
 
     # Poll the endpoint
-    service = HttpPollingService()
+    service = HttpPollerService()
     result = await service.poll_endpoint(config)
 """
 
-from .domain import PollingConfig, PollingProtocol, PollingResult, PollingService
-from .infrastructure import HttpPollingService
-from .infrastructure.temporal import WorkflowPollingServiceProxy
+from .domain import PollerService, PollingConfig, PollingProtocol, PollingResult
+from .infrastructure import HttpPollerService, TemporalPollerService
+from .infrastructure.temporal import WorkflowPollerServiceProxy
 
 __all__ = [
     # Domain models
@@ -38,9 +38,10 @@ __all__ = [
     "PollingProtocol",
     "PollingResult",
     # Domain services
-    "PollingService",
+    "PollerService",
     # Infrastructure implementations
-    "HttpPollingService",
+    "HttpPollerService",
     # Temporal integration
-    "WorkflowPollingServiceProxy",
+    "TemporalPollerService",
+    "WorkflowPollerServiceProxy",
 ]

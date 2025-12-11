@@ -1,7 +1,7 @@
 """
-Unit tests for HttpPollingService.
+Unit tests for HttpPollerService.
 
-This module tests the HTTP polling service implementation using httpx's
+This module tests the HTTP poller service implementation using httpx's
 built-in MockTransport for mocking HTTP responses. Tests use table-based
 parametrization for comprehensive coverage of different scenarios.
 """
@@ -13,12 +13,12 @@ import pytest
 
 from julee.contrib.polling.domain.models import PollingConfig, PollingProtocol
 from julee.contrib.polling.infrastructure.services.polling.http import (
-    HttpPollingService,
+    HttpPollerService,
 )
 
 
-class TestHttpPollingServicePollEndpoint:
-    """Test the poll_endpoint method of HttpPollingService."""
+class TestHttpPollerServicePollEndpoint:
+    """Test the poll_endpoint method of HttpPollerService."""
 
     @pytest.mark.parametrize(
         "status_code,content,expected_success,description",
@@ -46,7 +46,7 @@ class TestHttpPollingServicePollEndpoint:
 
         mock_transport = httpx.MockTransport(handler)
 
-        async with HttpPollingService() as service:
+        async with HttpPollerService() as service:
             service.client = httpx.AsyncClient(transport=mock_transport)
 
             config = PollingConfig(
@@ -86,7 +86,7 @@ class TestHttpPollingServicePollEndpoint:
 
         mock_transport = httpx.MockTransport(handler)
 
-        async with HttpPollingService() as service:
+        async with HttpPollerService() as service:
             service.client = httpx.AsyncClient(transport=mock_transport)
 
             config = PollingConfig(
@@ -113,7 +113,7 @@ class TestHttpPollingServicePollEndpoint:
 
         mock_transport = httpx.MockTransport(handler)
 
-        async with HttpPollingService() as service:
+        async with HttpPollerService() as service:
             service.client = httpx.AsyncClient(transport=mock_transport)
 
             config = PollingConfig(
@@ -140,7 +140,7 @@ class TestHttpPollingServicePollEndpoint:
 
         mock_transport = httpx.MockTransport(handler)
 
-        async with HttpPollingService() as service:
+        async with HttpPollerService() as service:
             service.client = httpx.AsyncClient(transport=mock_transport)
 
             config = PollingConfig(

@@ -1,7 +1,7 @@
 """
-PollingService protocol for external endpoint polling operations.
+PollerService protocol for external endpoint polling operations.
 
-This module defines the PollingService protocol that handles interactions
+This module defines the PollerService protocol that handles interactions
 with various types of external endpoints for data polling and change detection.
 
 Concrete implementations of this protocol are provided for different polling
@@ -14,13 +14,13 @@ from ..models import PollingConfig, PollingResult
 
 
 @runtime_checkable
-class PollingService(Protocol):
+class PollerService(Protocol):
     """
     Protocol for polling external endpoints for data.
 
-    This protocol defines the interface for polling operations across different
-    endpoint types. Implementations handle the specifics of different polling
-    mechanisms.
+    This protocol defines the interface for a poller service that can perform
+    individual poll operations on different endpoint types. Implementations
+    handle the specifics of different polling mechanisms.
     """
 
     async def poll_endpoint(self, config: PollingConfig) -> PollingResult:
