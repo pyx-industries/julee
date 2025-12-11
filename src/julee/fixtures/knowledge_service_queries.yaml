@@ -1,11 +1,11 @@
 knowledge_service_queries:
-  - query_id: "extract-product-information-query"
-    name: "Extract Product Information"
+  - query_id: "generate-dpp"
+    name: "Generate Digital Product Passport"
     knowledge_service_id: "anthropic-4.5-as-a-knowledge-service"
-    prompt: "Extract the name and the description of the product from this product specification sheet."
-    assistant_prompt: "Looking at the product specification sheet, here's the extracted product information that conforms to the provided schema, without surrounding ```json ... ``` markers:"
+    prompt: "From this product specification sheet, generate a digital product passport that conforms to the the provided schema."
+    assistant_prompt: "Looking at the product specification sheet, here's the digital product passport that conforms to the provided schema, without surrounding ```json ... ``` markers:"
     query_metadata:
-      max_tokens: 1000
+      max_tokens: 2000
       temperature: 0.1
   - query_id: "extract-meeting-info-query"
     name: "Extract Meeting Information"

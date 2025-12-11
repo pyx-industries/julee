@@ -502,9 +502,17 @@ text or markdown formatting."""
         if not response_text:
             raise ValueError("Empty response from knowledge service")
 
+        # Remove ```json ... ``` or ``` ... ``` wrappers if present
+        stripped = response_text.strip()
+
+        if stripped.startswith("```"):
+            stripped = stripped.split("```", 1)[1]
+            if "```" in stripped:
+                stripped = stripped.split("```", 1)[0]
+
         # Response must be valid JSON
         try:
-            parsed_result = json.loads(response_text.strip())
+            parsed_result = json.loads(stripped.strip())
             return parsed_result
         except json.JSONDecodeError as e:
             raise ValueError(

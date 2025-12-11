@@ -134,7 +134,7 @@ class Document(BaseModel):
 
     @model_validator(mode="after")
     def validate_content_fields(self, info: ValidationInfo) -> "Document":
-        """Ensure document has exactly one of content, content_string, or content_bytes."""
+        """Ensure document has at least content, content_string, or content_bytes."""
 
         # Skip validation in Temporal deserialization context
         if info.context and info.context.get("temporal_validation"):
