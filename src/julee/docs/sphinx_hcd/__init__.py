@@ -9,6 +9,7 @@ using Human-Centered Design patterns. It supports:
 - Apps: Application documentation with manifest-based metadata
 - Accelerators: Domain accelerator documentation with bounded context scanning
 - Integrations: External integration documentation
+- Personas: Auto-generated UML diagrams showing persona-epic-app relationships
 
 Usage in conf.py::
 
@@ -56,6 +57,7 @@ def setup(app):
     from . import apps
     from . import accelerators
     from . import integrations
+    from . import personas
 
     # Call setup on each module
     stories.setup(app)
@@ -64,6 +66,7 @@ def setup(app):
     apps.setup(app)
     accelerators.setup(app)
     integrations.setup(app)
+    personas.setup(app)
 
     logger.info("Loaded julee.docs.sphinx_hcd extensions")
 
