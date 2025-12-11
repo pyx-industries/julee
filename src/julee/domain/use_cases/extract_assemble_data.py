@@ -602,7 +602,7 @@ text or markdown formatting."""
             size_bytes=len(content_bytes),
             content_multihash=self._calculate_multihash_from_content(content_bytes),
             status=DocumentStatus.ASSEMBLED,
-            content_string=assembled_content,  # Use content_string for small
+            content_bytes=assembled_content,
             created_at=self.now_fn(),
             updated_at=self.now_fn(),
         )

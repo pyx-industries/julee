@@ -816,9 +816,7 @@ class InitializeSystemDataUseCase:
 
             if isinstance(content, bytes):
                 content_bytes = content
-                content_string = content.decode("utf-8") if is_text else None
             elif isinstance(content, str):
-                content_string = content
                 content_bytes = content.encode("utf-8")
             else:
                 raise TypeError(
@@ -830,9 +828,10 @@ class InitializeSystemDataUseCase:
             fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
 
             open_mode = "r" if is_text else "rb"
+            encoding = "utf-8" if is_text else None
 
             try:
-                with fixture_path.open(open_mode, encoding="utf-8" if is_text else None) as f:
+                with fixture_path.open(open_mode, encoding=encoding) as f:
                     content = f.read()
             except FileNotFoundError as e:
                 self.logger.error(
@@ -847,14 +846,9 @@ class InitializeSystemDataUseCase:
                     f"{doc_data['document_id']}"
                 ) from e
 
-            if is_text:
-                content_string = content
-                content_bytes = content.encode("utf-8")
-            else:
-                content_string = None
-                content_bytes = content
+            content_bytes = content.encode("utf-8") if is_text else content
 
-        doc_data["content"] = content_string if is_text else content_bytes
+            self.logger.info(content_bytes)
 
         size_bytes = len(content_bytes)
         sha256_hash = hashlib.sha256(content_bytes).hexdigest()
@@ -885,7 +879,6 @@ class InitializeSystemDataUseCase:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
             additional_metadata=additional_metadata,
-            content_string=content_string,
             content_bytes=content_bytes,
         )
 

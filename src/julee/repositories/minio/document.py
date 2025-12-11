@@ -435,9 +435,13 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         if document.content is not None:
             return document
 
-        if document.content_bytes is not None:
-            stream = ContentStream(io.BytesIO(document.content_bytes))
-            size_bytes = document.size_bytes or len(document.content_bytes)
+        content_bytes = document.content_bytes
+        if content_bytes is not None:
+            if isinstance(content_bytes, str):
+                content_bytes = content_bytes.encode("utf-8")
+
+            stream = ContentStream(io.BytesIO(content_bytes))
+            size_bytes = document.size_bytes or len(content_bytes)
             return document.model_copy(
                 update={
                     "content": stream,
@@ -445,20 +449,8 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                 }
             )
 
-        if document.content_string is not None:
-            content_bytes = document.content_string.encode("utf-8")
-            stream = ContentStream(io.BytesIO(content_bytes))
-            return document.model_copy(
-                update={
-                    "content": stream,
-                    "size_bytes": len(content_bytes),
-                    "content_bytes": content_bytes,
-                }
-            )
-
         raise ValueError(
-            f"Document {document.document_id} has no content, content_bytes, or "
-            f"content_string"
+            f"Document {document.document_id} has no content, content_bytes"
         )
 
     def _calculate_multihash_from_stream(self, content_stream: ContentStream) -> str:

@@ -91,14 +91,8 @@ class Document(BaseModel):
     # Additional data and content stream
     additional_metadata: dict[str, Any] = Field(default_factory=dict)
     content: ContentStream | None = Field(default=None, exclude=True)
-    content_string: str | None = Field(
-        default=None,
-        description="Small content as string (few KB max). Use for "
-        "workflow-generated content to avoid ContentStream serialization "
-        "issues. For larger content, use content or content_bytes instead.",
-    )
 
-    content_bytes: Optional[bytes] = Field(
+    content_bytes: bytes | None = Field(
         default=None,
         description="Raw content as bytes for cases where direct in-memory "
         "binary payloads are preferred over ContentStream.",
@@ -134,21 +128,16 @@ class Document(BaseModel):
 
     @model_validator(mode="after")
     def validate_content_fields(self, info: ValidationInfo) -> "Document":
-        """Ensure document has at least content, content_string, or content_bytes."""
+        """Ensure document has at least content, or content_bytes."""
 
         # Skip validation in Temporal deserialization context
         if info.context and info.context.get("temporal_validation"):
             return self
 
         has_content = self.content is not None
-        has_content_string = self.content_string is not None
         has_content_bytes = self.content_bytes is not None
-
-        provided = sum([has_content, has_content_string, has_content_bytes])
-
-        if provided == 0:
-            raise ValueError(
-                "Document must have one of: content, content_string, or content_bytes."
-            )
+        
+        if not (has_content or has_content_bytes):
+            raise ValueError("Document must have one of: content, or content_bytes.")
 
         return self
