@@ -33,7 +33,7 @@ Why Julee?
 Quick Start
 ~~~~~~~~~~~
 
-Install Julee in your project::
+Install Julee from `PyPI <https://pypi.org/project/julee/>`_::
 
     pip install julee
 
