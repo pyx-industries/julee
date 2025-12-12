@@ -1,12 +1,20 @@
 # Makefile for quality checks and testing and E2E testing
-.PHONY: quality-fast quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format update-requirements
+.PHONY: lint-python test-python-unit quality-fast-python quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format-python update-requirements
 
-# Fast quality checks (for pre-commit)
-quality-fast:
-	@echo "Running fast quality checks..."
+# Python linting
+lint-python:
+	@echo "Linting Python code..."
 	black --check src/julee/
 	ruff check src/julee/
-	pytest --asyncio-mode=auto -x -m "not e2e" --no-cov -q
+
+# Python unit tests
+test-python-unit:
+	@echo "Running Python unit tests..."
+	pytest -m unit
+
+# Fast Python quality checks (for pre-commit)
+quality-fast-python: lint-python
+	pytest --asyncio-mode=auto -x -m unit --no-cov -q
 
 # Full quality suite (for post-commit/CI)
 quality-full: reports quality-types quality-security test-unit test-e2e
@@ -97,10 +105,11 @@ clean:
 	rm -rf **/*.pyc
 	@echo "Cleanup complete"
 
-# Format code with black
-format:
-	@echo "Formatting code with black..."
+# Format Python code
+format-python:
+	@echo "Formatting Python code..."
 	black src/julee/
+	ruff check --fix src/julee/
 
 # Update requirements files with exact pins from pyproject.toml
 update-requirements:
@@ -112,7 +121,9 @@ update-requirements:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  quality-fast    - Fast quality checks (black, ruff, quick tests)"
+	@echo "  lint-python     - Python linting (black, ruff)"
+	@echo "  test-python-unit - Python unit tests"
+	@echo "  quality-fast-python - Fast Python quality checks (lint + unit tests)"
 	@echo "  quality-full    - Full quality suite (types, security, all tests)"
 	@echo "  quality-types   - Type checking with mypy"
 	@echo "  quality-security- Security scanning with bandit"
@@ -124,7 +135,7 @@ help:
 	@echo "  e2e-test-teardown - Stops and removes ephemeral E2E infrastructure"
 	@echo "  post-commit     - Background quality checks (for git hook)"
 	@echo "  install-hooks   - Install git post-commit hook"
-	@echo "  format          - Format code with black"
+	@echo "  format-python   - Format Python code with black and ruff"
 	@echo "  update-requirements - Update requirements.txt from pyproject.toml"
 	@echo "  clean           - Clean up generated files"
 	@echo "  reports         - Create reports directory"

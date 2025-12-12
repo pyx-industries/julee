@@ -29,6 +29,8 @@ from julee.domain.models.assembly import Assembly, AssemblyStatus
 
 from .factories import AssemblyFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestAssemblyInstantiation:
     """Test Assembly creation with various field combinations."""

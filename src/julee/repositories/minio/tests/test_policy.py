@@ -15,6 +15,8 @@ from julee.repositories.minio.policy import MinioPolicyRepository
 
 from .fake_client import FakeMinioClient
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def fake_client() -> FakeMinioClient:

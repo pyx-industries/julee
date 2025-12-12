@@ -25,6 +25,8 @@ from julee.domain.models.policy import (
 
 from .factories import DocumentPolicyValidationFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestDocumentPolicyValidationValidation:
     """Test validation rules for DocumentPolicyValidation model."""

@@ -23,6 +23,8 @@ from julee.repositories.minio.document import MinioDocumentRepository
 
 from .fake_client import FakeMinioClient
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def fake_minio_client() -> FakeMinioClient:

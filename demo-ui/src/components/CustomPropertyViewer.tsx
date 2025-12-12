@@ -21,12 +21,10 @@ import {
   Calendar,
   List,
   Settings,
-  Database,
   Search,
   ExternalLink,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
-import jsonpointer from "jsonpointer";
 
 interface KnowledgeServiceQuery {
   query_id: string;
@@ -37,14 +35,6 @@ interface KnowledgeServiceQuery {
   query_metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
-}
-
-interface QueriesResponse {
-  items: KnowledgeServiceQuery[];
-  total: number;
-  page: number;
-  size: number;
-  pages: number;
 }
 
 interface CustomPropertyViewerProps {
@@ -93,9 +83,6 @@ export default function CustomPropertyViewer({
   // Get field information from Redux state (same as CustomPropertyEditor)
   const path = useSelector(
     (state: unknown) => (state as any).schemaWizard.field.path,
-  );
-  const uiPath = useSelector(
-    (state: unknown) => (state as any).schemaWizard.field.uiPath,
   );
 
   const schema = useSelector((state: unknown) =>
@@ -169,7 +156,7 @@ export default function CustomPropertyViewer({
       console.warn("Error creating JSON pointer from path:", path, error);
       return "/";
     }
-  }, [path, knowledgeServiceQueries]);
+  }, [path]);
 
   const queryId =
     jsonPointerPath && jsonPointerPath !== "/" && path && path.length > 0

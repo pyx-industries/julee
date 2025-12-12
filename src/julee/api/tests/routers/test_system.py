@@ -17,6 +17,8 @@ from fastapi.testclient import TestClient
 from julee.api.responses import ServiceStatus
 from julee.api.routers.system import router
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def app_with_router() -> FastAPI:

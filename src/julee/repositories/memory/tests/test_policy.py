@@ -13,6 +13,8 @@ import pytest
 from julee.domain.models.policy import Policy, PolicyStatus
 from julee.repositories.memory.policy import MemoryPolicyRepository
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def policy_repo() -> MemoryPolicyRepository:

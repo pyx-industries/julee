@@ -31,6 +31,8 @@ from julee.domain.models.assembly_specification import (
 
 from .factories import AssemblyFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestAssemblyInstantiation:
     """Test AssemblySpecification creation with various field combinations."""

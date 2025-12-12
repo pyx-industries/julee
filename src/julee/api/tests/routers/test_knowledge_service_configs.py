@@ -22,6 +22,8 @@ from julee.domain.models.knowledge_service_config import (
     ServiceApi,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def mock_repository() -> AsyncMock:

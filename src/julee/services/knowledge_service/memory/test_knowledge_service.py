@@ -23,6 +23,8 @@ from julee.domain.models.knowledge_service_config import (
 from ..knowledge_service import QueryResult
 from .knowledge_service import MemoryKnowledgeService
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def test_document() -> Document:

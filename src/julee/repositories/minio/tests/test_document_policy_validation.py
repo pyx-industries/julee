@@ -21,6 +21,8 @@ from julee.repositories.minio.document_policy_validation import (
 
 from .fake_client import FakeMinioClient
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def fake_client() -> FakeMinioClient:

@@ -22,6 +22,8 @@ from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def memory_repo() -> MemoryKnowledgeServiceQueryRepository:

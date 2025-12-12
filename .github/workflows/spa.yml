@@ -1,0 +1,62 @@
+name: SPA
+
+on:
+  pull_request:
+    paths:
+      - "demo-ui/**"
+      - ".github/workflows/spa.yml"
+  push:
+    branches: [master]
+    paths:
+      - "demo-ui/**"
+      - ".github/workflows/spa.yml"
+
+env:
+  SPA_DIRECTORY: demo-ui/src
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: ${{ env.SPA_DIRECTORY }}
+          sparse-checkout-cone: true
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Lint
+        working-directory: ${{ env.SPA_DIRECTORY }}
+        run: |
+          npm ci
+          npm run lint
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: ${{ env.SPA_DIRECTORY }}
+          sparse-checkout-cone: true
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: ${{ env.SPA_DIRECTORY }}
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Test
+        working-directory: ${{ env.SPA_DIRECTORY }}
+        run: npm run test:e2e

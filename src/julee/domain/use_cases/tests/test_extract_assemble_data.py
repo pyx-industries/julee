@@ -38,6 +38,8 @@ from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestExtractAssembleDataUseCase:
     """Test cases for ExtractAssembleDataUseCase business logic."""

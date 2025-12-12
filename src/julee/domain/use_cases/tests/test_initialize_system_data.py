@@ -35,6 +35,8 @@ from julee.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def memory_config_repository() -> MemoryKnowledgeServiceConfigRepository:

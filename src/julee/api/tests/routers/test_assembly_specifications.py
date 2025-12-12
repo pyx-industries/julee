@@ -25,6 +25,8 @@ from julee.repositories.memory import (
     MemoryAssemblySpecificationRepository,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def memory_repo() -> MemoryAssemblySpecificationRepository:

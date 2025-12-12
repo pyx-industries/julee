@@ -20,6 +20,8 @@ from julee.repositories.minio.assembly_specification import (
 
 from .fake_client import FakeMinioClient
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def fake_client() -> FakeMinioClient:

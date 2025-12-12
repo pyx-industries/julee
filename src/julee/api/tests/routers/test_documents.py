@@ -18,6 +18,8 @@ from julee.api.routers.documents import router
 from julee.domain.models.document import Document, DocumentStatus
 from julee.repositories.memory import MemoryDocumentRepository
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def memory_repo() -> MemoryDocumentRepository:

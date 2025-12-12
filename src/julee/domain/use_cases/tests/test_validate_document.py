@@ -40,6 +40,8 @@ from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestValidateDocumentUseCase:
     """Test cases for ValidateDocumentUseCase business logic."""

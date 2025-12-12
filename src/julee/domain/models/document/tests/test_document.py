@@ -28,6 +28,8 @@ from julee.domain.models.document import Document
 
 from .factories import ContentStreamFactory, DocumentFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestDocumentInstantiation:
     """Test Document creation with various field combinations."""

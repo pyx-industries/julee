@@ -19,6 +19,8 @@ from julee.repositories.memory.document_policy_validation import (
     MemoryDocumentPolicyValidationRepository,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def validation_repo() -> MemoryDocumentPolicyValidationRepository:

@@ -66,7 +66,7 @@ export default function JsonSchemaEditor({
       // If invalid JSON, initialize with empty schema
       initFormuleSchema();
     }
-  }, []); // Empty dependency array = only run on mount
+  }, [value]); // Empty dependency array = only run on mount
 
   // Handle formule state changes
   const handleFormuleStateChange = useCallback(

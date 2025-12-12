@@ -19,6 +19,8 @@ from julee.repositories.minio.knowledge_service_query import (
 
 from .fake_client import FakeMinioClient
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def fake_client() -> FakeMinioClient:

@@ -15,6 +15,8 @@ from julee.domain.models.policy import (
     PolicyStatus,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestPolicy:
     """Tests for Policy domain model."""

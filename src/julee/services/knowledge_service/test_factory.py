@@ -26,6 +26,8 @@ from julee.services.knowledge_service.factory import (
     knowledge_service_factory,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def test_document() -> Document:

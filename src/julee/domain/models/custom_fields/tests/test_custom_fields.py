@@ -21,6 +21,8 @@ from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     "stream_input,error_message",

@@ -16,6 +16,8 @@ from fastapi_pagination import add_pagination
 from julee.api.dependencies import get_temporal_client
 from julee.api.routers.workflows import router
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def mock_temporal_client() -> MagicMock:

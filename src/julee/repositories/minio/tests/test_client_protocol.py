@@ -6,9 +6,12 @@ MinioClient protocol, ensuring that our protocol definition matches the
 actual interface.
 """
 
+import pytest
 from minio import Minio
 
 from ..client import MinioClient
+
+pytestmark = pytest.mark.unit
 
 
 class TestMinioClientProtocol:

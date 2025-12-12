@@ -16,6 +16,8 @@ from julee.api.dependencies import (
     get_startup_dependencies,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def mock_container() -> AsyncMock:

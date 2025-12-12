@@ -21,6 +21,8 @@ from julee.domain.models import (
     KnowledgeServiceQuery,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestCreateAssemblySpecificationRequest:
     """Test CreateAssemblySpecificationRequest model."""

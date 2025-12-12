@@ -54,6 +54,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=1.0.0",
     "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
     "hypothesis>=6.0.0",
     "factory-boy>=3.2.0",
     # Type checking
@@ -106,9 +107,19 @@ asyncio_mode = "auto"
 addopts = [
     "--strict-markers",
     "--tb=short",
+    "-n", "auto",
+    "--dist", "loadgroup",
     "--cov=src/julee",
     "--cov-report=term-missing",
     "--cov-report=html",
+]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, with dependencies)",
+    "e2e: End-to-end tests (slowest, full stack)",
+    "llm: Tests that use real LLM API calls (slow, costs money)",
+    "contract: Contract tests (verify external API shapes and mock fidelity)",
+    "slow: Slow tests (stress tests, load tests)",
 ]
 
 [tool.coverage.run]

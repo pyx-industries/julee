@@ -34,6 +34,8 @@ from julee.util.temporal.decorators import (
     temporal_workflow_proxy,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @runtime_checkable
 class MockBaseRepositoryProtocol(Protocol):

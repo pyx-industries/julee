@@ -18,6 +18,8 @@ from julee.repositories.memory.document import (
     MemoryDocumentRepository,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def repository() -> MemoryDocumentRepository:

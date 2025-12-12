@@ -27,6 +27,8 @@ from julee.domain.models.assembly_specification import (
 
 from .factories import KnowledgeServiceQueryFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestKnowledgeServiceQueryInstantiation:
     """Test KnowledgeServiceQuery creation with various field combinations."""

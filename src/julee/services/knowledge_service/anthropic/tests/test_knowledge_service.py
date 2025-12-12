@@ -27,6 +27,8 @@ from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks_module,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def test_document() -> Document:
