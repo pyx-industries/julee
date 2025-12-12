@@ -20,12 +20,7 @@ Julee applications require: [Temporal](https://temporal.io/) (workflow orchestra
 
 ## Documentation
 
-Full documentation: https://github.com/pyx-industries/julee (see `docs/`)
-
-- [Architecture](docs/architecture/framework.rst) — framework philosophy and patterns
-- [Solutions](docs/architecture/solutions/index.rst) — organizing code around business domains
-- [Clean Architecture](docs/architecture/clean_architecture/index.rst) — entities, use cases, repositories, services
-- [Contributing](docs/contributing.rst) — development setup and guidelines
+Full documentation at [julee.readthedocs.io](https://julee.readthedocs.io), package on [PyPI](https://pypi.org/project/julee/).
 
 ## Example
 
