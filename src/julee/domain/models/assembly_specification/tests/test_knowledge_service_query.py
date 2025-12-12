@@ -19,6 +19,8 @@ Design decisions documented:
 """
 
 import pytest
+
+pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.assembly_specification import (

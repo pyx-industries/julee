@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
+
+pytestmark = pytest.mark.unit
 from fastapi.testclient import TestClient
 
 from julee.api.app import app

@@ -22,6 +22,8 @@ Design decisions documented:
 import json
 
 import pytest
+
+pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.document import Document

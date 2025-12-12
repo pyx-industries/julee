@@ -13,6 +13,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 from julee.domain.models import (
     Assembly,
     AssemblySpecification,

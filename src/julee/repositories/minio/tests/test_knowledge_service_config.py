@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 from julee.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,

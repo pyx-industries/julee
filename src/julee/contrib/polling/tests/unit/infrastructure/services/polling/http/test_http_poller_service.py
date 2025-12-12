@@ -19,6 +19,8 @@ from julee.contrib.polling.infrastructure.services.polling.http.http_poller_serv
     HttpPollerService,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestHttpPollerServicePollEndpoint:
     """Test the poll_endpoint method of HttpPollerService."""

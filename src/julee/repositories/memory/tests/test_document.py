@@ -10,6 +10,8 @@ import io
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )

@@ -13,6 +13,8 @@ from unittest.mock import Mock
 
 import multihash
 import pytest
+
+pytestmark = pytest.mark.unit
 from minio.error import S3Error
 
 from julee.domain.models.custom_fields.content_stream import (

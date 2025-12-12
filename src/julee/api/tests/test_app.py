@@ -9,6 +9,8 @@ from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
+
+pytestmark = pytest.mark.unit
 from fastapi.testclient import TestClient
 
 from julee.api.app import app

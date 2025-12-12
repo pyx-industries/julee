@@ -20,6 +20,8 @@ from unittest.mock import patch
 
 # Third-party imports
 import pytest
+
+pytestmark = pytest.mark.unit
 from pydantic import BaseModel
 from temporalio import activity
 
