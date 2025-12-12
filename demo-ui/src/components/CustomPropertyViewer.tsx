@@ -156,7 +156,7 @@ export default function CustomPropertyViewer({
       console.warn("Error creating JSON pointer from path:", path, error);
       return "/";
     }
-  }, [path, knowledgeServiceQueries]);
+  }, [path]);
 
   const queryId =
     jsonPointerPath && jsonPointerPath !== "/" && path && path.length > 0
