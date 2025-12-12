@@ -20,8 +20,6 @@ from unittest.mock import patch
 
 # Third-party imports
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import BaseModel
 from temporalio import activity
 
@@ -35,6 +33,8 @@ from julee.util.temporal.decorators import (
     temporal_activity_registration,
     temporal_workflow_proxy,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @runtime_checkable

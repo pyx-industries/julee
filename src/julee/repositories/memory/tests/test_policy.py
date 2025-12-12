@@ -10,10 +10,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.policy import Policy, PolicyStatus
 from julee.repositories.memory.policy import MemoryPolicyRepository
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

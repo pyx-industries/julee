@@ -10,8 +10,6 @@ import io
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
@@ -19,6 +17,8 @@ from julee.domain.models.document import Document, DocumentStatus
 from julee.repositories.memory.document import (
     MemoryDocumentRepository,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

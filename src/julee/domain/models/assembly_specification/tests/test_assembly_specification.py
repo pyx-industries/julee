@@ -22,8 +22,6 @@ import json
 from typing import Any
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.assembly_specification import (
@@ -32,6 +30,8 @@ from julee.domain.models.assembly_specification import (
 )
 
 from .factories import AssemblyFactory
+
+pytestmark = pytest.mark.unit
 
 
 class TestAssemblyInstantiation:

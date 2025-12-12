@@ -16,8 +16,6 @@ Tests focus on:
 from datetime import datetime, timezone
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.policy import (
@@ -26,6 +24,8 @@ from julee.domain.models.policy import (
 )
 
 from .factories import DocumentPolicyValidationFactory
+
+pytestmark = pytest.mark.unit
 
 
 class TestDocumentPolicyValidationValidation:

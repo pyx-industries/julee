@@ -11,8 +11,6 @@ from typing import Any
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.policy import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
@@ -20,6 +18,8 @@ from julee.domain.models.policy import (
 from julee.repositories.memory.document_policy_validation import (
     MemoryDocumentPolicyValidationRepository,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

@@ -9,8 +9,6 @@ behavior (like field copying and conversion methods) functions as expected.
 from datetime import datetime
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.api.requests import (
@@ -22,6 +20,8 @@ from julee.domain.models import (
     AssemblySpecificationStatus,
     KnowledgeServiceQuery,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestCreateAssemblySpecificationRequest:

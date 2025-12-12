@@ -13,8 +13,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-
-pytestmark = pytest.mark.unit
 import yaml
 
 from julee.domain.models.knowledge_service_config import (
@@ -36,6 +34,8 @@ from julee.repositories.memory.knowledge_service_config import (
 from julee.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

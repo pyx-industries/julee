@@ -10,8 +10,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
@@ -21,6 +19,8 @@ from julee.repositories.minio.assembly_specification import (
 )
 
 from .fake_client import FakeMinioClient
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

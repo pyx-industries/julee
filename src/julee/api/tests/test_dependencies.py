@@ -10,13 +10,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.api.dependencies import (
     DependencyContainer,
     StartupDependenciesProvider,
     get_startup_dependencies,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

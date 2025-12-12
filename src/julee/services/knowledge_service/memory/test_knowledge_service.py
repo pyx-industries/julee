@@ -11,8 +11,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
@@ -24,6 +22,8 @@ from julee.domain.models.knowledge_service_config import (
 
 from ..knowledge_service import QueryResult
 from .knowledge_service import MemoryKnowledgeService
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

@@ -11,13 +11,13 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from julee.api.responses import ServiceStatus
 from julee.api.routers.system import router
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

@@ -10,8 +10,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
@@ -20,6 +18,8 @@ from julee.repositories.minio.knowledge_service_query import (
 )
 
 from .fake_client import FakeMinioClient
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

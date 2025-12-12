@@ -12,8 +12,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
@@ -28,6 +26,8 @@ from julee.services.knowledge_service.anthropic import (
 from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks_module,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

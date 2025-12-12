@@ -7,12 +7,11 @@ actual interface.
 """
 
 import pytest
-
-pytestmark = pytest.mark.unit
-
 from minio import Minio
 
 from ..client import MinioClient
+
+pytestmark = pytest.mark.unit
 
 
 class TestMinioClientProtocol:

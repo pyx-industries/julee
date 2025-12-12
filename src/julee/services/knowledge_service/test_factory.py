@@ -10,8 +10,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-pytestmark = pytest.mark.unit
-
 from julee.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
@@ -27,6 +25,8 @@ from julee.services.knowledge_service.anthropic import (
 from julee.services.knowledge_service.factory import (
     knowledge_service_factory,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture

@@ -23,13 +23,13 @@ import json
 from datetime import datetime, timezone
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.assembly import Assembly, AssemblyStatus
 
 from .factories import AssemblyFactory
+
+pytestmark = pytest.mark.unit
 
 
 class TestAssemblyInstantiation:

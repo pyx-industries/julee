@@ -34,7 +34,7 @@ jobs:
       - name: Run quality checks
         run: |
           source venv/bin/activate
-          make quality-fast
+          make quality-fast-python
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v5

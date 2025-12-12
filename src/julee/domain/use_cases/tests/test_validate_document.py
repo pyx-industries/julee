@@ -11,8 +11,6 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models import (
@@ -41,6 +39,8 @@ from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestValidateDocumentUseCase:

@@ -8,14 +8,14 @@ including validation, serialization, and business logic.
 from datetime import datetime, timezone
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from pydantic import ValidationError
 
 from julee.domain.models.policy import (
     Policy,
     PolicyStatus,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestPolicy:

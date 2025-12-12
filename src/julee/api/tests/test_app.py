@@ -9,8 +9,6 @@ from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
-
-pytestmark = pytest.mark.unit
 from fastapi.testclient import TestClient
 
 from julee.api.app import app
@@ -26,6 +24,8 @@ from julee.repositories.memory import (
 from julee.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
 )
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
