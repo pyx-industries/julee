@@ -1,5 +1,5 @@
 # Makefile for quality checks and testing and E2E testing
-.PHONY: quality-fast quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format update-requirements
+.PHONY: quality-fast quality-full quality-types quality-security test-unit test-e2e e2e-test-setup e2e-test-run e2e-test-run-x e2e-test-teardown post-commit install-hooks reports clean help format-python update-requirements
 
 # Fast quality checks (for pre-commit)
 quality-fast:
@@ -97,10 +97,11 @@ clean:
 	rm -rf **/*.pyc
 	@echo "Cleanup complete"
 
-# Format code with black
-format:
-	@echo "Formatting code with black..."
+# Format Python code
+format-python:
+	@echo "Formatting Python code..."
 	black src/julee/
+	ruff check --fix src/julee/
 
 # Update requirements files with exact pins from pyproject.toml
 update-requirements:
@@ -124,7 +125,7 @@ help:
 	@echo "  e2e-test-teardown - Stops and removes ephemeral E2E infrastructure"
 	@echo "  post-commit     - Background quality checks (for git hook)"
 	@echo "  install-hooks   - Install git post-commit hook"
-	@echo "  format          - Format code with black"
+	@echo "  format-python   - Format Python code with black and ruff"
 	@echo "  update-requirements - Update requirements.txt from pyproject.toml"
 	@echo "  clean           - Clean up generated files"
 	@echo "  reports         - Create reports directory"
