@@ -24,7 +24,14 @@ Full documentation at [julee.readthedocs.io](https://julee.readthedocs.io), pack
 
 ## Example
 
-This repository includes a Docker Compose example demonstrating a meeting minutes extraction system. See the `demo-ui/` directory and run `docker compose up --build` to explore.
+This repository includes a Docker Compose example demonstrating a meeting minutes extraction system:
+
+```bash
+cp .env.example .env  # Add your ANTHROPIC_API_KEY
+docker compose up --build
+```
+
+See the `demo-ui/` directory for the UI source.
 
 ## License
 
