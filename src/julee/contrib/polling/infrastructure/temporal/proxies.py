@@ -16,7 +16,7 @@ maintaining proper dependency direction (contrib imports from core, not vice ver
 
 from julee.util.temporal.decorators import temporal_workflow_proxy
 
-from ...domain.services import PollerService
+from ...domain.services.poller import PollerService
 from .activity_names import POLLING_SERVICE_ACTIVITY_BASE
 
 

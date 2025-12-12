@@ -14,7 +14,7 @@ import logging
 
 from julee.util.temporal.decorators import temporal_activity_registration
 
-from ..services.polling.http import HttpPollerService
+from ..services.polling.http.http_poller_service import HttpPollerService
 from .activity_names import POLLING_SERVICE_ACTIVITY_BASE
 
 
