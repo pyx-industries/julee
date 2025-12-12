@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -28,10 +28,6 @@ export default function JsonSchemaViewer({
   schema,
   knowledgeServiceQueries = {},
 }: JsonSchemaViewerProps) {
-  const rootProperties = useMemo(() => {
-    return (schema.properties as Record<string, unknown>) || {};
-  }, [schema]);
-
   const formatJsonSchema = (schema: Record<string, unknown>) => {
     return JSON.stringify(schema, null, 2);
   };
