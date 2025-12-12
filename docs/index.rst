@@ -1,7 +1,7 @@
 Julee Framework Documentation
 ==============================
 
-Welcome to the Julee documentation. **Julee is a Python framework** for building document processing applications using the **Capture, Extract, Assemble, Publish (CEAP)** pattern with Temporal workflows.
+Welcome to the Julee documentation. **Julee is a Python framework** for building accountable and transparent digital supply chains using Temporal workflows.
 
 What is Julee?
 --------------
@@ -9,17 +9,16 @@ What is Julee?
 **A reusable framework and a business application are different beasts.**
 One is a vocabulary for building things; the other is the thing being built.
 
-Julee is a framework—a vocabulary. You install Julee as a dependency in your project and use its patterns, abstractions, and utilities to build your own document processing applications. Those applications (solutions) are organised around your business domain, using Julee's vocabulary to express your specific needs.
+Julee is a framework—a vocabulary. You install Julee as a dependency in your project and use its patterns, abstractions, and utilities to build resilient, auditable business processes. Those applications (solutions) are organised around your business domain, using Julee's vocabulary to express your specific needs.
 
-The CEAP Pattern
-~~~~~~~~~~~~~~~~
+Use Julee when processes must be done correctly, may be complex or long-running, need compliance audit trails (responsible AI, algorithmic due-diligence), or depend on unreliable services that may fail, timeout, or be rate-limited.
 
-The Capture, Extract, Assemble, Publish pattern provides a structured approach to document processing:
+Core Concepts
+~~~~~~~~~~~~~
 
-1. **Capture**: Ingest documents into the system
-2. **Extract**: Use AI/knowledge services to extract structured data
-3. **Assemble**: Combine extracted data according to specifications
-4. **Publish**: Output the assembled content
+- **Solutions** are applications built with Julee, organised around your bounded contexts
+- **Accelerators** are collections of pipelines that automate a business area while maintaining audit trails
+- **Pipelines** are use cases wrapped with Temporal, providing durability, reliability, observability, and supply chain provenance
 
 Why Julee?
 ~~~~~~~~~~
@@ -27,80 +26,32 @@ Why Julee?
 - **Framework, not a monolith**: Build your application using Julee's components
 - **Temporal-native**: Built-in workflow orchestration for long-running processes
 - **Clean Architecture**: Protocol-based design with clear separation of concerns
+- **Auditable**: Impeccable audit trails that become "digital product passports"
 - **Type-safe**: Full Pydantic and mypy support
-- **Extensible**: Plug in your own storage, AI services, and business logic
+- **Extensible**: Plug in your own storage, services, and business logic
 
-Quick Example
-~~~~~~~~~~~~~
+Quick Start
+~~~~~~~~~~~
 
 Install Julee in your project::
 
     pip install julee
 
-Define your domain model::
+Julee applications require: `Temporal <https://temporal.io/>`_ (workflow orchestration), S3-compatible object storage (e.g. MinIO), PostgreSQL (for Temporal).
 
-    from pydantic import BaseModel
-
-    class Invoice(BaseModel):
-        number: str
-        amount: float
-        date: str
-
-Create a workflow using Julee::
-
-    from temporalio import workflow
-    from julee.workflows import extract_assemble_pattern
-
-    @workflow.defn
-    class InvoiceWorkflow:
-        @workflow.run
-        async def run(self, invoice_id: str) -> dict:
-            # Use Julee's patterns and components
-            return await extract_assemble_pattern(...)
-
-Framework Components
---------------------
-
-Julee provides these reusable components:
-
-Domain Layer
-~~~~~~~~~~~~
-
-- **Base Models**: Pydantic models for common entities (Document, Assembly, etc.)
-- **Repository Protocols**: Abstract interfaces for data access
-- **Use Case Patterns**: Reusable business logic patterns
-
-Infrastructure Layer
-~~~~~~~~~~~~~~~~~~~~
-
-- **MinIO Repository**: S3-compatible object storage implementation
-- **Memory Repository**: In-memory storage for testing
-- **Temporal Integration**: Activity decorators and workflow patterns
-
-Service Layer
-~~~~~~~~~~~~~
-
-- **Knowledge Service Protocol**: Abstraction for AI/LLM services
-- **Service Implementations**: Ready-to-use service integrations
+See :doc:`architecture/framework` to understand Julee's philosophy, or :doc:`architecture/solutions/index` to learn how to structure your application.
 
 Example Application
 -------------------
 
-This repository includes a reference application that demonstrates how to build with Julee. The example implements a meeting minutes extraction system and shows:
+This repository includes a reference application that demonstrates how to build with Julee. The example implements a meeting minutes extraction system using the CEAP contrib module and shows:
 
 - How to structure a Julee application
 - Workflow implementation patterns
 - Knowledge service integration
 - Storage configuration
-- API layer (optional)
 
-The example is deployable with Docker Compose and includes:
-
-- FastAPI REST API
-- React UI
-- Temporal worker
-- MinIO storage
-- Demo data
+The example is deployable with Docker Compose—run ``docker compose up --build`` to explore.
 
 Documentation Contents
 ----------------------
