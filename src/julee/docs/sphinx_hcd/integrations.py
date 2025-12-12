@@ -9,11 +9,11 @@ Provides directives:
 """
 
 import os
+
 import yaml
-from pathlib import Path
 from docutils import nodes
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 from .config import get_config
 
@@ -30,7 +30,7 @@ def get_integration_registry() -> dict:
 
 def get_documented_integrations(env) -> set:
     """Get documented integrations set from env, creating if needed."""
-    if not hasattr(env, 'documented_integrations'):
+    if not hasattr(env, "documented_integrations"):
         env.documented_integrations = set()
     return env.documented_integrations
 
@@ -41,14 +41,16 @@ def scan_integration_manifests(app):
     _integration_registry = {}
 
     config = get_config()
-    integrations_dir = config.get_path('integration_manifests')
+    integrations_dir = config.get_path("integration_manifests")
 
     if not integrations_dir.exists():
-        logger.info(f"Integrations directory not found at {integrations_dir} - no integration manifests to index")
+        logger.info(
+            f"Integrations directory not found at {integrations_dir} - no integration manifests to index"
+        )
         return
 
     for int_dir in integrations_dir.iterdir():
-        if not int_dir.is_dir() or int_dir.name.startswith('_'):
+        if not int_dir.is_dir() or int_dir.name.startswith("_"):
             continue
 
         manifest_path = int_dir / "integration.yaml"
@@ -64,15 +66,15 @@ def scan_integration_manifests(app):
             logger.warning(f"Could not read {manifest_path}: {e}")
             continue
 
-        slug = manifest.get('slug', module_name.replace('_', '-'))
+        slug = manifest.get("slug", module_name.replace("_", "-"))
         _integration_registry[slug] = {
-            'slug': slug,
-            'module': module_name,
-            'name': manifest.get('name', slug.replace('-', ' ').title()),
-            'description': manifest.get('description', '').strip(),
-            'direction': manifest.get('direction', 'bidirectional'),
-            'depends_on': manifest.get('depends_on', []),
-            'manifest_path': str(manifest_path),
+            "slug": slug,
+            "module": module_name,
+            "name": manifest.get("name", slug.replace("-", " ").title()),
+            "description": manifest.get("description", "").strip(),
+            "direction": manifest.get("direction", "bidirectional"),
+            "depends_on": manifest.get("depends_on", []),
+            "manifest_path": str(manifest_path),
         }
 
     logger.info(f"Indexed {len(_integration_registry)} integrations from manifests")
@@ -114,12 +116,13 @@ class DefineIntegrationDirective(SphinxDirective):
         get_documented_integrations(self.env).add(slug)
 
         node = DefineIntegrationPlaceholder()
-        node['integration_slug'] = slug
+        node["integration_slug"] = slug
         return [node]
 
 
 class DefineIntegrationPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for define-integration, replaced at doctree-resolved."""
+
     pass
 
 
@@ -137,6 +140,7 @@ class IntegrationIndexDirective(SphinxDirective):
 
 class IntegrationIndexPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for integration-index, replaced at doctree-resolved."""
+
     pass
 
 
@@ -153,9 +157,9 @@ def build_integration_content(slug, docname):
     result_nodes = []
 
     # Description
-    if data['description']:
+    if data["description"]:
         desc_para = nodes.paragraph()
-        desc_para += nodes.Text(data['description'])
+        desc_para += nodes.Text(data["description"])
         result_nodes.append(desc_para)
 
     # Seealso with metadata
@@ -163,13 +167,13 @@ def build_integration_content(slug, docname):
 
     # Direction
     direction_labels = {
-        'inbound': 'Inbound (data source)',
-        'outbound': 'Outbound (data sink)',
-        'bidirectional': 'Bidirectional',
+        "inbound": "Inbound (data source)",
+        "outbound": "Outbound (data sink)",
+        "bidirectional": "Bidirectional",
     }
     dir_para = nodes.paragraph()
     dir_para += nodes.strong(text="Direction: ")
-    dir_para += nodes.Text(direction_labels.get(data['direction'], data['direction']))
+    dir_para += nodes.Text(direction_labels.get(data["direction"], data["direction"]))
     seealso_node += dir_para
 
     # Module
@@ -179,17 +183,17 @@ def build_integration_content(slug, docname):
     seealso_node += mod_para
 
     # External dependencies
-    if data['depends_on']:
+    if data["depends_on"]:
         deps_para = nodes.paragraph()
         deps_para += nodes.strong(text="Depends On: ")
-        for i, dep in enumerate(data['depends_on']):
-            if dep.get('url'):
-                ref = nodes.reference("", "", refuri=dep['url'])
-                ref += nodes.Text(dep['name'])
+        for i, dep in enumerate(data["depends_on"]):
+            if dep.get("url"):
+                ref = nodes.reference("", "", refuri=dep["url"])
+                ref += nodes.Text(dep["name"])
                 deps_para += ref
             else:
-                deps_para += nodes.Text(dep['name'])
-            if i < len(data['depends_on']) - 1:
+                deps_para += nodes.Text(dep["name"])
+            if i < len(data["depends_on"]) - 1:
                 deps_para += nodes.Text(", ")
         seealso_node += deps_para
 
@@ -231,10 +235,10 @@ def build_integration_index(docname):
         int_id = slug.replace("-", "_")
         lines.append(f'component "{data["name"]}" as {int_id} <<integration>>')
 
-        for dep in data.get('depends_on', []):
-            dep_id = dep['name'].lower().replace(" ", "_").replace("-", "_")
-            dep_label = dep['name']
-            if dep.get('description'):
+        for dep in data.get("depends_on", []):
+            dep_id = dep["name"].lower().replace(" ", "_").replace("-", "_")
+            dep_label = dep["name"]
+            if dep.get("description"):
                 dep_label += f"\\n({dep['description']})"
             lines.append(f'component "{dep_label}" as {dep_id} <<external>>')
 
@@ -243,34 +247,34 @@ def build_integration_index(docname):
 
     for slug, data in sorted(_integration_registry.items()):
         int_id = slug.replace("-", "_")
-        direction = data.get('direction', 'bidirectional')
+        direction = data.get("direction", "bidirectional")
 
         # Core to/from integration
-        if direction == 'inbound':
-            lines.append(f'{int_id} --> core')
-        elif direction == 'outbound':
-            lines.append(f'core --> {int_id}')
+        if direction == "inbound":
+            lines.append(f"{int_id} --> core")
+        elif direction == "outbound":
+            lines.append(f"core --> {int_id}")
         else:
-            lines.append(f'core <--> {int_id}')
+            lines.append(f"core <--> {int_id}")
 
         # Integration to external dependencies
-        for dep in data.get('depends_on', []):
-            dep_id = dep['name'].lower().replace(" ", "_").replace("-", "_")
-            if direction == 'inbound':
-                lines.append(f'{dep_id} --> {int_id}')
-            elif direction == 'outbound':
-                lines.append(f'{int_id} --> {dep_id}')
+        for dep in data.get("depends_on", []):
+            dep_id = dep["name"].lower().replace(" ", "_").replace("-", "_")
+            if direction == "inbound":
+                lines.append(f"{dep_id} --> {int_id}")
+            elif direction == "outbound":
+                lines.append(f"{int_id} --> {dep_id}")
             else:
-                lines.append(f'{int_id} <--> {dep_id}')
+                lines.append(f"{int_id} <--> {dep_id}")
 
     lines.append("")
     lines.append("@enduml")
 
     puml_source = "\n".join(lines)
     node = plantuml(puml_source)
-    node['uml'] = puml_source
-    node['incdir'] = os.path.dirname(docname)
-    node['filename'] = os.path.basename(docname) + ".rst"
+    node["uml"] = puml_source
+    node["incdir"] = os.path.dirname(docname)
+    node["filename"] = os.path.basename(docname) + ".rst"
     result_nodes.append(node)
 
     return result_nodes
@@ -279,7 +283,7 @@ def build_integration_index(docname):
 def process_integration_placeholders(app, doctree, docname):
     """Replace integration placeholders after all documents are read."""
     for node in doctree.traverse(DefineIntegrationPlaceholder):
-        slug = node['integration_slug']
+        slug = node["integration_slug"]
         content = build_integration_content(slug, docname)
         node.replace_self(content)
 

@@ -429,7 +429,6 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
             )
             raise
 
-
     def _normalize_document_content(self, document: Document) -> Document:
         """Ensure document has a ContentStream in content"""
         if document.content is not None:

@@ -4,6 +4,7 @@ Common functions used across multiple extension modules.
 """
 
 import re
+
 from docutils import nodes
 
 
@@ -29,10 +30,10 @@ def slugify(text: str) -> str:
         URL-safe slug string
     """
     slug = text.lower()
-    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
-    slug = re.sub(r'[\s_]+', '-', slug)
-    slug = re.sub(r'-+', '-', slug)
-    return slug.strip('-')
+    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
+    slug = re.sub(r"[\s_]+", "-", slug)
+    slug = re.sub(r"-+", "-", slug)
+    return slug.strip("-")
 
 
 def kebab_to_snake(name: str) -> str:
@@ -65,8 +66,8 @@ def parse_list_option(value: str) -> list[str]:
     if not value:
         return []
     items = []
-    for line in value.strip().split('\n'):
-        item = line.strip().lstrip('- ')
+    for line in value.strip().split("\n"):
+        item = line.strip().lstrip("- ")
         if item:
             items.append(item)
     return items
@@ -83,7 +84,7 @@ def parse_csv_option(value: str) -> list[str]:
     """
     if not value:
         return []
-    return [item.strip() for item in value.split(',') if item.strip()]
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 def parse_integration_options(value: str) -> list[dict]:
@@ -102,24 +103,28 @@ def parse_integration_options(value: str) -> list[dict]:
         return []
 
     items = []
-    for line in value.strip().split('\n'):
-        line = line.strip().lstrip('- ')
+    for line in value.strip().split("\n"):
+        line = line.strip().lstrip("- ")
         if not line:
             continue
 
         # Parse: slug (description) or just slug
-        match = re.match(r'^([a-z0-9-]+)\s*(?:\(([^)]+)\))?$', line.strip())
+        match = re.match(r"^([a-z0-9-]+)\s*(?:\(([^)]+)\))?$", line.strip())
         if match:
-            items.append({
-                'slug': match.group(1),
-                'description': match.group(2).strip() if match.group(2) else None,
-            })
+            items.append(
+                {
+                    "slug": match.group(1),
+                    "description": match.group(2).strip() if match.group(2) else None,
+                }
+            )
         else:
             # Fallback: treat whole line as slug
-            items.append({
-                'slug': line.strip(),
-                'description': None,
-            })
+            items.append(
+                {
+                    "slug": line.strip(),
+                    "description": None,
+                }
+            )
 
     return items
 
