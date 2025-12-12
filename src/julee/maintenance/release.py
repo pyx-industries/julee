@@ -151,7 +151,7 @@ def prepare(version: str, message_file: Path | None = None) -> None:
         commit_msg = f"release: bump version to {version}"
 
     # Use a temp file for the commit message to handle multiline properly
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write(commit_msg)
         commit_msg_file = f.name
     try:
@@ -167,7 +167,7 @@ def prepare(version: str, message_file: Path | None = None) -> None:
     print("Creating pull request...")
     pr_body = release_notes if release_notes else f"Bump version to {version}"
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write(pr_body)
         pr_body_file = f.name
     try:
@@ -215,14 +215,19 @@ def tag(version: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Release preparation and tagging script")
+    parser = argparse.ArgumentParser(
+        description="Release preparation and tagging script"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # prepare subcommand
-    prepare_parser = subparsers.add_parser("prepare", help="Create release branch and PR")
+    prepare_parser = subparsers.add_parser(
+        "prepare", help="Create release branch and PR"
+    )
     prepare_parser.add_argument("version", help="Version number (X.Y.Z)")
     prepare_parser.add_argument(
-        "--message-file", "-m",
+        "--message-file",
+        "-m",
         type=Path,
         help="File containing release notes for commit message and PR body",
     )
