@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   spa-lint:
-    name: Lint SPA Code
+    name: SPA Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo SPA code
@@ -37,7 +37,7 @@ jobs:
           npm run lint
 
   spa-tests:
-    name: Run E2E Tests
+    name: SPA E2E Tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,7 +83,7 @@ jobs:
         run: make lint-python
 
   python-unit:
-    name: Python Unit Tests
+    name: Python Unit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
