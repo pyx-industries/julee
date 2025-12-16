@@ -10,7 +10,7 @@ without requiring actual Temporal infrastructure.
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from temporalio.client import Client
+from temporalio.client import Client, ScheduleAlreadyRunningError
 
 from julee.contrib.polling.domain.models.polling_config import (
     PollingConfig,
@@ -115,6 +115,28 @@ class TestPollingManagerInitialization:
         schedule_obj = call_args[1]["schedule"]  # kwargs['schedule']
         assert schedule_obj.action.task_queue == custom_queue
         assert schedule_id == "poll-test-endpoint"
+
+    @pytest.mark.asyncio
+    async def test_update_existing_schedule(self, mock_temporal_client, sample_config):
+        """Test updating existing schedule when one already exists."""
+        manager = PollingManager(mock_temporal_client)
+
+        # Mock create_schedule to raise ScheduleAlreadyRunningError
+        mock_temporal_client.create_schedule.side_effect = ScheduleAlreadyRunningError()
+
+        # Mock schedule handle for update
+        mock_schedule_handle = AsyncMock()
+        mock_temporal_client.get_schedule_handle.return_value = mock_schedule_handle
+
+        schedule_id = await manager.start_polling("test-endpoint", sample_config, 60)
+
+        assert schedule_id == "poll-test-endpoint"
+        assert "test-endpoint" in manager._active_polls
+
+        # Verify update was called on the existing schedule
+        mock_schedule_handle.update.assert_called_once()
+        # Verify create_schedule was called once (and failed)
+        mock_temporal_client.create_schedule.assert_called_once()
 
 
 class TestPollingManagerStartPolling:

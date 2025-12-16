@@ -7,6 +7,7 @@ triggering. It abstracts away the underlying Temporal scheduling
 implementation.
 """
 
+import logging
 from datetime import timedelta
 from typing import Any
 
@@ -14,11 +15,16 @@ from temporalio.client import (
     Client,
     Schedule,
     ScheduleActionStartWorkflow,
+    ScheduleAlreadyRunningError,
     ScheduleIntervalSpec,
     ScheduleSpec,
+    ScheduleUpdate,
+    ScheduleUpdateInput,
 )
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+
+logger = logging.getLogger(__name__)
 
 
 class PollingManager:
@@ -107,7 +113,30 @@ class PollingManager:
             ),
         )
 
-        await self._temporal_client.create_schedule(id=schedule_id, schedule=schedule)
+        try:
+            await self._temporal_client.create_schedule(
+                id=schedule_id, schedule=schedule
+            )
+            logger.info(
+                f"Created new schedule {schedule_id} for endpoint {endpoint_id}"
+            )
+        except ScheduleAlreadyRunningError:
+            # Update existing schedule preserving history
+            logger.info(f"Updating existing schedule {schedule_id}")
+            schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+
+            # Create update function that modifies the schedule
+            async def update_schedule_callback(
+                input: ScheduleUpdateInput,
+            ) -> ScheduleUpdate:
+                # Update the schedule with new configuration
+                updated_schedule = input.description.schedule
+                updated_schedule.action = schedule.action
+                updated_schedule.spec = schedule.spec
+                return ScheduleUpdate(schedule=updated_schedule)
+
+            await schedule_handle.update(update_schedule_callback)
+            logger.info(f"Updated schedule {schedule_id} for endpoint {endpoint_id}")
 
         # Track the active polling operation
         self._active_polls[endpoint_id] = {
