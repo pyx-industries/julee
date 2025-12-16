@@ -106,17 +106,15 @@ class NewDataDetectionPipeline:
     @workflow.run
     async def run(
         self,
-        config: PollingConfig,
+        config: PollingConfig | dict[str, Any],
         downstream_pipeline: str | None = None,
-        previous_completion: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Execute the new data detection workflow.
 
         Args:
-            config: Configuration for the polling operation
+            config: Configuration for the polling operation (PollingConfig or dict from schedule)
             downstream_pipeline: Optional pipeline to trigger when new data detected
-            previous_completion: Previous workflow completion result (from Temporal schedule)
 
         Returns:
             Completion result containing polling result and detection metadata
@@ -124,7 +122,15 @@ class NewDataDetectionPipeline:
         Raises:
             RuntimeError: If polling or downstream processing fails after retries
         """
+        # Convert dict to PollingConfig if needed (for schedule compatibility)
+        # Temporal schedules serialize arguments as dicts, not Pydantic models
+        if isinstance(config, dict):
+            config = PollingConfig.model_validate(config)
+
         self.endpoint_id = config.endpoint_identifier
+
+        # Fetch previous completion result from Temporal
+        previous_completion = workflow.get_last_completion_result()
 
         workflow.logger.info(
             "Starting new data detection pipeline",
@@ -172,13 +178,10 @@ class NewDataDetectionPipeline:
             self.has_new_data = has_new_data
 
             workflow.logger.info(
-                "Change detection completed",
-                extra={
-                    "endpoint_id": self.endpoint_id,
-                    "has_new_data": has_new_data,
-                    "is_first_run": previous_hash is None,
-                    "content_hash": current_hash,
-                },
+                f"DEBUG: Change detection - has_new_data: {has_new_data}, "
+                f"is_first_run: {previous_hash is None}, "
+                f"current_hash: {current_hash[:8]}..., "
+                f"previous_hash: {previous_hash[:8] if previous_hash else 'None'}..."
             )
 
             # Step 3: Trigger downstream processing if new data detected

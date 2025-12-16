@@ -123,8 +123,7 @@ class TestNewDataDetectionPipelineFirstRun:
                 args=[
                     sample_config,
                     None,
-                    None,
-                ],  # config, downstream_pipeline, previous_completion
+                ],  # config, downstream_pipeline
                 id=str(uuid.uuid4()),
                 task_queue="test-queue",
             )
@@ -178,8 +177,7 @@ class TestNewDataDetectionPipelineFirstRun:
                     args=[
                         sample_config,
                         "TestDownstreamWorkflow",
-                        None,
-                    ],  # config, downstream_pipeline, previous_completion
+                    ],  # config, downstream_pipeline
                     id=str(uuid.uuid4()),
                     task_queue="test-queue",
                 )
@@ -223,14 +221,21 @@ class TestNewDataDetectionPipelineSubsequentRuns:
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
-        # Create previous completion with same hash
+        # Mock workflow.get_last_completion_result to return previous completion
         previous_completion = {
             "polling_result": {
                 "content_hash": hashlib.sha256(b"first response data").hexdigest(),
                 "content": "first response data",
                 "success": True,
             },
+            "detection_result": {
+                "has_new_data": True,
+                "previous_hash": None,
+                "current_hash": hashlib.sha256(b"first response data").hexdigest(),
+            },
+            "downstream_triggered": False,
             "endpoint_id": "test-api",
+            "completed_at": "2023-01-01T00:00:00Z",
         }
 
         async with Worker(
@@ -239,16 +244,21 @@ class TestNewDataDetectionPipelineSubsequentRuns:
             workflows=[NewDataDetectionPipeline],
             activities=[test_mock_activity],
         ):
-            result = await workflow_env.client.execute_workflow(
-                NewDataDetectionPipeline.run,
-                args=[
-                    sample_config,
-                    None,
-                    previous_completion,
-                ],  # config, downstream_pipeline, previous_completion
-                id=str(uuid.uuid4()),
-                task_queue="test-queue",
-            )
+            # Use mock to simulate last completion result
+            with patch(
+                "temporalio.workflow.get_last_completion_result"
+            ) as mock_get_last:
+                mock_get_last.return_value = previous_completion
+
+                result = await workflow_env.client.execute_workflow(
+                    NewDataDetectionPipeline.run,
+                    args=[
+                        sample_config,
+                        None,
+                    ],  # config, downstream_pipeline
+                    id=str(uuid.uuid4()),
+                    task_queue="test-queue",
+                )
 
             # Verify no changes detected
             assert result["detection_result"]["has_new_data"] is False
@@ -272,14 +282,21 @@ class TestNewDataDetectionPipelineSubsequentRuns:
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
-        # Create previous completion with different hash
+        # Mock workflow.get_last_completion_result to return previous completion with different hash
         previous_completion = {
             "polling_result": {
                 "content_hash": hashlib.sha256(b"first response data").hexdigest(),
                 "content": "first response data",
                 "success": True,
             },
+            "detection_result": {
+                "has_new_data": True,
+                "previous_hash": None,
+                "current_hash": hashlib.sha256(b"first response data").hexdigest(),
+            },
+            "downstream_triggered": False,
             "endpoint_id": "test-api",
+            "completed_at": "2023-01-01T00:00:00Z",
         }
 
         with patch(
@@ -292,16 +309,21 @@ class TestNewDataDetectionPipelineSubsequentRuns:
                 workflows=[NewDataDetectionPipeline],
                 activities=[test_mock_activity],
             ):
-                result = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                        previous_completion,
-                    ],  # config, downstream_pipeline, previous_completion
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
+                # Use mock to simulate last completion result
+                with patch(
+                    "temporalio.workflow.get_last_completion_result"
+                ) as mock_get_last:
+                    mock_get_last.return_value = previous_completion
+
+                    result = await workflow_env.client.execute_workflow(
+                        NewDataDetectionPipeline.run,
+                        args=[
+                            sample_config,
+                            "TestDownstreamWorkflow",
+                        ],  # config, downstream_pipeline
+                        id=str(uuid.uuid4()),
+                        task_queue="test-queue",
+                    )
 
                 # Verify changes detected and downstream triggered
                 assert result["detection_result"]["has_new_data"] is True
@@ -346,8 +368,7 @@ class TestNewDataDetectionPipelineWorkflowQueries:
                 args=[
                     sample_config,
                     None,
-                    None,
-                ],  # config, downstream_pipeline, previous_completion
+                ],  # config, downstream_pipeline
                 id=str(uuid.uuid4()),
                 task_queue="test-queue",
             )
@@ -407,8 +428,7 @@ class TestNewDataDetectionPipelineErrorHandling:
                     args=[
                         sample_config,
                         None,
-                        None,
-                    ],  # config, downstream_pipeline, previous_completion
+                    ],  # config, downstream_pipeline
                     id=str(uuid.uuid4()),
                     task_queue="test-queue",
                 )
@@ -506,14 +526,13 @@ class TestNewDataDetectionPipelineIntegration:
                 activities=[test_mock_activity],
             ):
                 # Workflow should complete successfully despite downstream failure
-                # First run - should detect new data
+                # First run - should detect new data (no previous completion)
                 result1 = await workflow_env.client.execute_workflow(
                     NewDataDetectionPipeline.run,
                     args=[
                         sample_config,
                         "TestDownstreamWorkflow",
-                        None,
-                    ],  # config, downstream_pipeline, previous_completion
+                    ],  # config, downstream_pipeline
                     id=str(uuid.uuid4()),
                     task_queue="test-queue",
                 )
@@ -522,31 +541,37 @@ class TestNewDataDetectionPipelineIntegration:
                 assert result1["downstream_triggered"] is True
 
                 # Second run - same content, no changes
-                result2 = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                        result1,
-                    ],  # config, downstream_pipeline, previous_completion
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
+                with patch(
+                    "temporalio.workflow.get_last_completion_result"
+                ) as mock_get_last:
+                    mock_get_last.return_value = result1
+                    result2 = await workflow_env.client.execute_workflow(
+                        NewDataDetectionPipeline.run,
+                        args=[
+                            sample_config,
+                            "TestDownstreamWorkflow",
+                        ],  # config, downstream_pipeline
+                        id=str(uuid.uuid4()),
+                        task_queue="test-queue",
+                    )
 
                 assert result2["detection_result"]["has_new_data"] is False
                 assert result2["downstream_triggered"] is False
 
                 # Third run - changed content, should detect changes
-                result3 = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                        result2,
-                    ],  # config, downstream_pipeline, previous_completion
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
+                with patch(
+                    "temporalio.workflow.get_last_completion_result"
+                ) as mock_get_last:
+                    mock_get_last.return_value = result2
+                    result3 = await workflow_env.client.execute_workflow(
+                        NewDataDetectionPipeline.run,
+                        args=[
+                            sample_config,
+                            "TestDownstreamWorkflow",
+                        ],  # config, downstream_pipeline
+                        id=str(uuid.uuid4()),
+                        task_queue="test-queue",
+                    )
 
                 assert result3["detection_result"]["has_new_data"] is True
                 assert result3["downstream_triggered"] is True
