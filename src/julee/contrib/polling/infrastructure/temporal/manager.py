@@ -34,9 +34,20 @@ class PollingManager:
     - Creating and managing Temporal schedules for polling
     - Tracking active polling operations
     - Providing status and control operations (pause/resume/stop)
+
+    Example:
+        # Using default task queue
+        manager = PollingManager(temporal_client)
+
+        # Using custom task queue
+        manager = PollingManager(temporal_client, task_queue="my-polling-queue")
     """
 
-    def __init__(self, temporal_client: Client | None = None) -> None:
+    def __init__(
+        self,
+        temporal_client: Client | None = None,
+        task_queue: str = "julee-polling-queue",
+    ) -> None:
         """
         Initialize the polling manager.
 
@@ -44,8 +55,11 @@ class PollingManager:
             temporal_client: Temporal client for schedule management.
                            Typically created at application startup level
                            (worker, API) and passed to the manager.
+            task_queue: Task queue name for workflow execution.
+                       Defaults to "julee-polling-queue".
         """
         self._temporal_client = temporal_client
+        self._task_queue = task_queue
         self._active_polls: dict[str, dict[str, Any]] = {}
 
     async def start_polling(
@@ -84,7 +98,7 @@ class PollingManager:
                 "NewDataDetectionPipeline",
                 args=[config, downstream_pipeline],
                 id=f"{schedule_id}-{{.timestamp}}",
-                task_queue="julee-polling-queue",
+                task_queue=self._task_queue,
             ),
             spec=ScheduleSpec(
                 intervals=[
