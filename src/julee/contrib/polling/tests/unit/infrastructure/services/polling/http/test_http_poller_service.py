@@ -166,3 +166,36 @@ class TestHttpPollerServicePollEndpoint:
             assert str(captured_request.url) == "https://api.example.com/data"
             assert captured_request.method == "POST"
             assert captured_request.headers["Authorization"] == "Bearer token123"
+
+    @pytest.mark.asyncio
+    async def test_poll_endpoint_with_dict_config(self):
+        """Test that poll_endpoint works with dict config (for schedule compatibility)."""
+
+        def handler(request):
+            return httpx.Response(status_code=200, content=b"dict config test")
+
+        mock_transport = httpx.MockTransport(handler)
+
+        async with HttpPollerService() as service:
+            service.client = httpx.AsyncClient(transport=mock_transport)
+
+            # Create a dict that represents a serialized PollingConfig (as from Temporal schedule)
+            config_dict = {
+                "endpoint_identifier": "test-api-dict",
+                "polling_protocol": "http",
+                "connection_params": {
+                    "url": "https://api.example.com/scheduled",
+                    "headers": {"X-Source": "schedule"},
+                },
+                "polling_params": {},
+                "timeout_seconds": 30,
+            }
+
+            # Convert dict to PollingConfig (simulating what the workflow does)
+            config = PollingConfig.model_validate(config_dict)
+
+            result = await service.poll_endpoint(config)
+
+            assert result.success is True
+            assert result.content == b"dict config test"
+            assert result.metadata["status_code"] == 200

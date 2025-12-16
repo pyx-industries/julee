@@ -7,6 +7,7 @@ triggering. It abstracts away the underlying Temporal scheduling
 implementation.
 """
 
+import logging
 from datetime import timedelta
 from typing import Any
 
@@ -14,11 +15,16 @@ from temporalio.client import (
     Client,
     Schedule,
     ScheduleActionStartWorkflow,
+    ScheduleAlreadyRunningError,
     ScheduleIntervalSpec,
     ScheduleSpec,
+    ScheduleUpdate,
+    ScheduleUpdateInput,
 )
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+
+logger = logging.getLogger(__name__)
 
 
 class PollingManager:
@@ -34,9 +40,20 @@ class PollingManager:
     - Creating and managing Temporal schedules for polling
     - Tracking active polling operations
     - Providing status and control operations (pause/resume/stop)
+
+    Example:
+        # Using default task queue
+        manager = PollingManager(temporal_client)
+
+        # Using custom task queue
+        manager = PollingManager(temporal_client, task_queue="my-polling-queue")
     """
 
-    def __init__(self, temporal_client: Client | None = None) -> None:
+    def __init__(
+        self,
+        temporal_client: Client | None = None,
+        task_queue: str = "julee-polling-queue",
+    ) -> None:
         """
         Initialize the polling manager.
 
@@ -44,8 +61,11 @@ class PollingManager:
             temporal_client: Temporal client for schedule management.
                            Typically created at application startup level
                            (worker, API) and passed to the manager.
+            task_queue: Task queue name for workflow execution.
+                       Defaults to "julee-polling-queue".
         """
         self._temporal_client = temporal_client
+        self._task_queue = task_queue
         self._active_polls: dict[str, dict[str, Any]] = {}
 
     async def start_polling(
@@ -84,7 +104,7 @@ class PollingManager:
                 "NewDataDetectionPipeline",
                 args=[config, downstream_pipeline],
                 id=f"{schedule_id}-{{.timestamp}}",
-                task_queue="julee-polling-queue",
+                task_queue=self._task_queue,
             ),
             spec=ScheduleSpec(
                 intervals=[
@@ -93,7 +113,30 @@ class PollingManager:
             ),
         )
 
-        await self._temporal_client.create_schedule(id=schedule_id, schedule=schedule)
+        try:
+            await self._temporal_client.create_schedule(
+                id=schedule_id, schedule=schedule
+            )
+            logger.info(
+                f"Created new schedule {schedule_id} for endpoint {endpoint_id}"
+            )
+        except ScheduleAlreadyRunningError:
+            # Update existing schedule preserving history
+            logger.info(f"Updating existing schedule {schedule_id}")
+            schedule_handle = self._temporal_client.get_schedule_handle(schedule_id)
+
+            # Create update function that modifies the schedule
+            async def update_schedule_callback(
+                input: ScheduleUpdateInput,
+            ) -> ScheduleUpdate:
+                # Update the schedule with new configuration
+                updated_schedule = input.description.schedule
+                updated_schedule.action = schedule.action
+                updated_schedule.spec = schedule.spec
+                return ScheduleUpdate(schedule=updated_schedule)
+
+            await schedule_handle.update(update_schedule_callback)
+            logger.info(f"Updated schedule {schedule_id} for endpoint {endpoint_id}")
 
         # Track the active polling operation
         self._active_polls[endpoint_id] = {

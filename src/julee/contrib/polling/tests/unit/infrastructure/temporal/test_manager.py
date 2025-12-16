@@ -10,7 +10,7 @@ without requiring actual Temporal infrastructure.
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from temporalio.client import Client
+from temporalio.client import Client, ScheduleAlreadyRunningError
 
 from julee.contrib.polling.domain.models.polling_config import (
     PollingConfig,
@@ -80,6 +80,63 @@ class TestPollingManagerInitialization:
         manager = PollingManager()
         assert manager._temporal_client is None
         assert manager._active_polls == {}
+
+    def test_init_with_custom_task_queue(self, mock_temporal_client):
+        """Test initialization with custom task queue."""
+        custom_queue = "custom-task-queue"
+        manager = PollingManager(mock_temporal_client, task_queue=custom_queue)
+        assert manager._temporal_client is not None
+        assert manager._task_queue == custom_queue
+        assert manager._active_polls == {}
+
+    def test_init_with_default_task_queue(self, mock_temporal_client):
+        """Test initialization with default task queue."""
+        manager = PollingManager(mock_temporal_client)
+        assert manager._temporal_client is not None
+        assert manager._task_queue == "julee-polling-queue"
+        assert manager._active_polls == {}
+
+    @pytest.mark.asyncio
+    async def test_start_polling_with_custom_task_queue(
+        self, mock_temporal_client, sample_config
+    ):
+        """Test that custom task queue is used in schedule creation."""
+        custom_queue = "custom-polling-queue"
+        manager = PollingManager(mock_temporal_client, task_queue=custom_queue)
+
+        # Capture the schedule created
+        schedule_id = await manager.start_polling("test-endpoint", sample_config, 60)
+
+        # Verify create_schedule was called
+        mock_temporal_client.create_schedule.assert_called_once()
+        call_args = mock_temporal_client.create_schedule.call_args
+
+        # Verify the schedule uses the custom task queue
+        schedule_obj = call_args[1]["schedule"]  # kwargs['schedule']
+        assert schedule_obj.action.task_queue == custom_queue
+        assert schedule_id == "poll-test-endpoint"
+
+    @pytest.mark.asyncio
+    async def test_update_existing_schedule(self, mock_temporal_client, sample_config):
+        """Test updating existing schedule when one already exists."""
+        manager = PollingManager(mock_temporal_client)
+
+        # Mock create_schedule to raise ScheduleAlreadyRunningError
+        mock_temporal_client.create_schedule.side_effect = ScheduleAlreadyRunningError()
+
+        # Mock schedule handle for update
+        mock_schedule_handle = AsyncMock()
+        mock_temporal_client.get_schedule_handle.return_value = mock_schedule_handle
+
+        schedule_id = await manager.start_polling("test-endpoint", sample_config, 60)
+
+        assert schedule_id == "poll-test-endpoint"
+        assert "test-endpoint" in manager._active_polls
+
+        # Verify update was called on the existing schedule
+        mock_schedule_handle.update.assert_called_once()
+        # Verify create_schedule was called once (and failed)
+        mock_temporal_client.create_schedule.assert_called_once()
 
 
 class TestPollingManagerStartPolling:
