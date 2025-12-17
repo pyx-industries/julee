@@ -41,39 +41,9 @@ from .config import init_config
 
 logger = logging.getLogger(__name__)
 
-# Feature flag for new architecture (set to True to use new directives)
-USE_NEW_ARCHITECTURE = True
-
 
 def setup(app):
     """Set up all HCD extensions for Sphinx."""
-    # Register configuration value first
-    app.add_config_value("sphinx_hcd", {}, "env")
-
-    # Initialize config when builder starts (after conf.py is loaded)
-    app.connect("builder-inited", _init_config_handler, priority=0)
-
-    if USE_NEW_ARCHITECTURE:
-        _setup_new_architecture(app)
-    else:
-        _setup_legacy_architecture(app)
-
-    logger.info("Loaded julee.docs.sphinx_hcd extensions")
-
-    return {
-        "version": "2.0",
-        "parallel_read_safe": False,
-        "parallel_write_safe": True,
-    }
-
-
-def _init_config_handler(app):
-    """Initialize HCD config from Sphinx app config."""
-    init_config(app)
-
-
-def _setup_new_architecture(app):
-    """Set up using new clean architecture directives."""
     from .sphinx.directives import (
         # Story directives
         StoryAppDirective,
@@ -142,6 +112,12 @@ def _setup_new_architecture(app):
         on_doctree_resolved,
         on_env_purge_doc,
     )
+
+    # Register configuration value first
+    app.add_config_value("sphinx_hcd", {}, "env")
+
+    # Initialize config when builder starts (after conf.py is loaded)
+    app.connect("builder-inited", _init_config_handler, priority=0)
 
     # Connect event handlers
     app.connect("builder-inited", on_builder_inited, priority=100)
@@ -217,20 +193,15 @@ def _setup_new_architecture(app):
     app.add_node(PersonaDiagramPlaceholder)
     app.add_node(PersonaIndexDiagramPlaceholder)
 
-    logger.info("Using new clean architecture directives")
+    logger.info("Loaded julee.docs.sphinx_hcd extensions")
+
+    return {
+        "version": "2.0",
+        "parallel_read_safe": False,
+        "parallel_write_safe": True,
+    }
 
 
-def _setup_legacy_architecture(app):
-    """Set up using legacy directive modules (for backwards compatibility)."""
-    from . import accelerators, apps, epics, integrations, journeys, personas, stories
-
-    # Call setup on each legacy module
-    stories.setup(app)
-    journeys.setup(app)
-    epics.setup(app)
-    apps.setup(app)
-    accelerators.setup(app)
-    integrations.setup(app)
-    personas.setup(app)
-
-    logger.info("Using legacy directive modules")
+def _init_config_handler(app):
+    """Initialize HCD config from Sphinx app config."""
+    init_config(app)
