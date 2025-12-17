@@ -496,3 +496,58 @@ The extension emits warnings during build for:
 - Stories with missing "As a..." persona (defaults to "unknown")
 - Epic references to unknown stories
 - Missing persona documentation
+
+## Architecture (Developer Guide)
+
+This module follows **julee clean architecture patterns**:
+
+```
+sphinx_hcd/
+├── domain/                 # Domain layer (framework-agnostic)
+│   ├── models/            # Pydantic entities
+│   ├── repositories/      # Repository protocols (async)
+│   └── use_cases/         # Business logic
+├── repositories/          # Repository implementations
+│   └── memory/           # In-memory implementations
+├── parsers/              # Parsing logic
+│   ├── gherkin.py       # Feature file parsing
+│   ├── yaml.py          # Manifest parsing
+│   └── ast.py           # Python introspection
+├── sphinx/               # Application layer (Sphinx-specific)
+│   ├── adapters.py      # Sync wrappers for async repos
+│   ├── context.py       # HCDContext container
+│   ├── directives/      # RST directives
+│   └── event_handlers/  # Sphinx lifecycle handlers
+└── tests/               # Test suite
+```
+
+### Async Repositories with Sync Adapters
+
+Domain repositories are async (following julee patterns), but Sphinx directives
+are synchronous. The `SyncRepositoryAdapter` bridges this gap:
+
+```python
+from julee.docs.sphinx_hcd.sphinx.adapters import SyncRepositoryAdapter
+from julee.docs.sphinx_hcd.repositories.memory.story import MemoryStoryRepository
+
+# Create async repo
+async_repo = MemoryStoryRepository()
+
+# Wrap for sync access in Sphinx directives
+sync_repo = SyncRepositoryAdapter(async_repo)
+
+# Use synchronously
+story = sync_repo.get("my-story-slug")
+all_stories = sync_repo.list_all()
+```
+
+### Running Tests
+
+```bash
+# Run all sphinx_hcd tests
+pytest src/julee/docs/sphinx_hcd/tests/
+
+# Run specific test category
+pytest src/julee/docs/sphinx_hcd/tests/domain/ -v
+pytest src/julee/docs/sphinx_hcd/tests/repositories/ -v
+```
