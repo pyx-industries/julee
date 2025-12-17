@@ -1,0 +1,160 @@
+"""Sphinx directives for sphinx_hcd.
+
+Thin directive adapters that use domain models and repositories.
+"""
+
+from .accelerator import (
+    AcceleratorDependencyDiagramDirective,
+    AcceleratorDependencyDiagramPlaceholder,
+    AcceleratorIndexDirective,
+    AcceleratorIndexPlaceholder,
+    AcceleratorsForAppDirective,
+    AcceleratorsForAppPlaceholder,
+    AcceleratorStatusDirective,
+    DefineAcceleratorDirective,
+    DefineAcceleratorPlaceholder,
+    DependentAcceleratorsDirective,
+    DependentAcceleratorsPlaceholder,
+    clear_accelerator_state,
+    process_accelerator_placeholders,
+)
+from .app import (
+    AppIndexDirective,
+    AppIndexPlaceholder,
+    AppsForPersonaDirective,
+    AppsForPersonaPlaceholder,
+    DefineAppDirective,
+    DefineAppPlaceholder,
+    process_app_placeholders,
+)
+from .base import HCDDirective, make_deprecated_directive
+from .epic import (
+    DefineEpicDirective,
+    EpicIndexDirective,
+    EpicIndexPlaceholder,
+    EpicStoryDirective,
+    EpicsForPersonaDirective,
+    EpicsForPersonaPlaceholder,
+    clear_epic_state,
+    process_epic_placeholders,
+)
+from .integration import (
+    DefineIntegrationDirective,
+    DefineIntegrationPlaceholder,
+    IntegrationIndexDirective,
+    IntegrationIndexPlaceholder,
+    process_integration_placeholders,
+)
+from .journey import (
+    DefineJourneyDirective,
+    JourneyDependencyGraphDirective,
+    JourneyDependencyGraphPlaceholder,
+    JourneyIndexDirective,
+    JourneysForPersonaDirective,
+    StepEpicDirective,
+    StepPhaseDirective,
+    StepStoryDirective,
+    clear_journey_state,
+    process_dependency_graph_placeholder,
+    process_journey_steps,
+)
+from .persona import (
+    PersonaDiagramDirective,
+    PersonaDiagramPlaceholder,
+    PersonaIndexDiagramDirective,
+    PersonaIndexDiagramPlaceholder,
+    process_persona_placeholders,
+)
+from .story import (
+    GherkinAppStoriesDirective,
+    GherkinStoriesDirective,
+    GherkinStoriesForAppDirective,
+    GherkinStoriesForPersonaDirective,
+    GherkinStoriesIndexDirective,
+    GherkinStoryDirective,
+    StoriesDirective,
+    StoryAppDirective,
+    StoryIndexDirective,
+    StoryListForAppDirective,
+    StoryListForPersonaDirective,
+    StoryRefDirective,
+    StorySeeAlsoPlaceholder,
+    process_story_seealso_placeholders,
+)
+
+__all__ = [
+    # Base
+    "HCDDirective",
+    "make_deprecated_directive",
+    # Story directives
+    "StoryAppDirective",
+    "StoryListForPersonaDirective",
+    "StoryListForAppDirective",
+    "StoryIndexDirective",
+    "StoriesDirective",
+    "StoryRefDirective",
+    "StorySeeAlsoPlaceholder",
+    "process_story_seealso_placeholders",
+    # Story deprecated aliases
+    "GherkinStoryDirective",
+    "GherkinStoriesDirective",
+    "GherkinStoriesForPersonaDirective",
+    "GherkinStoriesForAppDirective",
+    "GherkinStoriesIndexDirective",
+    "GherkinAppStoriesDirective",
+    # Journey directives
+    "DefineJourneyDirective",
+    "StepStoryDirective",
+    "StepEpicDirective",
+    "StepPhaseDirective",
+    "JourneyIndexDirective",
+    "JourneyDependencyGraphDirective",
+    "JourneyDependencyGraphPlaceholder",
+    "JourneysForPersonaDirective",
+    "clear_journey_state",
+    "process_journey_steps",
+    "process_dependency_graph_placeholder",
+    # Epic directives
+    "DefineEpicDirective",
+    "EpicStoryDirective",
+    "EpicIndexDirective",
+    "EpicIndexPlaceholder",
+    "EpicsForPersonaDirective",
+    "EpicsForPersonaPlaceholder",
+    "clear_epic_state",
+    "process_epic_placeholders",
+    # App directives
+    "DefineAppDirective",
+    "DefineAppPlaceholder",
+    "AppIndexDirective",
+    "AppIndexPlaceholder",
+    "AppsForPersonaDirective",
+    "AppsForPersonaPlaceholder",
+    "process_app_placeholders",
+    # Accelerator directives
+    "DefineAcceleratorDirective",
+    "DefineAcceleratorPlaceholder",
+    "AcceleratorIndexDirective",
+    "AcceleratorIndexPlaceholder",
+    "AcceleratorsForAppDirective",
+    "AcceleratorsForAppPlaceholder",
+    "DependentAcceleratorsDirective",
+    "DependentAcceleratorsPlaceholder",
+    "AcceleratorDependencyDiagramDirective",
+    "AcceleratorDependencyDiagramPlaceholder",
+    "AcceleratorStatusDirective",
+    "clear_accelerator_state",
+    "process_accelerator_placeholders",
+    # Integration directives
+    "DefineIntegrationDirective",
+    "DefineIntegrationPlaceholder",
+    "IntegrationIndexDirective",
+    "IntegrationIndexPlaceholder",
+    "process_integration_placeholders",
+    # Persona directives
+    "PersonaDiagramDirective",
+    "PersonaDiagramPlaceholder",
+    "PersonaIndexDiagramDirective",
+    "PersonaIndexDiagramPlaceholder",
+    "process_persona_placeholders",
+]
