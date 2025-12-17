@@ -129,7 +129,7 @@ def build_integration_index(docname: str, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_integrations = hcd_context.integration_repo.list()
+    all_integrations = hcd_context.integration_repo.list_all()
 
     if not all_integrations:
         para = nodes.paragraph()

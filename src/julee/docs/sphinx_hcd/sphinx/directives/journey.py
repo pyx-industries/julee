@@ -87,7 +87,7 @@ class DefineJourneyDirective(HCDDirective):
         )
 
         # Add to repository
-        self.hcd_context.journey_repo.add(journey)
+        self.hcd_context.journey_repo.save(journey)
 
         # Track current journey in environment for step directives
         if not hasattr(self.env, "journey_current"):
@@ -230,7 +230,7 @@ class JourneyIndexDirective(HCDDirective):
     """
 
     def run(self):
-        all_journeys = self.hcd_context.journey_repo.list()
+        all_journeys = self.hcd_context.journey_repo.list_all()
 
         if not all_journeys:
             return self.empty_result("No journeys defined")
@@ -296,7 +296,7 @@ class JourneysForPersonaDirective(HCDDirective):
         persona_arg = self.arguments[0]
         persona_normalized = normalize_name(persona_arg)
 
-        all_journeys = self.hcd_context.journey_repo.list()
+        all_journeys = self.hcd_context.journey_repo.list_all()
 
         # Find journeys for this persona
         journeys = [
@@ -324,8 +324,8 @@ def build_story_node(story_title: str, docname: str, hcd_context):
     from ...config import get_config
 
     config = get_config()
-    all_stories = hcd_context.story_repo.list()
-    all_apps = hcd_context.app_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
     known_apps = {normalize_name(a.name) for a in all_apps}
     prefix = path_to_root(docname)
 
@@ -471,7 +471,7 @@ def make_labelled_list(term: str, items: list, hcd_context, docname: str = None,
     container += term_para
 
     bullet_list = nodes.bullet_list()
-    all_journeys = hcd_context.journey_repo.list()
+    all_journeys = hcd_context.journey_repo.list_all()
     journey_slugs = {j.slug for j in all_journeys}
 
     for item in items:
@@ -508,7 +508,9 @@ def clear_journey_state(app, env, docname):
 
     # Clear journeys from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.journey_repo.clear_by_docname(docname)
+    hcd_context.journey_repo.run_async(
+        hcd_context.journey_repo.async_repo.clear_by_docname(docname)
+    )
 
 
 def process_journey_steps(app, doctree):
@@ -553,7 +555,7 @@ def process_journey_steps(app, doctree):
         )
 
     # Add depended-on-by (inferred)
-    all_journeys = hcd_context.journey_repo.list()
+    all_journeys = hcd_context.journey_repo.list_all()
     depended_on_by = [
         j.slug for j in all_journeys if journey_slug in j.depends_on
     ]
@@ -572,7 +574,7 @@ def build_dependency_graph_node(env, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return para
 
-    all_journeys = hcd_context.journey_repo.list()
+    all_journeys = hcd_context.journey_repo.list_all()
 
     if not all_journeys:
         para = nodes.paragraph()

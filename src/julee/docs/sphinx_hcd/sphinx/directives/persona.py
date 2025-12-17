@@ -109,7 +109,7 @@ def generate_persona_plantuml(persona, all_epics, all_stories, all_apps) -> str:
     ]
 
     # Get epics for this persona
-    epics = get_epics_for_persona(persona, all_epics)
+    epics = get_epics_for_persona(persona, all_epics, all_stories)
 
     # Collect all apps used by this persona's epics
     all_epic_apps = set()
@@ -176,7 +176,7 @@ def generate_persona_index_plantuml(
     epic_apps_map = {}
 
     for persona in personas:
-        epics = get_epics_for_persona(persona, all_epics)
+        epics = get_epics_for_persona(persona, all_epics, all_stories)
         persona_epics_map[persona.name] = epics
 
         for epic in epics:
@@ -245,9 +245,9 @@ def build_persona_diagram(persona_name: str, docname: str, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
-    all_apps = hcd_context.app_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
 
     # Derive personas
     personas = derive_personas(all_stories, all_epics)
@@ -266,7 +266,7 @@ def build_persona_diagram(persona_name: str, docname: str, hcd_context):
         return [para]
 
     # Check if persona has epics
-    epics = get_epics_for_persona(persona, all_epics)
+    epics = get_epics_for_persona(persona, all_epics, all_stories)
     if not epics:
         para = nodes.paragraph()
         para += nodes.emphasis(text=f"No epics found for persona '{persona_name}'")
@@ -293,9 +293,9 @@ def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
-    all_apps = hcd_context.app_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
 
     # Get personas grouped by app type
     personas_by_type = derive_personas_by_app_type(all_stories, all_epics, all_apps)

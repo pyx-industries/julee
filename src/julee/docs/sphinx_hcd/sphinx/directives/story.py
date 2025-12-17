@@ -48,14 +48,14 @@ class StoryAppDirective(HCDDirective):
         app_normalized = normalize_name(app_arg)
 
         # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list()
+        all_stories = self.hcd_context.story_repo.list_all()
         stories = [s for s in all_stories if s.app_normalized == app_normalized]
 
         if not stories:
             return self.empty_result(f"No stories found for application '{app_arg}'")
 
         # Get known apps and personas for validation
-        all_apps = self.hcd_context.app_repo.list()
+        all_apps = self.hcd_context.app_repo.list_all()
         known_apps = {normalize_name(a.name) for a in all_apps}
 
         # Group stories by persona
@@ -158,14 +158,14 @@ class StoryListForPersonaDirective(HCDDirective):
         persona_normalized = normalize_name(persona_arg)
 
         # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list()
+        all_stories = self.hcd_context.story_repo.list_all()
         stories = [s for s in all_stories if s.persona_normalized == persona_normalized]
 
         if not stories:
             return self.empty_result(f"No stories found for persona '{persona_arg}'")
 
         # Get known apps for validation
-        all_apps = self.hcd_context.app_repo.list()
+        all_apps = self.hcd_context.app_repo.list_all()
         known_apps = {normalize_name(a.name) for a in all_apps}
 
         story_list = nodes.bullet_list()
@@ -207,7 +207,7 @@ class StoryListForAppDirective(HCDDirective):
         app_normalized = normalize_name(app_arg)
 
         # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list()
+        all_stories = self.hcd_context.story_repo.list_all()
         stories = [s for s in all_stories if s.app_normalized == app_normalized]
 
         if not stories:
@@ -274,7 +274,7 @@ class StoryIndexDirective(HCDDirective):
     """
 
     def run(self):
-        all_stories = self.hcd_context.story_repo.list()
+        all_stories = self.hcd_context.story_repo.list_all()
 
         if not all_stories:
             return self.empty_result("No Gherkin stories found")
@@ -325,11 +325,11 @@ class StoriesDirective(HCDDirective):
             return self.empty_result("No stories specified")
 
         # Get all stories for lookup
-        all_stories = self.hcd_context.story_repo.list()
+        all_stories = self.hcd_context.story_repo.list_all()
         story_lookup = {normalize_name(s.feature_title): s for s in all_stories}
 
         # Get known apps for validation
-        all_apps = self.hcd_context.app_repo.list()
+        all_apps = self.hcd_context.app_repo.list_all()
         known_apps = {normalize_name(a.name) for a in all_apps}
 
         # Look up stories
@@ -480,9 +480,9 @@ def build_story_seealso(story, env, docname: str, hcd_context):
         links.append(("App", app_slug.replace("-", " ").title(), app_path))
 
     # Get story entity for use cases
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
-    all_journeys = hcd_context.journey_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
+    all_journeys = hcd_context.journey_repo.list_all()
 
     story_entity = None
     for s in all_stories:

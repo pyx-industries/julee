@@ -56,7 +56,7 @@ class DefineEpicDirective(HCDDirective):
         )
 
         # Add to repository
-        self.hcd_context.epic_repo.add(epic)
+        self.hcd_context.epic_repo.save(epic)
 
         # Track current epic in environment for epic-story
         if not hasattr(self.env, "epic_current"):
@@ -151,8 +151,8 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
     prefix = path_to_root(docname)
 
     # Get all stories
-    all_stories = hcd_context.story_repo.list()
-    all_apps = hcd_context.app_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
     known_apps = {normalize_name(a.name) for a in all_apps}
 
     # Find stories referenced by this epic
@@ -242,9 +242,9 @@ def build_epic_index(env, docname: str, hcd_context):
     config = get_config()
     prefix = path_to_root(docname)
 
-    all_epics = hcd_context.epic_repo.list()
-    all_stories = hcd_context.story_repo.list()
-    all_apps = hcd_context.app_repo.list()
+    all_epics = hcd_context.epic_repo.list_all()
+    all_stories = hcd_context.story_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
     known_apps = {normalize_name(a.name) for a in all_apps}
 
     if not all_epics:
@@ -340,8 +340,8 @@ def build_epics_for_persona(env, docname: str, persona_arg: str, hcd_context):
     config = get_config()
     prefix = path_to_root(docname)
 
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
 
     # Derive personas to get their epic associations
     personas = derive_personas(all_stories, all_epics)
@@ -360,7 +360,7 @@ def build_epics_for_persona(env, docname: str, persona_arg: str, hcd_context):
         return [para]
 
     # Get epics for this persona
-    matching_epics = get_epics_for_persona(persona, all_epics)
+    matching_epics = get_epics_for_persona(persona, all_epics, all_stories)
 
     if not matching_epics:
         para = nodes.paragraph()
@@ -394,7 +394,9 @@ def clear_epic_state(app, env, docname):
 
     # Clear epics from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.epic_repo.clear_by_docname(docname)
+    hcd_context.epic_repo.run_async(
+        hcd_context.epic_repo.async_repo.clear_by_docname(docname)
+    )
 
 
 def process_epic_placeholders(app, doctree, docname):

@@ -109,9 +109,9 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
         return [para]
 
     # Get all entities for cross-references
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
-    all_journeys = hcd_context.journey_repo.list()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
+    all_journeys = hcd_context.journey_repo.list_all()
 
     result_nodes = []
 
@@ -205,8 +205,8 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
 
 def build_app_index(docname: str, hcd_context):
     """Build the app index grouped by type."""
-    all_apps = hcd_context.app_repo.list()
-    all_stories = hcd_context.story_repo.list()
+    all_apps = hcd_context.app_repo.list_all()
+    all_stories = hcd_context.story_repo.list_all()
 
     if not all_apps:
         para = nodes.paragraph()
@@ -282,9 +282,9 @@ def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
     prefix = path_to_root(docname)
     persona_normalized = normalize_name(persona_arg)
 
-    all_apps = hcd_context.app_repo.list()
-    all_stories = hcd_context.story_repo.list()
-    all_epics = hcd_context.epic_repo.list()
+    all_apps = hcd_context.app_repo.list_all()
+    all_stories = hcd_context.story_repo.list_all()
+    all_epics = hcd_context.epic_repo.list_all()
 
     # Derive personas
     personas = derive_personas(all_stories, all_epics)

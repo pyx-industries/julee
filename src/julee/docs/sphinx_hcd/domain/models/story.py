@@ -106,8 +106,9 @@ class Story(BaseModel):
         Returns:
             A new Story instance
         """
+        # Include app_slug in slug to avoid collisions between apps
         return cls(
-            slug=slugify(feature_title),
+            slug=f"{app_slug}--{slugify(feature_title)}",
             feature_title=feature_title,
             persona=persona,
             i_want=i_want,

@@ -121,7 +121,7 @@ class DefineAcceleratorDirective(HCDDirective):
         )
 
         # Add to repository
-        self.hcd_context.accelerator_repo.add(accelerator)
+        self.hcd_context.accelerator_repo.save(accelerator)
 
         # Track documented accelerators
         if not hasattr(self.env, "documented_accelerators"):
@@ -249,12 +249,12 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
         return [para]
 
     # Get all entities for cross-references
-    all_accelerators = hcd_context.accelerator_repo.list()
-    all_apps = hcd_context.app_repo.list()
-    all_stories = hcd_context.story_repo.list()
-    all_journeys = hcd_context.journey_repo.list()
-    all_integrations = hcd_context.integration_repo.list()
-    all_code_infos = hcd_context.code_info_repo.list()
+    all_accelerators = hcd_context.accelerator_repo.list_all()
+    all_apps = hcd_context.app_repo.list_all()
+    all_stories = hcd_context.story_repo.list_all()
+    all_journeys = hcd_context.journey_repo.list_all()
+    all_integrations = hcd_context.integration_repo.list_all()
+    all_code_infos = hcd_context.code_info_repo.list_all()
 
     result_nodes = []
 
@@ -371,7 +371,7 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
 
 def build_accelerator_index(docname: str, hcd_context):
     """Build accelerator index grouped by status."""
-    all_accelerators = hcd_context.accelerator_repo.list()
+    all_accelerators = hcd_context.accelerator_repo.list_all()
 
     if not all_accelerators:
         para = nodes.paragraph()
@@ -431,7 +431,7 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
         para += nodes.emphasis(text=f"App '{app_slug}' not found")
         return [para]
 
-    all_accelerators = hcd_context.accelerator_repo.list()
+    all_accelerators = hcd_context.accelerator_repo.list_all()
 
     # Filter to accelerators this app exposes
     matching = [a for a in all_accelerators if a.slug in (app.accelerators or [])]
@@ -467,7 +467,7 @@ def build_dependency_diagram(docname: str, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_accelerators = hcd_context.accelerator_repo.list()
+    all_accelerators = hcd_context.accelerator_repo.list_all()
 
     if not all_accelerators:
         para = nodes.paragraph()
@@ -526,7 +526,9 @@ def clear_accelerator_state(app, env, docname):
 
     # Clear accelerators from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.accelerator_repo.clear_by_docname(docname)
+    hcd_context.accelerator_repo.run_async(
+        hcd_context.accelerator_repo.async_repo.clear_by_docname(docname)
+    )
 
 
 def process_accelerator_placeholders(app, doctree, docname):

@@ -58,12 +58,12 @@ def initialize_hcd_context(app) -> None:
 
 def _load_stories(context: HCDContext, config) -> None:
     """Load stories from feature files into the repository."""
-    features_dir = config.get_path("features")
+    features_dir = config.get_path("feature_files")
     if not features_dir.exists():
         logger.info(f"Features directory not found: {features_dir}")
         return
 
-    stories = scan_feature_directory(features_dir)
+    stories = scan_feature_directory(features_dir, config.project_root)
     for story in stories:
         context.story_repo.save(story)
 
@@ -72,7 +72,7 @@ def _load_stories(context: HCDContext, config) -> None:
 
 def _load_apps(context: HCDContext, config) -> None:
     """Load apps from manifest files into the repository."""
-    apps_dir = config.get_path("applications")
+    apps_dir = config.get_path("app_manifests")
     if not apps_dir.exists():
         logger.info(f"Applications directory not found: {apps_dir}")
         return
@@ -86,7 +86,7 @@ def _load_apps(context: HCDContext, config) -> None:
 
 def _load_integrations(context: HCDContext, config) -> None:
     """Load integrations from manifest files into the repository."""
-    integrations_dir = config.get_path("integrations")
+    integrations_dir = config.get_path("integration_manifests")
     if not integrations_dir.exists():
         logger.info(f"Integrations directory not found: {integrations_dir}")
         return
