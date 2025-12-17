@@ -148,29 +148,68 @@ Contrib modules do NOT duplicate framework code. They extend and compose it.
 
 Any shared utilities needed by multiple contrib modules belong in the framework core (e.g., `julee.util`), not in a shadow framework within contrib.
 
-#### 4. Public API via `__init__.py`
+#### 4. Public API via `__init__.py` (Temporal Safety)
 
-Each module's `__init__.py` exports the public API:
+**Critical**: Temporal workflows run in a sandbox that prohibits non-deterministic operations at import time. If a workflow imports a module that transitively loads code with I/O (network, file, database), the sandbox will reject it.
 
+The rule: **If importing a package would transitively load any code that does I/O, that `__init__.py` must have `__all__ = []` and no re-exports.**
+
+**Domain layer** (pure code) - MAY have re-exports:
 ```python
-# julee/contrib/ceap/__init__.py
-from .use_cases import ExtractAssembleDataUseCase, ValidateDocumentUseCase
-from .apps.worker.pipelines import ExtractAssemblePipeline, ValidateDocumentPipeline
+# domain/models/__init__.py - SAFE: pure Pydantic models
+from .document import Document, DocumentMetadata
+from .validation import ValidationResult
 
-__all__ = [
-    "ExtractAssembleDataUseCase",
-    "ValidateDocumentUseCase",
-    "ExtractAssemblePipeline",
-    "ValidateDocumentPipeline",
-]
+__all__ = ["Document", "DocumentMetadata", "ValidationResult"]
 ```
 
-Solutions import from the module root:
+**Infrastructure layer** (I/O code) - MUST be empty:
+```python
+# infrastructure/services/__init__.py - UNSAFE: has HTTP clients, file I/O
+"""Service implementations with I/O operations.
+
+Import directly from specific modules to avoid pulling non-deterministic
+code into Temporal workflows.
+
+Example:
+    from .http_fetcher import HttpCredentialFetcher
+"""
+__all__: list[str] = []
+```
 
 ```python
-from julee.contrib.ceap import ExtractAssembleDataUseCase
-from julee.contrib.ontology_mapper import MapOntologyUseCase
+# infrastructure/repositories/__init__.py - UNSAFE: has MinIO/database clients
+"""Repository implementations with I/O operations.
+
+Example:
+    from .minio.document_repository import MinioDocumentRepository
+"""
+__all__: list[str] = []
 ```
+
+**Top-level bounded context** - MUST be empty:
+```python
+# contrib/ceap/__init__.py - Prevents cascading imports
+"""CEAP workflow accelerator.
+
+Import directly from submodules:
+    from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+    from julee.contrib.ceap.domain.models import Document
+"""
+__all__: list[str] = []
+```
+
+**Safe layers** (can have re-exports):
+- `domain/models/` - Pure Pydantic models
+- `domain/repositories/` - Protocol definitions (ABCs)
+- `domain/services/` - Protocol definitions (ABCs)
+- `use_cases/` - Pure business logic (depends only on protocols)
+
+**Unsafe layers** (must have `__all__ = []`):
+- `infrastructure/repositories/` - Has MinIO, database clients
+- `infrastructure/services/` - Has HTTP clients, file I/O
+- `infrastructure/temporal/` - Has Temporal SDK imports
+- Top-level module `__init__.py` - Prevents import chains
 
 #### 5. Apps Provide Integration Points
 
