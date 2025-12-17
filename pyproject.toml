@@ -72,6 +72,8 @@ dev = [
     "pip-tools>=7.0.0",
     # Database (for testing)
     "asyncpg",
+    # Sphinx (for sphinx_hcd tests)
+    "sphinx>=7.0.0",
 ]
 
 docs = [
