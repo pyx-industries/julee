@@ -10,7 +10,7 @@ Provides directives for defining and cross-referencing epics:
 from docutils import nodes
 
 from ...domain.models.epic import Epic
-from ...domain.use_cases import get_epics_for_persona, derive_personas
+from ...domain.use_cases import derive_personas, get_epics_for_persona
 from ...utils import normalize_name, path_to_root
 from .base import HCDDirective
 
@@ -145,7 +145,6 @@ class EpicsForPersonaDirective(HCDDirective):
 def render_epic_stories(epic: Epic, docname: str, hcd_context):
     """Render epic stories as a simple bullet list."""
     from ...config import get_config
-    from .story import StoryListForPersonaDirective
 
     config = get_config()
     prefix = path_to_root(docname)
@@ -190,7 +189,9 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
 
         # App in parentheses
         story_para += nodes.Text(" (")
-        app_path = f"{prefix}{config.get_doc_path('applications')}/{story.app_slug}.html"
+        app_path = (
+            f"{prefix}{config.get_doc_path('applications')}/{story.app_slug}.html"
+        )
         app_valid = story.app_normalized in known_apps
 
         if app_valid:

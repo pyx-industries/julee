@@ -3,7 +3,7 @@
 Represents a user story extracted from a Gherkin .feature file.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 from ...utils import normalize_name, slugify
 

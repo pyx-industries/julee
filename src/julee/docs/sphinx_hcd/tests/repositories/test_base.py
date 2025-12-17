@@ -31,7 +31,9 @@ class TestFindByField:
         return MemoryStoryRepository()
 
     @pytest.mark.asyncio
-    async def test_find_by_field_single_match(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_single_match(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding entities by a field with single match."""
         await repo.save(create_story(slug="story-1", persona="Admin"))
         await repo.save(create_story(slug="story-2", persona="User"))
@@ -43,7 +45,9 @@ class TestFindByField:
         assert result[0].slug == "story-1"
 
     @pytest.mark.asyncio
-    async def test_find_by_field_multiple_matches(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_multiple_matches(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding entities by a field with multiple matches."""
         await repo.save(create_story(slug="story-1", app_slug="portal"))
         await repo.save(create_story(slug="story-2", app_slug="portal"))
@@ -65,7 +69,9 @@ class TestFindByField:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_find_by_field_nonexistent_field(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_nonexistent_field(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding by a field that doesn't exist returns empty list."""
         await repo.save(create_story(slug="story-1"))
 
@@ -83,7 +89,9 @@ class TestFindByFieldIn:
         return MemoryStoryRepository()
 
     @pytest.mark.asyncio
-    async def test_find_by_field_in_multiple_values(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_in_multiple_values(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding entities where field is in a list of values."""
         await repo.save(create_story(slug="story-1", persona="Admin"))
         await repo.save(create_story(slug="story-2", persona="User"))
@@ -96,7 +104,9 @@ class TestFindByFieldIn:
         assert personas == {"Admin", "User"}
 
     @pytest.mark.asyncio
-    async def test_find_by_field_in_single_value(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_in_single_value(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding entities with single value in list."""
         await repo.save(create_story(slug="story-1", app_slug="portal"))
         await repo.save(create_story(slug="story-2", app_slug="other"))
@@ -107,7 +117,9 @@ class TestFindByFieldIn:
         assert result[0].slug == "story-1"
 
     @pytest.mark.asyncio
-    async def test_find_by_field_in_no_matches(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_in_no_matches(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding entities with no matching values."""
         await repo.save(create_story(slug="story-1", persona="User"))
 
@@ -116,7 +128,9 @@ class TestFindByFieldIn:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_find_by_field_in_empty_list(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_in_empty_list(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test finding with empty values list returns empty result."""
         await repo.save(create_story(slug="story-1"))
 
@@ -125,7 +139,9 @@ class TestFindByFieldIn:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_find_by_field_in_all_match(self, repo: MemoryStoryRepository) -> None:
+    async def test_find_by_field_in_all_match(
+        self, repo: MemoryStoryRepository
+    ) -> None:
         """Test when all entities match."""
         await repo.save(create_story(slug="story-1", persona="Admin"))
         await repo.save(create_story(slug="story-2", persona="User"))

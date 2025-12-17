@@ -103,7 +103,11 @@ class TestDerivePersonas:
 
         assert len(personas) == 1
         persona = personas[0]
-        assert set(persona.app_slugs) == {"vocabulary-tool", "admin-portal", "analytics-app"}
+        assert set(persona.app_slugs) == {
+            "vocabulary-tool",
+            "admin-portal",
+            "analytics-app",
+        }
 
     def test_derive_persona_with_epics(self) -> None:
         """Test persona epic association."""
@@ -112,8 +116,12 @@ class TestDerivePersonas:
             create_story("Review Vocabulary", "Knowledge Curator", "vocabulary-tool"),
         ]
         epics = [
-            create_epic("vocabulary-management", ["Upload Document", "Review Vocabulary"]),
-            create_epic("credential-creation", ["Create Credential"]),  # Different persona
+            create_epic(
+                "vocabulary-management", ["Upload Document", "Review Vocabulary"]
+            ),
+            create_epic(
+                "credential-creation", ["Create Credential"]
+            ),  # Different persona
         ]
 
         personas = derive_personas(stories, epics)
@@ -223,7 +231,9 @@ class TestGetEpicsForPersona:
             create_story("Run Analysis", "Analyst", "analytics-app"),
         ]
         epics = [
-            create_epic("vocabulary-management", ["Upload Document", "Review Vocabulary"]),
+            create_epic(
+                "vocabulary-management", ["Upload Document", "Review Vocabulary"]
+            ),
             create_epic("analytics", ["Run Analysis"]),
             create_epic("mixed-epic", ["Upload Document", "Run Analysis"]),
         ]

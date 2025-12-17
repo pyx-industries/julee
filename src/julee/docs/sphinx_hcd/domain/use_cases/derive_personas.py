@@ -7,11 +7,11 @@ it with epic participation data.
 
 from collections import defaultdict
 
+from ...utils import normalize_name
 from ..models.app import App
 from ..models.epic import Epic
 from ..models.persona import Persona
 from ..models.story import Story
-from ...utils import normalize_name
 
 
 def derive_personas(
@@ -163,8 +163,4 @@ def get_apps_for_persona(
         List of App entities this persona uses
     """
     app_lookup = {app.slug: app for app in apps}
-    return [
-        app_lookup[slug]
-        for slug in persona.app_slugs
-        if slug in app_lookup
-    ]
+    return [app_lookup[slug] for slug in persona.app_slugs if slug in app_lookup]

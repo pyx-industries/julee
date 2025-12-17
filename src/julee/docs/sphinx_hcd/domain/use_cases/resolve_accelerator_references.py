@@ -3,13 +3,13 @@
 Finds apps, stories, journeys, and integrations related to an accelerator.
 """
 
+from ...utils import normalize_name
 from ..models.accelerator import Accelerator
 from ..models.app import App
 from ..models.code_info import BoundedContextInfo
 from ..models.integration import Integration
 from ..models.journey import Journey
 from ..models.story import Story
-from ...utils import normalize_name
 
 
 def get_apps_for_accelerator(
@@ -27,10 +27,7 @@ def get_apps_for_accelerator(
     Returns:
         List of App entities that expose this accelerator, sorted by slug
     """
-    matching = [
-        app for app in apps
-        if accelerator.slug in (app.accelerators or [])
-    ]
+    matching = [app for app in apps if accelerator.slug in (app.accelerators or [])]
     return sorted(matching, key=lambda a: a.slug)
 
 
@@ -51,8 +48,7 @@ def get_stories_for_accelerator(
     """
     # Get app slugs that expose this accelerator
     app_slugs = {
-        app.slug for app in apps
-        if accelerator.slug in (app.accelerators or [])
+        app.slug for app in apps if accelerator.slug in (app.accelerators or [])
     }
 
     if not app_slugs:
@@ -91,10 +87,7 @@ def get_journeys_for_accelerator(
     matching = []
     for journey in journeys:
         story_refs = journey.get_story_refs()
-        if any(
-            normalize_name(ref) in story_titles
-            for ref in story_refs
-        ):
+        if any(normalize_name(ref) in story_titles for ref in story_refs):
             matching.append(journey)
 
     return sorted(matching, key=lambda j: j.slug)
@@ -117,9 +110,7 @@ def get_source_integrations(
     integration_lookup = {i.slug: i for i in integrations}
 
     return [
-        integration_lookup[slug]
-        for slug in source_slugs
-        if slug in integration_lookup
+        integration_lookup[slug] for slug in source_slugs if slug in integration_lookup
     ]
 
 
@@ -140,9 +131,7 @@ def get_publish_integrations(
     integration_lookup = {i.slug: i for i in integrations}
 
     return [
-        integration_lookup[slug]
-        for slug in publish_slugs
-        if slug in integration_lookup
+        integration_lookup[slug] for slug in publish_slugs if slug in integration_lookup
     ]
 
 
@@ -159,10 +148,7 @@ def get_dependent_accelerators(
     Returns:
         List of Accelerator entities that depend on this one
     """
-    matching = [
-        a for a in accelerators
-        if accelerator.slug in a.depends_on
-    ]
+    matching = [a for a in accelerators if accelerator.slug in a.depends_on]
     return sorted(matching, key=lambda a: a.slug)
 
 
@@ -179,10 +165,7 @@ def get_fed_by_accelerators(
     Returns:
         List of Accelerator entities that feed into this one
     """
-    matching = [
-        a for a in accelerators
-        if accelerator.slug in a.feeds_into
-    ]
+    matching = [a for a in accelerators if accelerator.slug in a.feeds_into]
     return sorted(matching, key=lambda a: a.slug)
 
 

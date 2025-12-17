@@ -132,7 +132,9 @@ class TestStoryFromFeatureFile:
             gherkin_snippet="Feature: Upload Document",
         )
 
-        assert story.slug == "staff-portal--upload-document"  # App prefix prevents collisions
+        assert (
+            story.slug == "staff-portal--upload-document"
+        )  # App prefix prevents collisions
         assert story.feature_title == "Upload Document"
         assert story.persona == "Staff Member"
         assert story.persona_normalized == "staff member"

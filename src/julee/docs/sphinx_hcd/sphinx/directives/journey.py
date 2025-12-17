@@ -18,7 +18,12 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from ...domain.models.journey import Journey, JourneyStep
-from ...utils import normalize_name, parse_csv_option, parse_list_option, path_to_root, slugify
+from ...utils import (
+    normalize_name,
+    parse_csv_option,
+    parse_list_option,
+    path_to_root,
+)
 from .base import HCDDirective
 
 
@@ -300,8 +305,7 @@ class JourneysForPersonaDirective(HCDDirective):
 
         # Find journeys for this persona
         journeys = [
-            j for j in all_journeys
-            if normalize_name(j.persona) == persona_normalized
+            j for j in all_journeys if normalize_name(j.persona) == persona_normalized
         ]
 
         if not journeys:
@@ -349,7 +353,9 @@ def build_story_node(story_title: str, docname: str, hcd_context):
 
         # App in parentheses
         para += nodes.Text(" (")
-        app_path = f"{prefix}{config.get_doc_path('applications')}/{story.app_slug}.html"
+        app_path = (
+            f"{prefix}{config.get_doc_path('applications')}/{story.app_slug}.html"
+        )
         app_valid = story.app_normalized in known_apps
 
         if app_valid:
@@ -462,7 +468,9 @@ def render_journey_steps(journey: Journey, docname: str, hcd_context):
     return enum_list
 
 
-def make_labelled_list(term: str, items: list, hcd_context, docname: str = None, item_type: str = "text"):
+def make_labelled_list(
+    term: str, items: list, hcd_context, docname: str = None, item_type: str = "text"
+):
     """Create a labelled bullet list with term as heading."""
     container = nodes.container()
 
@@ -542,11 +550,15 @@ def process_journey_steps(app, doctree):
 
     # Add preconditions
     if journey.preconditions:
-        doctree += make_labelled_list("Preconditions", journey.preconditions, hcd_context)
+        doctree += make_labelled_list(
+            "Preconditions", journey.preconditions, hcd_context
+        )
 
     # Add postconditions
     if journey.postconditions:
-        doctree += make_labelled_list("Postconditions", journey.postconditions, hcd_context)
+        doctree += make_labelled_list(
+            "Postconditions", journey.postconditions, hcd_context
+        )
 
     # Add depends-on
     if journey.depends_on:
@@ -556,12 +568,14 @@ def process_journey_steps(app, doctree):
 
     # Add depended-on-by (inferred)
     all_journeys = hcd_context.journey_repo.list_all()
-    depended_on_by = [
-        j.slug for j in all_journeys if journey_slug in j.depends_on
-    ]
+    depended_on_by = [j.slug for j in all_journeys if journey_slug in j.depends_on]
     if depended_on_by:
         doctree += make_labelled_list(
-            "Depended On By", sorted(depended_on_by), hcd_context, docname, item_type="journey"
+            "Depended On By",
+            sorted(depended_on_by),
+            hcd_context,
+            docname,
+            item_type="journey",
         )
 
 

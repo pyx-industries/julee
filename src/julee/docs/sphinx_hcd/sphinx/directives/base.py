@@ -9,13 +9,12 @@ from typing import TYPE_CHECKING
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
 
-from ..context import HCDContext, get_hcd_context
 from ...config import get_config
-from ...utils import normalize_name, path_to_root, slugify
+from ...utils import path_to_root, slugify
+from ..context import HCDContext, get_hcd_context
 
 if TYPE_CHECKING:
-    from sphinx.application import Sphinx
-    from sphinx.environment import BuildEnvironment
+    pass
 
 
 class HCDDirective(SphinxDirective):

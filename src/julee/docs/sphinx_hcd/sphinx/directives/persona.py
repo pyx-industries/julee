@@ -11,7 +11,11 @@ import os
 
 from docutils import nodes
 
-from ...domain.use_cases import derive_personas, derive_personas_by_app_type, get_epics_for_persona
+from ...domain.use_cases import (
+    derive_personas,
+    derive_personas_by_app_type,
+    get_epics_for_persona,
+)
 from ...utils import normalize_name, slugify
 from .base import HCDDirective
 
@@ -217,7 +221,9 @@ def generate_persona_index_plantuml(
     # Generate persona -> epic connections
     for persona in sorted(personas, key=lambda p: p.name):
         persona_id = slugify(persona.name).replace("-", "_")
-        for epic in sorted(persona_epics_map.get(persona.name, []), key=lambda e: e.slug):
+        for epic in sorted(
+            persona_epics_map.get(persona.name, []), key=lambda e: e.slug
+        ):
             epic_id = epic.slug.replace("-", "_")
             lines.append(f"{persona_id} --> {epic_id}")
 

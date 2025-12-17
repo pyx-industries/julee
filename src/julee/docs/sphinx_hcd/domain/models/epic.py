@@ -53,10 +53,7 @@ class Epic(BaseModel):
             True if the story is in this epic
         """
         story_normalized = normalize_name(story_title)
-        return any(
-            normalize_name(ref) == story_normalized
-            for ref in self.story_refs
-        )
+        return any(normalize_name(ref) == story_normalized for ref in self.story_refs)
 
     def get_story_refs_normalized(self) -> list[str]:
         """Get normalized story references.

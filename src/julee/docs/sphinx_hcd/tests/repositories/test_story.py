@@ -95,7 +95,9 @@ class TestMemoryStoryRepositoryQueries:
         return MemoryStoryRepository()
 
     @pytest_asyncio.fixture
-    async def populated_repo(self, repo: MemoryStoryRepository) -> MemoryStoryRepository:
+    async def populated_repo(
+        self, repo: MemoryStoryRepository
+    ) -> MemoryStoryRepository:
         """Create a repository with sample stories."""
         stories = [
             create_story(

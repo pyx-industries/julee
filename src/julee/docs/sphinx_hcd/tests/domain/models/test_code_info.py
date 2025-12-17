@@ -65,14 +65,24 @@ class TestBoundedContextInfoCreation:
     def test_create_complete(self) -> None:
         """Test creating with all fields."""
         entities = [
-            ClassInfo(name="Vocabulary", docstring="A vocabulary entity", file="vocabulary.py"),
+            ClassInfo(
+                name="Vocabulary", docstring="A vocabulary entity", file="vocabulary.py"
+            ),
             ClassInfo(name="Term", docstring="A term in a vocabulary", file="term.py"),
         ]
         use_cases = [
-            ClassInfo(name="CreateVocabulary", docstring="Create a vocabulary", file="create.py"),
+            ClassInfo(
+                name="CreateVocabulary",
+                docstring="Create a vocabulary",
+                file="create.py",
+            ),
         ]
         repo_protocols = [
-            ClassInfo(name="VocabularyRepository", docstring="Repository protocol", file="vocabulary.py"),
+            ClassInfo(
+                name="VocabularyRepository",
+                docstring="Repository protocol",
+                file="vocabulary.py",
+            ),
         ]
 
         info = BoundedContextInfo(

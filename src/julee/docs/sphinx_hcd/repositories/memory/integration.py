@@ -10,7 +10,9 @@ from .base import MemoryRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class MemoryIntegrationRepository(MemoryRepositoryMixin[Integration], IntegrationRepository):
+class MemoryIntegrationRepository(
+    MemoryRepositoryMixin[Integration], IntegrationRepository
+):
     """In-memory implementation of IntegrationRepository.
 
     Integrations are stored in a dictionary keyed by slug. This implementation

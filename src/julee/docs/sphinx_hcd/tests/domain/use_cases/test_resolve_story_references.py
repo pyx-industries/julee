@@ -1,6 +1,5 @@
 """Tests for resolve_story_references use case."""
 
-import pytest
 
 from julee.docs.sphinx_hcd.domain.models.epic import Epic
 from julee.docs.sphinx_hcd.domain.models.journey import Journey, JourneyStep
@@ -44,7 +43,9 @@ class TestGetEpicsForStory:
         """Test finding a story in one epic."""
         story = create_story("Upload Document")
         epics = [
-            create_epic("vocabulary-management", ["Upload Document", "Review Vocabulary"]),
+            create_epic(
+                "vocabulary-management", ["Upload Document", "Review Vocabulary"]
+            ),
             create_epic("other-epic", ["Other Story"]),
         ]
 
@@ -149,9 +150,10 @@ class TestGetRelatedStories:
             create_story("Unrelated Story"),
         ]
         epics = [
-            create_epic("vocabulary-management", [
-                "Upload Document", "Review Vocabulary", "Publish Catalog"
-            ]),
+            create_epic(
+                "vocabulary-management",
+                ["Upload Document", "Review Vocabulary", "Publish Catalog"],
+            ),
         ]
 
         result = get_related_stories(stories[0], stories, epics)
@@ -212,7 +214,9 @@ class TestGetStoryCrossReferences:
             create_story("Review Vocabulary"),
         ]
         epics = [
-            create_epic("vocabulary-management", ["Upload Document", "Review Vocabulary"]),
+            create_epic(
+                "vocabulary-management", ["Upload Document", "Review Vocabulary"]
+            ),
         ]
         journeys = [
             create_journey("build-vocabulary", ["Upload Document"]),

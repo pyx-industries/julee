@@ -1,6 +1,5 @@
 """Tests for resolve_app_references use case."""
 
-import pytest
 
 from julee.docs.sphinx_hcd.domain.models.app import App, AppType
 from julee.docs.sphinx_hcd.domain.models.epic import Epic
@@ -251,7 +250,9 @@ class TestGetAppCrossReferences:
             create_story("Review Document", "vocabulary-tool", "Reviewer"),
         ]
         epics = [
-            create_epic("vocabulary-management", ["Upload Document", "Review Document"]),
+            create_epic(
+                "vocabulary-management", ["Upload Document", "Review Document"]
+            ),
         ]
         journeys = [
             create_journey("build-vocabulary", ["Upload Document"]),

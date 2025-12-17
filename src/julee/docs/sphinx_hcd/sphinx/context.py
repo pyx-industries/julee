@@ -52,13 +52,27 @@ class HCDContext:
         code_info_repo: Repository for BoundedContextInfo entities
     """
 
-    story_repo: SyncRepositoryAdapter["Story"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryStoryRepository()))
-    journey_repo: SyncRepositoryAdapter["Journey"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryJourneyRepository()))
-    epic_repo: SyncRepositoryAdapter["Epic"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryEpicRepository()))
-    app_repo: SyncRepositoryAdapter["App"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryAppRepository()))
-    accelerator_repo: SyncRepositoryAdapter["Accelerator"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryAcceleratorRepository()))
-    integration_repo: SyncRepositoryAdapter["Integration"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryIntegrationRepository()))
-    code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository()))
+    story_repo: SyncRepositoryAdapter["Story"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryStoryRepository())
+    )
+    journey_repo: SyncRepositoryAdapter["Journey"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryJourneyRepository())
+    )
+    epic_repo: SyncRepositoryAdapter["Epic"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryEpicRepository())
+    )
+    app_repo: SyncRepositoryAdapter["App"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryAppRepository())
+    )
+    accelerator_repo: SyncRepositoryAdapter["Accelerator"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryAcceleratorRepository())
+    )
+    integration_repo: SyncRepositoryAdapter["Integration"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryIntegrationRepository())
+    )
+    code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository())
+    )
 
     def clear_all(self) -> None:
         """Clear all repositories.

@@ -109,7 +109,9 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
         slug=context_dir.name,
         entities=parse_python_classes(context_dir / "domain" / "models"),
         use_cases=parse_python_classes(context_dir / "use_cases"),
-        repository_protocols=parse_python_classes(context_dir / "domain" / "repositories"),
+        repository_protocols=parse_python_classes(
+            context_dir / "domain" / "repositories"
+        ),
         service_protocols=parse_python_classes(context_dir / "domain" / "services"),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
@@ -141,6 +143,8 @@ def scan_bounded_contexts(src_dir: Path) -> list[BoundedContextInfo]:
         context_info = parse_bounded_context(context_dir)
         if context_info:
             contexts.append(context_info)
-            logger.info(f"Introspected bounded context '{context_info.slug}': {context_info.summary()}")
+            logger.info(
+                f"Introspected bounded context '{context_info.slug}': {context_info.summary()}"
+            )
 
     return contexts

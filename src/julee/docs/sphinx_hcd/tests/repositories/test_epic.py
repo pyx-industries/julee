@@ -94,9 +94,7 @@ class TestMemoryEpicRepositoryQueries:
         return MemoryEpicRepository()
 
     @pytest_asyncio.fixture
-    async def populated_repo(
-        self, repo: MemoryEpicRepository
-    ) -> MemoryEpicRepository:
+    async def populated_repo(self, repo: MemoryEpicRepository) -> MemoryEpicRepository:
         """Create a repository with sample epics."""
         epics = [
             create_epic(
@@ -134,9 +132,7 @@ class TestMemoryEpicRepositoryQueries:
         return repo
 
     @pytest.mark.asyncio
-    async def test_get_by_docname(
-        self, populated_repo: MemoryEpicRepository
-    ) -> None:
+    async def test_get_by_docname(self, populated_repo: MemoryEpicRepository) -> None:
         """Test getting epics by document name."""
         epics = await populated_repo.get_by_docname("epics/vocabulary")
         assert len(epics) == 2
@@ -161,9 +157,7 @@ class TestMemoryEpicRepositoryQueries:
         assert len(epics) == 0
 
     @pytest.mark.asyncio
-    async def test_clear_by_docname(
-        self, populated_repo: MemoryEpicRepository
-    ) -> None:
+    async def test_clear_by_docname(self, populated_repo: MemoryEpicRepository) -> None:
         """Test clearing epics by document name."""
         count = await populated_repo.clear_by_docname("epics/vocabulary")
         assert count == 2

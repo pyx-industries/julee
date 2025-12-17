@@ -134,9 +134,7 @@ class TestMemoryAppRepositoryQueries:
         return repo
 
     @pytest.mark.asyncio
-    async def test_get_by_type_staff(
-        self, populated_repo: MemoryAppRepository
-    ) -> None:
+    async def test_get_by_type_staff(self, populated_repo: MemoryAppRepository) -> None:
         """Test getting apps by staff type."""
         apps = await populated_repo.get_by_type(AppType.STAFF)
         assert len(apps) == 2

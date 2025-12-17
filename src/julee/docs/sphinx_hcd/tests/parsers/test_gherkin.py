@@ -1,12 +1,10 @@
 """Tests for Gherkin feature file parser."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
 
 from julee.docs.sphinx_hcd.parsers.gherkin import (
-    ParsedFeature,
     parse_feature_content,
     parse_feature_file,
     scan_feature_directory,
@@ -144,7 +142,8 @@ class TestParseFeatureFile:
         """Test parsing a feature file."""
         feature_dir = temp_project / "tests" / "e2e" / "my-app" / "features"
         feature_file = feature_dir / "submit.feature"
-        feature_file.write_text("""Feature: Submit Form
+        feature_file.write_text(
+            """Feature: Submit Form
 
   As a User
   I want to submit a form
@@ -154,7 +153,8 @@ class TestParseFeatureFile:
     Given I fill the form
     When I submit
     Then it succeeds
-""")
+"""
+        )
 
         story = parse_feature_file(feature_file, temp_project)
 
@@ -198,7 +198,9 @@ class TestParseFeatureFile:
         # File path should be the full path when outside project root
         assert str(feature_file) in story.file_path or "test.feature" in story.file_path
 
-    def test_parse_feature_file_unknown_app_slug_structure(self, tmp_path: Path) -> None:
+    def test_parse_feature_file_unknown_app_slug_structure(
+        self, tmp_path: Path
+    ) -> None:
         """Test parsing feature file with non-standard path defaults to 'unknown' app."""
         # Create a feature file not in tests/e2e/{app}/features/ structure
         feature_dir = tmp_path / "features"
@@ -211,7 +213,9 @@ class TestParseFeatureFile:
         assert story is not None
         assert story.app_slug == "unknown"
 
-    def test_parse_feature_file_short_path_defaults_to_unknown(self, tmp_path: Path) -> None:
+    def test_parse_feature_file_short_path_defaults_to_unknown(
+        self, tmp_path: Path
+    ) -> None:
         """Test parsing feature with path too short for app extraction defaults to 'unknown'."""
         # Create feature file directly in tmp_path (path has < 4 parts)
         feature_file = tmp_path / "test.feature"

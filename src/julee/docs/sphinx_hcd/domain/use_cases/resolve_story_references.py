@@ -3,10 +3,10 @@
 Finds epics and journeys that reference a specific story.
 """
 
+from ...utils import normalize_name
 from ..models.epic import Epic
 from ..models.journey import Journey
 from ..models.story import Story
-from ...utils import normalize_name
 
 
 def get_epics_for_story(
@@ -26,10 +26,7 @@ def get_epics_for_story(
     matching = []
 
     for epic in epics:
-        if any(
-            normalize_name(ref) == story_normalized
-            for ref in epic.story_refs
-        ):
+        if any(normalize_name(ref) == story_normalized for ref in epic.story_refs):
             matching.append(epic)
 
     return sorted(matching, key=lambda e: e.slug)
@@ -53,10 +50,7 @@ def get_journeys_for_story(
 
     for journey in journeys:
         story_refs = journey.get_story_refs()
-        if any(
-            normalize_name(ref) == story_normalized
-            for ref in story_refs
-        ):
+        if any(normalize_name(ref) == story_normalized for ref in story_refs):
             matching.append(journey)
 
     return sorted(matching, key=lambda j: j.slug)

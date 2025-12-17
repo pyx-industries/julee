@@ -32,9 +32,9 @@ from .epic import (
     DefineEpicDirective,
     EpicIndexDirective,
     EpicIndexPlaceholder,
-    EpicStoryDirective,
     EpicsForPersonaDirective,
     EpicsForPersonaPlaceholder,
+    EpicStoryDirective,
     clear_epic_state,
     process_epic_placeholders,
 )

@@ -1,6 +1,5 @@
 """Tests for base directive utilities."""
 
-import pytest
 
 from julee.docs.sphinx_hcd.sphinx.directives.base import make_deprecated_directive
 
@@ -48,12 +47,12 @@ class TestDirectiveImports:
     def test_story_directives_import(self) -> None:
         """Test story directive imports."""
         from julee.docs.sphinx_hcd.sphinx.directives.story import (
+            StoriesDirective,
             StoryAppDirective,
             StoryIndexDirective,
             StoryListForAppDirective,
             StoryListForPersonaDirective,
             StoryRefDirective,
-            StoriesDirective,
         )
 
         assert StoryAppDirective is not None
@@ -86,8 +85,8 @@ class TestDirectiveImports:
         from julee.docs.sphinx_hcd.sphinx.directives.epic import (
             DefineEpicDirective,
             EpicIndexDirective,
-            EpicStoryDirective,
             EpicsForPersonaDirective,
+            EpicStoryDirective,
         )
 
         assert DefineEpicDirective is not None
@@ -112,8 +111,8 @@ class TestDirectiveImports:
         from julee.docs.sphinx_hcd.sphinx.directives.accelerator import (
             AcceleratorDependencyDiagramDirective,
             AcceleratorIndexDirective,
-            AcceleratorStatusDirective,
             AcceleratorsForAppDirective,
+            AcceleratorStatusDirective,
             DefineAcceleratorDirective,
         )
 

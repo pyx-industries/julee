@@ -37,7 +37,9 @@ class TestSyncRepositoryAdapter:
         return SampleMemoryRepository()
 
     @pytest.fixture
-    def sync_repo(self, async_repo: SampleMemoryRepository) -> SyncRepositoryAdapter[SampleEntity]:
+    def sync_repo(
+        self, async_repo: SampleMemoryRepository
+    ) -> SyncRepositoryAdapter[SampleEntity]:
         """Create a sync adapter wrapping the async repo."""
         return SyncRepositoryAdapter(async_repo)
 

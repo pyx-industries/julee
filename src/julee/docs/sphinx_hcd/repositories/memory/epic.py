@@ -26,18 +26,12 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
 
     async def get_by_docname(self, docname: str) -> list[Epic]:
         """Get all epics defined in a specific document."""
-        return [
-            epic
-            for epic in self.storage.values()
-            if epic.docname == docname
-        ]
+        return [epic for epic in self.storage.values() if epic.docname == docname]
 
     async def clear_by_docname(self, docname: str) -> int:
         """Remove all epics defined in a specific document."""
         to_remove = [
-            slug
-            for slug, epic in self.storage.items()
-            if epic.docname == docname
+            slug for slug, epic in self.storage.items() if epic.docname == docname
         ]
         for slug in to_remove:
             del self.storage[slug]
@@ -49,10 +43,7 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
         return [
             epic
             for epic in self.storage.values()
-            if any(
-                normalize_name(ref) == story_normalized
-                for ref in epic.story_refs
-            )
+            if any(normalize_name(ref) == story_normalized for ref in epic.story_refs)
         ]
 
     async def get_all_story_refs(self) -> set[str]:

@@ -45,40 +45,13 @@ logger = logging.getLogger(__name__)
 def setup(app):
     """Set up all HCD extensions for Sphinx."""
     from .sphinx.directives import (
-        # Story directives
-        StoryAppDirective,
-        StoryListForPersonaDirective,
-        StoryListForAppDirective,
-        StoryIndexDirective,
-        StoriesDirective,
-        StoryRefDirective,
-        StorySeeAlsoPlaceholder,
-        # Story deprecated aliases
-        GherkinStoryDirective,
-        GherkinStoriesDirective,
-        GherkinStoriesForPersonaDirective,
-        GherkinStoriesForAppDirective,
-        GherkinStoriesIndexDirective,
-        GherkinAppStoriesDirective,
-        # Journey directives
-        DefineJourneyDirective,
-        StepStoryDirective,
-        StepEpicDirective,
-        StepPhaseDirective,
-        JourneyIndexDirective,
-        JourneyDependencyGraphDirective,
-        JourneyDependencyGraphPlaceholder,
-        JourneysForPersonaDirective,
-        # Epic directives
-        DefineEpicDirective,
-        EpicStoryDirective,
-        EpicIndexDirective,
-        EpicIndexPlaceholder,
-        EpicsForPersonaDirective,
-        EpicsForPersonaPlaceholder,
-        # App directives
-        DefineAppDirective,
-        DefineAppPlaceholder,
+        AcceleratorDependencyDiagramDirective,
+        AcceleratorDependencyDiagramPlaceholder,
+        AcceleratorIndexDirective,
+        AcceleratorIndexPlaceholder,
+        AcceleratorsForAppDirective,
+        AcceleratorsForAppPlaceholder,
+        AcceleratorStatusDirective,
         AppIndexDirective,
         AppIndexPlaceholder,
         AppsForPersonaDirective,
@@ -86,25 +59,52 @@ def setup(app):
         # Accelerator directives
         DefineAcceleratorDirective,
         DefineAcceleratorPlaceholder,
-        AcceleratorIndexDirective,
-        AcceleratorIndexPlaceholder,
-        AcceleratorsForAppDirective,
-        AcceleratorsForAppPlaceholder,
-        DependentAcceleratorsDirective,
-        DependentAcceleratorsPlaceholder,
-        AcceleratorDependencyDiagramDirective,
-        AcceleratorDependencyDiagramPlaceholder,
-        AcceleratorStatusDirective,
+        # App directives
+        DefineAppDirective,
+        DefineAppPlaceholder,
+        # Epic directives
+        DefineEpicDirective,
         # Integration directives
         DefineIntegrationDirective,
         DefineIntegrationPlaceholder,
+        # Journey directives
+        DefineJourneyDirective,
+        DependentAcceleratorsDirective,
+        DependentAcceleratorsPlaceholder,
+        EpicIndexDirective,
+        EpicIndexPlaceholder,
+        EpicsForPersonaDirective,
+        EpicsForPersonaPlaceholder,
+        EpicStoryDirective,
+        GherkinAppStoriesDirective,
+        GherkinStoriesDirective,
+        GherkinStoriesForAppDirective,
+        GherkinStoriesForPersonaDirective,
+        GherkinStoriesIndexDirective,
+        # Story deprecated aliases
+        GherkinStoryDirective,
         IntegrationIndexDirective,
         IntegrationIndexPlaceholder,
+        JourneyDependencyGraphDirective,
+        JourneyDependencyGraphPlaceholder,
+        JourneyIndexDirective,
+        JourneysForPersonaDirective,
         # Persona directives
         PersonaDiagramDirective,
         PersonaDiagramPlaceholder,
         PersonaIndexDiagramDirective,
         PersonaIndexDiagramPlaceholder,
+        StepEpicDirective,
+        StepPhaseDirective,
+        StepStoryDirective,
+        StoriesDirective,
+        # Story directives
+        StoryAppDirective,
+        StoryIndexDirective,
+        StoryListForAppDirective,
+        StoryListForPersonaDirective,
+        StoryRefDirective,
+        StorySeeAlsoPlaceholder,
     )
     from .sphinx.event_handlers import (
         on_builder_inited,
@@ -173,7 +173,9 @@ def setup(app):
     app.add_directive("accelerator-index", AcceleratorIndexDirective)
     app.add_directive("accelerators-for-app", AcceleratorsForAppDirective)
     app.add_directive("dependent-accelerators", DependentAcceleratorsDirective)
-    app.add_directive("accelerator-dependency-diagram", AcceleratorDependencyDiagramDirective)
+    app.add_directive(
+        "accelerator-dependency-diagram", AcceleratorDependencyDiagramDirective
+    )
     app.add_directive("accelerator-status", AcceleratorStatusDirective)
     app.add_node(DefineAcceleratorPlaceholder)
     app.add_node(AcceleratorIndexPlaceholder)

@@ -9,7 +9,9 @@ from .base import MemoryRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class MemoryAcceleratorRepository(MemoryRepositoryMixin[Accelerator], AcceleratorRepository):
+class MemoryAcceleratorRepository(
+    MemoryRepositoryMixin[Accelerator], AcceleratorRepository
+):
     """In-memory implementation of AcceleratorRepository.
 
     Accelerators are stored in a dictionary keyed by slug. This implementation
@@ -34,18 +36,12 @@ class MemoryAcceleratorRepository(MemoryRepositoryMixin[Accelerator], Accelerato
 
     async def get_by_docname(self, docname: str) -> list[Accelerator]:
         """Get all accelerators defined in a specific document."""
-        return [
-            accel
-            for accel in self.storage.values()
-            if accel.docname == docname
-        ]
+        return [accel for accel in self.storage.values() if accel.docname == docname]
 
     async def clear_by_docname(self, docname: str) -> int:
         """Remove all accelerators defined in a specific document."""
         to_remove = [
-            slug
-            for slug, accel in self.storage.items()
-            if accel.docname == docname
+            slug for slug, accel in self.storage.items() if accel.docname == docname
         ]
         for slug in to_remove:
             del self.storage[slug]

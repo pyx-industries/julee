@@ -8,7 +8,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
-from ...utils import normalize_name, slugify
+from ...utils import normalize_name
 
 
 class AppType(str, Enum):

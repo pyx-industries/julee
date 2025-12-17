@@ -163,8 +163,11 @@ class Integration(BaseModel):
         # Parse depends_on list
         depends_on_raw = manifest.get("depends_on", [])
         depends_on = [
-            ExternalDependency.from_dict(dep) if isinstance(dep, dict) else
-            ExternalDependency(name=str(dep))
+            (
+                ExternalDependency.from_dict(dep)
+                if isinstance(dep, dict)
+                else ExternalDependency(name=str(dep))
+            )
             for dep in depends_on_raw
         ]
 
@@ -213,8 +216,7 @@ class Integration(BaseModel):
         """
         dep_normalized = normalize_name(dep_name)
         return any(
-            normalize_name(dep.name) == dep_normalized
-            for dep in self.depends_on
+            normalize_name(dep.name) == dep_normalized for dep in self.depends_on
         )
 
     @property

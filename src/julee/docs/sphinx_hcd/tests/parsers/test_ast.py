@@ -1,9 +1,6 @@
 """Tests for AST parser."""
 
-import tempfile
 from pathlib import Path
-
-import pytest
 
 from julee.docs.sphinx_hcd.parsers.ast import (
     parse_bounded_context,
@@ -19,11 +16,13 @@ class TestParsePythonClasses:
     def test_parse_single_class(self, tmp_path: Path) -> None:
         """Test parsing a file with a single class."""
         py_file = tmp_path / "document.py"
-        py_file.write_text('''
+        py_file.write_text(
+            '''
 class Document:
     """A document entity."""
     pass
-''')
+'''
+        )
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 1
@@ -34,7 +33,8 @@ class Document:
     def test_parse_multiple_classes(self, tmp_path: Path) -> None:
         """Test parsing a file with multiple classes."""
         py_file = tmp_path / "models.py"
-        py_file.write_text('''
+        py_file.write_text(
+            '''
 class Document:
     """A document entity."""
     pass
@@ -42,7 +42,8 @@ class Document:
 class Term:
     """A term in a vocabulary."""
     pass
-''')
+'''
+        )
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 2
@@ -52,20 +53,25 @@ class Term:
     def test_parse_class_no_docstring(self, tmp_path: Path) -> None:
         """Test parsing a class without a docstring."""
         py_file = tmp_path / "simple.py"
-        py_file.write_text('''
+        py_file.write_text(
+            """
 class SimpleClass:
     pass
-''')
+"""
+        )
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 1
         assert classes[0].name == "SimpleClass"
         assert classes[0].docstring == ""
 
-    def test_parse_multiline_docstring_extracts_first_line(self, tmp_path: Path) -> None:
+    def test_parse_multiline_docstring_extracts_first_line(
+        self, tmp_path: Path
+    ) -> None:
         """Test that only the first line of docstring is extracted."""
         py_file = tmp_path / "complex.py"
-        py_file.write_text('''
+        py_file.write_text(
+            '''
 class ComplexClass:
     """First line of docstring.
 
@@ -73,7 +79,8 @@ class ComplexClass:
     With multiple lines.
     """
     pass
-''')
+'''
+        )
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 1
@@ -81,9 +88,9 @@ class ComplexClass:
 
     def test_skip_private_files(self, tmp_path: Path) -> None:
         """Test that files starting with underscore are skipped."""
-        (tmp_path / "_private.py").write_text('class Private: pass')
-        (tmp_path / "__init__.py").write_text('class Init: pass')
-        (tmp_path / "public.py").write_text('class Public: pass')
+        (tmp_path / "_private.py").write_text("class Private: pass")
+        (tmp_path / "__init__.py").write_text("class Init: pass")
+        (tmp_path / "public.py").write_text("class Public: pass")
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 1
@@ -97,11 +104,13 @@ class ComplexClass:
     def test_sorted_by_name(self, tmp_path: Path) -> None:
         """Test classes are sorted by name."""
         py_file = tmp_path / "classes.py"
-        py_file.write_text('''
+        py_file.write_text(
+            """
 class Zebra: pass
 class Apple: pass
 class Mango: pass
-''')
+"""
+        )
 
         classes = parse_python_classes(tmp_path)
         names = [c.name for c in classes]
@@ -110,8 +119,8 @@ class Mango: pass
     def test_syntax_error_handled(self, tmp_path: Path) -> None:
         """Test that syntax errors are handled gracefully."""
         py_file = tmp_path / "broken.py"
-        py_file.write_text('class Broken def invalid')  # Invalid syntax
-        (tmp_path / "valid.py").write_text('class Valid: pass')
+        py_file.write_text("class Broken def invalid")  # Invalid syntax
+        (tmp_path / "valid.py").write_text("class Valid: pass")
 
         classes = parse_python_classes(tmp_path)
         assert len(classes) == 1
@@ -124,14 +133,16 @@ class TestParseModuleDocstring:
     def test_parse_module_with_docstring(self, tmp_path: Path) -> None:
         """Test parsing a module with a docstring."""
         py_file = tmp_path / "module.py"
-        py_file.write_text('''"""Module docstring.
+        py_file.write_text(
+            '''"""Module docstring.
 
 More details about the module.
 """
 
 class SomeClass:
     pass
-''')
+'''
+        )
 
         first_line, full = parse_module_docstring(py_file)
         assert first_line == "Module docstring."
@@ -140,10 +151,12 @@ class SomeClass:
     def test_parse_module_no_docstring(self, tmp_path: Path) -> None:
         """Test parsing a module without a docstring."""
         py_file = tmp_path / "no_doc.py"
-        py_file.write_text('''
+        py_file.write_text(
+            """
 class SomeClass:
     pass
-''')
+"""
+        )
 
         first_line, full = parse_module_docstring(py_file)
         assert first_line is None
@@ -173,25 +186,31 @@ class TestParseBoundedContext:
         (context_dir / "__init__.py").write_text('"""Vocabulary management."""')
 
         # Entity
-        (context_dir / "domain" / "models" / "vocabulary.py").write_text('''
+        (context_dir / "domain" / "models" / "vocabulary.py").write_text(
+            '''
 class Vocabulary:
     """A vocabulary catalog."""
     pass
-''')
+'''
+        )
 
         # Use case
-        (context_dir / "use_cases" / "create.py").write_text('''
+        (context_dir / "use_cases" / "create.py").write_text(
+            '''
 class CreateVocabulary:
     """Create a new vocabulary."""
     pass
-''')
+'''
+        )
 
         # Repository protocol
-        (context_dir / "domain" / "repositories" / "vocabulary.py").write_text('''
+        (context_dir / "domain" / "repositories" / "vocabulary.py").write_text(
+            '''
 class VocabularyRepository:
     """Repository for vocabularies."""
     pass
-''')
+'''
+        )
 
         info = parse_bounded_context(context_dir)
         assert info is not None
@@ -236,7 +255,7 @@ class TestScanBoundedContexts:
             (context_dir / "__init__.py").write_text(f'"""{name.title()} module."""')
             (context_dir / "domain" / "models").mkdir(parents=True)
             (context_dir / "domain" / "models" / "entity.py").write_text(
-                f'class {name.title()}Entity: pass'
+                f"class {name.title()}Entity: pass"
             )
 
         contexts = scan_bounded_contexts(tmp_path)

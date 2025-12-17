@@ -16,18 +16,13 @@ from docutils.parsers.rst import directives
 
 from ...domain.models.accelerator import Accelerator, IntegrationReference
 from ...domain.use_cases import (
-    get_accelerator_cross_references,
     get_apps_for_accelerator,
     get_code_info_for_accelerator,
-    get_dependent_accelerators,
     get_fed_by_accelerators,
-    get_journeys_for_accelerator,
     get_publish_integrations,
     get_source_integrations,
-    get_stories_for_accelerator,
 )
 from ...utils import (
-    normalize_name,
     parse_integration_options,
     parse_list_option,
     path_to_root,
@@ -113,8 +108,18 @@ class DefineAcceleratorDirective(HCDDirective):
             milestone=milestone,
             acceptance=acceptance,
             objective=objective,
-            sources_from=[IntegrationReference(slug=s["slug"], description=s.get("description", "")) for s in sources_from],
-            publishes_to=[IntegrationReference(slug=p["slug"], description=p.get("description", "")) for p in publishes_to],
+            sources_from=[
+                IntegrationReference(
+                    slug=s["slug"], description=s.get("description", "")
+                )
+                for s in sources_from
+            ],
+            publishes_to=[
+                IntegrationReference(
+                    slug=p["slug"], description=p.get("description", "")
+                )
+                for p in publishes_to
+            ],
             depends_on=depends_on,
             feeds_into=feeds_into,
             docname=docname,
@@ -251,8 +256,6 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
     # Get all entities for cross-references
     all_accelerators = hcd_context.accelerator_repo.list_all()
     all_apps = hcd_context.app_repo.list_all()
-    all_stories = hcd_context.story_repo.list_all()
-    all_journeys = hcd_context.journey_repo.list_all()
     all_integrations = hcd_context.integration_repo.list_all()
     all_code_infos = hcd_context.code_info_repo.list_all()
 
@@ -316,7 +319,9 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
         sources_para = nodes.paragraph()
         sources_para += nodes.strong(text="Sources From: ")
         for i, integration in enumerate(source_integrations):
-            int_path = f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
+            int_path = (
+                f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
+            )
             ref = nodes.reference("", "", refuri=int_path)
             ref += nodes.Text(integration.name)
             sources_para += ref
@@ -330,7 +335,9 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
         publish_para = nodes.paragraph()
         publish_para += nodes.strong(text="Publishes To: ")
         for i, integration in enumerate(publish_integrations):
-            int_path = f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
+            int_path = (
+                f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
+            )
             ref = nodes.reference("", "", refuri=int_path)
             ref += nodes.Text(integration.name)
             publish_para += ref
@@ -343,7 +350,9 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
         depends_para = nodes.paragraph()
         depends_para += nodes.strong(text="Depends On: ")
         for i, dep_slug in enumerate(accelerator.depends_on):
-            accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html"
+            accel_path = (
+                f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html"
+            )
             ref = nodes.reference("", "", refuri=accel_path)
             ref += nodes.Text(dep_slug.replace("-", " ").title())
             depends_para += ref
@@ -357,7 +366,9 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
         fed_para = nodes.paragraph()
         fed_para += nodes.strong(text="Fed By: ")
         for i, feeder in enumerate(fed_by):
-            accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{feeder.slug}.html"
+            accel_path = (
+                f"{prefix}{config.get_doc_path('accelerators')}/{feeder.slug}.html"
+            )
             ref = nodes.reference("", "", refuri=accel_path)
             ref += nodes.Text(feeder.slug.replace("-", " ").title())
             fed_para += ref
@@ -486,7 +497,9 @@ def build_dependency_diagram(docname: str, hcd_context):
     # Declare components
     for accel in sorted(all_accelerators, key=lambda a: a.slug):
         accel_id = accel.slug.replace("-", "_")
-        lines.append(f'component "{accel.slug.replace("-", " ").title()}" as {accel_id}')
+        lines.append(
+            f'component "{accel.slug.replace("-", " ").title()}" as {accel_id}'
+        )
 
     lines.append("")
 
@@ -521,7 +534,10 @@ def clear_accelerator_state(app, env, docname):
     from ..context import get_hcd_context
 
     # Clear documented accelerators tracker
-    if hasattr(env, "documented_accelerators") and docname in env.documented_accelerators:
+    if (
+        hasattr(env, "documented_accelerators")
+        and docname in env.documented_accelerators
+    ):
         env.documented_accelerators.discard(docname)
 
     # Clear accelerators from this document via repository

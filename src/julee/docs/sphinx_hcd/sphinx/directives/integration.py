@@ -11,7 +11,7 @@ import os
 
 from docutils import nodes
 
-from ...domain.models.integration import Integration, Direction
+from ...domain.models.integration import Direction
 from .base import HCDDirective
 
 
@@ -92,7 +92,9 @@ def build_integration_content(slug: str, docname: str, hcd_context):
     }
     dir_para = nodes.paragraph()
     dir_para += nodes.strong(text="Direction: ")
-    dir_para += nodes.Text(direction_labels.get(integration.direction, str(integration.direction)))
+    dir_para += nodes.Text(
+        direction_labels.get(integration.direction, str(integration.direction))
+    )
     seealso_node += dir_para
 
     # Module

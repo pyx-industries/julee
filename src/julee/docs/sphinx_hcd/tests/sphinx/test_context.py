@@ -70,40 +70,50 @@ class TestHCDContextOperations:
         ctx = HCDContext()
 
         # Add some entities
-        ctx.story_repo.save(Story(
-            slug="upload-document",
-            feature_title="Upload Document",
-            persona="Curator",
-            i_want="upload",
-            so_that="share",
-            app_slug="vocab-tool",
-            file_path="test.feature",
-        ))
+        ctx.story_repo.save(
+            Story(
+                slug="upload-document",
+                feature_title="Upload Document",
+                persona="Curator",
+                i_want="upload",
+                so_that="share",
+                app_slug="vocab-tool",
+                file_path="test.feature",
+            )
+        )
 
-        ctx.journey_repo.save(Journey(
-            slug="build-vocabulary",
-            persona="Curator",
-            docname="journeys/build-vocabulary",
-        ))
+        ctx.journey_repo.save(
+            Journey(
+                slug="build-vocabulary",
+                persona="Curator",
+                docname="journeys/build-vocabulary",
+            )
+        )
 
-        ctx.epic_repo.save(Epic(
-            slug="vocabulary-management",
-            description="Manage vocabularies",
-            docname="epics/vocabulary-management",
-        ))
+        ctx.epic_repo.save(
+            Epic(
+                slug="vocabulary-management",
+                description="Manage vocabularies",
+                docname="epics/vocabulary-management",
+            )
+        )
 
-        ctx.app_repo.save(App(
-            slug="vocab-tool",
-            name="Vocabulary Tool",
-            app_type=AppType.STAFF,
-            manifest_path="apps/vocab-tool/app.yaml",
-        ))
+        ctx.app_repo.save(
+            App(
+                slug="vocab-tool",
+                name="Vocabulary Tool",
+                app_type=AppType.STAFF,
+                manifest_path="apps/vocab-tool/app.yaml",
+            )
+        )
 
-        ctx.accelerator_repo.save(Accelerator(
-            slug="vocabulary",
-            status="alpha",
-            docname="accelerators/vocabulary",
-        ))
+        ctx.accelerator_repo.save(
+            Accelerator(
+                slug="vocabulary",
+                status="alpha",
+                docname="accelerators/vocabulary",
+            )
+        )
 
         return ctx
 
@@ -129,11 +139,13 @@ class TestHCDContextOperations:
     def test_clear_by_docname(self, context: HCDContext) -> None:
         """Test clearing entities by docname."""
         # Add another journey with different docname
-        context.journey_repo.save(Journey(
-            slug="other-journey",
-            persona="User",
-            docname="journeys/other",
-        ))
+        context.journey_repo.save(
+            Journey(
+                slug="other-journey",
+                persona="User",
+                docname="journeys/other",
+            )
+        )
 
         # Clear by docname
         results = context.clear_by_docname("journeys/build-vocabulary")
@@ -152,19 +164,25 @@ class TestHCDContextOperations:
         context = HCDContext()
 
         # Add entities with same docname
-        context.journey_repo.save(Journey(
-            slug="shared-journey",
-            persona="User",
-            docname="shared/doc",
-        ))
-        context.epic_repo.save(Epic(
-            slug="shared-epic",
-            docname="shared/doc",
-        ))
-        context.accelerator_repo.save(Accelerator(
-            slug="shared-accel",
-            docname="shared/doc",
-        ))
+        context.journey_repo.save(
+            Journey(
+                slug="shared-journey",
+                persona="User",
+                docname="shared/doc",
+            )
+        )
+        context.epic_repo.save(
+            Epic(
+                slug="shared-epic",
+                docname="shared/doc",
+            )
+        )
+        context.accelerator_repo.save(
+            Accelerator(
+                slug="shared-accel",
+                docname="shared/doc",
+            )
+        )
 
         # Clear by docname
         results = context.clear_by_docname("shared/doc")
@@ -220,15 +238,17 @@ class TestContextAccessFunctions:
         context = HCDContext()
 
         # Add data through context
-        context.story_repo.save(Story(
-            slug="test",
-            feature_title="Test",
-            persona="User",
-            i_want="test",
-            so_that="verify",
-            app_slug="app",
-            file_path="test.feature",
-        ))
+        context.story_repo.save(
+            Story(
+                slug="test",
+                feature_title="Test",
+                persona="User",
+                i_want="test",
+                so_that="verify",
+                app_slug="app",
+                file_path="test.feature",
+            )
+        )
 
         set_hcd_context(app, context)
 

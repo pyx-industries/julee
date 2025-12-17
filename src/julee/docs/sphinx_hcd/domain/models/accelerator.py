@@ -120,8 +120,7 @@ class Accelerator(BaseModel):
             True if depends_on or feeds_into contains this accelerator
         """
         return (
-            accelerator_slug in self.depends_on
-            or accelerator_slug in self.feeds_into
+            accelerator_slug in self.depends_on or accelerator_slug in self.feeds_into
         )
 
     def get_sources_from_slugs(self) -> list[str]:
@@ -144,7 +143,9 @@ class Accelerator(BaseModel):
         Returns:
             Description if found, None otherwise
         """
-        refs = self.sources_from if relationship == "sources_from" else self.publishes_to
+        refs = (
+            self.sources_from if relationship == "sources_from" else self.publishes_to
+        )
         for ref in refs:
             if ref.slug == integration_slug:
                 return ref.description or None

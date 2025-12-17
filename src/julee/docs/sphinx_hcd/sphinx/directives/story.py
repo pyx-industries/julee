@@ -560,7 +560,9 @@ GherkinStoriesDirective = make_deprecated_directive(
     StoriesDirective, "gherkin-stories", "stories"
 )
 GherkinStoriesForPersonaDirective = make_deprecated_directive(
-    StoryListForPersonaDirective, "gherkin-stories-for-persona", "story-list-for-persona"
+    StoryListForPersonaDirective,
+    "gherkin-stories-for-persona",
+    "story-list-for-persona",
 )
 GherkinStoriesForAppDirective = make_deprecated_directive(
     StoryListForAppDirective, "gherkin-stories-for-app", "story-list-for-app"

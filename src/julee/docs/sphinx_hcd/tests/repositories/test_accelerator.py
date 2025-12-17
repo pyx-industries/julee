@@ -232,7 +232,9 @@ class TestMemoryAcceleratorRepositoryQueries:
         self, populated_repo: MemoryAcceleratorRepository
     ) -> None:
         """Test getting accelerators that publish to an integration."""
-        accels = await populated_repo.get_by_integration("reference-impl", "publishes_to")
+        accels = await populated_repo.get_by_integration(
+            "reference-impl", "publishes_to"
+        )
         assert len(accels) == 1
         assert accels[0].slug == "vocabulary"
 

@@ -5,7 +5,6 @@ Initializes HCD context and scans source files at build start.
 
 from sphinx.util import logging
 
-from ..context import HCDContext
 from ..initialization import initialize_hcd_context
 
 logger = logging.getLogger(__name__)

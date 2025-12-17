@@ -36,17 +36,13 @@ class MemoryJourneyRepository(MemoryRepositoryMixin[Journey], JourneyRepository)
     async def get_by_docname(self, docname: str) -> list[Journey]:
         """Get all journeys defined in a specific document."""
         return [
-            journey
-            for journey in self.storage.values()
-            if journey.docname == docname
+            journey for journey in self.storage.values() if journey.docname == docname
         ]
 
     async def clear_by_docname(self, docname: str) -> int:
         """Remove all journeys defined in a specific document."""
         to_remove = [
-            slug
-            for slug, journey in self.storage.items()
-            if journey.docname == docname
+            slug for slug, journey in self.storage.items() if journey.docname == docname
         ]
         for slug in to_remove:
             del self.storage[slug]

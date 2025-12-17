@@ -34,10 +34,12 @@ class TestIntegrationReference:
 
     def test_from_dict_complete(self) -> None:
         """Test from_dict with full dict."""
-        ref = IntegrationReference.from_dict({
-            "slug": "pilot-data",
-            "description": "Test description",
-        })
+        ref = IntegrationReference.from_dict(
+            {
+                "slug": "pilot-data",
+                "description": "Test description",
+            }
+        )
         assert ref.slug == "pilot-data"
         assert ref.description == "Test description"
 
@@ -186,7 +188,9 @@ class TestAcceleratorDependencies:
         self, sample_accelerator: Accelerator
     ) -> None:
         """Test checking depends_on dependency."""
-        assert sample_accelerator.has_accelerator_dependency("core-infrastructure") is True
+        assert (
+            sample_accelerator.has_accelerator_dependency("core-infrastructure") is True
+        )
 
     def test_has_accelerator_dependency_feeds(
         self, sample_accelerator: Accelerator
@@ -215,14 +219,18 @@ class TestAcceleratorDependencies:
         self, sample_accelerator: Accelerator
     ) -> None:
         """Test getting description from sources_from."""
-        desc = sample_accelerator.get_integration_description("pilot-data", "sources_from")
+        desc = sample_accelerator.get_integration_description(
+            "pilot-data", "sources_from"
+        )
         assert desc == "Pilot data"
 
     def test_get_integration_description_publishes(
         self, sample_accelerator: Accelerator
     ) -> None:
         """Test getting description from publishes_to."""
-        desc = sample_accelerator.get_integration_description("reference-impl", "publishes_to")
+        desc = sample_accelerator.get_integration_description(
+            "reference-impl", "publishes_to"
+        )
         assert desc == "SVC"
 
     def test_get_integration_description_not_found(

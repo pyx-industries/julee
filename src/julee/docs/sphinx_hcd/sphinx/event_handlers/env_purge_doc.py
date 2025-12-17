@@ -35,5 +35,8 @@ def on_env_purge_doc(app, env, docname):
         env.documented_apps.discard(docname)
 
     # Clear documented integrations tracker
-    if hasattr(env, "documented_integrations") and docname in env.documented_integrations:
+    if (
+        hasattr(env, "documented_integrations")
+        and docname in env.documented_integrations
+    ):
         env.documented_integrations.discard(docname)

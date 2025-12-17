@@ -10,7 +10,6 @@ from docutils import nodes
 
 from ...domain.models.app import App, AppType
 from ...domain.use_cases import (
-    get_app_cross_references,
     get_epics_for_app,
     get_journeys_for_app,
     get_personas_for_app,

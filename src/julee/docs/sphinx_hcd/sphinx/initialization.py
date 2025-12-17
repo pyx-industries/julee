@@ -5,11 +5,9 @@ repositories with data that doesn't change during the build.
 """
 
 import logging
-from pathlib import Path
 
 from ..config import get_config
 from ..parsers import (
-    parse_bounded_context,
     scan_app_manifests,
     scan_bounded_contexts,
     scan_feature_directory,

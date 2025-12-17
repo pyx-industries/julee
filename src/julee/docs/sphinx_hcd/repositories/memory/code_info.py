@@ -9,7 +9,9 @@ from .base import MemoryRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class MemoryCodeInfoRepository(MemoryRepositoryMixin[BoundedContextInfo], CodeInfoRepository):
+class MemoryCodeInfoRepository(
+    MemoryRepositoryMixin[BoundedContextInfo], CodeInfoRepository
+):
     """In-memory implementation of CodeInfoRepository.
 
     Bounded context info is stored in a dictionary keyed by slug. This implementation
@@ -32,27 +34,15 @@ class MemoryCodeInfoRepository(MemoryRepositoryMixin[BoundedContextInfo], CodeIn
 
     async def get_with_entities(self) -> list[BoundedContextInfo]:
         """Get all bounded contexts that have domain entities."""
-        return [
-            info
-            for info in self.storage.values()
-            if info.has_entities
-        ]
+        return [info for info in self.storage.values() if info.has_entities]
 
     async def get_with_use_cases(self) -> list[BoundedContextInfo]:
         """Get all bounded contexts that have use cases."""
-        return [
-            info
-            for info in self.storage.values()
-            if info.has_use_cases
-        ]
+        return [info for info in self.storage.values() if info.has_use_cases]
 
     async def get_with_infrastructure(self) -> list[BoundedContextInfo]:
         """Get all bounded contexts that have infrastructure."""
-        return [
-            info
-            for info in self.storage.values()
-            if info.has_infrastructure
-        ]
+        return [info for info in self.storage.values() if info.has_infrastructure]
 
     async def get_all_entity_names(self) -> set[str]:
         """Get all unique entity class names across all bounded contexts."""
