@@ -5,5 +5,6 @@ are populated at builder-inited and queried during doctree processing.
 """
 
 from .base import MemoryRepositoryMixin
+from .story import MemoryStoryRepository
 
-__all__ = ["MemoryRepositoryMixin"]
+__all__ = ["MemoryRepositoryMixin", "MemoryStoryRepository"]

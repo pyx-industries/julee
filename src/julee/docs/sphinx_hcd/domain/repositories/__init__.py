@@ -5,5 +5,6 @@ Implementations live in the repositories/ directory.
 """
 
 from .base import BaseRepository
+from .story import StoryRepository
 
-__all__ = ["BaseRepository"]
+__all__ = ["BaseRepository", "StoryRepository"]
