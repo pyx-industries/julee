@@ -10,6 +10,7 @@ from .code_info import BoundedContextInfo, ClassInfo
 from .epic import Epic
 from .integration import Direction, ExternalDependency, Integration
 from .journey import Journey, JourneyStep, StepType
+from .persona import Persona
 from .story import Story
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "IntegrationReference",
     "Journey",
     "JourneyStep",
+    "Persona",
     "StepType",
     "Story",
 ]
