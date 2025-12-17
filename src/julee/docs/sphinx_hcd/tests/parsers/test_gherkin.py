@@ -181,6 +181,47 @@ class TestParseFeatureFile:
         story = parse_feature_file(nonexistent, temp_project)
         assert story is None
 
+    def test_parse_feature_file_outside_project_root(self, tmp_path: Path) -> None:
+        """Test parsing a feature file outside the project root logs warning but works."""
+        # Create feature file in tmp_path
+        feature_file = tmp_path / "test.feature"
+        feature_file.write_text("Feature: Test\n\n  As a User\n  I want to test\n")
+
+        # Use a different directory as project root (feature is outside)
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        story = parse_feature_file(feature_file, project_root)
+
+        assert story is not None
+        assert story.feature_title == "Test"
+        # File path should be the full path when outside project root
+        assert str(feature_file) in story.file_path or "test.feature" in story.file_path
+
+    def test_parse_feature_file_unknown_app_slug_structure(self, tmp_path: Path) -> None:
+        """Test parsing feature file with non-standard path defaults to 'unknown' app."""
+        # Create a feature file not in tests/e2e/{app}/features/ structure
+        feature_dir = tmp_path / "features"
+        feature_dir.mkdir()
+        feature_file = feature_dir / "test.feature"
+        feature_file.write_text("Feature: Test\n\n  As a User\n  I want to test\n")
+
+        story = parse_feature_file(feature_file, tmp_path)
+
+        assert story is not None
+        assert story.app_slug == "unknown"
+
+    def test_parse_feature_file_short_path_defaults_to_unknown(self, tmp_path: Path) -> None:
+        """Test parsing feature with path too short for app extraction defaults to 'unknown'."""
+        # Create feature file directly in tmp_path (path has < 4 parts)
+        feature_file = tmp_path / "test.feature"
+        feature_file.write_text("Feature: Test\n\n  As a User\n  I want to test\n")
+
+        story = parse_feature_file(feature_file, tmp_path)
+
+        assert story is not None
+        assert story.app_slug == "unknown"
+
 
 class TestScanFeatureDirectory:
     """Test scan_feature_directory function."""

@@ -221,6 +221,17 @@ class TestGetJourneysForAccelerator:
 
         assert result == []
 
+    def test_accelerator_with_no_stories(self) -> None:
+        """Test when accelerator has no stories at all (no apps use it)."""
+        accelerator = create_accelerator("orphan-accelerator")
+        apps = [create_app("app", accelerators=["other-accelerator"])]
+        stories = [create_story("Some Feature", "app")]
+        journeys = [create_journey("journey", ["Some Feature"])]
+
+        result = get_journeys_for_accelerator(accelerator, apps, stories, journeys)
+
+        assert result == []
+
     def test_sorted_by_slug(self) -> None:
         """Test results are sorted by slug."""
         accelerator = create_accelerator("test")

@@ -219,6 +219,26 @@ class TestGetEpicsForApp:
 
         assert len(result) == 2
 
+    def test_no_stories_for_app(self) -> None:
+        """Test when app has no stories at all."""
+        app = create_app("empty-app")
+        stories = [create_story("Feature", "other-app")]
+        epics = [create_epic("some-epic", ["Feature"])]
+
+        result = get_epics_for_app(app, stories, epics)
+
+        assert result == []
+
+    def test_no_epics_contain_app_stories(self) -> None:
+        """Test when app has stories but no epics reference them."""
+        app = create_app("vocabulary-tool")
+        stories = [create_story("Lonely Feature", "vocabulary-tool")]
+        epics = [create_epic("other-epic", ["Other Feature"])]
+
+        result = get_epics_for_app(app, stories, epics)
+
+        assert result == []
+
 
 class TestGetAppCrossReferences:
     """Test get_app_cross_references function."""
