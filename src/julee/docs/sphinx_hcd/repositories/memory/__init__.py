@@ -7,11 +7,13 @@ are populated at builder-inited and queried during doctree processing.
 from .app import MemoryAppRepository
 from .base import MemoryRepositoryMixin
 from .integration import MemoryIntegrationRepository
+from .journey import MemoryJourneyRepository
 from .story import MemoryStoryRepository
 
 __all__ = [
     "MemoryAppRepository",
     "MemoryIntegrationRepository",
+    "MemoryJourneyRepository",
     "MemoryRepositoryMixin",
     "MemoryStoryRepository",
 ]
