@@ -5,10 +5,13 @@ from pathlib import Path
 import pytest
 
 from julee.docs.sphinx_hcd.domain.models.app import AppType
+from julee.docs.sphinx_hcd.domain.models.integration import Direction
 from julee.docs.sphinx_hcd.parsers.yaml import (
     parse_app_manifest,
+    parse_integration_manifest,
     parse_manifest_content,
     scan_app_manifests,
+    scan_integration_manifests,
 )
 
 
@@ -238,3 +241,238 @@ type: member-tool
         apps = scan_app_manifests(apps_dir)
         assert len(apps) == 1
         assert apps[0].slug == "valid-app"
+
+
+# Integration manifest parsing tests
+
+
+class TestParseIntegrationManifest:
+    """Test parse_integration_manifest function."""
+
+    @pytest.fixture
+    def temp_project(self, tmp_path: Path) -> Path:
+        """Create a temporary project structure."""
+        integrations_dir = tmp_path / "integrations"
+        integrations_dir.mkdir()
+        return tmp_path
+
+    def test_parse_complete_manifest(self, temp_project: Path) -> None:
+        """Test parsing a complete integration manifest."""
+        int_dir = temp_project / "integrations" / "pilot_data_collection"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("""
+slug: pilot-data
+name: Pilot Data Collection
+description: Collects pilot data from external systems
+direction: inbound
+depends_on:
+  - name: Pilot API
+    url: https://pilot.example.com
+  - name: Data Lake
+""")
+
+        integration = parse_integration_manifest(manifest)
+
+        assert integration is not None
+        assert integration.slug == "pilot-data"
+        assert integration.module == "pilot_data_collection"
+        assert integration.name == "Pilot Data Collection"
+        assert integration.direction == Direction.INBOUND
+        assert len(integration.depends_on) == 2
+        assert integration.depends_on[0].name == "Pilot API"
+        assert integration.depends_on[0].url == "https://pilot.example.com"
+
+    def test_parse_manifest_with_explicit_module(self, temp_project: Path) -> None:
+        """Test parsing with explicit module name override."""
+        int_dir = temp_project / "integrations" / "original_module"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("name: Test Integration")
+
+        integration = parse_integration_manifest(manifest, module_name="override_module")
+
+        assert integration is not None
+        assert integration.module == "override_module"
+
+    def test_parse_manifest_default_slug(self, temp_project: Path) -> None:
+        """Test default slug from module name."""
+        int_dir = temp_project / "integrations" / "my_integration"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("name: My Integration")
+
+        integration = parse_integration_manifest(manifest)
+
+        assert integration is not None
+        assert integration.slug == "my-integration"
+
+    def test_parse_manifest_default_name(self, temp_project: Path) -> None:
+        """Test default name from slug."""
+        int_dir = temp_project / "integrations" / "data_sync"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("direction: outbound")
+
+        integration = parse_integration_manifest(manifest)
+
+        assert integration is not None
+        assert integration.name == "Data Sync"
+
+    def test_parse_manifest_default_direction(self, temp_project: Path) -> None:
+        """Test default direction is bidirectional."""
+        int_dir = temp_project / "integrations" / "test"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("name: Test")
+
+        integration = parse_integration_manifest(manifest)
+
+        assert integration is not None
+        assert integration.direction == Direction.BIDIRECTIONAL
+
+    def test_parse_manifest_nonexistent(self, temp_project: Path) -> None:
+        """Test parsing a nonexistent file returns None."""
+        nonexistent = temp_project / "integrations" / "nonexistent" / "integration.yaml"
+        integration = parse_integration_manifest(nonexistent)
+        assert integration is None
+
+    def test_parse_manifest_empty_file(self, temp_project: Path) -> None:
+        """Test parsing an empty manifest file."""
+        int_dir = temp_project / "integrations" / "empty"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("")
+
+        integration = parse_integration_manifest(manifest)
+        assert integration is None
+
+    def test_parse_manifest_invalid_yaml(self, temp_project: Path) -> None:
+        """Test parsing invalid YAML returns None."""
+        int_dir = temp_project / "integrations" / "bad"
+        int_dir.mkdir(parents=True)
+        manifest = int_dir / "integration.yaml"
+        manifest.write_text("invalid: [unclosed")
+
+        integration = parse_integration_manifest(manifest)
+        assert integration is None
+
+
+class TestScanIntegrationManifests:
+    """Test scan_integration_manifests function."""
+
+    @pytest.fixture
+    def temp_project(self, tmp_path: Path) -> Path:
+        """Create a temporary project with multiple integrations."""
+        integrations_dir = tmp_path / "integrations"
+        integrations_dir.mkdir()
+
+        # Create inbound integration
+        int1_dir = integrations_dir / "pilot_data"
+        int1_dir.mkdir()
+        (int1_dir / "integration.yaml").write_text("""
+name: Pilot Data
+direction: inbound
+""")
+
+        # Create outbound integration
+        int2_dir = integrations_dir / "analytics_export"
+        int2_dir.mkdir()
+        (int2_dir / "integration.yaml").write_text("""
+name: Analytics Export
+direction: outbound
+""")
+
+        # Create bidirectional integration
+        int3_dir = integrations_dir / "data_sync"
+        int3_dir.mkdir()
+        (int3_dir / "integration.yaml").write_text("""
+name: Data Sync
+direction: bidirectional
+""")
+
+        return tmp_path
+
+    def test_scan_finds_all_integrations(self, temp_project: Path) -> None:
+        """Test scanning finds all integration manifests."""
+        integrations_dir = temp_project / "integrations"
+        integrations = scan_integration_manifests(integrations_dir)
+
+        assert len(integrations) == 3
+        slugs = {i.slug for i in integrations}
+        assert slugs == {"pilot-data", "analytics-export", "data-sync"}
+
+    def test_scan_extracts_directions(self, temp_project: Path) -> None:
+        """Test scanning correctly extracts directions."""
+        integrations_dir = temp_project / "integrations"
+        integrations = scan_integration_manifests(integrations_dir)
+
+        directions_by_slug = {i.slug: i.direction for i in integrations}
+        assert directions_by_slug["pilot-data"] == Direction.INBOUND
+        assert directions_by_slug["analytics-export"] == Direction.OUTBOUND
+        assert directions_by_slug["data-sync"] == Direction.BIDIRECTIONAL
+
+    def test_scan_nonexistent_directory(self, tmp_path: Path) -> None:
+        """Test scanning nonexistent directory returns empty list."""
+        integrations = scan_integration_manifests(tmp_path / "nonexistent")
+        assert integrations == []
+
+    def test_scan_empty_directory(self, tmp_path: Path) -> None:
+        """Test scanning empty directory returns empty list."""
+        empty_dir = tmp_path / "empty"
+        empty_dir.mkdir()
+        integrations = scan_integration_manifests(empty_dir)
+        assert integrations == []
+
+    def test_scan_ignores_underscore_directories(self, tmp_path: Path) -> None:
+        """Test scanning ignores directories starting with underscore."""
+        integrations_dir = tmp_path / "integrations"
+        integrations_dir.mkdir()
+
+        # Create ignored directory
+        ignored_dir = integrations_dir / "_base"
+        ignored_dir.mkdir()
+        (ignored_dir / "integration.yaml").write_text("name: Base")
+
+        # Create valid integration
+        int_dir = integrations_dir / "valid"
+        int_dir.mkdir()
+        (int_dir / "integration.yaml").write_text("name: Valid")
+
+        integrations = scan_integration_manifests(integrations_dir)
+        assert len(integrations) == 1
+        assert integrations[0].slug == "valid"
+
+    def test_scan_ignores_files_in_root(self, tmp_path: Path) -> None:
+        """Test scanning ignores non-directory items."""
+        integrations_dir = tmp_path / "integrations"
+        integrations_dir.mkdir()
+
+        # Create a file in the integrations dir (should be ignored)
+        (integrations_dir / "README.md").write_text("readme")
+
+        # Create valid integration
+        int_dir = integrations_dir / "test"
+        int_dir.mkdir()
+        (int_dir / "integration.yaml").write_text("name: Test")
+
+        integrations = scan_integration_manifests(integrations_dir)
+        assert len(integrations) == 1
+        assert integrations[0].slug == "test"
+
+    def test_scan_skips_directories_without_manifest(self, tmp_path: Path) -> None:
+        """Test scanning skips directories without integration.yaml."""
+        integrations_dir = tmp_path / "integrations"
+        integrations_dir.mkdir()
+
+        # Create directory without manifest
+        (integrations_dir / "no_manifest").mkdir()
+
+        # Create valid integration
+        int_dir = integrations_dir / "valid"
+        int_dir.mkdir()
+        (int_dir / "integration.yaml").write_text("name: Valid")
+
+        integrations = scan_integration_manifests(integrations_dir)
+        assert len(integrations) == 1
+        assert integrations[0].slug == "valid"

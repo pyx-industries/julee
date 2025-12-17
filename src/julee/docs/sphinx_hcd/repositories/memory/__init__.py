@@ -6,6 +6,12 @@ are populated at builder-inited and queried during doctree processing.
 
 from .app import MemoryAppRepository
 from .base import MemoryRepositoryMixin
+from .integration import MemoryIntegrationRepository
 from .story import MemoryStoryRepository
 
-__all__ = ["MemoryAppRepository", "MemoryRepositoryMixin", "MemoryStoryRepository"]
+__all__ = [
+    "MemoryAppRepository",
+    "MemoryIntegrationRepository",
+    "MemoryRepositoryMixin",
+    "MemoryStoryRepository",
+]

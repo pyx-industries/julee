@@ -14,8 +14,10 @@ from .gherkin import (
 )
 from .yaml import (
     parse_app_manifest,
+    parse_integration_manifest,
     parse_manifest_content,
     scan_app_manifests,
+    scan_integration_manifests,
 )
 
 __all__ = [
@@ -24,8 +26,12 @@ __all__ = [
     "parse_feature_content",
     "parse_feature_file",
     "scan_feature_directory",
-    # YAML
+    # YAML - Apps
     "parse_app_manifest",
-    "parse_manifest_content",
     "scan_app_manifests",
+    # YAML - Integrations
+    "parse_integration_manifest",
+    "scan_integration_manifests",
+    # YAML - Common
+    "parse_manifest_content",
 ]

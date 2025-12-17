@@ -5,6 +5,14 @@ apps, accelerators, integrations, and personas.
 """
 
 from .app import App, AppType
+from .integration import Direction, ExternalDependency, Integration
 from .story import Story
 
-__all__ = ["App", "AppType", "Story"]
+__all__ = [
+    "App",
+    "AppType",
+    "Direction",
+    "ExternalDependency",
+    "Integration",
+    "Story",
+]
