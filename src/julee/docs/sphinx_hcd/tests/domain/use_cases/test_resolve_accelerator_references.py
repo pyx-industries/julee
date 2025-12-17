@@ -1,6 +1,5 @@
 """Tests for resolve_accelerator_references use case."""
 
-
 from julee.docs.sphinx_hcd.domain.models.accelerator import (
     Accelerator,
     IntegrationReference,

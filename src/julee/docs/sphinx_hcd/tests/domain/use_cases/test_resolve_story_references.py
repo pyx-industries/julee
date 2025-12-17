@@ -1,6 +1,5 @@
 """Tests for resolve_story_references use case."""
 
-
 from julee.docs.sphinx_hcd.domain.models.epic import Epic
 from julee.docs.sphinx_hcd.domain.models.journey import Journey, JourneyStep
 from julee.docs.sphinx_hcd.domain.models.story import Story

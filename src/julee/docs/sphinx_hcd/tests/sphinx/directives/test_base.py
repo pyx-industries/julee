@@ -1,6 +1,5 @@
 """Tests for base directive utilities."""
 
-
 from julee.docs.sphinx_hcd.sphinx.directives.base import make_deprecated_directive
 
 

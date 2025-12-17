@@ -1,6 +1,5 @@
 """Tests for resolve_app_references use case."""
 
-
 from julee.docs.sphinx_hcd.domain.models.app import App, AppType
 from julee.docs.sphinx_hcd.domain.models.epic import Epic
 from julee.docs.sphinx_hcd.domain.models.journey import Journey, JourneyStep
