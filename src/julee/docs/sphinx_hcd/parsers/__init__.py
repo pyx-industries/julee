@@ -6,6 +6,12 @@ Contains parsing logic for:
 - ast.py: Python code introspection for accelerators
 """
 
+from .ast import (
+    parse_bounded_context,
+    parse_module_docstring,
+    parse_python_classes,
+    scan_bounded_contexts,
+)
 from .gherkin import (
     ParsedFeature,
     parse_feature_content,
@@ -21,6 +27,11 @@ from .yaml import (
 )
 
 __all__ = [
+    # AST - Python introspection
+    "parse_bounded_context",
+    "parse_module_docstring",
+    "parse_python_classes",
+    "scan_bounded_contexts",
     # Gherkin
     "ParsedFeature",
     "parse_feature_content",
