@@ -197,3 +197,4 @@ credentials.json
 test_data/
 .claude
 .pypirc
+uv.lock
