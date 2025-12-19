@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ...domain.models.accelerator import Accelerator
 from ...domain.repositories.accelerator import AcceleratorRepository
+from ...parsers.rst import scan_accelerator_directory
 from ...serializers.rst import serialize_accelerator
 from .base import FileRepositoryMixin
 
@@ -43,23 +44,14 @@ class FileAcceleratorRepository(
         return serialize_accelerator(entity)
 
     def _load_all(self) -> None:
-        """Load all accelerators from RST files.
-
-        Note: This is a simplified implementation that doesn't parse
-        existing RST files. Full RST parsing would require Sphinx.
-        For now, only tracks accelerators created through this repository.
-        """
+        """Load all accelerators from RST files."""
         if not self.base_path.exists():
             logger.info(f"Accelerators directory not found: {self.base_path}")
             return
 
-        # Count existing RST files for info
-        rst_files = list(self.base_path.glob("*.rst"))
-        if rst_files:
-            logger.info(
-                f"Found {len(rst_files)} accelerator RST files in {self.base_path}. "
-                "Full parsing not implemented - start with empty storage."
-            )
+        accelerators = scan_accelerator_directory(self.base_path)
+        for accelerator in accelerators:
+            self.storage[accelerator.slug] = accelerator
 
     async def get_by_status(self, status: str) -> list[Accelerator]:
         """Get all accelerators with a specific status."""

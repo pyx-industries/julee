@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ...domain.models.journey import Journey, StepType
 from ...domain.repositories.journey import JourneyRepository
+from ...parsers.rst import scan_journey_directory
 from ...serializers.rst import serialize_journey
 from ...utils import normalize_name
 from .base import FileRepositoryMixin
@@ -42,23 +43,14 @@ class FileJourneyRepository(FileRepositoryMixin[Journey], JourneyRepository):
         return serialize_journey(entity)
 
     def _load_all(self) -> None:
-        """Load all journeys from RST files.
-
-        Note: This is a simplified implementation that doesn't parse
-        existing RST files. Full RST parsing would require Sphinx.
-        For now, only tracks journeys created through this repository.
-        """
+        """Load all journeys from RST files."""
         if not self.base_path.exists():
             logger.info(f"Journeys directory not found: {self.base_path}")
             return
 
-        # Count existing RST files for info
-        rst_files = list(self.base_path.glob("*.rst"))
-        if rst_files:
-            logger.info(
-                f"Found {len(rst_files)} journey RST files in {self.base_path}. "
-                "Full parsing not implemented - start with empty storage."
-            )
+        journeys = scan_journey_directory(self.base_path)
+        for journey in journeys:
+            self.storage[journey.slug] = journey
 
     async def get_by_persona(self, persona: str) -> list[Journey]:
         """Get all journeys for a persona."""

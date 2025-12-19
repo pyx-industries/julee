@@ -4,6 +4,7 @@ Contains parsing logic for:
 - gherkin.py: Feature file parsing (.feature files)
 - yaml.py: App and integration manifest parsing
 - ast.py: Python code introspection for accelerators
+- rst.py: RST directive parsing for Epic, Journey, Accelerator
 """
 
 from .ast import (
@@ -17,6 +18,20 @@ from .gherkin import (
     parse_feature_content,
     parse_feature_file,
     scan_feature_directory,
+)
+from .rst import (
+    ParsedAccelerator,
+    ParsedEpic,
+    ParsedJourney,
+    parse_accelerator_content,
+    parse_accelerator_file,
+    parse_epic_content,
+    parse_epic_file,
+    parse_journey_content,
+    parse_journey_file,
+    scan_accelerator_directory,
+    scan_epic_directory,
+    scan_journey_directory,
 )
 from .yaml import (
     parse_app_manifest,
@@ -37,6 +52,21 @@ __all__ = [
     "parse_feature_content",
     "parse_feature_file",
     "scan_feature_directory",
+    # RST - Epic
+    "ParsedEpic",
+    "parse_epic_content",
+    "parse_epic_file",
+    "scan_epic_directory",
+    # RST - Journey
+    "ParsedJourney",
+    "parse_journey_content",
+    "parse_journey_file",
+    "scan_journey_directory",
+    # RST - Accelerator
+    "ParsedAccelerator",
+    "parse_accelerator_content",
+    "parse_accelerator_file",
+    "scan_accelerator_directory",
     # YAML - Apps
     "parse_app_manifest",
     "scan_app_manifests",

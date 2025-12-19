@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ...domain.models.epic import Epic
 from ...domain.repositories.epic import EpicRepository
+from ...parsers.rst import scan_epic_directory
 from ...serializers.rst import serialize_epic
 from ...utils import normalize_name
 from .base import FileRepositoryMixin
@@ -42,23 +43,14 @@ class FileEpicRepository(FileRepositoryMixin[Epic], EpicRepository):
         return serialize_epic(entity)
 
     def _load_all(self) -> None:
-        """Load all epics from RST files.
-
-        Note: This is a simplified implementation that doesn't parse
-        existing RST files. Full RST parsing would require Sphinx.
-        For now, only tracks epics created through this repository.
-        """
+        """Load all epics from RST files."""
         if not self.base_path.exists():
             logger.info(f"Epics directory not found: {self.base_path}")
             return
 
-        # Count existing RST files for info
-        rst_files = list(self.base_path.glob("*.rst"))
-        if rst_files:
-            logger.info(
-                f"Found {len(rst_files)} epic RST files in {self.base_path}. "
-                "Full parsing not implemented - start with empty storage."
-            )
+        epics = scan_epic_directory(self.base_path)
+        for epic in epics:
+            self.storage[epic.slug] = epic
 
     async def get_by_docname(self, docname: str) -> list[Epic]:
         """Get all epics defined in a specific document."""

@@ -1,11 +1,12 @@
 """File-backed Relationship repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.relationship import ElementType, Relationship
 from ...domain.repositories.relationship import RelationshipRepository
+from ...parsers.rst import scan_relationship_directory
+from ...serializers.rst import serialize_relationship
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -16,15 +17,15 @@ class FileRelationshipRepository(
 ):
     """File-backed implementation of RelationshipRepository.
 
-    Stores relationships as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores relationships as RST files with define-relationship directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store relationship JSON files
+            base_path: Directory to store relationship RST files
         """
         self.base_path = base_path
         self.storage: dict[str, Relationship] = {}
@@ -34,11 +35,11 @@ class FileRelationshipRepository(
 
     def _get_file_path(self, entity: Relationship) -> Path:
         """Get file path for a relationship."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: Relationship) -> str:
-        """Serialize relationship to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize relationship to RST format."""
+        return serialize_relationship(entity)
 
     def _load_all(self) -> None:
         """Load all relationships from disk."""
@@ -48,17 +49,9 @@ class FileRelationshipRepository(
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                relationship = Relationship.model_validate(data)
-                self.storage[relationship.slug] = relationship
-                logger.debug(f"FileRelationshipRepository: Loaded {relationship.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileRelationshipRepository: Failed to load {file_path}: {e}"
-                )
+        relationships = scan_relationship_directory(self.base_path)
+        for relationship in relationships:
+            self.storage[relationship.slug] = relationship
 
     async def get_for_element(
         self,

@@ -449,14 +449,17 @@ def _is_pydantic_model(type_hint: Any) -> bool:
 
 
 def _is_optional_type(annotation: Any) -> bool:
-    """Check if a type annotation is Optional[T]."""
+    """Check if a type annotation is Optional[T] or T | None."""
     origin = get_origin(annotation)
     if origin is not None:
         args = get_args(annotation)
-        # Optional[T] is Union[T, None]
-        return (hasattr(origin, "__name__") and origin.__name__ == "UnionType") or (
-            str(origin) == "typing.Union" and len(args) == 2 and type(None) in args
-        )
+        # Check if this is a Union type (handles both typing.Union and X | Y syntax)
+        # In Python 3.10+, X | None has origin with __name__ == "Union"
+        is_union = (
+            hasattr(origin, "__name__") and "Union" in origin.__name__
+        ) or "Union" in str(origin)
+        # Optional[T] is Union[T, None] - must have exactly 2 args with None
+        return is_union and len(args) == 2 and type(None) in args
     return False
 
 

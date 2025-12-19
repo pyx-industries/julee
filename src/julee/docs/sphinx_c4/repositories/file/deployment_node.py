@@ -1,11 +1,12 @@
 """File-backed DeploymentNode repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.deployment_node import DeploymentNode, NodeType
 from ...domain.repositories.deployment_node import DeploymentNodeRepository
+from ...parsers.rst import scan_deployment_node_directory
+from ...serializers.rst import serialize_deployment_node
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -16,15 +17,15 @@ class FileDeploymentNodeRepository(
 ):
     """File-backed implementation of DeploymentNodeRepository.
 
-    Stores deployment nodes as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores deployment nodes as RST files with define-deployment-node directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store deployment node JSON files
+            base_path: Directory to store deployment node RST files
         """
         self.base_path = base_path
         self.storage: dict[str, DeploymentNode] = {}
@@ -34,11 +35,11 @@ class FileDeploymentNodeRepository(
 
     def _get_file_path(self, entity: DeploymentNode) -> Path:
         """Get file path for a deployment node."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: DeploymentNode) -> str:
-        """Serialize deployment node to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize deployment node to RST format."""
+        return serialize_deployment_node(entity)
 
     def _load_all(self) -> None:
         """Load all deployment nodes from disk."""
@@ -48,17 +49,9 @@ class FileDeploymentNodeRepository(
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                node = DeploymentNode.model_validate(data)
-                self.storage[node.slug] = node
-                logger.debug(f"FileDeploymentNodeRepository: Loaded {node.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileDeploymentNodeRepository: Failed to load {file_path}: {e}"
-                )
+        nodes = scan_deployment_node_directory(self.base_path)
+        for node in nodes:
+            self.storage[node.slug] = node
 
     async def get_by_environment(self, environment: str) -> list[DeploymentNode]:
         """Get all nodes in a specific environment."""

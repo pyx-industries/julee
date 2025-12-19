@@ -1,11 +1,12 @@
 """File-backed Container repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.container import Container, ContainerType
 from ...domain.repositories.container import ContainerRepository
+from ...parsers.rst import scan_container_directory
+from ...serializers.rst import serialize_container
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -14,15 +15,15 @@ logger = logging.getLogger(__name__)
 class FileContainerRepository(FileRepositoryMixin[Container], ContainerRepository):
     """File-backed implementation of ContainerRepository.
 
-    Stores containers as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores containers as RST files with define-container directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store container JSON files
+            base_path: Directory to store container RST files
         """
         self.base_path = base_path
         self.storage: dict[str, Container] = {}
@@ -32,11 +33,11 @@ class FileContainerRepository(FileRepositoryMixin[Container], ContainerRepositor
 
     def _get_file_path(self, entity: Container) -> Path:
         """Get file path for a container."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: Container) -> str:
-        """Serialize container to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize container to RST format."""
+        return serialize_container(entity)
 
     def _load_all(self) -> None:
         """Load all containers from disk."""
@@ -46,17 +47,9 @@ class FileContainerRepository(FileRepositoryMixin[Container], ContainerRepositor
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                container = Container.model_validate(data)
-                self.storage[container.slug] = container
-                logger.debug(f"FileContainerRepository: Loaded {container.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileContainerRepository: Failed to load {file_path}: {e}"
-                )
+        containers = scan_container_directory(self.base_path)
+        for container in containers:
+            self.storage[container.slug] = container
 
     async def get_by_system(self, system_slug: str) -> list[Container]:
         """Get all containers within a software system."""

@@ -1,12 +1,13 @@
 """File-backed DynamicStep repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.dynamic_step import DynamicStep
 from ...domain.models.relationship import ElementType
 from ...domain.repositories.dynamic_step import DynamicStepRepository
+from ...parsers.rst import scan_dynamic_step_directory
+from ...serializers.rst import serialize_dynamic_step
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -17,15 +18,15 @@ class FileDynamicStepRepository(
 ):
     """File-backed implementation of DynamicStepRepository.
 
-    Stores dynamic steps as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores dynamic steps as RST files with define-dynamic-step directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store dynamic step JSON files
+            base_path: Directory to store dynamic step RST files
         """
         self.base_path = base_path
         self.storage: dict[str, DynamicStep] = {}
@@ -35,11 +36,11 @@ class FileDynamicStepRepository(
 
     def _get_file_path(self, entity: DynamicStep) -> Path:
         """Get file path for a dynamic step."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: DynamicStep) -> str:
-        """Serialize dynamic step to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize dynamic step to RST format."""
+        return serialize_dynamic_step(entity)
 
     def _load_all(self) -> None:
         """Load all dynamic steps from disk."""
@@ -49,17 +50,9 @@ class FileDynamicStepRepository(
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                step = DynamicStep.model_validate(data)
-                self.storage[step.slug] = step
-                logger.debug(f"FileDynamicStepRepository: Loaded {step.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileDynamicStepRepository: Failed to load {file_path}: {e}"
-                )
+        steps = scan_dynamic_step_directory(self.base_path)
+        for step in steps:
+            self.storage[step.slug] = step
 
     async def get_by_sequence(self, sequence_name: str) -> list[DynamicStep]:
         """Get all steps in a sequence, ordered by step_number."""

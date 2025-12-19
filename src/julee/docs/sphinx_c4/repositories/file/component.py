@@ -1,11 +1,12 @@
 """File-backed Component repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.component import Component
 from ...domain.repositories.component import ComponentRepository
+from ...parsers.rst import scan_component_directory
+from ...serializers.rst import serialize_component
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
@@ -14,15 +15,15 @@ logger = logging.getLogger(__name__)
 class FileComponentRepository(FileRepositoryMixin[Component], ComponentRepository):
     """File-backed implementation of ComponentRepository.
 
-    Stores components as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores components as RST files with define-component directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store component JSON files
+            base_path: Directory to store component RST files
         """
         self.base_path = base_path
         self.storage: dict[str, Component] = {}
@@ -32,11 +33,11 @@ class FileComponentRepository(FileRepositoryMixin[Component], ComponentRepositor
 
     def _get_file_path(self, entity: Component) -> Path:
         """Get file path for a component."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: Component) -> str:
-        """Serialize component to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize component to RST format."""
+        return serialize_component(entity)
 
     def _load_all(self) -> None:
         """Load all components from disk."""
@@ -46,17 +47,9 @@ class FileComponentRepository(FileRepositoryMixin[Component], ComponentRepositor
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                component = Component.model_validate(data)
-                self.storage[component.slug] = component
-                logger.debug(f"FileComponentRepository: Loaded {component.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileComponentRepository: Failed to load {file_path}: {e}"
-                )
+        components = scan_component_directory(self.base_path)
+        for component in components:
+            self.storage[component.slug] = component
 
     async def get_by_container(self, container_slug: str) -> list[Component]:
         """Get all components within a container."""

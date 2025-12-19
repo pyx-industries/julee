@@ -1,11 +1,12 @@
 """File-backed SoftwareSystem repository implementation."""
 
-import json
 import logging
 from pathlib import Path
 
 from ...domain.models.software_system import SoftwareSystem, SystemType
 from ...domain.repositories.software_system import SoftwareSystemRepository
+from ...parsers.rst import scan_software_system_directory
+from ...serializers.rst import serialize_software_system
 from ...utils import normalize_name
 from .base import FileRepositoryMixin
 
@@ -17,15 +18,15 @@ class FileSoftwareSystemRepository(
 ):
     """File-backed implementation of SoftwareSystemRepository.
 
-    Stores software systems as JSON files in the specified directory.
-    File structure: {base_path}/{slug}.json
+    Stores software systems as RST files with define-software-system directives.
+    File structure: {base_path}/{slug}.rst
     """
 
     def __init__(self, base_path: Path) -> None:
         """Initialize repository with base path.
 
         Args:
-            base_path: Directory to store software system JSON files
+            base_path: Directory to store software system RST files
         """
         self.base_path = base_path
         self.storage: dict[str, SoftwareSystem] = {}
@@ -35,11 +36,11 @@ class FileSoftwareSystemRepository(
 
     def _get_file_path(self, entity: SoftwareSystem) -> Path:
         """Get file path for a software system."""
-        return self.base_path / f"{entity.slug}.json"
+        return self.base_path / f"{entity.slug}.rst"
 
     def _serialize(self, entity: SoftwareSystem) -> str:
-        """Serialize software system to JSON."""
-        return entity.model_dump_json(indent=2)
+        """Serialize software system to RST format."""
+        return serialize_software_system(entity)
 
     def _load_all(self) -> None:
         """Load all software systems from disk."""
@@ -49,17 +50,9 @@ class FileSoftwareSystemRepository(
             )
             return
 
-        for file_path in self.base_path.glob("*.json"):
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                data = json.loads(content)
-                system = SoftwareSystem.model_validate(data)
-                self.storage[system.slug] = system
-                logger.debug(f"FileSoftwareSystemRepository: Loaded {system.slug}")
-            except Exception as e:
-                logger.warning(
-                    f"FileSoftwareSystemRepository: Failed to load {file_path}: {e}"
-                )
+        systems = scan_software_system_directory(self.base_path)
+        for system in systems:
+            self.storage[system.slug] = system
 
     async def get_by_type(self, system_type: SystemType) -> list[SoftwareSystem]:
         """Get all systems of a specific type."""
