@@ -1,30 +1,46 @@
 """Persona domain model.
 
-Represents a persona derived from story data in the HCD documentation system.
-Personas are not defined directly but are extracted from user stories.
+Represents a persona in the HCD documentation system.
+Personas can be either:
+1. Defined explicitly with HCD metadata (goals, frustrations, JTBD)
+2. Derived from user stories (the "As a..." in Gherkin)
 """
+
+from typing import Self
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
-from ...utils import normalize_name
+from ...utils import normalize_name, slugify
 
 
 class Persona(BaseModel):
     """Persona entity.
 
     A persona represents a type of user who interacts with the system.
-    Personas are derived from user stories - they are the "As a..." in
-    "As a [persona], I want to...".
+    Personas can be explicitly defined with rich HCD metadata or derived
+    from user stories (the "As a..." in "As a [persona], I want to...").
 
     Attributes:
+        slug: URL-safe identifier
         name: Display name of the persona (e.g., "Knowledge Curator")
-        app_slugs: List of app slugs this persona uses
+        goals: What the persona wants to achieve
+        frustrations: Pain points and problems
+        jobs_to_be_done: JTBD framework items
+        context: Background and situational context
+        app_slugs: List of app slugs this persona uses (derived from stories)
         epic_slugs: List of epic slugs containing stories for this persona
+        docname: RST document where this persona is defined
     """
 
+    slug: str = ""
     name: str
+    goals: list[str] = Field(default_factory=list)
+    frustrations: list[str] = Field(default_factory=list)
+    jobs_to_be_done: list[str] = Field(default_factory=list)
+    context: str = ""
     app_slugs: list[str] = Field(default_factory=list)
     epic_slugs: list[str] = Field(default_factory=list)
+    docname: str = ""
 
     @field_validator("name", mode="before")
     @classmethod
@@ -34,11 +50,82 @@ class Persona(BaseModel):
             raise ValueError("name cannot be empty")
         return v.strip()
 
+    def model_post_init(self, __context: object) -> None:
+        """Auto-generate slug from name if not provided."""
+        if not self.slug:
+            object.__setattr__(self, "slug", slugify(self.name))
+
+    @classmethod
+    def from_definition(
+        cls,
+        slug: str,
+        name: str,
+        goals: list[str] | None = None,
+        frustrations: list[str] | None = None,
+        jobs_to_be_done: list[str] | None = None,
+        context: str = "",
+        docname: str = "",
+    ) -> Self:
+        """Create a persona from an explicit definition.
+
+        Factory method for creating personas with full HCD metadata.
+
+        Args:
+            slug: URL-safe identifier
+            name: Display name
+            goals: What the persona wants to achieve
+            frustrations: Pain points and problems
+            jobs_to_be_done: JTBD framework items
+            context: Background and situational context
+            docname: RST document where defined
+
+        Returns:
+            New Persona instance
+        """
+        return cls(
+            slug=slug,
+            name=name,
+            goals=goals or [],
+            frustrations=frustrations or [],
+            jobs_to_be_done=jobs_to_be_done or [],
+            context=context,
+            docname=docname,
+        )
+
+    @classmethod
+    def from_story_reference(cls, name: str, app_slug: str = "") -> Self:
+        """Create a persona derived from a story reference.
+
+        Factory method for creating personas derived from Gherkin stories.
+        These have minimal metadata - just the name from "As a [persona]".
+
+        Args:
+            name: Persona name from the story
+            app_slug: Optional app slug to associate
+
+        Returns:
+            New Persona instance with auto-generated slug
+        """
+        return cls(
+            name=name,
+            app_slugs=[app_slug] if app_slug else [],
+        )
+
     @computed_field
     @property
     def normalized_name(self) -> str:
         """Get normalized name for matching."""
         return normalize_name(self.name)
+
+    @property
+    def is_defined(self) -> bool:
+        """Check if this is an explicitly defined persona (vs derived)."""
+        return bool(self.goals or self.frustrations or self.jobs_to_be_done or self.context)
+
+    @property
+    def has_hcd_metadata(self) -> bool:
+        """Check if persona has HCD metadata."""
+        return self.is_defined
 
     @property
     def display_name(self) -> str:

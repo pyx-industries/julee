@@ -5,6 +5,12 @@ FastMCP server for managing HCD domain objects via Model Context Protocol.
 
 from fastmcp import FastMCP
 
+from ..mcp_shared import (
+    create_annotation,
+    delete_annotation,
+    read_only_annotation,
+    update_annotation,
+)
 from .tools import (
     # Accelerators
     create_accelerator,
@@ -59,7 +65,7 @@ mcp = FastMCP(
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create User Story"))
 async def mcp_create_story(
     feature_title: str,
     persona: str,
@@ -92,7 +98,7 @@ async def mcp_create_story(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Story"))
 async def mcp_get_story(slug: str) -> dict | None:
     """Get a story by its slug identifier.
 
@@ -102,7 +108,7 @@ async def mcp_get_story(slug: str) -> dict | None:
     return await get_story(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Stories"))
 async def mcp_list_stories() -> dict:
     """List all user stories in the HCD model.
 
@@ -111,7 +117,7 @@ async def mcp_list_stories() -> dict:
     return await list_stories()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Story"))
 async def mcp_update_story(
     slug: str,
     feature_title: str | None = None,
@@ -137,7 +143,7 @@ async def mcp_update_story(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Story"))
 async def mcp_delete_story(slug: str) -> dict:
     """Delete a story by slug.
 
@@ -154,7 +160,7 @@ async def mcp_delete_story(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Epic"))
 async def mcp_create_epic(
     slug: str,
     description: str = "",
@@ -174,7 +180,7 @@ async def mcp_create_epic(
     return await create_epic(slug=slug, description=description, story_refs=story_refs)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Epic"))
 async def mcp_get_epic(slug: str) -> dict | None:
     """Get an epic by slug with its story references.
 
@@ -184,7 +190,7 @@ async def mcp_get_epic(slug: str) -> dict | None:
     return await get_epic(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Epics"))
 async def mcp_list_epics() -> dict:
     """List all epics in the HCD model.
 
@@ -193,7 +199,7 @@ async def mcp_list_epics() -> dict:
     return await list_epics()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Epic"))
 async def mcp_update_epic(
     slug: str,
     description: str | None = None,
@@ -212,7 +218,7 @@ async def mcp_update_epic(
     return await update_epic(slug=slug, description=description, story_refs=story_refs)
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Epic"))
 async def mcp_delete_epic(slug: str) -> dict:
     """Delete an epic by slug.
 
@@ -230,7 +236,7 @@ async def mcp_delete_epic(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Journey"))
 async def mcp_create_journey(
     slug: str,
     persona: str,
@@ -268,7 +274,7 @@ async def mcp_create_journey(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Journey"))
 async def mcp_get_journey(slug: str) -> dict | None:
     """Get a journey by slug with its steps and dependencies.
 
@@ -278,7 +284,7 @@ async def mcp_get_journey(slug: str) -> dict | None:
     return await get_journey(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Journeys"))
 async def mcp_list_journeys() -> dict:
     """List all journeys in the HCD model.
 
@@ -287,7 +293,7 @@ async def mcp_list_journeys() -> dict:
     return await list_journeys()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Journey"))
 async def mcp_update_journey(
     slug: str,
     persona: str | None = None,
@@ -319,7 +325,7 @@ async def mcp_update_journey(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Journey"))
 async def mcp_delete_journey(slug: str) -> dict:
     """Delete a journey by slug.
 
@@ -336,7 +342,7 @@ async def mcp_delete_journey(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Personas"))
 async def mcp_list_personas() -> dict:
     """List all personas - derived automatically from stories and epics.
 
@@ -351,7 +357,7 @@ async def mcp_list_personas() -> dict:
     return await list_personas()
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Persona"))
 async def mcp_get_persona(name: str) -> dict | None:
     """Get a persona by name (case-insensitive).
 
@@ -369,7 +375,7 @@ async def mcp_get_persona(name: str) -> dict | None:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Accelerator"))
 async def mcp_create_accelerator(
     slug: str,
     status: str = "",
@@ -410,7 +416,7 @@ async def mcp_create_accelerator(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Accelerator"))
 async def mcp_get_accelerator(slug: str) -> dict | None:
     """Get an accelerator by slug with its integration connections.
 
@@ -420,7 +426,7 @@ async def mcp_get_accelerator(slug: str) -> dict | None:
     return await get_accelerator(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Accelerators"))
 async def mcp_list_accelerators() -> dict:
     """List all accelerators in the HCD model.
 
@@ -429,7 +435,7 @@ async def mcp_list_accelerators() -> dict:
     return await list_accelerators()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Accelerator"))
 async def mcp_update_accelerator(
     slug: str,
     status: str | None = None,
@@ -464,7 +470,7 @@ async def mcp_update_accelerator(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Accelerator"))
 async def mcp_delete_accelerator(slug: str) -> dict:
     """Delete an accelerator by slug.
 
@@ -482,7 +488,7 @@ async def mcp_delete_accelerator(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Integration"))
 async def mcp_create_integration(
     slug: str,
     module: str,
@@ -517,7 +523,7 @@ async def mcp_create_integration(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Integration"))
 async def mcp_get_integration(slug: str) -> dict | None:
     """Get an integration by slug with its accelerator connections.
 
@@ -527,7 +533,7 @@ async def mcp_get_integration(slug: str) -> dict | None:
     return await get_integration(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Integrations"))
 async def mcp_list_integrations() -> dict:
     """List all integrations in the HCD model.
 
@@ -536,7 +542,7 @@ async def mcp_list_integrations() -> dict:
     return await list_integrations()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Integration"))
 async def mcp_update_integration(
     slug: str,
     name: str | None = None,
@@ -559,7 +565,7 @@ async def mcp_update_integration(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Integration"))
 async def mcp_delete_integration(slug: str) -> dict:
     """Delete an integration by slug.
 
@@ -577,7 +583,7 @@ async def mcp_delete_integration(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create App"))
 async def mcp_create_app(
     slug: str,
     name: str,
@@ -619,7 +625,7 @@ async def mcp_create_app(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get App"))
 async def mcp_get_app(slug: str) -> dict | None:
     """Get an app by slug with its stories and accelerator dependencies.
 
@@ -629,7 +635,7 @@ async def mcp_get_app(slug: str) -> dict | None:
     return await get_app(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Apps"))
 async def mcp_list_apps() -> dict:
     """List all apps in the HCD model.
 
@@ -638,7 +644,7 @@ async def mcp_list_apps() -> dict:
     return await list_apps()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update App"))
 async def mcp_update_app(
     slug: str,
     name: str | None = None,
@@ -669,7 +675,7 @@ async def mcp_update_app(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete App"))
 async def mcp_delete_app(slug: str) -> dict:
     """Delete an app by slug.
 

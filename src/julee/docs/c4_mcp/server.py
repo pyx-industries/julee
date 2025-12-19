@@ -7,6 +7,13 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from ..mcp_shared import (
+    create_annotation,
+    delete_annotation,
+    diagram_annotation,
+    read_only_annotation,
+    update_annotation,
+)
 from .tools import (
     # Components
     create_component,
@@ -65,7 +72,7 @@ mcp = FastMCP(
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Software System"))
 async def mcp_create_software_system(
     slug: str,
     name: str,
@@ -108,7 +115,7 @@ async def mcp_create_software_system(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Software System"))
 async def mcp_get_software_system(slug: str) -> dict:
     """Get a software system by slug.
 
@@ -118,13 +125,13 @@ async def mcp_get_software_system(slug: str) -> dict:
     return await get_software_system(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Software Systems"))
 async def mcp_list_software_systems() -> dict:
     """List all software systems in the C4 model."""
     return await list_software_systems()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Software System"))
 async def mcp_update_software_system(
     slug: str,
     name: str | None = None,
@@ -159,7 +166,7 @@ async def mcp_update_software_system(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Software System"))
 async def mcp_delete_software_system(slug: str) -> dict:
     """Delete a software system by slug.
 
@@ -176,7 +183,7 @@ async def mcp_delete_software_system(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Container"))
 async def mcp_create_container(
     slug: str,
     name: str,
@@ -217,7 +224,7 @@ async def mcp_create_container(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Container"))
 async def mcp_get_container(slug: str) -> dict:
     """Get a container by slug.
 
@@ -227,13 +234,13 @@ async def mcp_get_container(slug: str) -> dict:
     return await get_container(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Containers"))
 async def mcp_list_containers() -> dict:
     """List all containers in the C4 model."""
     return await list_containers()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Container"))
 async def mcp_update_container(
     slug: str,
     name: str | None = None,
@@ -268,7 +275,7 @@ async def mcp_update_container(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Container"))
 async def mcp_delete_container(slug: str) -> dict:
     """Delete a container by slug.
 
@@ -285,7 +292,7 @@ async def mcp_delete_container(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Component"))
 async def mcp_create_component(
     slug: str,
     name: str,
@@ -329,7 +336,7 @@ async def mcp_create_component(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Component"))
 async def mcp_get_component(slug: str) -> dict:
     """Get a component by slug.
 
@@ -339,13 +346,13 @@ async def mcp_get_component(slug: str) -> dict:
     return await get_component(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Components"))
 async def mcp_list_components() -> dict:
     """List all components in the C4 model."""
     return await list_components()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Component"))
 async def mcp_update_component(
     slug: str,
     name: str | None = None,
@@ -386,7 +393,7 @@ async def mcp_update_component(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Component"))
 async def mcp_delete_component(slug: str) -> dict:
     """Delete a component by slug.
 
@@ -403,7 +410,7 @@ async def mcp_delete_component(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Relationship"))
 async def mcp_create_relationship(
     source_type: str,
     source_slug: str,
@@ -447,7 +454,7 @@ async def mcp_create_relationship(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Relationship"))
 async def mcp_get_relationship(slug: str) -> dict:
     """Get a relationship by slug.
 
@@ -457,13 +464,13 @@ async def mcp_get_relationship(slug: str) -> dict:
     return await get_relationship(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Relationships"))
 async def mcp_list_relationships() -> dict:
     """List all relationships in the C4 model."""
     return await list_relationships()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Relationship"))
 async def mcp_update_relationship(
     slug: str,
     description: str | None = None,
@@ -491,7 +498,7 @@ async def mcp_update_relationship(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Relationship"))
 async def mcp_delete_relationship(slug: str) -> dict:
     """Delete a relationship by slug.
 
@@ -506,7 +513,7 @@ async def mcp_delete_relationship(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Deployment Node"))
 async def mcp_create_deployment_node(
     slug: str,
     name: str,
@@ -553,7 +560,7 @@ async def mcp_create_deployment_node(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Deployment Node"))
 async def mcp_get_deployment_node(slug: str) -> dict:
     """Get a deployment node by slug.
 
@@ -563,13 +570,13 @@ async def mcp_get_deployment_node(slug: str) -> dict:
     return await get_deployment_node(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Deployment Nodes"))
 async def mcp_list_deployment_nodes() -> dict:
     """List all deployment nodes in the C4 model."""
     return await list_deployment_nodes()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Deployment Node"))
 async def mcp_update_deployment_node(
     slug: str,
     name: str | None = None,
@@ -610,7 +617,7 @@ async def mcp_update_deployment_node(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Deployment Node"))
 async def mcp_delete_deployment_node(slug: str) -> dict:
     """Delete a deployment node by slug.
 
@@ -627,7 +634,7 @@ async def mcp_delete_deployment_node(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=create_annotation("Create Dynamic Step"))
 async def mcp_create_dynamic_step(
     sequence_name: str,
     step_number: int,
@@ -674,7 +681,7 @@ async def mcp_create_dynamic_step(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("Get Dynamic Step"))
 async def mcp_get_dynamic_step(slug: str) -> dict:
     """Get a dynamic step by slug.
 
@@ -684,13 +691,13 @@ async def mcp_get_dynamic_step(slug: str) -> dict:
     return await get_dynamic_step(slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=read_only_annotation("List Dynamic Steps"))
 async def mcp_list_dynamic_steps() -> dict:
     """List all dynamic steps in the C4 model."""
     return await list_dynamic_steps()
 
 
-@mcp.tool()
+@mcp.tool(annotations=update_annotation("Update Dynamic Step"))
 async def mcp_update_dynamic_step(
     slug: str,
     step_number: int | None = None,
@@ -721,7 +728,7 @@ async def mcp_update_dynamic_step(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=delete_annotation("Delete Dynamic Step"))
 async def mcp_delete_dynamic_step(slug: str) -> dict:
     """Delete a dynamic step by slug.
 
@@ -736,7 +743,7 @@ async def mcp_delete_dynamic_step(slug: str) -> dict:
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("System Context Diagram"))
 async def mcp_get_system_context_diagram(system_slug: str) -> dict:
     """Generate a system context diagram.
 
@@ -749,7 +756,7 @@ async def mcp_get_system_context_diagram(system_slug: str) -> dict:
     return await get_system_context_diagram(system_slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("Container Diagram"))
 async def mcp_get_container_diagram(system_slug: str) -> dict:
     """Generate a container diagram.
 
@@ -762,7 +769,7 @@ async def mcp_get_container_diagram(system_slug: str) -> dict:
     return await get_container_diagram(system_slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("Component Diagram"))
 async def mcp_get_component_diagram(container_slug: str) -> dict:
     """Generate a component diagram.
 
@@ -775,7 +782,7 @@ async def mcp_get_component_diagram(container_slug: str) -> dict:
     return await get_component_diagram(container_slug)
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("System Landscape Diagram"))
 async def mcp_get_system_landscape_diagram() -> dict:
     """Generate a system landscape diagram.
 
@@ -785,7 +792,7 @@ async def mcp_get_system_landscape_diagram() -> dict:
     return await get_system_landscape_diagram()
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("Deployment Diagram"))
 async def mcp_get_deployment_diagram(environment: str) -> dict:
     """Generate a deployment diagram.
 
@@ -798,7 +805,7 @@ async def mcp_get_deployment_diagram(environment: str) -> dict:
     return await get_deployment_diagram(environment)
 
 
-@mcp.tool()
+@mcp.tool(annotations=diagram_annotation("Dynamic Diagram"))
 async def mcp_get_dynamic_diagram(sequence_name: str) -> dict:
     """Generate a dynamic (sequence) diagram.
 
