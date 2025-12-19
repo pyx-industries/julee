@@ -15,6 +15,7 @@ from ..repositories.memory import (
     MemoryEpicRepository,
     MemoryIntegrationRepository,
     MemoryJourneyRepository,
+    MemoryPersonaRepository,
     MemoryStoryRepository,
 )
 from .adapters import SyncRepositoryAdapter
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
         Epic,
         Integration,
         Journey,
+        Persona,
         Story,
     )
 
@@ -50,6 +52,7 @@ class HCDContext:
         accelerator_repo: Repository for Accelerator entities
         integration_repo: Repository for Integration entities
         code_info_repo: Repository for BoundedContextInfo entities
+        persona_repo: Repository for Persona entities (defined personas)
     """
 
     story_repo: SyncRepositoryAdapter["Story"] = field(
@@ -73,6 +76,9 @@ class HCDContext:
     code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository())
     )
+    persona_repo: SyncRepositoryAdapter["Persona"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryPersonaRepository())
+    )
 
     def clear_all(self) -> None:
         """Clear all repositories.
@@ -86,12 +92,13 @@ class HCDContext:
         self.accelerator_repo.clear()
         self.integration_repo.clear()
         self.code_info_repo.clear()
+        self.persona_repo.clear()
 
     def clear_by_docname(self, docname: str) -> dict[str, int]:
         """Clear entities defined in a specific document.
 
         Used during incremental builds when a document is re-read.
-        Only entities that track docname are cleared (journey, epic, accelerator).
+        Only entities that track docname are cleared (journey, epic, accelerator, persona).
 
         Args:
             docname: RST document name
@@ -117,6 +124,12 @@ class HCDContext:
         accel_async = self.accelerator_repo.async_repo
         results["accelerators"] = self.accelerator_repo.run_async(
             accel_async.clear_by_docname(docname)  # type: ignore
+        )
+
+        # Persona repo has clear_by_docname
+        persona_async = self.persona_repo.async_repo
+        results["personas"] = self.persona_repo.run_async(
+            persona_async.clear_by_docname(docname)  # type: ignore
         )
 
         return results

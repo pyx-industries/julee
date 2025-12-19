@@ -11,6 +11,7 @@ from .code_info import CodeInfoRepository
 from .epic import EpicRepository
 from .integration import IntegrationRepository
 from .journey import JourneyRepository
+from .persona import PersonaRepository
 from .story import StoryRepository
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "EpicRepository",
     "IntegrationRepository",
     "JourneyRepository",
+    "PersonaRepository",
     "StoryRepository",
 ]

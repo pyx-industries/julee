@@ -59,6 +59,8 @@ from .journey import (
     process_journey_steps,
 )
 from .persona import (
+    DefinePersonaDirective,
+    DefinePersonaPlaceholder,
     PersonaDiagramDirective,
     PersonaDiagramPlaceholder,
     PersonaIndexDiagramDirective,
@@ -152,6 +154,8 @@ __all__ = [
     "IntegrationIndexPlaceholder",
     "process_integration_placeholders",
     # Persona directives
+    "DefinePersonaDirective",
+    "DefinePersonaPlaceholder",
     "PersonaDiagramDirective",
     "PersonaDiagramPlaceholder",
     "PersonaIndexDiagramDirective",

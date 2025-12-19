@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "hcd": {
+      "command": "/Users/chris/src/pyx/julee/.venv/bin/hcd-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}

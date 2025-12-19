@@ -11,6 +11,7 @@ from ..directives import (
     process_integration_placeholders,
     process_persona_placeholders,
 )
+from .reconciliation import check_persona_reconciliation
 
 
 def on_doctree_resolved(app, doctree, docname):
@@ -41,3 +42,7 @@ def on_doctree_resolved(app, doctree, docname):
 
     # Process journey dependency graph placeholder (needs all journeys)
     process_dependency_graph_placeholder(app, doctree, docname)
+
+    # Check persona reconciliation (stories vs defined personas)
+    # This runs once per build, emitting warnings for undefined personas
+    check_persona_reconciliation(app)

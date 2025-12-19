@@ -11,6 +11,7 @@ from .code_info import MemoryCodeInfoRepository
 from .epic import MemoryEpicRepository
 from .integration import MemoryIntegrationRepository
 from .journey import MemoryJourneyRepository
+from .persona import MemoryPersonaRepository
 from .story import MemoryStoryRepository
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "MemoryEpicRepository",
     "MemoryIntegrationRepository",
     "MemoryJourneyRepository",
+    "MemoryPersonaRepository",
     "MemoryRepositoryMixin",
     "MemoryStoryRepository",
 ]

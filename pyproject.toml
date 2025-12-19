@@ -46,7 +46,13 @@ dependencies = [
     "six>=1.16.0",
     "jsonschema>=4.0.0",
     "jsonpointer>=3.0.0",
+    # MCP Server
+    "fastmcp>=0.1.0",
 ]
+
+[project.scripts]
+hcd-api = "julee.docs.hcd_api.app:main"
+hcd-mcp = "julee.docs.hcd_mcp.server:main"
 
 [project.optional-dependencies]
 dev = [
