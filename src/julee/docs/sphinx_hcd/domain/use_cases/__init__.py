@@ -1,13 +1,60 @@
 """Use cases for sphinx_hcd.
 
-Business logic for cross-referencing and deriving entities.
+Business logic for cross-referencing, deriving entities, and CRUD operations.
 """
 
+# CRUD use-cases by entity type
+from .accelerator import (
+    CreateAcceleratorUseCase,
+    DeleteAcceleratorUseCase,
+    GetAcceleratorUseCase,
+    ListAcceleratorsUseCase,
+    UpdateAcceleratorUseCase,
+)
+from .app import (
+    CreateAppUseCase,
+    DeleteAppUseCase,
+    GetAppUseCase,
+    ListAppsUseCase,
+    UpdateAppUseCase,
+)
 from .derive_personas import (
     derive_personas,
     derive_personas_by_app_type,
     get_apps_for_persona,
     get_epics_for_persona,
+)
+from .epic import (
+    CreateEpicUseCase,
+    DeleteEpicUseCase,
+    GetEpicUseCase,
+    ListEpicsUseCase,
+    UpdateEpicUseCase,
+)
+from .integration import (
+    CreateIntegrationUseCase,
+    DeleteIntegrationUseCase,
+    GetIntegrationUseCase,
+    ListIntegrationsUseCase,
+    UpdateIntegrationUseCase,
+)
+from .journey import (
+    CreateJourneyUseCase,
+    DeleteJourneyUseCase,
+    GetJourneyUseCase,
+    ListJourneysUseCase,
+    UpdateJourneyUseCase,
+)
+from .persona import (
+    CreatePersonaUseCase,
+    DeletePersonaUseCase,
+    ListPersonasUseCase,
+    UpdatePersonaUseCase,
+)
+# Query use-cases
+from .queries import (
+    DerivePersonasUseCase,
+    GetPersonaUseCase,
 )
 from .resolve_accelerator_references import (
     get_accelerator_cross_references,
@@ -33,9 +80,60 @@ from .resolve_story_references import (
     get_related_stories,
     get_story_cross_references,
 )
+from .story import (
+    CreateStoryUseCase,
+    DeleteStoryUseCase,
+    GetStoryUseCase,
+    ListStoriesUseCase,
+    UpdateStoryUseCase,
+)
 
 __all__ = [
-    # Persona derivation
+    # Accelerator CRUD
+    "CreateAcceleratorUseCase",
+    "GetAcceleratorUseCase",
+    "ListAcceleratorsUseCase",
+    "UpdateAcceleratorUseCase",
+    "DeleteAcceleratorUseCase",
+    # App CRUD
+    "CreateAppUseCase",
+    "GetAppUseCase",
+    "ListAppsUseCase",
+    "UpdateAppUseCase",
+    "DeleteAppUseCase",
+    # Epic CRUD
+    "CreateEpicUseCase",
+    "GetEpicUseCase",
+    "ListEpicsUseCase",
+    "UpdateEpicUseCase",
+    "DeleteEpicUseCase",
+    # Integration CRUD
+    "CreateIntegrationUseCase",
+    "GetIntegrationUseCase",
+    "ListIntegrationsUseCase",
+    "UpdateIntegrationUseCase",
+    "DeleteIntegrationUseCase",
+    # Journey CRUD
+    "CreateJourneyUseCase",
+    "GetJourneyUseCase",
+    "ListJourneysUseCase",
+    "UpdateJourneyUseCase",
+    "DeleteJourneyUseCase",
+    # Persona CRUD
+    "CreatePersonaUseCase",
+    "ListPersonasUseCase",
+    "UpdatePersonaUseCase",
+    "DeletePersonaUseCase",
+    # Story CRUD
+    "CreateStoryUseCase",
+    "GetStoryUseCase",
+    "ListStoriesUseCase",
+    "UpdateStoryUseCase",
+    "DeleteStoryUseCase",
+    # Query use-cases
+    "DerivePersonasUseCase",
+    "GetPersonaUseCase",
+    # Persona derivation functions
     "derive_personas",
     "derive_personas_by_app_type",
     "get_apps_for_persona",

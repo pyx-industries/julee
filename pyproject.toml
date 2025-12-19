@@ -93,6 +93,10 @@ Repository = "https://github.com/pyx-industries/julee"
 Documentation = "https://github.com/pyx-industries/julee#readme"
 Issues = "https://github.com/pyx-industries/julee/issues"
 
+[project.scripts]
+hcd-mcp = "julee.docs.hcd_mcp.server:main"
+c4-mcp = "julee.docs.c4_mcp.server:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["julee*"]

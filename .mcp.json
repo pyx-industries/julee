@@ -1,9 +1,10 @@
 {
   "mcpServers": {
     "hcd": {
-      "command": "/Users/chris/src/pyx/julee/.venv/bin/hcd-mcp",
-      "args": [],
-      "env": {}
+      "command": "hcd-mcp"
+    },
+    "c4": {
+      "command": "c4-mcp"
     }
   }
 }
