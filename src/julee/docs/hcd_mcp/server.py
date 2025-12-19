@@ -99,22 +99,32 @@ async def mcp_create_story(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Story"))
-async def mcp_get_story(slug: str) -> dict | None:
+async def mcp_get_story(slug: str, format: str = "full") -> dict | None:
     """Get a story by its slug identifier.
 
     Args:
         slug: Story identifier (e.g., "login-with-sso-staff-member")
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_story(slug)
+    return await get_story(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Stories"))
-async def mcp_list_stories() -> dict:
+async def mcp_list_stories(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all user stories in the HCD model.
 
     Use this to get an overview of requirements or find stories to add to epics.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_stories()
+    return await list_stories(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Story"))
@@ -181,22 +191,32 @@ async def mcp_create_epic(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Epic"))
-async def mcp_get_epic(slug: str) -> dict | None:
+async def mcp_get_epic(slug: str, format: str = "full") -> dict | None:
     """Get an epic by slug with its story references.
 
     Args:
         slug: Epic identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_epic(slug)
+    return await get_epic(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Epics"))
-async def mcp_list_epics() -> dict:
+async def mcp_list_epics(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all epics in the HCD model.
 
     Use this to see how stories are organized or find epics to add stories to.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_epics()
+    return await list_epics(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Epic"))
@@ -275,22 +295,32 @@ async def mcp_create_journey(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Journey"))
-async def mcp_get_journey(slug: str) -> dict | None:
+async def mcp_get_journey(slug: str, format: str = "full") -> dict | None:
     """Get a journey by slug with its steps and dependencies.
 
     Args:
         slug: Journey identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_journey(slug)
+    return await get_journey(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Journeys"))
-async def mcp_list_journeys() -> dict:
+async def mcp_list_journeys(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all journeys in the HCD model.
 
     Use this to see user flows or find personas that need journey definitions.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_journeys()
+    return await list_journeys(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Journey"))
@@ -343,7 +373,11 @@ async def mcp_delete_journey(slug: str) -> dict:
 
 
 @mcp.tool(annotations=read_only_annotation("List Personas"))
-async def mcp_list_personas() -> dict:
+async def mcp_list_personas(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all personas - derived automatically from stories and epics.
 
     Personas are NOT created directly. They are derived from the 'persona' field
@@ -353,12 +387,17 @@ async def mcp_list_personas() -> dict:
     - Which apps they interact with (from their stories)
     - Which epics they participate in
     - Their normalized name for consistent matching
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_personas()
+    return await list_personas(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("Get Persona"))
-async def mcp_get_persona(name: str) -> dict | None:
+async def mcp_get_persona(name: str, format: str = "full") -> dict | None:
     """Get a persona by name (case-insensitive).
 
     Personas are derived from stories - you cannot create them directly.
@@ -366,8 +405,9 @@ async def mcp_get_persona(name: str) -> dict | None:
 
     Args:
         name: Persona name (e.g., "Staff Member", "Admin") - case-insensitive
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_persona(name)
+    return await get_persona(name, format=format)
 
 
 # ============================================================================
@@ -417,22 +457,32 @@ async def mcp_create_accelerator(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Accelerator"))
-async def mcp_get_accelerator(slug: str) -> dict | None:
+async def mcp_get_accelerator(slug: str, format: str = "full") -> dict | None:
     """Get an accelerator by slug with its integration connections.
 
     Args:
         slug: Accelerator identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_accelerator(slug)
+    return await get_accelerator(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Accelerators"))
-async def mcp_list_accelerators() -> dict:
+async def mcp_list_accelerators(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all accelerators in the HCD model.
 
     Use this to understand the technical capability landscape.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_accelerators()
+    return await list_accelerators(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Accelerator"))
@@ -524,22 +574,32 @@ async def mcp_create_integration(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Integration"))
-async def mcp_get_integration(slug: str) -> dict | None:
+async def mcp_get_integration(slug: str, format: str = "full") -> dict | None:
     """Get an integration by slug with its accelerator connections.
 
     Args:
         slug: Integration identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_integration(slug)
+    return await get_integration(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Integrations"))
-async def mcp_list_integrations() -> dict:
+async def mcp_list_integrations(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all integrations in the HCD model.
 
     Use this to see the external system landscape or find integrations to connect.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_integrations()
+    return await list_integrations(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Integration"))
@@ -626,22 +686,32 @@ async def mcp_create_app(
 
 
 @mcp.tool(annotations=read_only_annotation("Get App"))
-async def mcp_get_app(slug: str) -> dict | None:
+async def mcp_get_app(slug: str, format: str = "full") -> dict | None:
     """Get an app by slug with its stories and accelerator dependencies.
 
     Args:
         slug: App identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_app(slug)
+    return await get_app(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Apps"))
-async def mcp_list_apps() -> dict:
+async def mcp_list_apps(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
     """List all apps in the HCD model.
 
     Use this to see the application landscape or find apps to add stories to.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await list_apps()
+    return await list_apps(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update App"))

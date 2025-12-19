@@ -7,6 +7,7 @@ from ...c4_api.requests import (
     ListSoftwareSystemsRequest,
     UpdateSoftwareSystemRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_software_system_use_case,
     get_delete_software_system_use_case,
@@ -45,26 +46,57 @@ async def create_software_system(
     }
 
 
-async def get_software_system(slug: str) -> dict:
-    """Get a software system by slug."""
+async def get_software_system(slug: str, format: str = "full") -> dict:
+    """Get a software system by slug.
+
+    Args:
+        slug: Software system slug
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with software system data
+    """
     use_case = get_get_software_system_use_case()
     response = await use_case.execute(GetSoftwareSystemRequest(slug=slug))
     if not response.software_system:
         return {"entity": None, "found": False}
     return {
-        "entity": response.software_system.model_dump(),
+        "entity": format_entity(
+            response.software_system.model_dump(),
+            ResponseFormat.from_string(format),
+            "software_system",
+        ),
         "found": True,
     }
 
 
-async def list_software_systems() -> dict:
-    """List all software systems."""
+async def list_software_systems(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all software systems with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with paginated software systems list
+    """
     use_case = get_list_software_systems_use_case()
     response = await use_case.execute(ListSoftwareSystemsRequest())
-    return {
-        "entities": [s.model_dump() for s in response.software_systems],
-        "count": len(response.software_systems),
-    }
+
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(s.model_dump(), fmt, "software_system")
+        for s in response.software_systems
+    ]
+
+    # Apply pagination
+    return paginate_results(all_entities, limit=limit, offset=offset)
 
 
 async def update_software_system(

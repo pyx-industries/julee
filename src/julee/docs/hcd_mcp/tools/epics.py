@@ -11,6 +11,7 @@ from ...hcd_api.requests import (
     ListEpicsRequest,
     UpdateEpicRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_epic_suggestions
 from ..context import (
     get_create_epic_use_case,
@@ -56,11 +57,12 @@ async def create_epic(
     }
 
 
-async def get_epic(slug: str) -> dict:
+async def get_epic(slug: str, format: str = "full") -> dict:
     """Get an epic by its slug.
 
     Args:
         slug: Epic slug
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with epic data and contextual suggestions
@@ -80,22 +82,33 @@ async def get_epic(slug: str) -> dict:
     suggestions = await compute_epic_suggestions(response.epic, ctx)
 
     return {
-        "entity": response.epic.model_dump(),
+        "entity": format_entity(
+            response.epic.model_dump(), ResponseFormat.from_string(format), "epic"
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_epics() -> dict:
-    """List all epics.
+async def list_epics(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all epics with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with epics list and aggregate suggestions
+        Response with paginated epics list and aggregate suggestions
     """
     use_case = get_list_epics_use_case()
     response = await use_case.execute(ListEpicsRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
 
     # Count epics without stories
@@ -129,11 +142,15 @@ async def list_epics() -> dict:
             }
         )
 
-    return {
-        "entities": [e.model_dump() for e in response.epics],
-        "count": len(response.epics),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [format_entity(e.model_dump(), fmt, "epic") for e in response.epics]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_epic(

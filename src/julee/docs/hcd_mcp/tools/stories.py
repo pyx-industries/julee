@@ -11,6 +11,7 @@ from ...hcd_api.requests import (
     ListStoriesRequest,
     UpdateStoryRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_story_suggestions
 from ..context import (
     get_create_story_use_case,
@@ -62,11 +63,12 @@ async def create_story(
     }
 
 
-async def get_story(slug: str) -> dict:
+async def get_story(slug: str, format: str = "full") -> dict:
     """Get a story by its slug.
 
     Args:
         slug: Story slug (format: app_slug--feature_slug)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with story data and contextual suggestions
@@ -86,22 +88,33 @@ async def get_story(slug: str) -> dict:
     suggestions = await compute_story_suggestions(response.story, ctx)
 
     return {
-        "entity": response.story.model_dump(),
+        "entity": format_entity(
+            response.story.model_dump(), ResponseFormat.from_string(format), "story"
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_stories() -> dict:
-    """List all stories.
+async def list_stories(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all stories with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with stories list and aggregate suggestions
+        Response with paginated stories list and aggregate suggestions
     """
     use_case = get_list_stories_use_case()
     response = await use_case.execute(ListStoriesRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
 
     # Count stories with unknown persona
@@ -139,11 +152,17 @@ async def list_stories() -> dict:
             }
         )
 
-    return {
-        "entities": [s.model_dump() for s in response.stories],
-        "count": len(response.stories),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(s.model_dump(), fmt, "story") for s in response.stories
+    ]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_story(

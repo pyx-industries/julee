@@ -14,6 +14,7 @@ from ...hcd_api.requests import (
     ListAcceleratorsRequest,
     UpdateAcceleratorRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_accelerator_suggestions
 from ..context import (
     get_create_accelerator_use_case,
@@ -82,11 +83,12 @@ async def create_accelerator(
     }
 
 
-async def get_accelerator(slug: str) -> dict:
+async def get_accelerator(slug: str, format: str = "full") -> dict:
     """Get an accelerator by its slug.
 
     Args:
         slug: Accelerator slug
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with accelerator data and contextual suggestions
@@ -106,22 +108,35 @@ async def get_accelerator(slug: str) -> dict:
     suggestions = await compute_accelerator_suggestions(response.accelerator, ctx)
 
     return {
-        "entity": response.accelerator.model_dump(),
+        "entity": format_entity(
+            response.accelerator.model_dump(),
+            ResponseFormat.from_string(format),
+            "accelerator",
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_accelerators() -> dict:
-    """List all accelerators.
+async def list_accelerators(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all accelerators with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with accelerators list and aggregate suggestions
+        Response with paginated accelerators list and aggregate suggestions
     """
     use_case = get_list_accelerators_use_case()
     response = await use_case.execute(ListAcceleratorsRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
 
     # Count accelerators without integrations
@@ -161,11 +176,17 @@ async def list_accelerators() -> dict:
             }
         )
 
-    return {
-        "entities": [a.model_dump() for a in response.accelerators],
-        "count": len(response.accelerators),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(a.model_dump(), fmt, "accelerator") for a in response.accelerators
+    ]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_accelerator(

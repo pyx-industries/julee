@@ -7,6 +7,7 @@ from ...c4_api.requests import (
     ListContainersRequest,
     UpdateContainerRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_container_use_case,
     get_delete_container_use_case,
@@ -45,26 +46,56 @@ async def create_container(
     }
 
 
-async def get_container(slug: str) -> dict:
-    """Get a container by slug."""
+async def get_container(slug: str, format: str = "full") -> dict:
+    """Get a container by slug.
+
+    Args:
+        slug: Container slug
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with container data
+    """
     use_case = get_get_container_use_case()
     response = await use_case.execute(GetContainerRequest(slug=slug))
     if not response.container:
         return {"entity": None, "found": False}
     return {
-        "entity": response.container.model_dump(),
+        "entity": format_entity(
+            response.container.model_dump(),
+            ResponseFormat.from_string(format),
+            "container",
+        ),
         "found": True,
     }
 
 
-async def list_containers() -> dict:
-    """List all containers."""
+async def list_containers(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all containers with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with paginated containers list
+    """
     use_case = get_list_containers_use_case()
     response = await use_case.execute(ListContainersRequest())
-    return {
-        "entities": [c.model_dump() for c in response.containers],
-        "count": len(response.containers),
-    }
+
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(c.model_dump(), fmt, "container") for c in response.containers
+    ]
+
+    # Apply pagination
+    return paginate_results(all_entities, limit=limit, offset=offset)
 
 
 async def update_container(

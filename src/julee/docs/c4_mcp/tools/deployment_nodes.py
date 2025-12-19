@@ -10,6 +10,7 @@ from ...c4_api.requests import (
     ListDeploymentNodesRequest,
     UpdateDeploymentNodeRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_deployment_node_use_case,
     get_delete_deployment_node_use_case,
@@ -53,26 +54,57 @@ async def create_deployment_node(
     }
 
 
-async def get_deployment_node(slug: str) -> dict:
-    """Get a deployment node by slug."""
+async def get_deployment_node(slug: str, format: str = "full") -> dict:
+    """Get a deployment node by slug.
+
+    Args:
+        slug: Deployment node slug
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with deployment node data
+    """
     use_case = get_get_deployment_node_use_case()
     response = await use_case.execute(GetDeploymentNodeRequest(slug=slug))
     if not response.deployment_node:
         return {"entity": None, "found": False}
     return {
-        "entity": response.deployment_node.model_dump(),
+        "entity": format_entity(
+            response.deployment_node.model_dump(),
+            ResponseFormat.from_string(format),
+            "deployment_node",
+        ),
         "found": True,
     }
 
 
-async def list_deployment_nodes() -> dict:
-    """List all deployment nodes."""
+async def list_deployment_nodes(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all deployment nodes with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with paginated deployment nodes list
+    """
     use_case = get_list_deployment_nodes_use_case()
     response = await use_case.execute(ListDeploymentNodesRequest())
-    return {
-        "entities": [n.model_dump() for n in response.deployment_nodes],
-        "count": len(response.deployment_nodes),
-    }
+
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(n.model_dump(), fmt, "deployment_node")
+        for n in response.deployment_nodes
+    ]
+
+    # Apply pagination
+    return paginate_results(all_entities, limit=limit, offset=offset)
 
 
 async def update_deployment_node(

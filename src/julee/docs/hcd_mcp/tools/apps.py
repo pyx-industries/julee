@@ -11,6 +11,7 @@ from ...hcd_api.requests import (
     ListAppsRequest,
     UpdateAppRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_app_suggestions
 from ..context import (
     get_create_app_use_case,
@@ -77,11 +78,12 @@ async def create_app(
     }
 
 
-async def get_app(slug: str) -> dict:
+async def get_app(slug: str, format: str = "full") -> dict:
     """Get an app by its slug.
 
     Args:
         slug: App slug
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with app data and contextual suggestions
@@ -101,22 +103,33 @@ async def get_app(slug: str) -> dict:
     suggestions = await compute_app_suggestions(response.app, ctx)
 
     return {
-        "entity": response.app.model_dump(),
+        "entity": format_entity(
+            response.app.model_dump(), ResponseFormat.from_string(format), "app"
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_apps() -> dict:
-    """List all apps.
+async def list_apps(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all apps with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with apps list and aggregate suggestions
+        Response with paginated apps list and aggregate suggestions
     """
     use_case = get_list_apps_use_case()
     response = await use_case.execute(ListAppsRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
     ctx = get_suggestion_context()
 
@@ -158,11 +171,15 @@ async def list_apps() -> dict:
             }
         )
 
-    return {
-        "entities": [a.model_dump() for a in response.apps],
-        "count": len(response.apps),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [format_entity(a.model_dump(), fmt, "app") for a in response.apps]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_app(

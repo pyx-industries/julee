@@ -7,6 +7,7 @@ from ...c4_api.requests import (
     ListComponentsRequest,
     UpdateComponentRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_component_use_case,
     get_delete_component_use_case,
@@ -49,26 +50,56 @@ async def create_component(
     }
 
 
-async def get_component(slug: str) -> dict:
-    """Get a component by slug."""
+async def get_component(slug: str, format: str = "full") -> dict:
+    """Get a component by slug.
+
+    Args:
+        slug: Component slug
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with component data
+    """
     use_case = get_get_component_use_case()
     response = await use_case.execute(GetComponentRequest(slug=slug))
     if not response.component:
         return {"entity": None, "found": False}
     return {
-        "entity": response.component.model_dump(),
+        "entity": format_entity(
+            response.component.model_dump(),
+            ResponseFormat.from_string(format),
+            "component",
+        ),
         "found": True,
     }
 
 
-async def list_components() -> dict:
-    """List all components."""
+async def list_components(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all components with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with paginated components list
+    """
     use_case = get_list_components_use_case()
     response = await use_case.execute(ListComponentsRequest())
-    return {
-        "entities": [c.model_dump() for c in response.components],
-        "count": len(response.components),
-    }
+
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(c.model_dump(), fmt, "component") for c in response.components
+    ]
+
+    # Apply pagination
+    return paginate_results(all_entities, limit=limit, offset=offset)
 
 
 async def update_component(

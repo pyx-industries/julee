@@ -14,6 +14,7 @@ from ...hcd_api.requests import (
     ListIntegrationsRequest,
     UpdateIntegrationRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_integration_suggestions
 from ..context import (
     get_create_integration_use_case,
@@ -84,11 +85,12 @@ async def create_integration(
     }
 
 
-async def get_integration(slug: str) -> dict:
+async def get_integration(slug: str, format: str = "full") -> dict:
     """Get an integration by its slug.
 
     Args:
         slug: Integration slug
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with integration data and contextual suggestions
@@ -108,22 +110,35 @@ async def get_integration(slug: str) -> dict:
     suggestions = await compute_integration_suggestions(response.integration, ctx)
 
     return {
-        "entity": response.integration.model_dump(),
+        "entity": format_entity(
+            response.integration.model_dump(),
+            ResponseFormat.from_string(format),
+            "integration",
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_integrations() -> dict:
-    """List all integrations.
+async def list_integrations(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all integrations with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with integrations list and aggregate suggestions
+        Response with paginated integrations list and aggregate suggestions
     """
     use_case = get_list_integrations_use_case()
     response = await use_case.execute(ListIntegrationsRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
 
     # Get accelerators to check usage
@@ -171,11 +186,17 @@ async def list_integrations() -> dict:
             }
         )
 
-    return {
-        "entities": [i.model_dump() for i in response.integrations],
-        "count": len(response.integrations),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(i.model_dump(), fmt, "integration") for i in response.integrations
+    ]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_integration(

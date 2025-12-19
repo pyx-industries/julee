@@ -6,6 +6,7 @@ Responses include contextual suggestions based on domain semantics.
 """
 
 from ...hcd_api.requests import DerivePersonasRequest, GetPersonaRequest
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_persona_suggestions
 from ..context import (
     get_derive_personas_use_case,
@@ -14,16 +15,25 @@ from ..context import (
 )
 
 
-async def list_personas() -> dict:
-    """List all personas (derived from stories and epics).
+async def list_personas(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all personas (derived from stories and epics) with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with personas list and aggregate suggestions
+        Response with paginated personas list and aggregate suggestions
     """
     use_case = get_derive_personas_use_case()
     response = await use_case.execute(DerivePersonasRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
     ctx = get_suggestion_context()
 
@@ -66,18 +76,25 @@ async def list_personas() -> dict:
         }
     )
 
-    return {
-        "entities": [p.model_dump() for p in response.personas],
-        "count": len(response.personas),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(p.model_dump(), fmt, "persona") for p in response.personas
+    ]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
-async def get_persona(name: str) -> dict:
+async def get_persona(name: str, format: str = "full") -> dict:
     """Get a persona by name (derived from stories and epics).
 
     Args:
         name: Persona name (case-insensitive)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with persona data and contextual suggestions
@@ -106,7 +123,11 @@ async def get_persona(name: str) -> dict:
     suggestions = await compute_persona_suggestions(response.persona, ctx)
 
     return {
-        "entity": response.persona.model_dump(),
+        "entity": format_entity(
+            response.persona.model_dump(),
+            ResponseFormat.from_string(format),
+            "persona",
+        ),
         "found": True,
         "suggestions": suggestions,
     }

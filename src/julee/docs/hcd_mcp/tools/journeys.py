@@ -14,6 +14,7 @@ from ...hcd_api.requests import (
     ListJourneysRequest,
     UpdateJourneyRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_journey_suggestions
 from ..context import (
     get_create_journey_use_case,
@@ -84,11 +85,12 @@ async def create_journey(
     }
 
 
-async def get_journey(slug: str) -> dict:
+async def get_journey(slug: str, format: str = "full") -> dict:
     """Get a journey by its slug.
 
     Args:
         slug: Journey slug
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
         Response with journey data and contextual suggestions
@@ -108,22 +110,35 @@ async def get_journey(slug: str) -> dict:
     suggestions = await compute_journey_suggestions(response.journey, ctx)
 
     return {
-        "entity": response.journey.model_dump(),
+        "entity": format_entity(
+            response.journey.model_dump(),
+            ResponseFormat.from_string(format),
+            "journey",
+        ),
         "found": True,
         "suggestions": suggestions,
     }
 
 
-async def list_journeys() -> dict:
-    """List all journeys.
+async def list_journeys(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all journeys with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
 
     Returns:
-        Response with journeys list and aggregate suggestions
+        Response with paginated journeys list and aggregate suggestions
     """
     use_case = get_list_journeys_use_case()
     response = await use_case.execute(ListJourneysRequest())
 
-    # Compute aggregate suggestions
+    # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
 
     # Count journeys without steps
@@ -161,11 +176,17 @@ async def list_journeys() -> dict:
             }
         )
 
-    return {
-        "entities": [j.model_dump() for j in response.journeys],
-        "count": len(response.journeys),
-        "suggestions": suggestions,
-    }
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(j.model_dump(), fmt, "journey") for j in response.journeys
+    ]
+
+    # Apply pagination
+    result = paginate_results(all_entities, limit=limit, offset=offset)
+    result["suggestions"] = suggestions
+
+    return result
 
 
 async def update_journey(

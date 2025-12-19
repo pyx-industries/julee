@@ -7,6 +7,7 @@ from ...c4_api.requests import (
     ListRelationshipsRequest,
     UpdateRelationshipRequest,
 )
+from ...mcp_shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_relationship_use_case,
     get_delete_relationship_use_case,
@@ -47,26 +48,57 @@ async def create_relationship(
     }
 
 
-async def get_relationship(slug: str) -> dict:
-    """Get a relationship by slug."""
+async def get_relationship(slug: str, format: str = "full") -> dict:
+    """Get a relationship by slug.
+
+    Args:
+        slug: Relationship slug
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with relationship data
+    """
     use_case = get_get_relationship_use_case()
     response = await use_case.execute(GetRelationshipRequest(slug=slug))
     if not response.relationship:
         return {"entity": None, "found": False}
     return {
-        "entity": response.relationship.model_dump(),
+        "entity": format_entity(
+            response.relationship.model_dump(),
+            ResponseFormat.from_string(format),
+            "relationship",
+        ),
         "found": True,
     }
 
 
-async def list_relationships() -> dict:
-    """List all relationships."""
+async def list_relationships(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all relationships with pagination.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+
+    Returns:
+        Response with paginated relationships list
+    """
     use_case = get_list_relationships_use_case()
     response = await use_case.execute(ListRelationshipsRequest())
-    return {
-        "entities": [r.model_dump() for r in response.relationships],
-        "count": len(response.relationships),
-    }
+
+    # Format entities based on requested verbosity
+    fmt = ResponseFormat.from_string(format)
+    all_entities = [
+        format_entity(r.model_dump(), fmt, "relationship")
+        for r in response.relationships
+    ]
+
+    # Apply pagination
+    return paginate_results(all_entities, limit=limit, offset=offset)
 
 
 async def update_relationship(

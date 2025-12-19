@@ -116,19 +116,30 @@ async def mcp_create_software_system(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Software System"))
-async def mcp_get_software_system(slug: str) -> dict:
+async def mcp_get_software_system(slug: str, format: str = "full") -> dict:
     """Get a software system by slug.
 
     Args:
         slug: Software system identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_software_system(slug)
+    return await get_software_system(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Software Systems"))
-async def mcp_list_software_systems() -> dict:
-    """List all software systems in the C4 model."""
-    return await list_software_systems()
+async def mcp_list_software_systems(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all software systems in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_software_systems(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Software System"))
@@ -225,19 +236,30 @@ async def mcp_create_container(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Container"))
-async def mcp_get_container(slug: str) -> dict:
+async def mcp_get_container(slug: str, format: str = "full") -> dict:
     """Get a container by slug.
 
     Args:
         slug: Container identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_container(slug)
+    return await get_container(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Containers"))
-async def mcp_list_containers() -> dict:
-    """List all containers in the C4 model."""
-    return await list_containers()
+async def mcp_list_containers(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all containers in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_containers(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Container"))
@@ -337,19 +359,30 @@ async def mcp_create_component(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Component"))
-async def mcp_get_component(slug: str) -> dict:
+async def mcp_get_component(slug: str, format: str = "full") -> dict:
     """Get a component by slug.
 
     Args:
         slug: Component identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_component(slug)
+    return await get_component(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Components"))
-async def mcp_list_components() -> dict:
-    """List all components in the C4 model."""
-    return await list_components()
+async def mcp_list_components(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all components in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_components(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Component"))
@@ -455,19 +488,30 @@ async def mcp_create_relationship(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Relationship"))
-async def mcp_get_relationship(slug: str) -> dict:
+async def mcp_get_relationship(slug: str, format: str = "full") -> dict:
     """Get a relationship by slug.
 
     Args:
         slug: Relationship identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_relationship(slug)
+    return await get_relationship(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Relationships"))
-async def mcp_list_relationships() -> dict:
-    """List all relationships in the C4 model."""
-    return await list_relationships()
+async def mcp_list_relationships(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all relationships in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_relationships(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Relationship"))
@@ -561,19 +605,30 @@ async def mcp_create_deployment_node(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Deployment Node"))
-async def mcp_get_deployment_node(slug: str) -> dict:
+async def mcp_get_deployment_node(slug: str, format: str = "full") -> dict:
     """Get a deployment node by slug.
 
     Args:
         slug: Deployment node identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_deployment_node(slug)
+    return await get_deployment_node(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Deployment Nodes"))
-async def mcp_list_deployment_nodes() -> dict:
-    """List all deployment nodes in the C4 model."""
-    return await list_deployment_nodes()
+async def mcp_list_deployment_nodes(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all deployment nodes in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_deployment_nodes(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Deployment Node"))
@@ -682,19 +737,30 @@ async def mcp_create_dynamic_step(
 
 
 @mcp.tool(annotations=read_only_annotation("Get Dynamic Step"))
-async def mcp_get_dynamic_step(slug: str) -> dict:
+async def mcp_get_dynamic_step(slug: str, format: str = "full") -> dict:
     """Get a dynamic step by slug.
 
     Args:
         slug: Dynamic step identifier
+        format: Response verbosity - "summary", "full", or "extended"
     """
-    return await get_dynamic_step(slug)
+    return await get_dynamic_step(slug, format=format)
 
 
 @mcp.tool(annotations=read_only_annotation("List Dynamic Steps"))
-async def mcp_list_dynamic_steps() -> dict:
-    """List all dynamic steps in the C4 model."""
-    return await list_dynamic_steps()
+async def mcp_list_dynamic_steps(
+    limit: int | None = None,
+    offset: int = 0,
+    format: str = "full",
+) -> dict:
+    """List all dynamic steps in the C4 model.
+
+    Args:
+        limit: Maximum results to return (default 100, max 1000)
+        offset: Skip first N results for pagination (default 0)
+        format: Response verbosity - "summary", "full", or "extended"
+    """
+    return await list_dynamic_steps(limit=limit, offset=offset, format=format)
 
 
 @mcp.tool(annotations=update_annotation("Update Dynamic Step"))
