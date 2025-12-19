@@ -375,7 +375,7 @@ def parse_journey_content(content: str) -> ParsedJourney | None:
     step_matches.sort(key=lambda x: x[0])
 
     # Create steps with descriptions for phases
-    for i, (start, end, step_type, ref) in enumerate(step_matches):
+    for i, (_start, end, step_type, ref) in enumerate(step_matches):
         description = ""
         if step_type == StepType.PHASE:
             # Extract phase description (content until next directive)
