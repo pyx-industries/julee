@@ -7,7 +7,12 @@ from ...c4_api.requests import (
     ListSoftwareSystemsRequest,
     UpdateSoftwareSystemRequest,
 )
-from ...mcp_shared import ResponseFormat, format_entity, paginate_results
+from ...mcp_shared import (
+    ResponseFormat,
+    format_entity,
+    not_found_error,
+    paginate_results,
+)
 from ..context import (
     get_create_software_system_use_case,
     get_delete_software_system_use_case,
@@ -59,7 +64,11 @@ async def get_software_system(slug: str, format: str = "full") -> dict:
     use_case = get_get_software_system_use_case()
     response = await use_case.execute(GetSoftwareSystemRequest(slug=slug))
     if not response.software_system:
-        return {"entity": None, "found": False}
+        # Get available slugs for similar suggestions
+        list_use_case = get_list_software_systems_use_case()
+        list_response = await list_use_case.execute(ListSoftwareSystemsRequest())
+        available_slugs = [s.slug for s in list_response.software_systems]
+        return not_found_error("software_system", slug, available_slugs)
     return {
         "entity": format_entity(
             response.software_system.model_dump(),
@@ -67,6 +76,7 @@ async def get_software_system(slug: str, format: str = "full") -> dict:
             "software_system",
         ),
         "found": True,
+        "suggestions": [],
     }
 
 
@@ -123,12 +133,23 @@ async def update_software_system(
     )
     response = await use_case.execute(request)
     if not response.found:
-        return {"success": False, "entity": None}
+        # Get available slugs for similar suggestions
+        list_use_case = get_list_software_systems_use_case()
+        list_response = await list_use_case.execute(ListSoftwareSystemsRequest())
+        available_slugs = [s.slug for s in list_response.software_systems]
+        error_response = not_found_error("software_system", slug, available_slugs)
+        return {
+            "success": False,
+            "entity": None,
+            "error": error_response.get("error"),
+            "suggestions": error_response.get("suggestions", []),
+        }
     return {
         "success": True,
         "entity": (
             response.software_system.model_dump() if response.software_system else None
         ),
+        "suggestions": [],
     }
 
 

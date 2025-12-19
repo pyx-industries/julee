@@ -11,7 +11,12 @@ from ...hcd_api.requests import (
     ListStoriesRequest,
     UpdateStoryRequest,
 )
-from ...mcp_shared import ResponseFormat, format_entity, paginate_results
+from ...mcp_shared import (
+    ResponseFormat,
+    format_entity,
+    not_found_error,
+    paginate_results,
+)
 from ...sphinx_hcd.domain.use_cases.suggestions import compute_story_suggestions
 from ..context import (
     get_create_story_use_case,
@@ -77,11 +82,11 @@ async def get_story(slug: str, format: str = "full") -> dict:
     response = await use_case.execute(GetStoryRequest(slug=slug))
 
     if not response.story:
-        return {
-            "entity": None,
-            "found": False,
-            "suggestions": [],
-        }
+        # Get available slugs for similar suggestions
+        list_use_case = get_list_stories_use_case()
+        list_response = await list_use_case.execute(ListStoriesRequest())
+        available_slugs = [s.slug for s in list_response.stories]
+        return not_found_error("story", slug, available_slugs)
 
     # Compute suggestions
     ctx = get_suggestion_context()
@@ -195,10 +200,16 @@ async def update_story(
     response = await use_case.execute(request)
 
     if not response.found:
+        # Get available slugs for similar suggestions
+        list_use_case = get_list_stories_use_case()
+        list_response = await list_use_case.execute(ListStoriesRequest())
+        available_slugs = [s.slug for s in list_response.stories]
+        error_response = not_found_error("story", slug, available_slugs)
         return {
             "success": False,
             "entity": None,
-            "suggestions": [],
+            "error": error_response.get("error"),
+            "suggestions": error_response.get("suggestions", []),
         }
 
     # Compute suggestions

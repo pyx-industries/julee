@@ -1,6 +1,5 @@
 """Tests for pagination utilities."""
 
-import pytest
 
 from ..pagination import (
     DEFAULT_LIMIT,
