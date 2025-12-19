@@ -1,0 +1,32 @@
+"""DeleteSoftwareSystemUseCase.
+
+Use case for deleting a software system.
+"""
+
+from .....c4_api.requests import DeleteSoftwareSystemRequest
+from .....c4_api.responses import DeleteSoftwareSystemResponse
+from ...repositories.software_system import SoftwareSystemRepository
+
+
+class DeleteSoftwareSystemUseCase:
+    """Use case for deleting a software system."""
+
+    def __init__(self, software_system_repo: SoftwareSystemRepository) -> None:
+        """Initialize with repository dependency.
+
+        Args:
+            software_system_repo: SoftwareSystem repository instance
+        """
+        self.software_system_repo = software_system_repo
+
+    async def execute(self, request: DeleteSoftwareSystemRequest) -> DeleteSoftwareSystemResponse:
+        """Delete a software system by slug.
+
+        Args:
+            request: Delete request containing the software system slug
+
+        Returns:
+            Response indicating if deletion was successful
+        """
+        deleted = await self.software_system_repo.delete(request.slug)
+        return DeleteSoftwareSystemResponse(deleted=deleted)
