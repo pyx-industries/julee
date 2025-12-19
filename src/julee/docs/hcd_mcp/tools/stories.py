@@ -109,14 +109,16 @@ async def list_stories() -> dict:
         1 for s in response.stories if s.persona_normalized == "unknown"
     )
     if unknown_persona_count > 0:
-        suggestions.append({
-            "severity": "warning",
-            "category": "incomplete",
-            "message": f"{unknown_persona_count} stories have unknown personas",
-            "action": "Review and update stories to specify personas in 'As a <persona>' format",
-            "tool": "update_story",
-            "context": {"count": unknown_persona_count},
-        })
+        suggestions.append(
+            {
+                "severity": "warning",
+                "category": "incomplete",
+                "message": f"{unknown_persona_count} stories have unknown personas",
+                "action": "Review and update stories to specify personas in 'As a <persona>' format",
+                "tool": "update_story",
+                "context": {"count": unknown_persona_count},
+            }
+        )
 
     # Persona distribution info
     personas = {}
@@ -124,14 +126,18 @@ async def list_stories() -> dict:
         if s.persona_normalized != "unknown":
             personas[s.persona] = personas.get(s.persona, 0) + 1
     if personas:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"Stories span {len(personas)} personas",
-            "action": "Consider creating journeys for each persona",
-            "tool": "create_journey",
-            "context": {"personas": dict(sorted(personas.items(), key=lambda x: -x[1])[:10])},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"Stories span {len(personas)} personas",
+                "action": "Consider creating journeys for each persona",
+                "tool": "create_journey",
+                "context": {
+                    "personas": dict(sorted(personas.items(), key=lambda x: -x[1])[:10])
+                },
+            }
+        )
 
     return {
         "entities": [s.model_dump() for s in response.stories],
@@ -178,7 +184,9 @@ async def update_story(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_story_suggestions(response.story, ctx) if response.story else []
+    suggestions = (
+        await compute_story_suggestions(response.story, ctx) if response.story else []
+    )
 
     return {
         "success": True,
@@ -201,14 +209,16 @@ async def delete_story(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "info",
-            "category": "next_step",
-            "message": "Story deleted successfully",
-            "action": "Consider updating any epics that referenced this story",
-            "tool": "list_epics",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "next_step",
+                "message": "Story deleted successfully",
+                "action": "Consider updating any epics that referenced this story",
+                "tool": "list_epics",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

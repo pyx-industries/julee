@@ -56,9 +56,7 @@ class MemoryDynamicStepRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear steps defined in a specific document."""
-        to_remove = [
-            slug for slug, s in self.storage.items() if s.docname == docname
-        ]
+        to_remove = [slug for slug, s in self.storage.items() if s.docname == docname]
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)

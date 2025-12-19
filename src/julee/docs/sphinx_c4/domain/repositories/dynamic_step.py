@@ -50,7 +50,9 @@ class DynamicStepRepository(BaseRepository[DynamicStep], Protocol):
         """
         ...
 
-    async def get_step(self, sequence_name: str, step_number: int) -> DynamicStep | None:
+    async def get_step(
+        self, sequence_name: str, step_number: int
+    ) -> DynamicStep | None:
         """Get a specific step by sequence and number.
 
         Args:

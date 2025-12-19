@@ -19,7 +19,9 @@ class ListAcceleratorsUseCase:
         """
         self.accelerator_repo = accelerator_repo
 
-    async def execute(self, request: ListAcceleratorsRequest) -> ListAcceleratorsResponse:
+    async def execute(
+        self, request: ListAcceleratorsRequest
+    ) -> ListAcceleratorsResponse:
         """List all accelerators.
 
         Args:

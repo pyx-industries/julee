@@ -19,7 +19,9 @@ class DeleteSoftwareSystemUseCase:
         """
         self.software_system_repo = software_system_repo
 
-    async def execute(self, request: DeleteSoftwareSystemRequest) -> DeleteSoftwareSystemResponse:
+    async def execute(
+        self, request: DeleteSoftwareSystemRequest
+    ) -> DeleteSoftwareSystemResponse:
         """Delete a software system by slug.
 
         Args:

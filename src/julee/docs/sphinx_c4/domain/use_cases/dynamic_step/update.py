@@ -19,7 +19,9 @@ class UpdateDynamicStepUseCase:
         """
         self.dynamic_step_repo = dynamic_step_repo
 
-    async def execute(self, request: UpdateDynamicStepRequest) -> UpdateDynamicStepResponse:
+    async def execute(
+        self, request: UpdateDynamicStepRequest
+    ) -> UpdateDynamicStepResponse:
         """Update an existing dynamic step.
 
         Args:

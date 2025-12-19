@@ -31,7 +31,9 @@ class CreateSoftwareSystemRequest(BaseModel):
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
     description: str = Field(default="", description="Human-readable description")
-    system_type: str = Field(default="internal", description="Type: internal, external, existing")
+    system_type: str = Field(
+        default="internal", description="Type: internal, external, existing"
+    )
     owner: str = Field(default="", description="Owning team")
     technology: str = Field(default="", description="High-level tech stack")
     url: str = Field(default="", description="Link to documentation")
@@ -333,14 +335,18 @@ class DeleteComponentRequest(BaseModel):
 class CreateRelationshipRequest(BaseModel):
     """Request model for creating a relationship."""
 
-    slug: str = Field(default="", description="URL-safe identifier (auto-generated if empty)")
+    slug: str = Field(
+        default="", description="URL-safe identifier (auto-generated if empty)"
+    )
     source_type: str = Field(description="Type of source element")
     source_slug: str = Field(description="Slug of source element")
     destination_type: str = Field(description="Type of destination element")
     destination_slug: str = Field(description="Slug of destination element")
     description: str = Field(default="Uses", description="Relationship description")
     technology: str = Field(default="", description="Protocol/technology used")
-    bidirectional: bool = Field(default=False, description="Whether relationship goes both ways")
+    bidirectional: bool = Field(
+        default=False, description="Whether relationship goes both ways"
+    )
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
     def to_domain_model(self) -> Relationship:
@@ -413,7 +419,9 @@ class ContainerInstanceInput(BaseModel):
 
     container_slug: str = Field(description="Slug of deployed container")
     instance_id: str = Field(default="", description="Instance identifier")
-    properties: dict[str, str] = Field(default_factory=dict, description="Instance properties")
+    properties: dict[str, str] = Field(
+        default_factory=dict, description="Instance properties"
+    )
 
     def to_domain_model(self) -> ContainerInstance:
         """Convert to ContainerInstance."""
@@ -437,7 +445,9 @@ class CreateDeploymentNodeRequest(BaseModel):
     container_instances: list[ContainerInstanceInput] = Field(
         default_factory=list, description="Containers deployed to this node"
     )
-    properties: dict[str, str] = Field(default_factory=dict, description="Node properties")
+    properties: dict[str, str] = Field(
+        default_factory=dict, description="Node properties"
+    )
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
     @field_validator("slug")
@@ -464,7 +474,9 @@ class CreateDeploymentNodeRequest(BaseModel):
             technology=self.technology,
             description=self.description,
             parent_slug=self.parent_slug,
-            container_instances=[ci.to_domain_model() for ci in self.container_instances],
+            container_instances=[
+                ci.to_domain_model() for ci in self.container_instances
+            ],
             properties=self.properties,
             tags=self.tags,
             docname="",
@@ -513,7 +525,9 @@ class UpdateDeploymentNodeRequest(BaseModel):
         if self.parent_slug is not None:
             updates["parent_slug"] = self.parent_slug
         if self.container_instances is not None:
-            updates["container_instances"] = [ci.to_domain_model() for ci in self.container_instances]
+            updates["container_instances"] = [
+                ci.to_domain_model() for ci in self.container_instances
+            ]
         if self.properties is not None:
             updates["properties"] = self.properties
         if self.tags is not None:
@@ -535,7 +549,9 @@ class DeleteDeploymentNodeRequest(BaseModel):
 class CreateDynamicStepRequest(BaseModel):
     """Request model for creating a dynamic step."""
 
-    slug: str = Field(default="", description="URL-safe identifier (auto-generated if empty)")
+    slug: str = Field(
+        default="", description="URL-safe identifier (auto-generated if empty)"
+    )
     sequence_name: str = Field(description="Name of the dynamic sequence")
     step_number: int = Field(description="Order within sequence (1-based)")
     source_type: str = Field(description="Type of source element")
@@ -621,38 +637,50 @@ class GetSystemContextDiagramRequest(BaseModel):
     """Request for generating a system context diagram."""
 
     system_slug: str = Field(description="Software system to show context for")
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
 
 
 class GetContainerDiagramRequest(BaseModel):
     """Request for generating a container diagram."""
 
     system_slug: str = Field(description="Software system to show containers for")
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
 
 
 class GetComponentDiagramRequest(BaseModel):
     """Request for generating a component diagram."""
 
     container_slug: str = Field(description="Container to show components for")
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
 
 
 class GetSystemLandscapeDiagramRequest(BaseModel):
     """Request for generating a system landscape diagram."""
 
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
 
 
 class GetDeploymentDiagramRequest(BaseModel):
     """Request for generating a deployment diagram."""
 
     environment: str = Field(description="Deployment environment to show")
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
 
 
 class GetDynamicDiagramRequest(BaseModel):
     """Request for generating a dynamic diagram."""
 
     sequence_name: str = Field(description="Dynamic sequence to show")
-    format: str = Field(default="plantuml", description="Output format: plantuml, structurizr, data")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )

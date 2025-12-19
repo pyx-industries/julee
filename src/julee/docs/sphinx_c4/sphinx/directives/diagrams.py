@@ -68,7 +68,8 @@ class SystemContextDiagramDirective(DiagramDirective):
 
         # Gather relationships involving this system
         relationships = [
-            r for r in storage["relationships"].values()
+            r
+            for r in storage["relationships"].values()
             if r.involves_element_by_slug(system_slug)
         ]
 
@@ -135,8 +136,7 @@ class ContainerDiagramDirective(DiagramDirective):
 
         # Gather containers for this system
         containers = [
-            c for c in storage["containers"].values()
-            if c.system_slug == system_slug
+            c for c in storage["containers"].values() if c.system_slug == system_slug
         ]
 
         # Gather relationships
@@ -146,7 +146,10 @@ class ContainerDiagramDirective(DiagramDirective):
         person_slugs = []
 
         for rel in storage["relationships"].values():
-            if rel.source_slug in container_slugs or rel.destination_slug in container_slugs:
+            if (
+                rel.source_slug in container_slugs
+                or rel.destination_slug in container_slugs
+            ):
                 relationships.append(rel)
 
                 for el_type, el_slug in [
@@ -213,7 +216,8 @@ class ComponentDiagramDirective(DiagramDirective):
 
         # Gather components for this container
         components = [
-            c for c in storage["components"].values()
+            c
+            for c in storage["components"].values()
             if c.container_slug == container_slug
         ]
 
@@ -225,7 +229,10 @@ class ComponentDiagramDirective(DiagramDirective):
         person_slugs = []
 
         for rel in storage["relationships"].values():
-            if rel.source_slug in component_slugs or rel.destination_slug in component_slugs:
+            if (
+                rel.source_slug in component_slugs
+                or rel.destination_slug in component_slugs
+            ):
                 relationships.append(rel)
 
                 for el_type, el_slug in [
@@ -315,7 +322,9 @@ class SystemLandscapeDiagramDirective(DiagramDirective):
                     person_slugs.append(rel.destination_slug)
 
         # Build diagram data
-        from ...domain.use_cases.diagrams.system_landscape import SystemLandscapeDiagramData
+        from ...domain.use_cases.diagrams.system_landscape import (
+            SystemLandscapeDiagramData,
+        )
 
         data = SystemLandscapeDiagramData(
             systems=systems,
@@ -355,12 +364,13 @@ class DeploymentDiagramDirective(DiagramDirective):
 
         # Filter nodes by environment
         nodes_in_env = [
-            n for n in deployment_nodes.values()
-            if n.environment == environment
+            n for n in deployment_nodes.values() if n.environment == environment
         ]
 
         if not nodes_in_env:
-            return self.empty_result(f"No deployment nodes for environment '{environment}'")
+            return self.empty_result(
+                f"No deployment nodes for environment '{environment}'"
+            )
 
         # Gather container instances
         container_slugs = set()
@@ -376,12 +386,16 @@ class DeploymentDiagramDirective(DiagramDirective):
 
         # Gather relationships between deployed containers
         relationships = [
-            rel for rel in storage["relationships"].values()
-            if rel.source_slug in container_slugs or rel.destination_slug in container_slugs
+            rel
+            for rel in storage["relationships"].values()
+            if rel.source_slug in container_slugs
+            or rel.destination_slug in container_slugs
         ]
 
         # Build diagram data
-        from ...domain.use_cases.diagrams.deployment_diagram import DeploymentDiagramData
+        from ...domain.use_cases.diagrams.deployment_diagram import (
+            DeploymentDiagramData,
+        )
 
         data = DeploymentDiagramData(
             environment=environment,

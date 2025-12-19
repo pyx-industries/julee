@@ -19,7 +19,9 @@ class ListDynamicStepsUseCase:
         """
         self.dynamic_step_repo = dynamic_step_repo
 
-    async def execute(self, request: ListDynamicStepsRequest) -> ListDynamicStepsResponse:
+    async def execute(
+        self, request: ListDynamicStepsRequest
+    ) -> ListDynamicStepsResponse:
         """List all dynamic steps.
 
         Args:

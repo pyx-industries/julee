@@ -146,10 +146,11 @@ class PlantUMLSerializer:
 
         # System boundary with containers
         system = data.system
-        lines.append(f'System_Boundary({system.slug}, "{self._escape(system.name)}") {{')
+        lines.append(
+            f'System_Boundary({system.slug}, "{self._escape(system.name)}") {{'
+        )
 
         for container in data.containers:
-            ctype = container.container_type.value
             tech = container.technology
             desc = self._escape(container.description)
 
@@ -220,7 +221,9 @@ class PlantUMLSerializer:
 
         # Container boundary with components
         container = data.container
-        lines.append(f'Container_Boundary({container.slug}, "{self._escape(container.name)}") {{')
+        lines.append(
+            f'Container_Boundary({container.slug}, "{self._escape(container.name)}") {{'
+        )
 
         for component in data.components:
             tech = component.technology
@@ -344,7 +347,7 @@ class PlantUMLSerializer:
             for child in children:
                 render_node(child, indent + 1)
 
-            lines.append(f'{prefix}}}')
+            lines.append(f"{prefix}}}")
 
         for node in root_nodes:
             render_node(node)
@@ -388,9 +391,7 @@ class PlantUMLSerializer:
             lines.append(f'Person({slug}, "{slug}")')
 
         for system in data.systems:
-            lines.append(
-                f'System({system.slug}, "{self._escape(system.name)}")'
-            )
+            lines.append(f'System({system.slug}, "{self._escape(system.name)}")')
 
         for container in data.containers:
             lines.append(

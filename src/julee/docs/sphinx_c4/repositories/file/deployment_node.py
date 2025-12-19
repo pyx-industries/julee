@@ -43,7 +43,9 @@ class FileDeploymentNodeRepository(
     def _load_all(self) -> None:
         """Load all deployment nodes from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileDeploymentNodeRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileDeploymentNodeRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -54,7 +56,9 @@ class FileDeploymentNodeRepository(
                 self.storage[node.slug] = node
                 logger.debug(f"FileDeploymentNodeRepository: Loaded {node.slug}")
             except Exception as e:
-                logger.warning(f"FileDeploymentNodeRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileDeploymentNodeRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_by_environment(self, environment: str) -> list[DeploymentNode]:
         """Get all nodes in a specific environment."""
@@ -81,9 +85,7 @@ class FileDeploymentNodeRepository(
         self, container_slug: str
     ) -> list[DeploymentNode]:
         """Get nodes that deploy a specific container."""
-        return [
-            n for n in self.storage.values() if n.deploys_container(container_slug)
-        ]
+        return [n for n in self.storage.values() if n.deploys_container(container_slug)]
 
     async def get_by_docname(self, docname: str) -> list[DeploymentNode]:
         """Get nodes defined in a specific document."""
@@ -91,9 +93,7 @@ class FileDeploymentNodeRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear nodes defined in a specific document."""
-        to_remove = [
-            slug for slug, n in self.storage.items() if n.docname == docname
-        ]
+        to_remove = [slug for slug, n in self.storage.items() if n.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

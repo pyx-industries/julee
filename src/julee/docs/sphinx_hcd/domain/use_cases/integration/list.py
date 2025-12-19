@@ -19,7 +19,9 @@ class ListIntegrationsUseCase:
         """
         self.integration_repo = integration_repo
 
-    async def execute(self, request: ListIntegrationsRequest) -> ListIntegrationsResponse:
+    async def execute(
+        self, request: ListIntegrationsRequest
+    ) -> ListIntegrationsResponse:
         """List all integrations.
 
         Args:

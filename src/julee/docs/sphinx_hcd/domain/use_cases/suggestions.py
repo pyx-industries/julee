@@ -126,14 +126,17 @@ class SuggestionContext:
     async def get_personas(self) -> set[str]:
         """Get set of all unique personas from stories."""
         stories = await self.get_all_stories()
-        return {s.persona_normalized for s in stories if s.persona_normalized != "unknown"}
+        return {
+            s.persona_normalized for s in stories if s.persona_normalized != "unknown"
+        }
 
     async def get_epics_containing_story(self, story_title: str) -> list[Epic]:
         """Find epics that reference a story by title."""
         epics = await self.get_all_epics()
         normalized = normalize_name(story_title)
         return [
-            e for e in epics
+            e
+            for e in epics
             if any(normalize_name(ref) == normalized for ref in e.story_refs)
         ]
 
@@ -148,11 +151,14 @@ class SuggestionContext:
         stories = await self.get_all_stories()
         return [s for s in stories if s.app_slug == app_slug]
 
-    async def get_accelerators_using_integration(self, integration_slug: str) -> list[Accelerator]:
+    async def get_accelerators_using_integration(
+        self, integration_slug: str
+    ) -> list[Accelerator]:
         """Find accelerators that source from or publish to an integration."""
         accelerators = await self.get_all_accelerators()
         return [
-            a for a in accelerators
+            a
+            for a in accelerators
             if any(ref.slug == integration_slug for ref in a.sources_from)
             or any(ref.slug == integration_slug for ref in a.publishes_to)
         ]
@@ -163,9 +169,7 @@ class SuggestionContext:
         return [a for a in apps if accelerator_slug in a.accelerators]
 
 
-async def compute_story_suggestions(
-    story: Story, ctx: SuggestionContext
-) -> list[dict]:
+async def compute_story_suggestions(story: Story, ctx: SuggestionContext) -> list[dict]:
     """Compute suggestions for a story.
 
     Returns list of suggestion dicts ready for MCP response.
@@ -214,9 +218,7 @@ async def compute_story_suggestions(
         journeys = await ctx.get_journeys_for_persona(story.persona)
         if not journeys:
             suggestions.append(
-                story_persona_has_no_journey(
-                    story.slug, story.persona, []
-                ).model_dump()
+                story_persona_has_no_journey(story.slug, story.persona, []).model_dump()
             )
         else:
             # Info about related journeys
@@ -229,9 +231,7 @@ async def compute_story_suggestions(
     return suggestions
 
 
-async def compute_epic_suggestions(
-    epic: Epic, ctx: SuggestionContext
-) -> list[dict]:
+async def compute_epic_suggestions(epic: Epic, ctx: SuggestionContext) -> list[dict]:
     """Compute suggestions for an epic."""
     from ....hcd_api.suggestions import (
         epic_has_no_stories,
@@ -254,13 +254,12 @@ async def compute_epic_suggestions(
             if normalized_ref not in story_titles:
                 # Find similar stories
                 similar = [
-                    t for t in all_story_titles
+                    t
+                    for t in all_story_titles
                     if normalized_ref in t or t in normalized_ref
                 ][:5]
                 suggestions.append(
-                    epic_references_unknown_story(
-                        epic.slug, ref, similar
-                    ).model_dump()
+                    epic_references_unknown_story(epic.slug, ref, similar).model_dump()
                 )
 
         # Info about matched stories
@@ -371,7 +370,10 @@ async def compute_accelerator_suggestions(
             if ref.slug not in integration_slugs:
                 suggestions.append(
                     accelerator_references_unknown_integration(
-                        accelerator.slug, ref.slug, "sources from", all_integrations[:10]
+                        accelerator.slug,
+                        ref.slug,
+                        "sources from",
+                        all_integrations[:10],
                     ).model_dump()
                 )
 
@@ -379,7 +381,10 @@ async def compute_accelerator_suggestions(
             if ref.slug not in integration_slugs:
                 suggestions.append(
                     accelerator_references_unknown_integration(
-                        accelerator.slug, ref.slug, "publishes to", all_integrations[:10]
+                        accelerator.slug,
+                        ref.slug,
+                        "publishes to",
+                        all_integrations[:10],
                     ).model_dump()
                 )
 
@@ -447,9 +452,7 @@ async def compute_integration_suggestions(
     return suggestions
 
 
-async def compute_app_suggestions(
-    app: App, ctx: SuggestionContext
-) -> list[dict]:
+async def compute_app_suggestions(app: App, ctx: SuggestionContext) -> list[dict]:
     """Compute suggestions for an app."""
     from ....hcd_api.suggestions import (
         app_has_no_stories,
@@ -462,9 +465,7 @@ async def compute_app_suggestions(
     # Check if app has stories
     stories = await ctx.get_stories_for_app(app.slug)
     if not stories:
-        suggestions.append(
-            app_has_no_stories(app.slug, app.name).model_dump()
-        )
+        suggestions.append(app_has_no_stories(app.slug, app.name).model_dump())
     else:
         suggestions.append(
             list_related_entities(
@@ -473,12 +474,12 @@ async def compute_app_suggestions(
         )
 
         # Info about personas
-        personas = list({s.persona for s in stories if s.persona_normalized != "unknown"})
+        personas = list(
+            {s.persona for s in stories if s.persona_normalized != "unknown"}
+        )
         if personas:
             suggestions.append(
-                list_related_entities(
-                    "app", app.slug, "persona", personas
-                ).model_dump()
+                list_related_entities("app", app.slug, "persona", personas).model_dump()
             )
 
     # Check accelerator references

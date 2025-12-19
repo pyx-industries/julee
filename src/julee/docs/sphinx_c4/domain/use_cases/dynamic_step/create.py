@@ -19,7 +19,9 @@ class CreateDynamicStepUseCase:
         """
         self.dynamic_step_repo = dynamic_step_repo
 
-    async def execute(self, request: CreateDynamicStepRequest) -> CreateDynamicStepResponse:
+    async def execute(
+        self, request: CreateDynamicStepRequest
+    ) -> CreateDynamicStepResponse:
         """Create a new dynamic step.
 
         Args:

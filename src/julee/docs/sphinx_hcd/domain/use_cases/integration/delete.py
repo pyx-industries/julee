@@ -19,7 +19,9 @@ class DeleteIntegrationUseCase:
         """
         self.integration_repo = integration_repo
 
-    async def execute(self, request: DeleteIntegrationRequest) -> DeleteIntegrationResponse:
+    async def execute(
+        self, request: DeleteIntegrationRequest
+    ) -> DeleteIntegrationResponse:
         """Delete an integration by slug.
 
         Args:

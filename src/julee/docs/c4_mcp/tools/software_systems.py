@@ -94,7 +94,9 @@ async def update_software_system(
         return {"success": False, "entity": None}
     return {
         "success": True,
-        "entity": response.software_system.model_dump() if response.software_system else None,
+        "entity": (
+            response.software_system.model_dump() if response.software_system else None
+        ),
     }
 
 

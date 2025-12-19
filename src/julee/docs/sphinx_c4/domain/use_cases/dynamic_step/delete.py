@@ -19,7 +19,9 @@ class DeleteDynamicStepUseCase:
         """
         self.dynamic_step_repo = dynamic_step_repo
 
-    async def execute(self, request: DeleteDynamicStepRequest) -> DeleteDynamicStepResponse:
+    async def execute(
+        self, request: DeleteDynamicStepRequest
+    ) -> DeleteDynamicStepResponse:
         """Delete a dynamic step by slug.
 
         Args:

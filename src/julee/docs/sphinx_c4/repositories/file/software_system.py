@@ -44,7 +44,9 @@ class FileSoftwareSystemRepository(
     def _load_all(self) -> None:
         """Load all software systems from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileSoftwareSystemRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileSoftwareSystemRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -55,7 +57,9 @@ class FileSoftwareSystemRepository(
                 self.storage[system.slug] = system
                 logger.debug(f"FileSoftwareSystemRepository: Loaded {system.slug}")
             except Exception as e:
-                logger.warning(f"FileSoftwareSystemRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileSoftwareSystemRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_by_type(self, system_type: SystemType) -> list[SoftwareSystem]:
         """Get all systems of a specific type."""
@@ -88,9 +92,7 @@ class FileSoftwareSystemRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear systems defined in a specific document."""
-        to_remove = [
-            slug for slug, s in self.storage.items() if s.docname == docname
-        ]
+        to_remove = [slug for slug, s in self.storage.items() if s.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

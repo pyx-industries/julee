@@ -5,9 +5,7 @@ from ...domain.repositories.container import ContainerRepository
 from .base import MemoryRepositoryMixin
 
 
-class MemoryContainerRepository(
-    MemoryRepositoryMixin[Container], ContainerRepository
-):
+class MemoryContainerRepository(MemoryRepositoryMixin[Container], ContainerRepository):
     """In-memory implementation of ContainerRepository.
 
     Stores containers in a dictionary keyed by slug.
@@ -51,9 +49,7 @@ class MemoryContainerRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear containers defined in a specific document."""
-        to_remove = [
-            slug for slug, c in self.storage.items() if c.docname == docname
-        ]
+        to_remove = [slug for slug, c in self.storage.items() if c.docname == docname]
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)

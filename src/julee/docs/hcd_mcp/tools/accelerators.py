@@ -126,18 +126,21 @@ async def list_accelerators() -> dict:
 
     # Count accelerators without integrations
     no_integrations = [
-        a for a in response.accelerators
-        if not a.sources_from and not a.publishes_to
+        a for a in response.accelerators if not a.sources_from and not a.publishes_to
     ]
     if no_integrations:
-        suggestions.append({
-            "severity": "suggestion",
-            "category": "incomplete",
-            "message": f"{len(no_integrations)} accelerators have no integrations defined",
-            "action": "Define source and publish integrations for data flow clarity",
-            "tool": "update_accelerator",
-            "context": {"accelerator_slugs": [a.slug for a in no_integrations[:10]]},
-        })
+        suggestions.append(
+            {
+                "severity": "suggestion",
+                "category": "incomplete",
+                "message": f"{len(no_integrations)} accelerators have no integrations defined",
+                "action": "Define source and publish integrations for data flow clarity",
+                "tool": "update_accelerator",
+                "context": {
+                    "accelerator_slugs": [a.slug for a in no_integrations[:10]]
+                },
+            }
+        )
 
     # Integration usage info
     all_integrations = set()
@@ -147,14 +150,16 @@ async def list_accelerators() -> dict:
         for ref in a.publishes_to:
             all_integrations.add(ref.slug)
     if all_integrations:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"Accelerators reference {len(all_integrations)} integrations",
-            "action": "Review integration coverage",
-            "tool": "list_integrations",
-            "context": {"integration_count": len(all_integrations)},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"Accelerators reference {len(all_integrations)} integrations",
+                "action": "Review integration coverage",
+                "tool": "list_integrations",
+                "context": {"integration_count": len(all_integrations)},
+            }
+        )
 
     return {
         "entities": [a.model_dump() for a in response.accelerators],
@@ -222,7 +227,11 @@ async def update_accelerator(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_accelerator_suggestions(response.accelerator, ctx) if response.accelerator else []
+    suggestions = (
+        await compute_accelerator_suggestions(response.accelerator, ctx)
+        if response.accelerator
+        else []
+    )
 
     return {
         "success": True,
@@ -245,14 +254,16 @@ async def delete_accelerator(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "info",
-            "category": "next_step",
-            "message": "Accelerator deleted successfully",
-            "action": "Consider updating apps and other accelerators that referenced this one",
-            "tool": "list_apps",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "next_step",
+                "message": "Accelerator deleted successfully",
+                "action": "Consider updating apps and other accelerators that referenced this one",
+                "tool": "list_apps",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

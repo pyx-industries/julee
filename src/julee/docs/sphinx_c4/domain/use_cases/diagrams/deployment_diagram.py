@@ -77,8 +77,10 @@ class GetDeploymentDiagramUseCase:
         relationships = await self.relationship_repo.get_between_containers("")
 
         relevant_relationships = [
-            rel for rel in relationships
-            if rel.source_slug in container_slugs or rel.destination_slug in container_slugs
+            rel
+            for rel in relationships
+            if rel.source_slug in container_slugs
+            or rel.destination_slug in container_slugs
         ]
 
         return DeploymentDiagramData(

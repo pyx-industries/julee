@@ -19,7 +19,9 @@ class DeleteRelationshipUseCase:
         """
         self.relationship_repo = relationship_repo
 
-    async def execute(self, request: DeleteRelationshipRequest) -> DeleteRelationshipResponse:
+    async def execute(
+        self, request: DeleteRelationshipRequest
+    ) -> DeleteRelationshipResponse:
         """Delete a relationship by slug.
 
         Args:

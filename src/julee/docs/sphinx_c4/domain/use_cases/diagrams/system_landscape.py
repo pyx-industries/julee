@@ -55,7 +55,9 @@ class GetSystemLandscapeDiagramUseCase:
         systems = await self.software_system_repo.list_all()
 
         person_relationships = await self.relationship_repo.get_person_relationships()
-        cross_system_relationships = await self.relationship_repo.get_cross_system_relationships()
+        cross_system_relationships = (
+            await self.relationship_repo.get_cross_system_relationships()
+        )
 
         all_relationships: list[Relationship] = []
         person_slugs: set[str] = set()

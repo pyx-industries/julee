@@ -19,7 +19,9 @@ class CreateRelationshipUseCase:
         """
         self.relationship_repo = relationship_repo
 
-    async def execute(self, request: CreateRelationshipRequest) -> CreateRelationshipResponse:
+    async def execute(
+        self, request: CreateRelationshipRequest
+    ) -> CreateRelationshipResponse:
         """Create a new relationship.
 
         Args:

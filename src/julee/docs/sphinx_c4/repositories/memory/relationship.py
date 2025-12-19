@@ -52,8 +52,7 @@ class MemoryRelationshipRepository(
         return [
             r
             for r in self.storage.values()
-            if r.destination_type == element_type
-            and r.destination_slug == element_slug
+            if r.destination_type == element_type and r.destination_slug == element_slug
         ]
 
     async def get_person_relationships(self) -> list[Relationship]:
@@ -97,9 +96,7 @@ class MemoryRelationshipRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear relationships defined in a specific document."""
-        to_remove = [
-            slug for slug, r in self.storage.items() if r.docname == docname
-        ]
+        to_remove = [slug for slug, r in self.storage.items() if r.docname == docname]
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)

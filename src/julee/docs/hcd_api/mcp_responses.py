@@ -14,16 +14,13 @@ from .suggestions import Suggestion
 class MCPEntityResponse(BaseModel):
     """Base response for a single entity with suggestions."""
 
-    entity: dict[str, Any] | None = Field(
-        description="The entity data as a dictionary"
-    )
+    entity: dict[str, Any] | None = Field(description="The entity data as a dictionary")
     found: bool = Field(
-        default=True,
-        description="Whether the entity was found (for get operations)"
+        default=True, description="Whether the entity was found (for get operations)"
     )
     suggestions: list[Suggestion] = Field(
         default_factory=list,
-        description="Contextual suggestions based on domain semantics"
+        description="Contextual suggestions based on domain semantics",
     )
 
     @property
@@ -36,16 +33,11 @@ class MCPListResponse(BaseModel):
     """Base response for a list of entities with suggestions."""
 
     entities: list[dict[str, Any]] = Field(
-        default_factory=list,
-        description="List of entity data as dictionaries"
+        default_factory=list, description="List of entity data as dictionaries"
     )
-    count: int = Field(
-        default=0,
-        description="Number of entities returned"
-    )
+    count: int = Field(default=0, description="Number of entities returned")
     suggestions: list[Suggestion] = Field(
-        default_factory=list,
-        description="Global suggestions for the entity collection"
+        default_factory=list, description="Global suggestions for the entity collection"
     )
 
     def model_post_init(self, __context: Any) -> None:
@@ -57,16 +49,13 @@ class MCPListResponse(BaseModel):
 class MCPMutationResponse(BaseModel):
     """Response for create/update/delete operations with suggestions."""
 
-    success: bool = Field(
-        description="Whether the operation succeeded"
-    )
+    success: bool = Field(description="Whether the operation succeeded")
     entity: dict[str, Any] | None = Field(
-        default=None,
-        description="The created/updated entity (None for delete)"
+        default=None, description="The created/updated entity (None for delete)"
     )
     suggestions: list[Suggestion] = Field(
         default_factory=list,
-        description="Suggestions for next steps after this operation"
+        description="Suggestions for next steps after this operation",
     )
 
 

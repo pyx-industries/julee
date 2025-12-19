@@ -19,7 +19,9 @@ class CreateSoftwareSystemUseCase:
         """
         self.software_system_repo = software_system_repo
 
-    async def execute(self, request: CreateSoftwareSystemRequest) -> CreateSoftwareSystemResponse:
+    async def execute(
+        self, request: CreateSoftwareSystemRequest
+    ) -> CreateSoftwareSystemResponse:
         """Create a new software system.
 
         Args:

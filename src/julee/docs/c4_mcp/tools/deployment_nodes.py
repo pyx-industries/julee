@@ -109,7 +109,9 @@ async def update_deployment_node(
         return {"success": False, "entity": None}
     return {
         "success": True,
-        "entity": response.deployment_node.model_dump() if response.deployment_node else None,
+        "entity": (
+            response.deployment_node.model_dump() if response.deployment_node else None
+        ),
     }
 
 

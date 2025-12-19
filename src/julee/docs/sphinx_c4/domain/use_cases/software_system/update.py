@@ -19,7 +19,9 @@ class UpdateSoftwareSystemUseCase:
         """
         self.software_system_repo = software_system_repo
 
-    async def execute(self, request: UpdateSoftwareSystemRequest) -> UpdateSoftwareSystemResponse:
+    async def execute(
+        self, request: UpdateSoftwareSystemRequest
+    ) -> UpdateSoftwareSystemResponse:
         """Update an existing software system.
 
         Args:

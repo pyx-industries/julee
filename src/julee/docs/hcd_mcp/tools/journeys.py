@@ -129,14 +129,18 @@ async def list_journeys() -> dict:
     # Count journeys without steps
     empty_journeys = [j for j in response.journeys if not j.steps]
     if empty_journeys:
-        suggestions.append({
-            "severity": "warning",
-            "category": "incomplete",
-            "message": f"{len(empty_journeys)} journeys have no steps defined",
-            "action": "Define the sequence of steps for these journeys",
-            "tool": "update_journey",
-            "context": {"empty_journey_slugs": [j.slug for j in empty_journeys[:10]]},
-        })
+        suggestions.append(
+            {
+                "severity": "warning",
+                "category": "incomplete",
+                "message": f"{len(empty_journeys)} journeys have no steps defined",
+                "action": "Define the sequence of steps for these journeys",
+                "tool": "update_journey",
+                "context": {
+                    "empty_journey_slugs": [j.slug for j in empty_journeys[:10]]
+                },
+            }
+        )
 
     # Persona coverage info
     personas = {}
@@ -144,14 +148,18 @@ async def list_journeys() -> dict:
         if j.persona:
             personas[j.persona] = personas.get(j.persona, 0) + 1
     if personas:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"Journeys cover {len(personas)} personas",
-            "action": "Review persona coverage across journeys",
-            "tool": "list_personas",
-            "context": {"personas": dict(sorted(personas.items(), key=lambda x: -x[1])[:10])},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"Journeys cover {len(personas)} personas",
+                "action": "Review persona coverage across journeys",
+                "tool": "list_personas",
+                "context": {
+                    "personas": dict(sorted(personas.items(), key=lambda x: -x[1])[:10])
+                },
+            }
+        )
 
     return {
         "entities": [j.model_dump() for j in response.journeys],
@@ -216,7 +224,11 @@ async def update_journey(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_journey_suggestions(response.journey, ctx) if response.journey else []
+    suggestions = (
+        await compute_journey_suggestions(response.journey, ctx)
+        if response.journey
+        else []
+    )
 
     return {
         "success": True,
@@ -239,14 +251,16 @@ async def delete_journey(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "info",
-            "category": "next_step",
-            "message": "Journey deleted successfully",
-            "action": "Consider updating any journeys that depended on this one",
-            "tool": "list_journeys",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "next_step",
+                "message": "Journey deleted successfully",
+                "action": "Consider updating any journeys that depended on this one",
+                "tool": "list_journeys",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

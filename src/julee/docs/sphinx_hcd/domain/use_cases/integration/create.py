@@ -19,7 +19,9 @@ class CreateIntegrationUseCase:
         """
         self.integration_repo = integration_repo
 
-    async def execute(self, request: CreateIntegrationRequest) -> CreateIntegrationResponse:
+    async def execute(
+        self, request: CreateIntegrationRequest
+    ) -> CreateIntegrationResponse:
         """Create a new integration.
 
         Args:

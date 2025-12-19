@@ -19,7 +19,9 @@ class CreateAcceleratorUseCase:
         """
         self.accelerator_repo = accelerator_repo
 
-    async def execute(self, request: CreateAcceleratorRequest) -> CreateAcceleratorResponse:
+    async def execute(
+        self, request: CreateAcceleratorRequest
+    ) -> CreateAcceleratorResponse:
         """Create a new accelerator.
 
         Args:

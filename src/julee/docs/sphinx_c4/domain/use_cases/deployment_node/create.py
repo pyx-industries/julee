@@ -19,7 +19,9 @@ class CreateDeploymentNodeUseCase:
         """
         self.deployment_node_repo = deployment_node_repo
 
-    async def execute(self, request: CreateDeploymentNodeRequest) -> CreateDeploymentNodeResponse:
+    async def execute(
+        self, request: CreateDeploymentNodeRequest
+    ) -> CreateDeploymentNodeResponse:
         """Create a new deployment node.
 
         Args:

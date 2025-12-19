@@ -19,7 +19,9 @@ class UpdateRelationshipUseCase:
         """
         self.relationship_repo = relationship_repo
 
-    async def execute(self, request: UpdateRelationshipRequest) -> UpdateRelationshipResponse:
+    async def execute(
+        self, request: UpdateRelationshipRequest
+    ) -> UpdateRelationshipResponse:
         """Update an existing relationship.
 
         Args:

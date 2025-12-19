@@ -19,7 +19,9 @@ class ListDeploymentNodesUseCase:
         """
         self.deployment_node_repo = deployment_node_repo
 
-    async def execute(self, request: ListDeploymentNodesRequest) -> ListDeploymentNodesResponse:
+    async def execute(
+        self, request: ListDeploymentNodesRequest
+    ) -> ListDeploymentNodesResponse:
         """List all deployment nodes.
 
         Args:

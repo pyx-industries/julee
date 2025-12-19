@@ -19,7 +19,9 @@ class UpdateIntegrationUseCase:
         """
         self.integration_repo = integration_repo
 
-    async def execute(self, request: UpdateIntegrationRequest) -> UpdateIntegrationResponse:
+    async def execute(
+        self, request: UpdateIntegrationRequest
+    ) -> UpdateIntegrationResponse:
         """Update an existing integration.
 
         Args:

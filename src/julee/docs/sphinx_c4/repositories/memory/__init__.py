@@ -4,12 +4,12 @@ These implementations store entities in memory and are suitable for
 testing and Sphinx builds where persistence is not required.
 """
 
-from .software_system import MemorySoftwareSystemRepository
-from .container import MemoryContainerRepository
 from .component import MemoryComponentRepository
-from .relationship import MemoryRelationshipRepository
+from .container import MemoryContainerRepository
 from .deployment_node import MemoryDeploymentNodeRepository
 from .dynamic_step import MemoryDynamicStepRepository
+from .relationship import MemoryRelationshipRepository
+from .software_system import MemorySoftwareSystemRepository
 
 __all__ = [
     "MemorySoftwareSystemRepository",

@@ -59,14 +59,16 @@ async def create_app(
     suggestions = await compute_app_suggestions(response.app, ctx)
 
     # Add suggestion to create stories
-    suggestions.append({
-        "severity": "suggestion",
-        "category": "next_step",
-        "message": "App created - consider adding user stories",
-        "action": f"Create user stories that describe what personas can do with '{name}'",
-        "tool": "create_story",
-        "context": {"app_slug": slug, "app_name": name},
-    })
+    suggestions.append(
+        {
+            "severity": "suggestion",
+            "category": "next_step",
+            "message": "App created - consider adding user stories",
+            "action": f"Create user stories that describe what personas can do with '{name}'",
+            "tool": "create_story",
+            "context": {"app_slug": slug, "app_name": name},
+        }
+    )
 
     return {
         "success": True,
@@ -126,29 +128,35 @@ async def list_apps() -> dict:
             apps_without_stories.append(app)
 
     if apps_without_stories:
-        suggestions.append({
-            "severity": "suggestion",
-            "category": "incomplete",
-            "message": f"{len(apps_without_stories)} apps have no user stories",
-            "action": "Create stories describing what personas can do with these apps",
-            "tool": "create_story",
-            "context": {"app_slugs": [a.slug for a in apps_without_stories[:10]]},
-        })
+        suggestions.append(
+            {
+                "severity": "suggestion",
+                "category": "incomplete",
+                "message": f"{len(apps_without_stories)} apps have no user stories",
+                "action": "Create stories describing what personas can do with these apps",
+                "tool": "create_story",
+                "context": {"app_slugs": [a.slug for a in apps_without_stories[:10]]},
+            }
+        )
 
     # App type distribution
     app_types = {}
     for app in response.apps:
-        type_name = app.app_type.value if hasattr(app.app_type, "value") else str(app.app_type)
+        type_name = (
+            app.app_type.value if hasattr(app.app_type, "value") else str(app.app_type)
+        )
         app_types[type_name] = app_types.get(type_name, 0) + 1
     if app_types:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"App types: {app_types}",
-            "action": "Review app classification",
-            "tool": None,
-            "context": {"type_counts": app_types},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"App types: {app_types}",
+                "action": "Review app classification",
+                "tool": None,
+                "context": {"type_counts": app_types},
+            }
+        )
 
     return {
         "entities": [a.model_dump() for a in response.apps],
@@ -198,7 +206,9 @@ async def update_app(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_app_suggestions(response.app, ctx) if response.app else []
+    suggestions = (
+        await compute_app_suggestions(response.app, ctx) if response.app else []
+    )
 
     return {
         "success": True,
@@ -221,14 +231,16 @@ async def delete_app(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "warning",
-            "category": "next_step",
-            "message": "App deleted - stories may be orphaned",
-            "action": "Review and reassign stories that belonged to this app",
-            "tool": "list_stories",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "warning",
+                "category": "next_step",
+                "message": "App deleted - stories may be orphaned",
+                "action": "Review and reassign stories that belonged to this app",
+                "tool": "list_stories",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

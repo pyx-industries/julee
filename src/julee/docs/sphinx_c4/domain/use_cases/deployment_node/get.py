@@ -19,7 +19,9 @@ class GetDeploymentNodeUseCase:
         """
         self.deployment_node_repo = deployment_node_repo
 
-    async def execute(self, request: GetDeploymentNodeRequest) -> GetDeploymentNodeResponse:
+    async def execute(
+        self, request: GetDeploymentNodeRequest
+    ) -> GetDeploymentNodeResponse:
         """Get a deployment node by slug.
 
         Args:

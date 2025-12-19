@@ -44,9 +44,7 @@ class MemoryDeploymentNodeRepository(
         self, container_slug: str
     ) -> list[DeploymentNode]:
         """Get nodes that deploy a specific container."""
-        return [
-            n for n in self.storage.values() if n.deploys_container(container_slug)
-        ]
+        return [n for n in self.storage.values() if n.deploys_container(container_slug)]
 
     async def get_by_docname(self, docname: str) -> list[DeploymentNode]:
         """Get nodes defined in a specific document."""
@@ -54,9 +52,7 @@ class MemoryDeploymentNodeRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear nodes defined in a specific document."""
-        to_remove = [
-            slug for slug, n in self.storage.items() if n.docname == docname
-        ]
+        to_remove = [slug for slug, n in self.storage.items() if n.docname == docname]
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)

@@ -121,7 +121,6 @@ from ..responses import (
     CreateDynamicStepResponse,
     CreateRelationshipResponse,
     CreateSoftwareSystemResponse,
-    DiagramResponse,
     GetComponentResponse,
     GetContainerResponse,
     GetDeploymentNodeResponse,
@@ -166,14 +165,18 @@ async def get_software_system(
     """Get a software system by slug."""
     response = await use_case.execute(GetSoftwareSystemRequest(slug=slug))
     if not response.software_system:
-        raise HTTPException(status_code=404, detail=f"Software system '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Software system '{slug}' not found"
+        )
     return response
 
 
 @router.post("/systems", response_model=CreateSoftwareSystemResponse, status_code=201)
 async def create_software_system(
     request: CreateSoftwareSystemRequest,
-    use_case: CreateSoftwareSystemUseCase = Depends(get_create_software_system_use_case),
+    use_case: CreateSoftwareSystemUseCase = Depends(
+        get_create_software_system_use_case
+    ),
 ) -> CreateSoftwareSystemResponse:
     """Create a new software system."""
     return await use_case.execute(request)
@@ -183,25 +186,33 @@ async def create_software_system(
 async def update_software_system(
     slug: str,
     request: UpdateSoftwareSystemRequest,
-    use_case: UpdateSoftwareSystemUseCase = Depends(get_update_software_system_use_case),
+    use_case: UpdateSoftwareSystemUseCase = Depends(
+        get_update_software_system_use_case
+    ),
 ) -> UpdateSoftwareSystemResponse:
     """Update an existing software system."""
     request.slug = slug
     response = await use_case.execute(request)
     if not response.found:
-        raise HTTPException(status_code=404, detail=f"Software system '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Software system '{slug}' not found"
+        )
     return response
 
 
 @router.delete("/systems/{slug}", status_code=204)
 async def delete_software_system(
     slug: str,
-    use_case: DeleteSoftwareSystemUseCase = Depends(get_delete_software_system_use_case),
+    use_case: DeleteSoftwareSystemUseCase = Depends(
+        get_delete_software_system_use_case
+    ),
 ) -> None:
     """Delete a software system."""
     response = await use_case.execute(DeleteSoftwareSystemRequest(slug=slug))
     if not response.deleted:
-        raise HTTPException(status_code=404, detail=f"Software system '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Software system '{slug}' not found"
+        )
 
 
 # ============================================================================
@@ -347,7 +358,9 @@ async def get_relationship(
     return response
 
 
-@router.post("/relationships", response_model=CreateRelationshipResponse, status_code=201)
+@router.post(
+    "/relationships", response_model=CreateRelationshipResponse, status_code=201
+)
 async def create_relationship(
     request: CreateRelationshipRequest,
     use_case: CreateRelationshipUseCase = Depends(get_create_relationship_use_case),
@@ -402,14 +415,20 @@ async def get_deployment_node(
     """Get a deployment node by slug."""
     response = await use_case.execute(GetDeploymentNodeRequest(slug=slug))
     if not response.deployment_node:
-        raise HTTPException(status_code=404, detail=f"Deployment node '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Deployment node '{slug}' not found"
+        )
     return response
 
 
-@router.post("/deployment-nodes", response_model=CreateDeploymentNodeResponse, status_code=201)
+@router.post(
+    "/deployment-nodes", response_model=CreateDeploymentNodeResponse, status_code=201
+)
 async def create_deployment_node(
     request: CreateDeploymentNodeRequest,
-    use_case: CreateDeploymentNodeUseCase = Depends(get_create_deployment_node_use_case),
+    use_case: CreateDeploymentNodeUseCase = Depends(
+        get_create_deployment_node_use_case
+    ),
 ) -> CreateDeploymentNodeResponse:
     """Create a new deployment node."""
     return await use_case.execute(request)
@@ -419,25 +438,33 @@ async def create_deployment_node(
 async def update_deployment_node(
     slug: str,
     request: UpdateDeploymentNodeRequest,
-    use_case: UpdateDeploymentNodeUseCase = Depends(get_update_deployment_node_use_case),
+    use_case: UpdateDeploymentNodeUseCase = Depends(
+        get_update_deployment_node_use_case
+    ),
 ) -> UpdateDeploymentNodeResponse:
     """Update an existing deployment node."""
     request.slug = slug
     response = await use_case.execute(request)
     if not response.found:
-        raise HTTPException(status_code=404, detail=f"Deployment node '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Deployment node '{slug}' not found"
+        )
     return response
 
 
 @router.delete("/deployment-nodes/{slug}", status_code=204)
 async def delete_deployment_node(
     slug: str,
-    use_case: DeleteDeploymentNodeUseCase = Depends(get_delete_deployment_node_use_case),
+    use_case: DeleteDeploymentNodeUseCase = Depends(
+        get_delete_deployment_node_use_case
+    ),
 ) -> None:
     """Delete a deployment node."""
     response = await use_case.execute(DeleteDeploymentNodeRequest(slug=slug))
     if not response.deleted:
-        raise HTTPException(status_code=404, detail=f"Deployment node '{slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Deployment node '{slug}' not found"
+        )
 
 
 # ============================================================================
@@ -465,7 +492,9 @@ async def get_dynamic_step(
     return response
 
 
-@router.post("/dynamic-steps", response_model=CreateDynamicStepResponse, status_code=201)
+@router.post(
+    "/dynamic-steps", response_model=CreateDynamicStepResponse, status_code=201
+)
 async def create_dynamic_step(
     request: CreateDynamicStepRequest,
     use_case: CreateDynamicStepUseCase = Depends(get_create_dynamic_step_use_case),
@@ -507,12 +536,16 @@ async def delete_dynamic_step(
 @router.get("/diagrams/context/{system_slug}")
 async def get_system_context_diagram(
     system_slug: str = Path(..., description="Software system slug"),
-    use_case: GetSystemContextDiagramUseCase = Depends(get_system_context_diagram_use_case),
+    use_case: GetSystemContextDiagramUseCase = Depends(
+        get_system_context_diagram_use_case
+    ),
 ) -> dict:
     """Generate a system context diagram for a software system."""
     result = await use_case.execute(system_slug)
     if not result:
-        raise HTTPException(status_code=404, detail=f"Software system '{system_slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Software system '{system_slug}' not found"
+        )
     return {
         "system": result.system.model_dump(),
         "external_systems": [s.model_dump() for s in result.external_systems],
@@ -529,7 +562,9 @@ async def get_container_diagram(
     """Generate a container diagram for a software system."""
     result = await use_case.execute(system_slug)
     if not result:
-        raise HTTPException(status_code=404, detail=f"Software system '{system_slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Software system '{system_slug}' not found"
+        )
     return {
         "system": result.system.model_dump(),
         "containers": [c.model_dump() for c in result.containers],
@@ -547,7 +582,9 @@ async def get_component_diagram(
     """Generate a component diagram for a container."""
     result = await use_case.execute(container_slug)
     if not result:
-        raise HTTPException(status_code=404, detail=f"Container '{container_slug}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Container '{container_slug}' not found"
+        )
     return {
         "system": result.system.model_dump(),
         "container": result.container.model_dump(),
@@ -561,7 +598,9 @@ async def get_component_diagram(
 
 @router.get("/diagrams/landscape")
 async def get_system_landscape_diagram(
-    use_case: GetSystemLandscapeDiagramUseCase = Depends(get_system_landscape_diagram_use_case),
+    use_case: GetSystemLandscapeDiagramUseCase = Depends(
+        get_system_landscape_diagram_use_case
+    ),
 ) -> dict:
     """Generate a system landscape diagram showing all systems."""
     result = await use_case.execute()
@@ -595,7 +634,9 @@ async def get_dynamic_diagram(
     """Generate a dynamic diagram for a sequence."""
     result = await use_case.execute(sequence_name)
     if not result:
-        raise HTTPException(status_code=404, detail=f"Sequence '{sequence_name}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Sequence '{sequence_name}' not found"
+        )
     return {
         "sequence_name": result.sequence_name,
         "steps": [s.model_dump() for s in result.steps],

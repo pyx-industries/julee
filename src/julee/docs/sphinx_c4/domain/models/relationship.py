@@ -112,8 +112,7 @@ class Relationship(BaseModel):
     def involves_element(self, element_type: ElementType, element_slug: str) -> bool:
         """Check if relationship involves a specific element."""
         return (
-            self.source_type == element_type
-            and self.source_slug == element_slug
+            self.source_type == element_type and self.source_slug == element_slug
         ) or (
             self.destination_type == element_type
             and self.destination_slug == element_slug

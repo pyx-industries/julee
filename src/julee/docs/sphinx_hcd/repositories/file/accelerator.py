@@ -11,7 +11,9 @@ from .base import FileRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class FileAcceleratorRepository(FileRepositoryMixin[Accelerator], AcceleratorRepository):
+class FileAcceleratorRepository(
+    FileRepositoryMixin[Accelerator], AcceleratorRepository
+):
     """File-backed implementation of AcceleratorRepository.
 
     Accelerators are stored as RST files with define-accelerator directives:
@@ -70,9 +72,7 @@ class FileAcceleratorRepository(FileRepositoryMixin[Accelerator], AcceleratorRep
 
     async def get_by_docname(self, docname: str) -> list[Accelerator]:
         """Get all accelerators defined in a specific document."""
-        return [
-            accel for accel in self.storage.values() if accel.docname == docname
-        ]
+        return [accel for accel in self.storage.values() if accel.docname == docname]
 
     async def clear_by_docname(self, docname: str) -> int:
         """Remove all accelerators defined in a specific document."""

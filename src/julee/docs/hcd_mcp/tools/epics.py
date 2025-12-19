@@ -101,26 +101,33 @@ async def list_epics() -> dict:
     # Count epics without stories
     empty_epics = [e for e in response.epics if not e.story_refs]
     if empty_epics:
-        suggestions.append({
-            "severity": "warning",
-            "category": "incomplete",
-            "message": f"{len(empty_epics)} epics have no stories defined",
-            "action": "Add story references to these epics",
-            "tool": "update_epic",
-            "context": {"empty_epic_slugs": [e.slug for e in empty_epics[:10]]},
-        })
+        suggestions.append(
+            {
+                "severity": "warning",
+                "category": "incomplete",
+                "message": f"{len(empty_epics)} epics have no stories defined",
+                "action": "Add story references to these epics",
+                "tool": "update_epic",
+                "context": {"empty_epic_slugs": [e.slug for e in empty_epics[:10]]},
+            }
+        )
 
     # Summary info
     total_story_refs = sum(len(e.story_refs) for e in response.epics)
     if response.epics:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"{len(response.epics)} epics reference {total_story_refs} stories",
-            "action": "Review story coverage across epics",
-            "tool": "list_stories",
-            "context": {"epic_count": len(response.epics), "story_ref_count": total_story_refs},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"{len(response.epics)} epics reference {total_story_refs} stories",
+                "action": "Review story coverage across epics",
+                "tool": "list_stories",
+                "context": {
+                    "epic_count": len(response.epics),
+                    "story_ref_count": total_story_refs,
+                },
+            }
+        )
 
     return {
         "entities": [e.model_dump() for e in response.epics],
@@ -161,7 +168,9 @@ async def update_epic(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_epic_suggestions(response.epic, ctx) if response.epic else []
+    suggestions = (
+        await compute_epic_suggestions(response.epic, ctx) if response.epic else []
+    )
 
     return {
         "success": True,
@@ -184,14 +193,16 @@ async def delete_epic(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "info",
-            "category": "next_step",
-            "message": "Epic deleted successfully",
-            "action": "Consider updating any journeys that referenced this epic in their steps",
-            "tool": "list_journeys",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "next_step",
+                "message": "Epic deleted successfully",
+                "action": "Consider updating any journeys that referenced this epic in their steps",
+                "tool": "list_journeys",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

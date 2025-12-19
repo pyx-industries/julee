@@ -43,7 +43,9 @@ class FileRelationshipRepository(
     def _load_all(self) -> None:
         """Load all relationships from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileRelationshipRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileRelationshipRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -54,7 +56,9 @@ class FileRelationshipRepository(
                 self.storage[relationship.slug] = relationship
                 logger.debug(f"FileRelationshipRepository: Loaded {relationship.slug}")
             except Exception as e:
-                logger.warning(f"FileRelationshipRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileRelationshipRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_for_element(
         self,
@@ -89,8 +93,7 @@ class FileRelationshipRepository(
         return [
             r
             for r in self.storage.values()
-            if r.destination_type == element_type
-            and r.destination_slug == element_slug
+            if r.destination_type == element_type and r.destination_slug == element_slug
         ]
 
     async def get_person_relationships(self) -> list[Relationship]:
@@ -125,9 +128,7 @@ class FileRelationshipRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear relationships defined in a specific document."""
-        to_remove = [
-            slug for slug, r in self.storage.items() if r.docname == docname
-        ]
+        to_remove = [slug for slug, r in self.storage.items() if r.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

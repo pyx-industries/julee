@@ -95,7 +95,9 @@ class DerivePersonasUseCase:
         # Build lookup of normalized story title -> normalized persona
         story_to_persona: dict[str, str] = {}
         for story in stories:
-            story_to_persona[normalize_name(story.feature_title)] = story.persona_normalized
+            story_to_persona[normalize_name(story.feature_title)] = (
+                story.persona_normalized
+            )
 
         # Find epics for each persona
         for epic in epics:

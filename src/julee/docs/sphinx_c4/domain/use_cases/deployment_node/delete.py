@@ -19,7 +19,9 @@ class DeleteDeploymentNodeUseCase:
         """
         self.deployment_node_repo = deployment_node_repo
 
-    async def execute(self, request: DeleteDeploymentNodeRequest) -> DeleteDeploymentNodeResponse:
+    async def execute(
+        self, request: DeleteDeploymentNodeRequest
+    ) -> DeleteDeploymentNodeResponse:
         """Delete a deployment node by slug.
 
         Args:

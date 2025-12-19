@@ -4,6 +4,9 @@ Provides use-case factory functions for FastAPI's dependency injection.
 """
 
 from ..c4_mcp.context import (
+    # Diagram use cases
+    get_component_diagram_use_case,
+    get_container_diagram_use_case,
     # Component use cases
     get_create_component_use_case,
     # Container use cases
@@ -22,6 +25,8 @@ from ..c4_mcp.context import (
     get_delete_dynamic_step_use_case,
     get_delete_relationship_use_case,
     get_delete_software_system_use_case,
+    get_deployment_diagram_use_case,
+    get_dynamic_diagram_use_case,
     get_get_component_use_case,
     get_get_container_use_case,
     get_get_deployment_node_use_case,
@@ -34,19 +39,14 @@ from ..c4_mcp.context import (
     get_list_dynamic_steps_use_case,
     get_list_relationships_use_case,
     get_list_software_systems_use_case,
+    get_system_context_diagram_use_case,
+    get_system_landscape_diagram_use_case,
     get_update_component_use_case,
     get_update_container_use_case,
     get_update_deployment_node_use_case,
     get_update_dynamic_step_use_case,
     get_update_relationship_use_case,
     get_update_software_system_use_case,
-    # Diagram use cases
-    get_component_diagram_use_case,
-    get_container_diagram_use_case,
-    get_deployment_diagram_use_case,
-    get_dynamic_diagram_use_case,
-    get_system_context_diagram_use_case,
-    get_system_landscape_diagram_use_case,
 )
 
 __all__ = [

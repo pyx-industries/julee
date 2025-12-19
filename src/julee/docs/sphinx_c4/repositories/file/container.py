@@ -11,9 +11,7 @@ from .base import FileRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class FileContainerRepository(
-    FileRepositoryMixin[Container], ContainerRepository
-):
+class FileContainerRepository(FileRepositoryMixin[Container], ContainerRepository):
     """File-backed implementation of ContainerRepository.
 
     Stores containers as JSON files in the specified directory.
@@ -43,7 +41,9 @@ class FileContainerRepository(
     def _load_all(self) -> None:
         """Load all containers from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileContainerRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileContainerRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -54,7 +54,9 @@ class FileContainerRepository(
                 self.storage[container.slug] = container
                 logger.debug(f"FileContainerRepository: Loaded {container.slug}")
             except Exception as e:
-                logger.warning(f"FileContainerRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileContainerRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_by_system(self, system_slug: str) -> list[Container]:
         """Get all containers within a software system."""
@@ -88,9 +90,7 @@ class FileContainerRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear containers defined in a specific document."""
-        to_remove = [
-            slug for slug, c in self.storage.items() if c.docname == docname
-        ]
+        to_remove = [slug for slug, c in self.storage.items() if c.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

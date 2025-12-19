@@ -5,7 +5,6 @@ Generates Structurizr DSL from diagram data.
 Reference: https://structurizr.com/dsl
 """
 
-from ..domain.models.relationship import ElementType
 from ..domain.use_cases.diagrams.component_diagram import ComponentDiagramData
 from ..domain.use_cases.diagrams.container_diagram import ContainerDiagramData
 from ..domain.use_cases.diagrams.deployment_diagram import DeploymentDiagramData
@@ -64,7 +63,7 @@ class StructurizrSerializer:
                 f'        {ext_sys.slug} = softwareSystem "{self._escape(ext_sys.name)}" '
                 f'"{self._escape(ext_sys.description)}" {{',
             )
-            lines.append("            tags \"External\"")
+            lines.append('            tags "External"')
             lines.append("        }")
 
         lines.append("")
@@ -85,7 +84,9 @@ class StructurizrSerializer:
         # Views
         lines.append("    views {")
         view_title = title or f"System Context for {system.name}"
-        lines.append(f'        systemContext {system.slug} "{self._escape(view_title)}" {{')
+        lines.append(
+            f'        systemContext {system.slug} "{self._escape(view_title)}" {{'
+        )
         lines.append("            include *")
         lines.append("            autoLayout")
         lines.append("        }")
@@ -118,7 +119,7 @@ class StructurizrSerializer:
                 f'        {ext_sys.slug} = softwareSystem "{self._escape(ext_sys.name)}" '
                 f'"{self._escape(ext_sys.description)}" {{',
             )
-            lines.append("            tags \"External\"")
+            lines.append('            tags "External"')
             lines.append("        }")
 
         # Main system with containers
@@ -134,14 +135,14 @@ class StructurizrSerializer:
 
             if container.is_data_store:
                 lines.append(
-                    f'            {container.slug} = container '
+                    f"            {container.slug} = container "
                     f'"{self._escape(container.name)}" "{desc}" "{tech}" {{'
                 )
-                lines.append("                tags \"Database\"")
+                lines.append('                tags "Database"')
                 lines.append("            }")
             else:
                 lines.append(
-                    f'            {container.slug} = container '
+                    f"            {container.slug} = container "
                     f'"{self._escape(container.name)}" "{desc}" "{tech}"'
                 )
 
@@ -196,7 +197,7 @@ class StructurizrSerializer:
             lines.append(
                 f'        {ext_sys.slug} = softwareSystem "{self._escape(ext_sys.name)}" {{',
             )
-            lines.append("            tags \"External\"")
+            lines.append('            tags "External"')
             lines.append("        }")
 
         # Main system with container and components
@@ -210,14 +211,14 @@ class StructurizrSerializer:
         # External containers (from same system)
         for ext_cont in data.external_containers:
             lines.append(
-                f'            {ext_cont.slug} = container '
+                f"            {ext_cont.slug} = container "
                 f'"{self._escape(ext_cont.name)}" "{self._escape(ext_cont.description)}" '
                 f'"{ext_cont.technology}"'
             )
 
         # Main container with components
         lines.append(
-            f'            {container.slug} = container '
+            f"            {container.slug} = container "
             f'"{self._escape(container.name)}" "{self._escape(container.description)}" '
             f'"{container.technology}" {{'
         )
@@ -226,7 +227,7 @@ class StructurizrSerializer:
             desc = self._escape(component.description)
             tech = component.technology
             lines.append(
-                f'                {component.slug} = component '
+                f"                {component.slug} = component "
                 f'"{self._escape(component.name)}" "{desc}" "{tech}"'
             )
 
@@ -250,7 +251,9 @@ class StructurizrSerializer:
         # Views
         lines.append("    views {")
         view_title = title or f"Components for {container.name}"
-        lines.append(f'        component {container.slug} "{self._escape(view_title)}" {{')
+        lines.append(
+            f'        component {container.slug} "{self._escape(view_title)}" {{'
+        )
         lines.append("            include *")
         lines.append("            autoLayout")
         lines.append("        }")
@@ -282,14 +285,14 @@ class StructurizrSerializer:
             desc = self._escape(system.description)
             if system.system_type.value == "external":
                 lines.append(
-                    f'        {system.slug} = softwareSystem '
+                    f"        {system.slug} = softwareSystem "
                     f'"{self._escape(system.name)}" "{desc}" {{'
                 )
-                lines.append("            tags \"External\"")
+                lines.append('            tags "External"')
                 lines.append("        }")
             else:
                 lines.append(
-                    f'        {system.slug} = softwareSystem '
+                    f"        {system.slug} = softwareSystem "
                     f'"{self._escape(system.name)}" "{desc}"'
                 )
 
@@ -340,7 +343,7 @@ class StructurizrSerializer:
             lines.append('        system = softwareSystem "System" {')
             for container in data.containers:
                 lines.append(
-                    f'            {container.slug} = container '
+                    f"            {container.slug} = container "
                     f'"{self._escape(container.name)}"'
                 )
             lines.append("        }")
@@ -362,14 +365,14 @@ class StructurizrSerializer:
             # Container instances
             for instance in node.container_instances:
                 cont_slug = instance.container_slug
-                lines.append(f'{prefix}    containerInstance {cont_slug}')
+                lines.append(f"{prefix}    containerInstance {cont_slug}")
 
             # Child nodes
             children = [n for n in data.nodes if n.parent_slug == node.slug]
             for child in children:
                 render_node(child, indent + 1)
 
-            lines.append(f'{prefix}}}')
+            lines.append(f"{prefix}}}")
 
         root_nodes = [n for n in data.nodes if not n.parent_slug]
         for node in root_nodes:
@@ -426,19 +429,19 @@ class StructurizrSerializer:
                     c.container_slug == container.slug for c in data.components
                 ):
                     lines.append(
-                        f'            {container.slug} = container '
+                        f"            {container.slug} = container "
                         f'"{self._escape(container.name)}" {{'
                     )
                     for component in data.components:
                         if component.container_slug == container.slug:
                             lines.append(
-                                f'                {component.slug} = component '
+                                f"                {component.slug} = component "
                                 f'"{self._escape(component.name)}"'
                             )
                     lines.append("            }")
                 else:
                     lines.append(
-                        f'            {container.slug} = container '
+                        f"            {container.slug} = container "
                         f'"{self._escape(container.name)}"'
                     )
             lines.append("        }")

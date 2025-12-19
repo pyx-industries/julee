@@ -9,12 +9,12 @@ Core C4 abstractions:
 - DynamicStep: Numbered interaction for dynamic diagrams
 """
 
-from .software_system import SoftwareSystem, SystemType
-from .container import Container, ContainerType
 from .component import Component
-from .relationship import Relationship, ElementType
-from .deployment_node import DeploymentNode, NodeType, ContainerInstance
+from .container import Container, ContainerType
+from .deployment_node import ContainerInstance, DeploymentNode, NodeType
 from .dynamic_step import DynamicStep
+from .relationship import ElementType, Relationship
+from .software_system import SoftwareSystem, SystemType
 
 __all__ = [
     "SoftwareSystem",

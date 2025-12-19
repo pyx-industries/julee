@@ -66,14 +66,16 @@ async def create_integration(
     suggestions = await compute_integration_suggestions(response.integration, ctx)
 
     # Add suggestion to connect to accelerators
-    suggestions.append({
-        "severity": "suggestion",
-        "category": "next_step",
-        "message": "Integration created - consider connecting it to accelerators",
-        "action": "Add this integration to an accelerator's sources_from or publishes_to",
-        "tool": "update_accelerator",
-        "context": {"integration_slug": slug},
-    })
+    suggestions.append(
+        {
+            "severity": "suggestion",
+            "category": "next_step",
+            "message": "Integration created - consider connecting it to accelerators",
+            "action": "Add this integration to an accelerator's sources_from or publishes_to",
+            "tool": "update_accelerator",
+            "context": {"integration_slug": slug},
+        }
+    )
 
     return {
         "success": True,
@@ -139,29 +141,35 @@ async def list_integrations() -> dict:
     # Find unused integrations
     unused = [i for i in response.integrations if i.slug not in used_integrations]
     if unused:
-        suggestions.append({
-            "severity": "info",
-            "category": "orphan",
-            "message": f"{len(unused)} integrations are not referenced by any accelerators",
-            "action": "Consider connecting these integrations to accelerators",
-            "tool": "update_accelerator",
-            "context": {"unused_integrations": [i.slug for i in unused[:10]]},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "orphan",
+                "message": f"{len(unused)} integrations are not referenced by any accelerators",
+                "action": "Consider connecting these integrations to accelerators",
+                "tool": "update_accelerator",
+                "context": {"unused_integrations": [i.slug for i in unused[:10]]},
+            }
+        )
 
     # Direction distribution
     directions = {}
     for i in response.integrations:
-        dir_name = i.direction.value if hasattr(i.direction, "value") else str(i.direction)
+        dir_name = (
+            i.direction.value if hasattr(i.direction, "value") else str(i.direction)
+        )
         directions[dir_name] = directions.get(dir_name, 0) + 1
     if directions:
-        suggestions.append({
-            "severity": "info",
-            "category": "relationship",
-            "message": f"Integration directions: {directions}",
-            "action": "Review data flow patterns",
-            "tool": None,
-            "context": {"direction_counts": directions},
-        })
+        suggestions.append(
+            {
+                "severity": "info",
+                "category": "relationship",
+                "message": f"Integration directions: {directions}",
+                "action": "Review data flow patterns",
+                "tool": None,
+                "context": {"direction_counts": directions},
+            }
+        )
 
     return {
         "entities": [i.model_dump() for i in response.integrations],
@@ -214,7 +222,11 @@ async def update_integration(
 
     # Compute suggestions
     ctx = get_suggestion_context()
-    suggestions = await compute_integration_suggestions(response.integration, ctx) if response.integration else []
+    suggestions = (
+        await compute_integration_suggestions(response.integration, ctx)
+        if response.integration
+        else []
+    )
 
     return {
         "success": True,
@@ -237,14 +249,16 @@ async def delete_integration(slug: str) -> dict:
 
     suggestions = []
     if response.deleted:
-        suggestions.append({
-            "severity": "warning",
-            "category": "next_step",
-            "message": "Integration deleted - accelerators may have broken references",
-            "action": "Review and update accelerators that referenced this integration",
-            "tool": "list_accelerators",
-            "context": {"deleted_slug": slug},
-        })
+        suggestions.append(
+            {
+                "severity": "warning",
+                "category": "next_step",
+                "message": "Integration deleted - accelerators may have broken references",
+                "action": "Review and update accelerators that referenced this integration",
+                "tool": "list_accelerators",
+                "context": {"deleted_slug": slug},
+            }
+        )
 
     return {
         "success": response.deleted,

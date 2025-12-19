@@ -19,7 +19,9 @@ class ListSoftwareSystemsUseCase:
         """
         self.software_system_repo = software_system_repo
 
-    async def execute(self, request: ListSoftwareSystemsRequest) -> ListSoftwareSystemsResponse:
+    async def execute(
+        self, request: ListSoftwareSystemsRequest
+    ) -> ListSoftwareSystemsResponse:
         """List all software systems.
 
         Args:

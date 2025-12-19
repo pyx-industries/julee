@@ -44,7 +44,9 @@ class FileDynamicStepRepository(
     def _load_all(self) -> None:
         """Load all dynamic steps from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileDynamicStepRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileDynamicStepRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -55,7 +57,9 @@ class FileDynamicStepRepository(
                 self.storage[step.slug] = step
                 logger.debug(f"FileDynamicStepRepository: Loaded {step.slug}")
             except Exception as e:
-                logger.warning(f"FileDynamicStepRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileDynamicStepRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_by_sequence(self, sequence_name: str) -> list[DynamicStep]:
         """Get all steps in a sequence, ordered by step_number."""
@@ -93,9 +97,7 @@ class FileDynamicStepRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear steps defined in a specific document."""
-        to_remove = [
-            slug for slug, s in self.storage.items() if s.docname == docname
-        ]
+        to_remove = [slug for slug, s in self.storage.items() if s.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

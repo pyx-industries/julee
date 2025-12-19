@@ -4,12 +4,12 @@ Defines the abstract interfaces for C4 entity repositories.
 """
 
 from .base import BaseRepository
-from .software_system import SoftwareSystemRepository
-from .container import ContainerRepository
 from .component import ComponentRepository
-from .relationship import RelationshipRepository
+from .container import ContainerRepository
 from .deployment_node import DeploymentNodeRepository
 from .dynamic_step import DynamicStepRepository
+from .relationship import RelationshipRepository
+from .software_system import SoftwareSystemRepository
 
 __all__ = [
     "BaseRepository",

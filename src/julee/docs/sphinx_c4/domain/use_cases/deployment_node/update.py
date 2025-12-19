@@ -19,7 +19,9 @@ class UpdateDeploymentNodeUseCase:
         """
         self.deployment_node_repo = deployment_node_repo
 
-    async def execute(self, request: UpdateDeploymentNodeRequest) -> UpdateDeploymentNodeResponse:
+    async def execute(
+        self, request: UpdateDeploymentNodeRequest
+    ) -> UpdateDeploymentNodeResponse:
         """Update an existing deployment node.
 
         Args:

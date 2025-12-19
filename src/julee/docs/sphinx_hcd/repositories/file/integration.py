@@ -13,7 +13,9 @@ from .base import FileRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class FileIntegrationRepository(FileRepositoryMixin[Integration], IntegrationRepository):
+class FileIntegrationRepository(
+    FileRepositoryMixin[Integration], IntegrationRepository
+):
     """File-backed implementation of IntegrationRepository.
 
     Integrations are stored as YAML manifests in the directory structure:

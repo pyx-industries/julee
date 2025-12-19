@@ -41,7 +41,9 @@ def serialize_app(app: App) -> str:
     if app.accelerators:
         data["accelerators"] = app.accelerators
 
-    return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    return yaml.dump(
+        data, default_flow_style=False, sort_keys=False, allow_unicode=True
+    )
 
 
 def serialize_integration(integration: Integration) -> str:
@@ -84,4 +86,6 @@ def serialize_integration(integration: Integration) -> str:
             depends_on_list.append(dep_data)
         data["depends_on"] = depends_on_list
 
-    return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    return yaml.dump(
+        data, default_flow_style=False, sort_keys=False, allow_unicode=True
+    )

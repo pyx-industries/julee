@@ -5,9 +5,7 @@ from ...domain.repositories.component import ComponentRepository
 from .base import MemoryRepositoryMixin
 
 
-class MemoryComponentRepository(
-    MemoryRepositoryMixin[Component], ComponentRepository
-):
+class MemoryComponentRepository(MemoryRepositoryMixin[Component], ComponentRepository):
     """In-memory implementation of ComponentRepository.
 
     Stores components in a dictionary keyed by slug.
@@ -21,9 +19,7 @@ class MemoryComponentRepository(
 
     async def get_by_container(self, container_slug: str) -> list[Component]:
         """Get all components within a container."""
-        return [
-            c for c in self.storage.values() if c.container_slug == container_slug
-        ]
+        return [c for c in self.storage.values() if c.container_slug == container_slug]
 
     async def get_by_system(self, system_slug: str) -> list[Component]:
         """Get all components within a software system."""
@@ -43,9 +39,7 @@ class MemoryComponentRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear components defined in a specific document."""
-        to_remove = [
-            slug for slug, c in self.storage.items() if c.docname == docname
-        ]
+        to_remove = [slug for slug, c in self.storage.items() if c.docname == docname]
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)

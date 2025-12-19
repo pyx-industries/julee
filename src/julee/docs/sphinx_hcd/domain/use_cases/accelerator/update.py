@@ -19,7 +19,9 @@ class UpdateAcceleratorUseCase:
         """
         self.accelerator_repo = accelerator_repo
 
-    async def execute(self, request: UpdateAcceleratorRequest) -> UpdateAcceleratorResponse:
+    async def execute(
+        self, request: UpdateAcceleratorRequest
+    ) -> UpdateAcceleratorResponse:
         """Update an existing accelerator.
 
         Args:

@@ -35,25 +35,16 @@ class Suggestion(BaseModel):
     Provides actionable guidance based on domain semantics.
     """
 
-    severity: SuggestionSeverity = Field(
-        description="How urgent this suggestion is"
-    )
-    category: SuggestionCategory = Field(
-        description="Type of suggestion for filtering"
-    )
-    message: str = Field(
-        description="Human-readable explanation of the suggestion"
-    )
-    action: str = Field(
-        description="Recommended action to take"
-    )
+    severity: SuggestionSeverity = Field(description="How urgent this suggestion is")
+    category: SuggestionCategory = Field(description="Type of suggestion for filtering")
+    message: str = Field(description="Human-readable explanation of the suggestion")
+    action: str = Field(description="Recommended action to take")
     tool: str | None = Field(
         default=None,
-        description="MCP tool name to use for the action (e.g., 'create_epic')"
+        description="MCP tool name to use for the action (e.g., 'create_epic')",
     )
     context: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Related entities or values for context"
+        default_factory=dict, description="Related entities or values for context"
     )
 
 
@@ -104,7 +95,9 @@ def story_references_unknown_app(story_slug: str, app_slug: str) -> Suggestion:
     )
 
 
-def story_not_in_any_epic(story_slug: str, feature_title: str, available_epics: list[str]) -> Suggestion:
+def story_not_in_any_epic(
+    story_slug: str, feature_title: str, available_epics: list[str]
+) -> Suggestion:
     """Suggest adding a story to an epic."""
     if available_epics:
         action = f"Add this story to an existing epic (available: {', '.join(available_epics[:5])}) or create a new epic"
@@ -219,7 +212,9 @@ def journey_step_references_unknown_epic(
 ) -> Suggestion:
     """Warn that a journey step references a non-existent epic."""
     if available_epics:
-        action = f"Reference an existing epic (available: {', '.join(available_epics[:5])})"
+        action = (
+            f"Reference an existing epic (available: {', '.join(available_epics[:5])})"
+        )
     else:
         action = "Create the epic first, then reference it in the journey step"
     return Suggestion(

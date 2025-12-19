@@ -19,7 +19,9 @@ class GetSoftwareSystemUseCase:
         """
         self.software_system_repo = software_system_repo
 
-    async def execute(self, request: GetSoftwareSystemRequest) -> GetSoftwareSystemResponse:
+    async def execute(
+        self, request: GetSoftwareSystemRequest
+    ) -> GetSoftwareSystemResponse:
         """Get a software system by slug.
 
         Args:

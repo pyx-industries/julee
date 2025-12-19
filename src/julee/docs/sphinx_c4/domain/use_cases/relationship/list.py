@@ -19,7 +19,9 @@ class ListRelationshipsUseCase:
         """
         self.relationship_repo = relationship_repo
 
-    async def execute(self, request: ListRelationshipsRequest) -> ListRelationshipsResponse:
+    async def execute(
+        self, request: ListRelationshipsRequest
+    ) -> ListRelationshipsResponse:
         """List all relationships.
 
         Args:

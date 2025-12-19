@@ -11,9 +11,7 @@ from .base import FileRepositoryMixin
 logger = logging.getLogger(__name__)
 
 
-class FileComponentRepository(
-    FileRepositoryMixin[Component], ComponentRepository
-):
+class FileComponentRepository(FileRepositoryMixin[Component], ComponentRepository):
     """File-backed implementation of ComponentRepository.
 
     Stores components as JSON files in the specified directory.
@@ -43,7 +41,9 @@ class FileComponentRepository(
     def _load_all(self) -> None:
         """Load all components from disk."""
         if not self.base_path.exists():
-            logger.debug(f"FileComponentRepository: Base path does not exist: {self.base_path}")
+            logger.debug(
+                f"FileComponentRepository: Base path does not exist: {self.base_path}"
+            )
             return
 
         for file_path in self.base_path.glob("*.json"):
@@ -54,13 +54,13 @@ class FileComponentRepository(
                 self.storage[component.slug] = component
                 logger.debug(f"FileComponentRepository: Loaded {component.slug}")
             except Exception as e:
-                logger.warning(f"FileComponentRepository: Failed to load {file_path}: {e}")
+                logger.warning(
+                    f"FileComponentRepository: Failed to load {file_path}: {e}"
+                )
 
     async def get_by_container(self, container_slug: str) -> list[Component]:
         """Get all components within a container."""
-        return [
-            c for c in self.storage.values() if c.container_slug == container_slug
-        ]
+        return [c for c in self.storage.values() if c.container_slug == container_slug]
 
     async def get_by_system(self, system_slug: str) -> list[Component]:
         """Get all components within a software system."""
@@ -80,9 +80,7 @@ class FileComponentRepository(
 
     async def clear_by_docname(self, docname: str) -> int:
         """Clear components defined in a specific document."""
-        to_remove = [
-            slug for slug, c in self.storage.items() if c.docname == docname
-        ]
+        to_remove = [slug for slug, c in self.storage.items() if c.docname == docname]
         for slug in to_remove:
             await self.delete(slug)
         return len(to_remove)

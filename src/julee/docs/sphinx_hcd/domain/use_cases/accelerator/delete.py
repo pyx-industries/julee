@@ -19,7 +19,9 @@ class DeleteAcceleratorUseCase:
         """
         self.accelerator_repo = accelerator_repo
 
-    async def execute(self, request: DeleteAcceleratorRequest) -> DeleteAcceleratorResponse:
+    async def execute(
+        self, request: DeleteAcceleratorRequest
+    ) -> DeleteAcceleratorResponse:
         """Delete an accelerator by slug.
 
         Args:

@@ -36,7 +36,9 @@ class DeploymentNodeRepository(BaseRepository[DeploymentNode], Protocol):
         """
         ...
 
-    async def get_root_nodes(self, environment: str | None = None) -> list[DeploymentNode]:
+    async def get_root_nodes(
+        self, environment: str | None = None
+    ) -> list[DeploymentNode]:
         """Get top-level nodes (no parent).
 
         Args:

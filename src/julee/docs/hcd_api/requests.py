@@ -37,11 +37,17 @@ class CreateStoryRequest(BaseModel):
     feature_title: str = Field(description="The Feature: line from the Gherkin file")
     persona: str = Field(description="The actor from 'As a <persona>'")
     app_slug: str = Field(description="The application this story belongs to")
-    i_want: str = Field(default="do something", description="The action from 'I want to <action>'")
-    so_that: str = Field(default="achieve a goal", description="The benefit from 'So that <benefit>'")
+    i_want: str = Field(
+        default="do something", description="The action from 'I want to <action>'"
+    )
+    so_that: str = Field(
+        default="achieve a goal", description="The benefit from 'So that <benefit>'"
+    )
     file_path: str = Field(default="", description="Relative path to the .feature file")
     abs_path: str = Field(default="", description="Absolute path to the .feature file")
-    gherkin_snippet: str = Field(default="", description="The story header portion of the feature file")
+    gherkin_snippet: str = Field(
+        default="", description="The story header portion of the feature file"
+    )
 
     @field_validator("feature_title")
     @classmethod
@@ -133,8 +139,12 @@ class CreateEpicRequest(BaseModel):
     """
 
     slug: str = Field(description="URL-safe identifier")
-    description: str = Field(default="", description="Human-readable description of the epic")
-    story_refs: list[str] = Field(default_factory=list, description="List of story feature titles in this epic")
+    description: str = Field(
+        default="", description="Human-readable description of the epic"
+    )
+    story_refs: list[str] = Field(
+        default_factory=list, description="List of story feature titles in this epic"
+    )
 
     @field_validator("slug")
     @classmethod
@@ -222,13 +232,26 @@ class CreateJourneyRequest(BaseModel):
 
     slug: str = Field(description="URL-safe identifier")
     persona: str = Field(default="", description="The persona undertaking this journey")
-    intent: str = Field(default="", description="What the persona wants (their motivation)")
-    outcome: str = Field(default="", description="What success looks like (business value)")
+    intent: str = Field(
+        default="", description="What the persona wants (their motivation)"
+    )
+    outcome: str = Field(
+        default="", description="What success looks like (business value)"
+    )
     goal: str = Field(default="", description="Activity description (what they do)")
-    depends_on: list[str] = Field(default_factory=list, description="Journey slugs that must be completed first")
-    steps: list[JourneyStepInput] = Field(default_factory=list, description="Sequence of journey steps")
-    preconditions: list[str] = Field(default_factory=list, description="Conditions that must be true before starting")
-    postconditions: list[str] = Field(default_factory=list, description="Conditions that will be true after completion")
+    depends_on: list[str] = Field(
+        default_factory=list, description="Journey slugs that must be completed first"
+    )
+    steps: list[JourneyStepInput] = Field(
+        default_factory=list, description="Sequence of journey steps"
+    )
+    preconditions: list[str] = Field(
+        default_factory=list, description="Conditions that must be true before starting"
+    )
+    postconditions: list[str] = Field(
+        default_factory=list,
+        description="Conditions that will be true after completion",
+    )
 
     @field_validator("slug")
     @classmethod
@@ -330,16 +353,22 @@ class CreateAcceleratorRequest(BaseModel):
     slug: str = Field(description="URL-safe identifier")
     status: str = Field(default="", description="Development status")
     milestone: str | None = Field(default=None, description="Target milestone")
-    acceptance: str | None = Field(default=None, description="Acceptance criteria description")
+    acceptance: str | None = Field(
+        default=None, description="Acceptance criteria description"
+    )
     objective: str = Field(default="", description="Business objective/description")
     sources_from: list[IntegrationReferenceInput] = Field(
         default_factory=list, description="Integrations this accelerator reads from"
     )
-    feeds_into: list[str] = Field(default_factory=list, description="Other accelerators this one feeds data into")
+    feeds_into: list[str] = Field(
+        default_factory=list, description="Other accelerators this one feeds data into"
+    )
     publishes_to: list[IntegrationReferenceInput] = Field(
         default_factory=list, description="Integrations this accelerator writes to"
     )
-    depends_on: list[str] = Field(default_factory=list, description="Other accelerators this one depends on")
+    depends_on: list[str] = Field(
+        default_factory=list, description="Other accelerators this one depends on"
+    )
 
     @field_validator("slug")
     @classmethod
@@ -424,12 +453,16 @@ class ExternalDependencyInput(BaseModel):
     """Input model for external dependency."""
 
     name: str = Field(description="Display name of the external system")
-    url: str | None = Field(default=None, description="URL for documentation or reference")
+    url: str | None = Field(
+        default=None, description="URL for documentation or reference"
+    )
     description: str = Field(default="", description="Brief description")
 
     def to_domain_model(self) -> ExternalDependency:
         """Convert to ExternalDependency."""
-        return ExternalDependency(name=self.name, url=self.url, description=self.description)
+        return ExternalDependency(
+            name=self.name, url=self.url, description=self.description
+        )
 
 
 class CreateIntegrationRequest(BaseModel):
@@ -444,7 +477,10 @@ class CreateIntegrationRequest(BaseModel):
     module: str = Field(description="Python module name")
     name: str = Field(description="Display name")
     description: str = Field(default="", description="Human-readable description")
-    direction: str = Field(default="bidirectional", description="Data flow direction: inbound, outbound, bidirectional")
+    direction: str = Field(
+        default="bidirectional",
+        description="Data flow direction: inbound, outbound, bidirectional",
+    )
     depends_on: list[ExternalDependencyInput] = Field(
         default_factory=list, description="List of external dependencies"
     )
@@ -533,10 +569,15 @@ class CreateAppRequest(BaseModel):
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
-    app_type: str = Field(default="unknown", description="Classification: staff, external, member-tool, unknown")
+    app_type: str = Field(
+        default="unknown",
+        description="Classification: staff, external, member-tool, unknown",
+    )
     status: str | None = Field(default=None, description="Status indicator")
     description: str = Field(default="", description="Human-readable description")
-    accelerators: list[str] = Field(default_factory=list, description="List of accelerator slugs")
+    accelerators: list[str] = Field(
+        default_factory=list, description="List of accelerator slugs"
+    )
 
     @field_validator("slug")
     @classmethod
@@ -635,9 +676,15 @@ class CreatePersonaRequest(BaseModel):
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name (used in Gherkin 'As a {name}')")
-    goals: list[str] = Field(default_factory=list, description="What the persona wants to achieve")
-    frustrations: list[str] = Field(default_factory=list, description="Pain points and problems")
-    jobs_to_be_done: list[str] = Field(default_factory=list, description="JTBD framework items")
+    goals: list[str] = Field(
+        default_factory=list, description="What the persona wants to achieve"
+    )
+    frustrations: list[str] = Field(
+        default_factory=list, description="Pain points and problems"
+    )
+    jobs_to_be_done: list[str] = Field(
+        default_factory=list, description="JTBD framework items"
+    )
     context: str = Field(default="", description="Background and situational context")
 
     @field_validator("slug")
