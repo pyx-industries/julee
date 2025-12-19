@@ -36,9 +36,7 @@ class TestCreateIntegrationUseCase:
         return MemoryIntegrationRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryIntegrationRepository
-    ) -> CreateIntegrationUseCase:
+    def use_case(self, repo: MemoryIntegrationRepository) -> CreateIntegrationUseCase:
         """Create the use case with repository."""
         return CreateIntegrationUseCase(repo)
 
@@ -224,9 +222,7 @@ class TestListIntegrationsUseCase:
         assert slugs == {"int-1", "int-2", "int-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryIntegrationRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryIntegrationRepository) -> None:
         """Test listing returns empty list when no integrations."""
         use_case = ListIntegrationsUseCase(repo)
         request = ListIntegrationsRequest()
@@ -274,9 +270,7 @@ class TestUpdateIntegrationUseCase:
         return UpdateIntegrationUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_update_name(
-        self, use_case: UpdateIntegrationUseCase
-    ) -> None:
+    async def test_update_name(self, use_case: UpdateIntegrationUseCase) -> None:
         """Test updating the name."""
         request = UpdateIntegrationRequest(
             slug="update-integration",
@@ -292,9 +286,7 @@ class TestUpdateIntegrationUseCase:
         assert response.integration.description == "Original description"
 
     @pytest.mark.asyncio
-    async def test_update_direction(
-        self, use_case: UpdateIntegrationUseCase
-    ) -> None:
+    async def test_update_direction(self, use_case: UpdateIntegrationUseCase) -> None:
         """Test updating the direction."""
         request = UpdateIntegrationRequest(
             slug="update-integration",
@@ -306,9 +298,7 @@ class TestUpdateIntegrationUseCase:
         assert response.integration.direction == Direction.OUTBOUND
 
     @pytest.mark.asyncio
-    async def test_update_depends_on(
-        self, use_case: UpdateIntegrationUseCase
-    ) -> None:
+    async def test_update_depends_on(self, use_case: UpdateIntegrationUseCase) -> None:
         """Test updating depends_on."""
         request = UpdateIntegrationRequest(
             slug="update-integration",

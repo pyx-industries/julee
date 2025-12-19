@@ -157,16 +157,12 @@ class TestListPersonasUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryPersonaRepository
-    ) -> ListPersonasUseCase:
+    def use_case(self, populated_repo: MemoryPersonaRepository) -> ListPersonasUseCase:
         """Create the use case with populated repository."""
         return ListPersonasUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_list_all_personas(
-        self, use_case: ListPersonasUseCase
-    ) -> None:
+    async def test_list_all_personas(self, use_case: ListPersonasUseCase) -> None:
         """Test listing all personas."""
         request = ListPersonasRequest()
 
@@ -177,9 +173,7 @@ class TestListPersonasUseCase:
         assert names == {"Persona One", "Persona Two", "Persona Three"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryPersonaRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryPersonaRepository) -> None:
         """Test listing returns empty list when no personas."""
         use_case = ListPersonasUseCase(repo)
         request = ListPersonasRequest()
@@ -213,16 +207,12 @@ class TestUpdatePersonaUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryPersonaRepository
-    ) -> UpdatePersonaUseCase:
+    def use_case(self, populated_repo: MemoryPersonaRepository) -> UpdatePersonaUseCase:
         """Create the use case with populated repository."""
         return UpdatePersonaUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_update_name(
-        self, use_case: UpdatePersonaUseCase
-    ) -> None:
+    async def test_update_name(self, use_case: UpdatePersonaUseCase) -> None:
         """Test updating the name."""
         request = UpdatePersonaRequest(
             slug="update-persona",
@@ -238,9 +228,7 @@ class TestUpdatePersonaUseCase:
         assert response.persona.context == "Original context"
 
     @pytest.mark.asyncio
-    async def test_update_goals(
-        self, use_case: UpdatePersonaUseCase
-    ) -> None:
+    async def test_update_goals(self, use_case: UpdatePersonaUseCase) -> None:
         """Test updating goals."""
         request = UpdatePersonaRequest(
             slug="update-persona",
@@ -252,9 +240,7 @@ class TestUpdatePersonaUseCase:
         assert response.persona.goals == ["New goal 1", "New goal 2"]
 
     @pytest.mark.asyncio
-    async def test_update_frustrations(
-        self, use_case: UpdatePersonaUseCase
-    ) -> None:
+    async def test_update_frustrations(self, use_case: UpdatePersonaUseCase) -> None:
         """Test updating frustrations."""
         request = UpdatePersonaRequest(
             slug="update-persona",
@@ -266,9 +252,7 @@ class TestUpdatePersonaUseCase:
         assert response.persona.frustrations == ["New frustration"]
 
     @pytest.mark.asyncio
-    async def test_update_multiple_fields(
-        self, use_case: UpdatePersonaUseCase
-    ) -> None:
+    async def test_update_multiple_fields(self, use_case: UpdatePersonaUseCase) -> None:
         """Test updating multiple fields."""
         request = UpdatePersonaRequest(
             slug="update-persona",
@@ -320,9 +304,7 @@ class TestDeletePersonaUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryPersonaRepository
-    ) -> DeletePersonaUseCase:
+    def use_case(self, populated_repo: MemoryPersonaRepository) -> DeletePersonaUseCase:
         """Create the use case with populated repository."""
         return DeletePersonaUseCase(populated_repo)
 

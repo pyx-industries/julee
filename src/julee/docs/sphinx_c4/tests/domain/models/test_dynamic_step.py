@@ -237,18 +237,12 @@ class TestDynamicStepInvolvesElement:
 
     def test_involves_element_destination(self, sample_step: DynamicStep) -> None:
         """Test involves_element for destination element."""
-        assert (
-            sample_step.involves_element(ElementType.CONTAINER, "database") is True
-        )
+        assert sample_step.involves_element(ElementType.CONTAINER, "database") is True
 
     def test_involves_element_not_involved(self, sample_step: DynamicStep) -> None:
         """Test involves_element for element not in step."""
-        assert (
-            sample_step.involves_element(ElementType.CONTAINER, "other") is False
-        )
+        assert sample_step.involves_element(ElementType.CONTAINER, "other") is False
 
     def test_involves_element_wrong_type(self, sample_step: DynamicStep) -> None:
         """Test involves_element with wrong element type."""
-        assert (
-            sample_step.involves_element(ElementType.COMPONENT, "api-app") is False
-        )
+        assert sample_step.involves_element(ElementType.COMPONENT, "api-app") is False

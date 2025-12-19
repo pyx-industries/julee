@@ -1,7 +1,5 @@
 """Tests for error handling utilities."""
 
-import pytest
-
 from ..error_handling import (
     ErrorType,
     conflict_error,
@@ -192,7 +190,9 @@ class TestReferenceError:
             referenced_id="new-system",
         )
         suggestions = result["suggestions"]
-        assert any("create_software_system" in (s.get("tool") or "") for s in suggestions)
+        assert any(
+            "create_software_system" in (s.get("tool") or "") for s in suggestions
+        )
 
 
 class TestPermissionError:

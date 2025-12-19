@@ -59,9 +59,7 @@ class TestCreateEpicUseCase:
         assert stored.slug == "authentication"
 
     @pytest.mark.asyncio
-    async def test_create_epic_with_defaults(
-        self, use_case: CreateEpicUseCase
-    ) -> None:
+    async def test_create_epic_with_defaults(self, use_case: CreateEpicUseCase) -> None:
         """Test creating epic with default values."""
         request = CreateEpicRequest(slug="minimal-epic")
 
@@ -80,9 +78,7 @@ class TestGetEpicUseCase:
         return MemoryEpicRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryEpicRepository
-    ) -> MemoryEpicRepository:
+    async def populated_repo(self, repo: MemoryEpicRepository) -> MemoryEpicRepository:
         """Create repository with sample data."""
         await repo.save(
             Epic(
@@ -128,9 +124,7 @@ class TestListEpicsUseCase:
         return MemoryEpicRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryEpicRepository
-    ) -> MemoryEpicRepository:
+    async def populated_repo(self, repo: MemoryEpicRepository) -> MemoryEpicRepository:
         """Create repository with sample data."""
         epics = [
             Epic(slug="epic-1", description="First epic"),
@@ -177,9 +171,7 @@ class TestUpdateEpicUseCase:
         return MemoryEpicRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryEpicRepository
-    ) -> MemoryEpicRepository:
+    async def populated_repo(self, repo: MemoryEpicRepository) -> MemoryEpicRepository:
         """Create repository with sample data."""
         await repo.save(
             Epic(
@@ -191,16 +183,12 @@ class TestUpdateEpicUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryEpicRepository
-    ) -> UpdateEpicUseCase:
+    def use_case(self, populated_repo: MemoryEpicRepository) -> UpdateEpicUseCase:
         """Create the use case with populated repository."""
         return UpdateEpicUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_update_description(
-        self, use_case: UpdateEpicUseCase
-    ) -> None:
+    async def test_update_description(self, use_case: UpdateEpicUseCase) -> None:
         """Test updating the description."""
         request = UpdateEpicRequest(
             slug="update-epic",
@@ -216,9 +204,7 @@ class TestUpdateEpicUseCase:
         assert response.epic.story_refs == ["original-story"]
 
     @pytest.mark.asyncio
-    async def test_update_story_refs(
-        self, use_case: UpdateEpicUseCase
-    ) -> None:
+    async def test_update_story_refs(self, use_case: UpdateEpicUseCase) -> None:
         """Test updating story refs."""
         request = UpdateEpicRequest(
             slug="update-epic",
@@ -230,9 +216,7 @@ class TestUpdateEpicUseCase:
         assert response.epic.story_refs == ["new-story-1", "new-story-2"]
 
     @pytest.mark.asyncio
-    async def test_update_nonexistent_epic(
-        self, use_case: UpdateEpicUseCase
-    ) -> None:
+    async def test_update_nonexistent_epic(self, use_case: UpdateEpicUseCase) -> None:
         """Test updating nonexistent epic returns None."""
         request = UpdateEpicRequest(
             slug="nonexistent",
@@ -254,17 +238,13 @@ class TestDeleteEpicUseCase:
         return MemoryEpicRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryEpicRepository
-    ) -> MemoryEpicRepository:
+    async def populated_repo(self, repo: MemoryEpicRepository) -> MemoryEpicRepository:
         """Create repository with sample data."""
         await repo.save(Epic(slug="to-delete", description="Epic to delete"))
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryEpicRepository
-    ) -> DeleteEpicUseCase:
+    def use_case(self, populated_repo: MemoryEpicRepository) -> DeleteEpicUseCase:
         """Create the use case with populated repository."""
         return DeleteEpicUseCase(populated_repo)
 
@@ -286,9 +266,7 @@ class TestDeleteEpicUseCase:
         assert stored is None
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_epic(
-        self, use_case: DeleteEpicUseCase
-    ) -> None:
+    async def test_delete_nonexistent_epic(self, use_case: DeleteEpicUseCase) -> None:
         """Test deleting nonexistent epic returns False."""
         request = DeleteEpicRequest(slug="nonexistent")
 

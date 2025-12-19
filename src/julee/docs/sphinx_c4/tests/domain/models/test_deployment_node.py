@@ -100,9 +100,7 @@ class TestDeploymentNodeProperties:
 
     def test_has_parent_true(self) -> None:
         """Test has_parent when parent_slug is set."""
-        node = DeploymentNode(
-            slug="test", name="Test", parent_slug="parent-node"
-        )
+        node = DeploymentNode(slug="test", name="Test", parent_slug="parent-node")
         assert node.has_parent is True
 
     def test_has_parent_false(self) -> None:
@@ -201,9 +199,7 @@ class TestDeploymentNodeTags:
 
     def test_has_tag(self) -> None:
         """Test tag lookup."""
-        node = DeploymentNode(
-            slug="test", name="Test", tags=["production", "primary"]
-        )
+        node = DeploymentNode(slug="test", name="Test", tags=["production", "primary"])
         assert node.has_tag("production") is True
         assert node.has_tag("PRODUCTION") is True
         assert node.has_tag("staging") is False
@@ -238,8 +234,6 @@ class TestNodeType:
             (NodeType.OTHER, "other"),
         ],
     )
-    def test_node_type_values(
-        self, node_type: NodeType, expected_value: str
-    ) -> None:
+    def test_node_type_values(self, node_type: NodeType, expected_value: str) -> None:
         """Test all node type values."""
         assert node_type.value == expected_value

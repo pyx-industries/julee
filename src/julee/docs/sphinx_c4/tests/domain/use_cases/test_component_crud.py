@@ -31,9 +31,7 @@ class TestCreateComponentUseCase:
         return MemoryComponentRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryComponentRepository
-    ) -> CreateComponentUseCase:
+    def use_case(self, repo: MemoryComponentRepository) -> CreateComponentUseCase:
         """Create the use case with repository."""
         return CreateComponentUseCase(repo)
 
@@ -119,9 +117,7 @@ class TestGetComponentUseCase:
         return GetComponentUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_get_existing_component(
-        self, use_case: GetComponentUseCase
-    ) -> None:
+    async def test_get_existing_component(self, use_case: GetComponentUseCase) -> None:
         """Test getting an existing component."""
         request = GetComponentRequest(slug="auth-controller")
 
@@ -188,9 +184,7 @@ class TestListComponentsUseCase:
         return ListComponentsUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_list_all_components(
-        self, use_case: ListComponentsUseCase
-    ) -> None:
+    async def test_list_all_components(self, use_case: ListComponentsUseCase) -> None:
         """Test listing all components."""
         request = ListComponentsRequest()
 
@@ -201,9 +195,7 @@ class TestListComponentsUseCase:
         assert slugs == {"comp-1", "comp-2", "comp-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryComponentRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryComponentRepository) -> None:
         """Test listing returns empty list when no components."""
         use_case = ListComponentsUseCase(repo)
         request = ListComponentsRequest()

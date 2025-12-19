@@ -35,9 +35,7 @@ class TestCreateAcceleratorUseCase:
         return MemoryAcceleratorRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryAcceleratorRepository
-    ) -> CreateAcceleratorUseCase:
+    def use_case(self, repo: MemoryAcceleratorRepository) -> CreateAcceleratorUseCase:
         """Create the use case with repository."""
         return CreateAcceleratorUseCase(repo)
 
@@ -199,9 +197,7 @@ class TestListAcceleratorsUseCase:
         assert slugs == {"accel-1", "accel-2", "accel-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryAcceleratorRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryAcceleratorRepository) -> None:
         """Test listing returns empty list when no accelerators."""
         use_case = ListAcceleratorsUseCase(repo)
         request = ListAcceleratorsRequest()
@@ -248,9 +244,7 @@ class TestUpdateAcceleratorUseCase:
         return UpdateAcceleratorUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_update_status(
-        self, use_case: UpdateAcceleratorUseCase
-    ) -> None:
+    async def test_update_status(self, use_case: UpdateAcceleratorUseCase) -> None:
         """Test updating the status."""
         request = UpdateAcceleratorRequest(
             slug="update-accelerator",
@@ -334,9 +328,7 @@ class TestDeleteAcceleratorUseCase:
         self, repo: MemoryAcceleratorRepository
     ) -> MemoryAcceleratorRepository:
         """Create repository with sample data."""
-        await repo.save(
-            Accelerator(slug="to-delete", status="deprecated")
-        )
+        await repo.save(Accelerator(slug="to-delete", status="deprecated"))
         return repo
 
     @pytest.fixture

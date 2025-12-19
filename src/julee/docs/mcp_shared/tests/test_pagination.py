@@ -1,6 +1,5 @@
 """Tests for pagination utilities."""
 
-
 from ..pagination import (
     DEFAULT_LIMIT,
     MAX_LIMIT,

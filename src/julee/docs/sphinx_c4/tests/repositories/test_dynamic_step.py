@@ -52,9 +52,7 @@ class TestMemoryDynamicStepRepositoryBasicOperations:
         assert retrieved.sequence_name == "user-login"
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent(
-        self, repo: MemoryDynamicStepRepository
-    ) -> None:
+    async def test_get_nonexistent(self, repo: MemoryDynamicStepRepository) -> None:
         """Test getting a nonexistent step returns None."""
         result = await repo.get("nonexistent")
         assert result is None
@@ -213,9 +211,7 @@ class TestMemoryDynamicStepRepositoryQueries:
         assert len(customer_steps) == 2  # login-1 and checkout-1
 
     @pytest.mark.asyncio
-    async def test_get_step(
-        self, populated_repo: MemoryDynamicStepRepository
-    ) -> None:
+    async def test_get_step(self, populated_repo: MemoryDynamicStepRepository) -> None:
         """Test getting a specific step by sequence and number."""
         step = await populated_repo.get_step("user-login", 2)
         assert step is not None

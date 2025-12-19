@@ -169,9 +169,7 @@ class TestListSoftwareSystemsUseCase:
         return ListSoftwareSystemsUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_list_all_systems(
-        self, use_case: ListSoftwareSystemsUseCase
-    ) -> None:
+    async def test_list_all_systems(self, use_case: ListSoftwareSystemsUseCase) -> None:
         """Test listing all software systems."""
         request = ListSoftwareSystemsRequest()
 
@@ -182,9 +180,7 @@ class TestListSoftwareSystemsUseCase:
         assert slugs == {"system-1", "system-2", "system-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemorySoftwareSystemRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemorySoftwareSystemRepository) -> None:
         """Test listing returns empty list when no systems."""
         use_case = ListSoftwareSystemsUseCase(repo)
         request = ListSoftwareSystemsRequest()
@@ -291,9 +287,7 @@ class TestDeleteSoftwareSystemUseCase:
         self, repo: MemorySoftwareSystemRepository
     ) -> MemorySoftwareSystemRepository:
         """Create repository with sample data."""
-        await repo.save(
-            SoftwareSystem(slug="to-delete", name="To Delete")
-        )
+        await repo.save(SoftwareSystem(slug="to-delete", name="To Delete"))
         return repo
 
     @pytest.fixture

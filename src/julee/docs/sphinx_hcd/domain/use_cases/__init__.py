@@ -51,6 +51,7 @@ from .persona import (
     ListPersonasUseCase,
     UpdatePersonaUseCase,
 )
+
 # Query use-cases
 from .queries import (
     DerivePersonasUseCase,

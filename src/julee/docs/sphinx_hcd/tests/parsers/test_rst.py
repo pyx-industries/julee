@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from julee.docs.sphinx_hcd.domain.models.accelerator import (
     Accelerator,
     IntegrationReference,
@@ -26,7 +24,6 @@ from julee.docs.sphinx_hcd.serializers.rst import (
     serialize_epic,
     serialize_journey,
 )
-
 
 # =============================================================================
 # Epic Parser Tests
@@ -110,12 +107,14 @@ class TestParseEpicFile:
     def test_parse_valid_file(self, tmp_path: Path) -> None:
         """Test parsing a valid RST file."""
         epic_file = tmp_path / "test-epic.rst"
-        epic_file.write_text(""".. define-epic:: test-epic
+        epic_file.write_text(
+            """.. define-epic:: test-epic
 
    Test description.
 
 .. epic-story:: story-one
-""")
+"""
+        )
         result = parse_epic_file(epic_file)
 
         assert result is not None
@@ -157,9 +156,7 @@ class TestScanEpicDirectory:
 
     def test_scan_skips_invalid_files(self, tmp_path: Path) -> None:
         """Test scanning skips files without epic directive."""
-        (tmp_path / "valid.rst").write_text(
-            ".. define-epic:: valid\n\n   Valid.\n"
-        )
+        (tmp_path / "valid.rst").write_text(".. define-epic:: valid\n\n   Valid.\n")
         (tmp_path / "invalid.rst").write_text("No directive here.\n")
 
         epics = scan_epic_directory(tmp_path)
@@ -290,14 +287,16 @@ class TestParseJourneyFile:
     def test_parse_valid_file(self, tmp_path: Path) -> None:
         """Test parsing a valid journey RST file."""
         journey_file = tmp_path / "test-journey.rst"
-        journey_file.write_text(""".. define-journey:: test-journey
+        journey_file.write_text(
+            """.. define-journey:: test-journey
    :persona: Tester
    :intent: Test parsing
 
    Goal description.
 
 .. step-story:: test-step
-""")
+"""
+        )
         result = parse_journey_file(journey_file)
 
         assert result is not None
@@ -424,11 +423,13 @@ class TestParseAcceleratorFile:
     def test_parse_valid_file(self, tmp_path: Path) -> None:
         """Test parsing a valid accelerator RST file."""
         accel_file = tmp_path / "test-accel.rst"
-        accel_file.write_text(""".. define-accelerator:: test-accel
+        accel_file.write_text(
+            """.. define-accelerator:: test-accel
    :status: Draft
 
    Test accelerator.
-""")
+"""
+        )
         result = parse_accelerator_file(accel_file)
 
         assert result is not None

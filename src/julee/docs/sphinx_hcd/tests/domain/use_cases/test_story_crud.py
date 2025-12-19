@@ -120,9 +120,7 @@ class TestGetStoryUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryStoryRepository
-    ) -> GetStoryUseCase:
+    def use_case(self, populated_repo: MemoryStoryRepository) -> GetStoryUseCase:
         """Create the use case with populated repository."""
         return GetStoryUseCase(populated_repo)
 
@@ -194,9 +192,7 @@ class TestListStoriesUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryStoryRepository
-    ) -> ListStoriesUseCase:
+    def use_case(self, populated_repo: MemoryStoryRepository) -> ListStoriesUseCase:
         """Create the use case with populated repository."""
         return ListStoriesUseCase(populated_repo)
 
@@ -245,9 +241,7 @@ class TestUpdateStoryUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryStoryRepository
-    ) -> UpdateStoryUseCase:
+    def use_case(self, populated_repo: MemoryStoryRepository) -> UpdateStoryUseCase:
         """Create the use case with populated repository."""
         return UpdateStoryUseCase(populated_repo)
 
@@ -296,9 +290,7 @@ class TestUpdateStoryUseCase:
         assert response.story.so_that == "multiple benefits"
 
     @pytest.mark.asyncio
-    async def test_update_nonexistent_story(
-        self, use_case: UpdateStoryUseCase
-    ) -> None:
+    async def test_update_nonexistent_story(self, use_case: UpdateStoryUseCase) -> None:
         """Test updating nonexistent story returns None."""
         request = UpdateStoryRequest(
             slug="nonexistent",
@@ -336,9 +328,7 @@ class TestDeleteStoryUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryStoryRepository
-    ) -> DeleteStoryUseCase:
+    def use_case(self, populated_repo: MemoryStoryRepository) -> DeleteStoryUseCase:
         """Create the use case with populated repository."""
         return DeleteStoryUseCase(populated_repo)
 
@@ -363,9 +353,7 @@ class TestDeleteStoryUseCase:
         assert stored is None
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_story(
-        self, use_case: DeleteStoryUseCase
-    ) -> None:
+    async def test_delete_nonexistent_story(self, use_case: DeleteStoryUseCase) -> None:
         """Test deleting nonexistent story returns False."""
         request = DeleteStoryRequest(slug="nonexistent")
 

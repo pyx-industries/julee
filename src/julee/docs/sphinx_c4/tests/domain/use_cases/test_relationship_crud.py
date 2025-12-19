@@ -34,9 +34,7 @@ class TestCreateRelationshipUseCase:
         return MemoryRelationshipRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryRelationshipRepository
-    ) -> CreateRelationshipUseCase:
+    def use_case(self, repo: MemoryRelationshipRepository) -> CreateRelationshipUseCase:
         """Create the use case with repository."""
         return CreateRelationshipUseCase(repo)
 
@@ -228,9 +226,7 @@ class TestListRelationshipsUseCase:
         assert slugs == {"rel-1", "rel-2", "rel-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryRelationshipRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryRelationshipRepository) -> None:
         """Test listing returns empty list when no relationships."""
         use_case = ListRelationshipsUseCase(repo)
         request = ListRelationshipsRequest()

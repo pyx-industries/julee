@@ -207,9 +207,7 @@ class TestListDeploymentNodesUseCase:
         assert slugs == {"node-1", "node-2", "node-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryDeploymentNodeRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryDeploymentNodeRepository) -> None:
         """Test listing returns empty list when no nodes."""
         use_case = ListDeploymentNodesUseCase(repo)
         request = ListDeploymentNodesRequest()
@@ -332,9 +330,7 @@ class TestDeleteDeploymentNodeUseCase:
         self, repo: MemoryDeploymentNodeRepository
     ) -> MemoryDeploymentNodeRepository:
         """Create repository with sample data."""
-        await repo.save(
-            DeploymentNode(slug="to-delete", name="To Delete")
-        )
+        await repo.save(DeploymentNode(slug="to-delete", name="To Delete"))
         return repo
 
     @pytest.fixture

@@ -174,9 +174,7 @@ class TestMemoryComponentRepositoryQueries:
         assert all(c.code_path for c in components_with_code)
 
     @pytest.mark.asyncio
-    async def test_get_by_tag(
-        self, populated_repo: MemoryComponentRepository
-    ) -> None:
+    async def test_get_by_tag(self, populated_repo: MemoryComponentRepository) -> None:
         """Test getting components by tag."""
         auth_components = await populated_repo.get_by_tag("auth")
         assert len(auth_components) == 1

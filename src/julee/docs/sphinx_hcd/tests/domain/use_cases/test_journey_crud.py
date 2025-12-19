@@ -139,16 +139,12 @@ class TestGetJourneyUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryJourneyRepository
-    ) -> GetJourneyUseCase:
+    def use_case(self, populated_repo: MemoryJourneyRepository) -> GetJourneyUseCase:
         """Create the use case with populated repository."""
         return GetJourneyUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_get_existing_journey(
-        self, use_case: GetJourneyUseCase
-    ) -> None:
+    async def test_get_existing_journey(self, use_case: GetJourneyUseCase) -> None:
         """Test getting an existing journey."""
         request = GetJourneyRequest(slug="test-journey")
 
@@ -159,9 +155,7 @@ class TestGetJourneyUseCase:
         assert response.journey.persona == "Tester"
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent_journey(
-        self, use_case: GetJourneyUseCase
-    ) -> None:
+    async def test_get_nonexistent_journey(self, use_case: GetJourneyUseCase) -> None:
         """Test getting a nonexistent journey returns None."""
         request = GetJourneyRequest(slug="nonexistent")
 
@@ -193,16 +187,12 @@ class TestListJourneysUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryJourneyRepository
-    ) -> ListJourneysUseCase:
+    def use_case(self, populated_repo: MemoryJourneyRepository) -> ListJourneysUseCase:
         """Create the use case with populated repository."""
         return ListJourneysUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_list_all_journeys(
-        self, use_case: ListJourneysUseCase
-    ) -> None:
+    async def test_list_all_journeys(self, use_case: ListJourneysUseCase) -> None:
         """Test listing all journeys."""
         request = ListJourneysRequest()
 
@@ -254,16 +244,12 @@ class TestUpdateJourneyUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryJourneyRepository
-    ) -> UpdateJourneyUseCase:
+    def use_case(self, populated_repo: MemoryJourneyRepository) -> UpdateJourneyUseCase:
         """Create the use case with populated repository."""
         return UpdateJourneyUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_update_single_field(
-        self, use_case: UpdateJourneyUseCase
-    ) -> None:
+    async def test_update_single_field(self, use_case: UpdateJourneyUseCase) -> None:
         """Test updating a single field."""
         request = UpdateJourneyRequest(
             slug="update-journey",
@@ -280,9 +266,7 @@ class TestUpdateJourneyUseCase:
         assert response.journey.outcome == "Original outcome"
 
     @pytest.mark.asyncio
-    async def test_update_steps(
-        self, use_case: UpdateJourneyUseCase
-    ) -> None:
+    async def test_update_steps(self, use_case: UpdateJourneyUseCase) -> None:
         """Test updating steps."""
         request = UpdateJourneyRequest(
             slug="update-journey",
@@ -307,9 +291,7 @@ class TestUpdateJourneyUseCase:
         assert response.journey.steps[1].ref == "new-step-2"
 
     @pytest.mark.asyncio
-    async def test_update_multiple_fields(
-        self, use_case: UpdateJourneyUseCase
-    ) -> None:
+    async def test_update_multiple_fields(self, use_case: UpdateJourneyUseCase) -> None:
         """Test updating multiple fields."""
         request = UpdateJourneyRequest(
             slug="update-journey",
@@ -357,9 +339,7 @@ class TestDeleteJourneyUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryJourneyRepository
-    ) -> DeleteJourneyUseCase:
+    def use_case(self, populated_repo: MemoryJourneyRepository) -> DeleteJourneyUseCase:
         """Create the use case with populated repository."""
         return DeleteJourneyUseCase(populated_repo)
 

@@ -179,21 +179,15 @@ class TestRelationshipInvolvesElement:
 
     def test_involves_element_source(self, relationship: Relationship) -> None:
         """Test involves_element for source element."""
-        assert (
-            relationship.involves_element(ElementType.CONTAINER, "api-app") is True
-        )
+        assert relationship.involves_element(ElementType.CONTAINER, "api-app") is True
 
     def test_involves_element_destination(self, relationship: Relationship) -> None:
         """Test involves_element for destination element."""
-        assert (
-            relationship.involves_element(ElementType.CONTAINER, "database") is True
-        )
+        assert relationship.involves_element(ElementType.CONTAINER, "database") is True
 
     def test_involves_element_not_involved(self, relationship: Relationship) -> None:
         """Test involves_element for element not in relationship."""
-        assert (
-            relationship.involves_element(ElementType.CONTAINER, "other") is False
-        )
+        assert relationship.involves_element(ElementType.CONTAINER, "other") is False
 
     def test_involves_container(self, relationship: Relationship) -> None:
         """Test involves_container method."""

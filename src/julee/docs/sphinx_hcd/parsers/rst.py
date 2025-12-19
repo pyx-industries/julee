@@ -391,9 +391,7 @@ def parse_journey_content(content: str) -> ParsedJourney | None:
                     desc_lines.append(line[3:])
             description = "\n".join(desc_lines)
 
-        steps.append(
-            JourneyStep(step_type=step_type, ref=ref, description=description)
-        )
+        steps.append(JourneyStep(step_type=step_type, ref=ref, description=description))
 
     return ParsedJourney(
         slug=slug,

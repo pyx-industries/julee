@@ -120,7 +120,9 @@ class Persona(BaseModel):
     @property
     def is_defined(self) -> bool:
         """Check if this is an explicitly defined persona (vs derived)."""
-        return bool(self.goals or self.frustrations or self.jobs_to_be_done or self.context)
+        return bool(
+            self.goals or self.frustrations or self.jobs_to_be_done or self.context
+        )
 
     @property
     def has_hcd_metadata(self) -> bool:

@@ -331,7 +331,9 @@ def parse_software_system_file(file_path: Path) -> SoftwareSystem | None:
         try:
             system_type = SystemType(parsed.system_type)
         except ValueError:
-            logger.warning(f"Unknown system_type '{parsed.system_type}', using INTERNAL")
+            logger.warning(
+                f"Unknown system_type '{parsed.system_type}', using INTERNAL"
+            )
 
     return SoftwareSystem(
         slug=parsed.slug,

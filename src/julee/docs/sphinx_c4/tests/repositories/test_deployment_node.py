@@ -42,9 +42,7 @@ class TestMemoryDeploymentNodeRepositoryBasicOperations:
         return MemoryDeploymentNodeRepository()
 
     @pytest.mark.asyncio
-    async def test_save_and_get(
-        self, repo: MemoryDeploymentNodeRepository
-    ) -> None:
+    async def test_save_and_get(self, repo: MemoryDeploymentNodeRepository) -> None:
         """Test saving and retrieving a deployment node."""
         node = create_node(slug="web-server", name="Web Server")
         await repo.save(node)
@@ -55,9 +53,7 @@ class TestMemoryDeploymentNodeRepositoryBasicOperations:
         assert retrieved.name == "Web Server"
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent(
-        self, repo: MemoryDeploymentNodeRepository
-    ) -> None:
+    async def test_get_nonexistent(self, repo: MemoryDeploymentNodeRepository) -> None:
         """Test getting a nonexistent node returns None."""
         result = await repo.get("nonexistent")
         assert result is None

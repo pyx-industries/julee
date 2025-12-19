@@ -152,9 +152,7 @@ class TestMemoryContainerRepositoryQueries:
         assert len(containers) == 0
 
     @pytest.mark.asyncio
-    async def test_get_by_type(
-        self, populated_repo: MemoryContainerRepository
-    ) -> None:
+    async def test_get_by_type(self, populated_repo: MemoryContainerRepository) -> None:
         """Test getting containers by type."""
         apis = await populated_repo.get_by_type(ContainerType.API)
         assert len(apis) == 2
@@ -174,9 +172,7 @@ class TestMemoryContainerRepositoryQueries:
         self, populated_repo: MemoryContainerRepository
     ) -> None:
         """Test getting data stores filtered by system."""
-        data_stores = await populated_repo.get_data_stores(
-            system_slug="banking-system"
-        )
+        data_stores = await populated_repo.get_data_stores(system_slug="banking-system")
         assert len(data_stores) == 1
 
         # No data stores in analytics system
@@ -205,9 +201,7 @@ class TestMemoryContainerRepositoryQueries:
         assert slugs == {"api-app", "web-app"}
 
     @pytest.mark.asyncio
-    async def test_get_by_tag(
-        self, populated_repo: MemoryContainerRepository
-    ) -> None:
+    async def test_get_by_tag(self, populated_repo: MemoryContainerRepository) -> None:
         """Test getting containers by tag."""
         backend_containers = await populated_repo.get_by_tag("backend")
         assert len(backend_containers) == 2

@@ -32,9 +32,7 @@ class TestCreateDynamicStepUseCase:
         return MemoryDynamicStepRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryDynamicStepRepository
-    ) -> CreateDynamicStepUseCase:
+    def use_case(self, repo: MemoryDynamicStepRepository) -> CreateDynamicStepUseCase:
         """Create the use case with repository."""
         return CreateDynamicStepUseCase(repo)
 
@@ -238,9 +236,7 @@ class TestListDynamicStepsUseCase:
         assert slugs == {"step-1", "step-2", "step-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryDynamicStepRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryDynamicStepRepository) -> None:
         """Test listing returns empty list when no steps."""
         use_case = ListDynamicStepsUseCase(repo)
         request = ListDynamicStepsRequest()

@@ -34,9 +34,7 @@ class TestCreateContainerUseCase:
         return MemoryContainerRepository()
 
     @pytest.fixture
-    def use_case(
-        self, repo: MemoryContainerRepository
-    ) -> CreateContainerUseCase:
+    def use_case(self, repo: MemoryContainerRepository) -> CreateContainerUseCase:
         """Create the use case with repository."""
         return CreateContainerUseCase(repo)
 
@@ -119,9 +117,7 @@ class TestGetContainerUseCase:
         return GetContainerUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_get_existing_container(
-        self, use_case: GetContainerUseCase
-    ) -> None:
+    async def test_get_existing_container(self, use_case: GetContainerUseCase) -> None:
         """Test getting an existing container."""
         request = GetContainerRequest(slug="api-app")
 
@@ -173,9 +169,7 @@ class TestListContainersUseCase:
         return ListContainersUseCase(populated_repo)
 
     @pytest.mark.asyncio
-    async def test_list_all_containers(
-        self, use_case: ListContainersUseCase
-    ) -> None:
+    async def test_list_all_containers(self, use_case: ListContainersUseCase) -> None:
         """Test listing all containers."""
         request = ListContainersRequest()
 
@@ -186,9 +180,7 @@ class TestListContainersUseCase:
         assert slugs == {"container-1", "container-2", "container-3"}
 
     @pytest.mark.asyncio
-    async def test_list_empty_repo(
-        self, repo: MemoryContainerRepository
-    ) -> None:
+    async def test_list_empty_repo(self, repo: MemoryContainerRepository) -> None:
         """Test listing returns empty list when no containers."""
         use_case = ListContainersUseCase(repo)
         request = ListContainersRequest()

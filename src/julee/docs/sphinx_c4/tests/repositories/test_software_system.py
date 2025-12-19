@@ -39,9 +39,7 @@ class TestMemorySoftwareSystemRepositoryBasicOperations:
         return MemorySoftwareSystemRepository()
 
     @pytest.mark.asyncio
-    async def test_save_and_get(
-        self, repo: MemorySoftwareSystemRepository
-    ) -> None:
+    async def test_save_and_get(self, repo: MemorySoftwareSystemRepository) -> None:
         """Test saving and retrieving a system."""
         system = create_system(slug="banking-system", name="Banking System")
         await repo.save(system)
@@ -52,9 +50,7 @@ class TestMemorySoftwareSystemRepositoryBasicOperations:
         assert retrieved.name == "Banking System"
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent(
-        self, repo: MemorySoftwareSystemRepository
-    ) -> None:
+    async def test_get_nonexistent(self, repo: MemorySoftwareSystemRepository) -> None:
         """Test getting a nonexistent system returns None."""
         result = await repo.get("nonexistent")
         assert result is None

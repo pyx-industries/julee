@@ -49,11 +49,22 @@ class TestSummaryFields:
 
     def test_hcd_entities_defined(self):
         """HCD entity types should have summary fields."""
-        hcd_types = ["story", "epic", "journey", "persona", "app", "accelerator", "integration"]
+        hcd_types = [
+            "story",
+            "epic",
+            "journey",
+            "persona",
+            "app",
+            "accelerator",
+            "integration",
+        ]
         for entity_type in hcd_types:
             assert entity_type in SUMMARY_FIELDS
             assert len(SUMMARY_FIELDS[entity_type]) > 0
-            assert "slug" in SUMMARY_FIELDS[entity_type] or "name" in SUMMARY_FIELDS[entity_type]
+            assert (
+                "slug" in SUMMARY_FIELDS[entity_type]
+                or "name" in SUMMARY_FIELDS[entity_type]
+            )
 
     def test_c4_entities_defined(self):
         """C4 entity types should have summary fields."""

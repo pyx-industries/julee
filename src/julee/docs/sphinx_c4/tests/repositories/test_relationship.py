@@ -53,9 +53,7 @@ class TestMemoryRelationshipRepositoryBasicOperations:
         assert retrieved.destination_slug == "database"
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent(
-        self, repo: MemoryRelationshipRepository
-    ) -> None:
+    async def test_get_nonexistent(self, repo: MemoryRelationshipRepository) -> None:
         """Test getting a nonexistent relationship returns None."""
         result = await repo.get("nonexistent")
         assert result is None
@@ -173,9 +171,7 @@ class TestMemoryRelationshipRepositoryQueries:
         self, populated_repo: MemoryRelationshipRepository
     ) -> None:
         """Test getting outgoing relationships."""
-        outgoing = await populated_repo.get_outgoing(
-            ElementType.CONTAINER, "api-app"
-        )
+        outgoing = await populated_repo.get_outgoing(ElementType.CONTAINER, "api-app")
         assert len(outgoing) == 1
         assert outgoing[0].destination_slug == "database"
 
@@ -184,9 +180,7 @@ class TestMemoryRelationshipRepositoryQueries:
         self, populated_repo: MemoryRelationshipRepository
     ) -> None:
         """Test getting incoming relationships."""
-        incoming = await populated_repo.get_incoming(
-            ElementType.CONTAINER, "api-app"
-        )
+        incoming = await populated_repo.get_incoming(ElementType.CONTAINER, "api-app")
         assert len(incoming) == 1
         assert incoming[0].source_slug == "web-app"
 

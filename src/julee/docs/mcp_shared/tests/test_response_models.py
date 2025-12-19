@@ -1,8 +1,5 @@
 """Tests for response model utilities."""
 
-import pytest
-from pydantic import ValidationError
-
 from ..response_models import (
     ErrorInfo,
     MCPGetResponse,

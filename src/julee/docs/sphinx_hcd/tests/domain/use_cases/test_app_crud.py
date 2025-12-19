@@ -63,9 +63,7 @@ class TestCreateAppUseCase:
         assert stored is not None
 
     @pytest.mark.asyncio
-    async def test_create_app_with_defaults(
-        self, use_case: CreateAppUseCase
-    ) -> None:
+    async def test_create_app_with_defaults(self, use_case: CreateAppUseCase) -> None:
         """Test creating app with default values."""
         request = CreateAppRequest(
             slug="minimal-app",
@@ -80,9 +78,7 @@ class TestCreateAppUseCase:
         assert response.app.accelerators == []
 
     @pytest.mark.asyncio
-    async def test_create_external_app(
-        self, use_case: CreateAppUseCase
-    ) -> None:
+    async def test_create_external_app(self, use_case: CreateAppUseCase) -> None:
         """Test creating an external app."""
         request = CreateAppRequest(
             slug="customer-portal",
@@ -104,9 +100,7 @@ class TestGetAppUseCase:
         return MemoryAppRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryAppRepository
-    ) -> MemoryAppRepository:
+    async def populated_repo(self, repo: MemoryAppRepository) -> MemoryAppRepository:
         """Create repository with sample data."""
         await repo.save(
             App(
@@ -153,9 +147,7 @@ class TestListAppsUseCase:
         return MemoryAppRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryAppRepository
-    ) -> MemoryAppRepository:
+    async def populated_repo(self, repo: MemoryAppRepository) -> MemoryAppRepository:
         """Create repository with sample data."""
         apps = [
             App(slug="app-1", name="App One", app_type=AppType.STAFF),
@@ -202,9 +194,7 @@ class TestUpdateAppUseCase:
         return MemoryAppRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryAppRepository
-    ) -> MemoryAppRepository:
+    async def populated_repo(self, repo: MemoryAppRepository) -> MemoryAppRepository:
         """Create repository with sample data."""
         await repo.save(
             App(
@@ -218,9 +208,7 @@ class TestUpdateAppUseCase:
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryAppRepository
-    ) -> UpdateAppUseCase:
+    def use_case(self, populated_repo: MemoryAppRepository) -> UpdateAppUseCase:
         """Create the use case with populated repository."""
         return UpdateAppUseCase(populated_repo)
 
@@ -253,9 +241,7 @@ class TestUpdateAppUseCase:
         assert response.app.app_type == AppType.STAFF
 
     @pytest.mark.asyncio
-    async def test_update_accelerators(
-        self, use_case: UpdateAppUseCase
-    ) -> None:
+    async def test_update_accelerators(self, use_case: UpdateAppUseCase) -> None:
         """Test updating accelerators list."""
         request = UpdateAppRequest(
             slug="update-app",
@@ -267,9 +253,7 @@ class TestUpdateAppUseCase:
         assert response.app.accelerators == ["new-accel-1", "new-accel-2"]
 
     @pytest.mark.asyncio
-    async def test_update_multiple_fields(
-        self, use_case: UpdateAppUseCase
-    ) -> None:
+    async def test_update_multiple_fields(self, use_case: UpdateAppUseCase) -> None:
         """Test updating multiple fields."""
         request = UpdateAppRequest(
             slug="update-app",
@@ -287,9 +271,7 @@ class TestUpdateAppUseCase:
         assert response.app.description == "New description"
 
     @pytest.mark.asyncio
-    async def test_update_nonexistent_app(
-        self, use_case: UpdateAppUseCase
-    ) -> None:
+    async def test_update_nonexistent_app(self, use_case: UpdateAppUseCase) -> None:
         """Test updating nonexistent app returns None."""
         request = UpdateAppRequest(
             slug="nonexistent",
@@ -311,17 +293,13 @@ class TestDeleteAppUseCase:
         return MemoryAppRepository()
 
     @pytest.fixture
-    async def populated_repo(
-        self, repo: MemoryAppRepository
-    ) -> MemoryAppRepository:
+    async def populated_repo(self, repo: MemoryAppRepository) -> MemoryAppRepository:
         """Create repository with sample data."""
         await repo.save(App(slug="to-delete", name="To Delete"))
         return repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repo: MemoryAppRepository
-    ) -> DeleteAppUseCase:
+    def use_case(self, populated_repo: MemoryAppRepository) -> DeleteAppUseCase:
         """Create the use case with populated repository."""
         return DeleteAppUseCase(populated_repo)
 
@@ -343,9 +321,7 @@ class TestDeleteAppUseCase:
         assert stored is None
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_app(
-        self, use_case: DeleteAppUseCase
-    ) -> None:
+    async def test_delete_nonexistent_app(self, use_case: DeleteAppUseCase) -> None:
         """Test deleting nonexistent app returns False."""
         request = DeleteAppRequest(slug="nonexistent")
 

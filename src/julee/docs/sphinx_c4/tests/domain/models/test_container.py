@@ -67,16 +67,12 @@ class TestContainerComputedFields:
 
     def test_name_normalized(self) -> None:
         """Test normalized name is computed."""
-        container = Container(
-            slug="test", name="API Application", system_slug="system"
-        )
+        container = Container(slug="test", name="API Application", system_slug="system")
         assert container.name_normalized == "api application"
 
     def test_qualified_slug(self) -> None:
         """Test qualified slug includes system."""
-        container = Container(
-            slug="api-app", name="Test", system_slug="banking-system"
-        )
+        container = Container(slug="api-app", name="Test", system_slug="banking-system")
         assert container.qualified_slug == "banking-system/api-app"
 
     def test_is_data_store_database(self) -> None:

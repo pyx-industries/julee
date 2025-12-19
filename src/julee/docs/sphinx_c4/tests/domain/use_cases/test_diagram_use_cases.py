@@ -119,9 +119,7 @@ class TestGetSystemContextDiagramUseCase:
         return system_repo, relationship_repo
 
     @pytest.fixture
-    def use_case(
-        self, populated_repos: tuple
-    ) -> GetSystemContextDiagramUseCase:
+    def use_case(self, populated_repos: tuple) -> GetSystemContextDiagramUseCase:
         system_repo, relationship_repo = populated_repos
         return GetSystemContextDiagramUseCase(system_repo, relationship_repo)
 

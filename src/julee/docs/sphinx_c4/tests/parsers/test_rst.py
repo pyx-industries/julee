@@ -2,12 +2,9 @@
 
 from pathlib import Path
 
-import pytest
-
 from julee.docs.sphinx_c4.domain.models.component import Component
 from julee.docs.sphinx_c4.domain.models.container import Container, ContainerType
 from julee.docs.sphinx_c4.domain.models.deployment_node import (
-    ContainerInstance,
     DeploymentNode,
     NodeType,
 )
@@ -33,11 +30,6 @@ from julee.docs.sphinx_c4.parsers.rst import (
     parse_relationship_file,
     parse_software_system_content,
     parse_software_system_file,
-    scan_component_directory,
-    scan_container_directory,
-    scan_deployment_node_directory,
-    scan_dynamic_step_directory,
-    scan_relationship_directory,
     scan_software_system_directory,
 )
 from julee.docs.sphinx_c4.serializers.rst import (
@@ -48,7 +40,6 @@ from julee.docs.sphinx_c4.serializers.rst import (
     serialize_relationship,
     serialize_software_system,
 )
-
 
 # =============================================================================
 # SoftwareSystem Parser Tests
@@ -105,12 +96,14 @@ class TestParseSoftwareSystemFile:
     def test_parse_valid_file(self, tmp_path: Path) -> None:
         """Test parsing a valid RST file."""
         file_path = tmp_path / "test-system.rst"
-        file_path.write_text(""".. define-software-system:: test-system
+        file_path.write_text(
+            """.. define-software-system:: test-system
    :name: Test System
    :type: internal
 
    A test system.
-""")
+"""
+        )
         result = parse_software_system_file(file_path)
 
         assert result is not None
@@ -209,13 +202,15 @@ class TestParseContainerFile:
     def test_parse_valid_file(self, tmp_path: Path) -> None:
         """Test parsing a valid container RST file."""
         file_path = tmp_path / "test-container.rst"
-        file_path.write_text(""".. define-container:: test-container
+        file_path.write_text(
+            """.. define-container:: test-container
    :name: Test Container
    :system: test-system
    :type: api
 
    Test container.
-""")
+"""
+        )
         result = parse_container_file(file_path)
 
         assert result is not None
