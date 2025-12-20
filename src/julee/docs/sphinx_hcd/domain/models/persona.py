@@ -42,6 +42,11 @@ class Persona(BaseModel):
     epic_slugs: list[str] = Field(default_factory=list)
     docname: str = ""
 
+    # Document structure (RST round-trip)
+    page_title: str = ""
+    preamble_rst: str = ""
+    epilogue_rst: str = ""
+
     @field_validator("name", mode="before")
     @classmethod
     def validate_name(cls, v: str) -> str:

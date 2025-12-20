@@ -27,6 +27,11 @@ class Epic(BaseModel):
     story_refs: list[str] = Field(default_factory=list)
     docname: str = ""
 
+    # Document structure (RST round-trip)
+    page_title: str = ""
+    preamble_rst: str = ""
+    epilogue_rst: str = ""
+
     @field_validator("slug", mode="before")
     @classmethod
     def validate_slug(cls, v: str) -> str:

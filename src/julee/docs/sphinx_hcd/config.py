@@ -28,6 +28,9 @@ DEFAULT_CONFIG = {
         "integrations": "integrations",
         "stories": "users/stories",
     },
+    # Repository backend: "memory" (default) or "rst"
+    # When "rst", entities are loaded from/saved to RST files
+    "repository_backend": "memory",
 }
 
 
@@ -111,6 +114,36 @@ class HCDConfig:
             Relative path string for use in doc references
         """
         return self._config["docs_structure"].get(key, key)
+
+    @property
+    def repository_backend(self) -> str:
+        """Get the repository backend type.
+
+        Returns:
+            "memory" or "rst"
+        """
+        return self._config.get("repository_backend", "memory")
+
+    @property
+    def use_rst_backend(self) -> bool:
+        """Check if RST backend is configured.
+
+        Returns:
+            True if repository_backend is "rst"
+        """
+        return self.repository_backend == "rst"
+
+    def get_rst_dir(self, entity_type: str) -> Path:
+        """Get the RST directory for an entity type.
+
+        Args:
+            entity_type: Entity type key (e.g., 'journeys', 'epics')
+
+        Returns:
+            Absolute path to the RST directory
+        """
+        doc_path = self.get_doc_path(entity_type)
+        return self._docs_dir / doc_path
 
 
 # Module-level config instance, set by setup()

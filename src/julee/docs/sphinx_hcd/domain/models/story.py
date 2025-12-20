@@ -40,6 +40,11 @@ class Story(BaseModel):
     abs_path: str = ""
     gherkin_snippet: str = ""
 
+    # Document structure (RST round-trip)
+    page_title: str = ""
+    preamble_rst: str = ""
+    epilogue_rst: str = ""
+
     @field_validator("slug")
     @classmethod
     def validate_slug(cls, v: str) -> str:

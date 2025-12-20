@@ -101,6 +101,11 @@ class Integration(BaseModel):
     manifest_path: str = ""
     name_normalized: str = ""
 
+    # Document structure (RST round-trip)
+    page_title: str = ""
+    preamble_rst: str = ""
+    epilogue_rst: str = ""
+
     @field_validator("slug", mode="before")
     @classmethod
     def validate_slug(cls, v: str) -> str:

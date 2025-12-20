@@ -6,6 +6,7 @@ with a unified, type-safe interface.
 """
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..repositories.memory import (
@@ -15,6 +16,7 @@ from ..repositories.memory import (
     MemoryEpicRepository,
     MemoryIntegrationRepository,
     MemoryJourneyRepository,
+    MemoryPersonaRepository,
     MemoryStoryRepository,
 )
 from .adapters import SyncRepositoryAdapter
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
         Epic,
         Integration,
         Journey,
+        Persona,
         Story,
     )
 
@@ -70,6 +73,9 @@ class HCDContext:
     integration_repo: SyncRepositoryAdapter["Integration"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryIntegrationRepository())
     )
+    persona_repo: SyncRepositoryAdapter["Persona"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryPersonaRepository())
+    )
     code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository())
     )
@@ -85,6 +91,7 @@ class HCDContext:
         self.app_repo.clear()
         self.accelerator_repo.clear()
         self.integration_repo.clear()
+        self.persona_repo.clear()
         self.code_info_repo.clear()
 
     def clear_by_docname(self, docname: str) -> dict[str, int]:
@@ -150,7 +157,8 @@ def set_hcd_context(app, context: HCDContext) -> None:
 def ensure_hcd_context(app) -> HCDContext:
     """Ensure the HCDContext exists on a Sphinx app.
 
-    Creates a new context if one doesn't exist.
+    Creates a new context if one doesn't exist. Uses the configured
+    repository backend (memory or rst).
 
     Args:
         app: Sphinx application object
@@ -159,5 +167,75 @@ def ensure_hcd_context(app) -> HCDContext:
         HCDContext attached to the app
     """
     if not hasattr(app, "_hcd_context"):
-        set_hcd_context(app, HCDContext())
+        context = _create_context(app)
+        set_hcd_context(app, context)
     return get_hcd_context(app)
+
+
+def _create_context(app) -> HCDContext:
+    """Create an HCDContext with the configured backend.
+
+    Args:
+        app: Sphinx application object
+
+    Returns:
+        HCDContext with appropriate repositories
+    """
+    from ..config import get_config
+
+    try:
+        config = get_config()
+    except RuntimeError:
+        # Config not initialized yet, use defaults
+        return HCDContext()
+
+    if config.use_rst_backend:
+        return _create_rst_context(config)
+
+    return HCDContext()
+
+
+def _create_rst_context(config) -> HCDContext:
+    """Create an HCDContext with RST file-backed repositories.
+
+    Args:
+        config: HCDConfig instance
+
+    Returns:
+        HCDContext with RST repositories
+    """
+    from ..repositories.rst import (
+        RstAcceleratorRepository,
+        RstAppRepository,
+        RstEpicRepository,
+        RstIntegrationRepository,
+        RstJourneyRepository,
+        RstPersonaRepository,
+        RstStoryRepository,
+    )
+
+    return HCDContext(
+        story_repo=SyncRepositoryAdapter(
+            RstStoryRepository(config.get_rst_dir("stories"))
+        ),
+        journey_repo=SyncRepositoryAdapter(
+            RstJourneyRepository(config.get_rst_dir("journeys"))
+        ),
+        epic_repo=SyncRepositoryAdapter(
+            RstEpicRepository(config.get_rst_dir("epics"))
+        ),
+        app_repo=SyncRepositoryAdapter(
+            RstAppRepository(config.get_rst_dir("applications"))
+        ),
+        accelerator_repo=SyncRepositoryAdapter(
+            RstAcceleratorRepository(config.get_rst_dir("accelerators"))
+        ),
+        integration_repo=SyncRepositoryAdapter(
+            RstIntegrationRepository(config.get_rst_dir("integrations"))
+        ),
+        persona_repo=SyncRepositoryAdapter(
+            RstPersonaRepository(config.get_rst_dir("personas"))
+        ),
+        # Code info stays in memory (not stored in RST)
+        code_info_repo=SyncRepositoryAdapter(MemoryCodeInfoRepository()),
+    )

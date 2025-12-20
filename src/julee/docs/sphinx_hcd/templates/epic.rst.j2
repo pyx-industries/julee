@@ -1,0 +1,11 @@
+{% from "base.rst.j2" import page_title, preamble, epilogue, directive_content %}
+{# Epic entity RST template #}
+{{ page_title(entity.page_title) -}}
+{{ preamble(entity.preamble_rst) -}}
+.. define-epic:: {{ entity.slug }}
+{{ directive_content(entity.description) }}
+{% for story_ref in entity.story_refs %}
+
+   .. epic-story:: {{ story_ref }}
+{% endfor %}
+{{ epilogue(entity.epilogue_rst) }}
