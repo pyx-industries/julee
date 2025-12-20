@@ -2,11 +2,11 @@
 
 ## Summary
 
-Extend sphinx_c4 to automatically infer C4 architectural elements from the
-conventions established by Julee's clean architecture patterns. Rather than
-manually defining every software system, container, component, and relationship,
-the extension would derive them from code structure, AST analysis, and existing
-HCD entities.
+Extend the Julee documentation extensions to automatically infer C4 architectural
+elements from clean architecture conventions, and unify HCD and C4 concepts where
+they represent the same underlying reality. Rather than maintaining separate
+definitions for personas/actors, accelerators/containers, and integrations/external
+systems, a single definition should serve both documentation perspectives.
 
 ## Motivation
 
@@ -29,278 +29,362 @@ Manually transcribing this into C4 documentation creates:
 The principle from ADR 003 (sphinx-hcd) applies here: *"documentation that is
 DRY, derives from authoritative sources, and reflects code reality."*
 
-## Concept
+## Concept Unification
 
-### The Mapping
+### The Problem with Separate Models
 
-Clean architecture idioms map naturally to C4 levels:
+Currently, HCD and C4 maintain parallel concepts:
+
+| HCD Concept | C4 Concept | Reality |
+|-------------|------------|---------|
+| Persona | Person/Actor | Same: a type of user |
+| Application | Container | Same: an entry point |
+| Accelerator | Container | Same: a bounded context |
+| Integration | External System | Same: external dependency |
+
+Maintaining these separately means:
+- Defining the same thing twice in different vocabularies
+- Risk of inconsistency between perspectives
+- Extra work for documentation authors
+
+### Unified Model Proposal
+
+Instead of a "bridge" between HCD and C4, **unify the underlying model**:
+
+```
+                    ┌─────────────────┐
+                    │  Unified Model  │
+                    │                 │
+                    │  - Person       │
+                    │  - Container    │
+                    │  - Component    │
+                    │  - Relationship │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+              ▼              ▼              ▼
+        ┌──────────┐  ┌──────────┐  ┌──────────┐
+        │   HCD    │  │    C4    │  │   Code   │
+        │   View   │  │   View   │  │   View   │
+        │          │  │          │  │          │
+        │ Personas │  │  Actors  │  │ Protocols│
+        │ Journeys │  │ Diagrams │  │ Classes  │
+        │ Stories  │  │ Levels   │  │ Imports  │
+        └──────────┘  └──────────┘  └──────────┘
+```
+
+A single `define-persona::` directive creates an entity that appears as:
+- A **Persona** in HCD documentation (journeys, stories, epics)
+- An **Actor** in C4 system context diagrams
+- A **User type** in requirements traceability
+
+### Specific Unifications
+
+#### Persona = C4 Person
+
+HCD personas are the subjects of stories and journeys. C4 Person elements are
+actors who interact with software systems. **They are the same concept.**
+
+```rst
+.. define-persona:: solutions-developer
+   :name: Solutions Developer
+   :goals:
+      Build reliable workflow solutions
+
+   A developer building production systems with Julee.
+```
+
+This single definition should:
+- Appear in HCD persona indexes and journey diagrams
+- Appear as an actor in C4 system context diagrams
+- Link stories to the C4 components that satisfy them
+
+#### Application = C4 Container (Entry Point)
+
+HCD applications are entry points exposing features to personas. C4 containers
+are deployable units. **An application IS a container.**
+
+```rst
+.. define-app:: staff-portal
+   :type: api
+   :personas: Knowledge Curator, Solutions Developer
+```
+
+Should automatically create a C4 container with:
+- Technology inferred from type (api → FastAPI, cli → Typer, worker → Temporal)
+- Relationships to personas (actors use this container)
+- Relationships to accelerators it depends on
+
+#### Accelerator = C4 Container (Bounded Context)
+
+HCD accelerators are bounded contexts with pipelines. C4 containers are
+separately deployable units. **An accelerator IS a container.**
+
+The existing `define-accelerator::` directive already does code introspection.
+This should additionally:
+- Register a C4 container
+- Populate components from introspected entities, use cases, protocols
+- Infer relationships from import analysis
+
+#### Integration = C4 External System
+
+HCD integrations document external system connections. C4 external systems are
+things outside the system boundary. **They are the same.**
+
+```rst
+.. define-integration:: temporal-cloud
+   :type: workflow-orchestration
+   :direction: outbound
+```
+
+Should create both an HCD integration AND a C4 external system.
+
+## Idiom Refinements
+
+To better support inference and unification, consider refining the conventions:
+
+### 1. Explicit Container Type in Accelerators
+
+Add a container classification to accelerators:
+
+```rst
+.. define-accelerator:: vocabulary
+   :container-type: bounded-context
+   :technology: Python
+```
+
+Or infer from directory structure:
+- `src/{name}/` with domain/ → bounded-context container
+- `apps/api/` → api container
+- `apps/worker/` → worker container
+
+### 2. Persona References Create Relationships
+
+When a story references a persona and an app:
+
+```rst
+.. define-story:: upload-document
+   :persona: Knowledge Curator
+   :app: staff-portal
+```
+
+This implies a C4 relationship: `Knowledge Curator → uses → staff-portal`
+
+### 3. App-Accelerator Dependencies
+
+When an app declares accelerator dependencies:
+
+```yaml
+# apps/staff-portal/app.yaml
+accelerators:
+  - vocabulary
+  - assessment
+```
+
+This implies C4 relationships: `staff-portal → uses → vocabulary`
+
+### 4. Service Protocols Imply External Systems
+
+Classes in `domain/services/` that wrap external APIs could be parsed to
+discover external system dependencies:
+
+```python
+# domain/services/anthropic.py
+class AnthropicService(Protocol):
+    """Client for Anthropic Claude API."""
+```
+
+Implies external system: `Anthropic Claude API`
+
+### 5. Standard Naming Conventions
+
+Strengthen naming conventions to improve inference:
+
+| Convention | Inferred As |
+|------------|-------------|
+| `*Repository` protocol | Data store component |
+| `*Service` protocol | External service component |
+| `*UseCase` class | Business logic component |
+| `*Pipeline` class | Workflow component |
+
+## Inferred C4 Elements
+
+### From Directory Structure
 
 ```
 Clean Architecture          →  C4 Model
 ─────────────────────────────────────────────────────
 Solution repository         →  Software System
-External service protocols  →  External Systems
-docker-compose services     →  External Systems
-
 apps/api/                   →  Container (API)
 apps/cli/                   →  Container (CLI)
 apps/worker/                →  Container (Worker)
 src/{bounded-context}/      →  Container (per domain)
-
-domain/models/ classes      →  Components (Entities)
-use_cases/ classes          →  Components (Use Cases)
-domain/repositories/        →  Components (Protocols)
-domain/services/            →  Components (Protocols)
-worker/pipelines/           →  Components (Pipelines)
-
-import statements           →  Relationships
 ```
 
-### Integration with HCD
+### From AST Introspection
 
-The HCD extension already establishes relationships between documentation
-entities and code:
+```
+Code Structure              →  C4 Components
+─────────────────────────────────────────────────────
+domain/models/ classes      →  Entity Components
+use_cases/ classes          →  Use Case Components
+domain/repositories/        →  Protocol Components
+domain/services/            →  Protocol Components
+worker/pipelines/           →  Pipeline Components
+```
 
-| HCD Entity | C4 Mapping |
-|------------|------------|
-| Accelerator | Container (bounded context) |
-| Application | Container (entry point) |
-| Story → Pipeline | Component relationship |
-| Integration | External System |
+### From Import Analysis
 
-This creates a bridge: HCD captures the *why* and *who*, C4 captures the *what*
-and *how*, and both can be inferred from the same codebase.
+```
+Import Pattern              →  C4 Relationship
+─────────────────────────────────────────────────────
+UseCase imports Repository  →  "reads from / writes to"
+UseCase imports Service     →  "uses"
+Pipeline imports UseCase    →  "executes"
+API route imports UseCase   →  "exposes"
+```
 
-## Proposed Capabilities
+### From HCD Entities
 
-### 1. Inferred Software System
+```
+HCD Declaration             →  C4 Element
+─────────────────────────────────────────────────────
+define-persona::            →  Person (actor)
+define-app::                →  Container (entry point)
+define-accelerator::        →  Container (bounded context)
+define-integration::        →  External System
+story :persona: :app:       →  Relationship (uses)
+```
 
-Derive the top-level software system from the solution itself:
+## Implementation Approach
+
+### Shared Domain Model
+
+Create unified domain models that serve both perspectives:
+
+```python
+class Person(BaseModel):
+    """Unified person/persona model."""
+    slug: str
+    name: str
+    # HCD attributes
+    goals: list[str]
+    frustrations: list[str]
+    jobs_to_be_done: list[str]
+    # C4 attributes
+    is_external: bool = True  # C4: external actor
+
+class Container(BaseModel):
+    """Unified container model."""
+    slug: str
+    name: str
+    # Classification
+    container_type: Literal["api", "cli", "worker", "bounded-context"]
+    technology: str
+    # HCD attributes (if bounded-context)
+    pipelines: list[str]
+    # C4 attributes
+    components: list[Component]
+```
+
+### Single Directive, Multiple Views
+
+Each directive populates the unified model:
 
 ```rst
-.. infer-software-system::
-   :name: RBA Platform
-   :description: From pyproject.toml or __init__.py docstring
+.. define-persona:: knowledge-curator
+   :name: Knowledge Curator
+   :goals: Build comprehensive vocabulary
 ```
 
-Would produce a `define-software-system::` equivalent by reading project
-metadata.
+The persona appears in:
+- `persona-index::` (HCD view)
+- `system-context-diagram::` (C4 view)
+- `journeys-for-persona::` (HCD view)
 
-### 2. Inferred External Systems
+### Inference Directives
 
-Discover external systems from multiple sources:
-
-- **Service protocols**: Classes in `domain/services/` that wrap external APIs
-- **Docker Compose**: Services marked as external (databases, message queues)
-- **Settings/Environment**: URLs and credentials pointing to external services
-- **Integration manifests**: Already captured by HCD
-
-```rst
-.. infer-external-systems::
-   :from: docker-compose, service-protocols, integrations
-```
-
-### 3. Inferred Containers
-
-Detect containers from directory structure:
+For elements that can be fully inferred:
 
 ```rst
 .. infer-containers::
-   :apps-dir: apps/
-   :bounded-contexts: src/
-```
+   :from: apps/, src/
 
-Would discover:
-- `apps/api/` → Container "API" (technology: FastAPI)
-- `apps/worker/` → Container "Worker" (technology: Temporal)
-- `src/vocabulary/` → Container "Vocabulary" (bounded context)
-- `src/assessment/` → Container "Assessment" (bounded context)
-
-### 4. Inferred Components
-
-Use existing AST introspection (BoundedContextInfo) to discover components:
-
-```rst
 .. infer-components::
-   :bounded-context: vocabulary
-```
+   :container: vocabulary
 
-Would use the existing `parse_bounded_context()` function to find:
-- Entities from `domain/models/`
-- Use cases from `use_cases/`
-- Repository protocols from `domain/repositories/`
-- Service protocols from `domain/services/`
-
-### 5. Inferred Relationships
-
-Analyse import statements to discover dependencies:
-
-```rst
 .. infer-relationships::
-   :bounded-context: vocabulary
-   :depth: 2
+   :scope: vocabulary
 ```
 
-Would parse imports to find:
-- UseCase imports RepositoryProtocol → "reads from / writes to"
-- UseCase imports ServiceProtocol → "uses"
-- Pipeline imports UseCase → "executes"
-- API route imports UseCase → "exposes"
+### Hybrid Mode
 
-### 6. Hybrid Approach
-
-Allow mixing inferred and explicit definitions:
+Allow explicit definitions to supplement or override inference:
 
 ```rst
-.. infer-container-diagram::
-   :software-system: rba
+.. infer-external-systems::
+   :from: docker-compose, service-protocols
 
-.. define-container:: legacy-system
-   :system: rba
-   :external: true
-   :description: Manually defined because not in our codebase
+.. define-external-system:: legacy-mainframe
+   :description: Not discoverable, must be explicit
 ```
-
-Inferred elements could be augmented or overridden by explicit definitions.
-
-## Implementation Considerations
-
-### Extending Existing Infrastructure
-
-The `sphinx_hcd` extension already has:
-
-- **AST parser** (`parsers/ast.py`): Extracts classes from Python files
-- **BoundedContextInfo model**: Captures entities, use cases, protocols
-- **Directory scanning**: `scan_bounded_contexts()` function
-- **Code info repository**: Stores introspected data
-
-This infrastructure could be extended rather than duplicated.
-
-### New Parsers Needed
-
-| Parser | Purpose |
-|--------|---------|
-| Import graph analyser | Build dependency graph from `import` statements |
-| Docker Compose parser | Extract services, technologies, relationships |
-| Settings scanner | Find external service references |
-| Route/command scanner | Map API routes and CLI commands to use cases |
-
-### Relationship Inference Heuristics
-
-Import analysis needs heuristics to determine relationship types:
-
-```python
-# Heuristic examples
-if imported_class.endswith("Repository"):
-    relationship_type = "reads from / writes to"
-elif imported_class.endswith("Service"):
-    relationship_type = "uses"
-elif imported_class.endswith("UseCase"):
-    relationship_type = "executes"
-```
-
-### Caching and Performance
-
-AST parsing can be expensive. Consider:
-
-- Caching parsed results between Sphinx builds
-- Incremental updates when only some files change
-- Lazy loading of detailed component info
 
 ## Open Questions
 
-### Granularity Control
+### Unified vs Federated Model
 
-How much should be inferred vs explicit?
+Should HCD and C4 share a single repository, or have separate repositories
+with cross-references?
 
-- **Minimal inference**: Only suggest, human writes definitions
-- **Full inference**: Generate everything, human overrides
-- **Hybrid**: Infer structure, human adds descriptions
+- **Unified**: Simpler, guarantees consistency
+- **Federated**: More flexible, allows independent evolution
 
-### Diagram Generation
+### Inference Completeness
 
-Should inferred elements automatically generate diagrams?
+Import analysis may miss:
+- Dependency injection (runtime wiring)
+- Dynamic imports
+- Configuration-driven relationships
 
-- PlantUML from inferred containers and relationships
-- Or just populate the C4 repositories for manual diagram directives
+Options:
+- Accept incompleteness, allow manual supplementation
+- Parse DI container configuration
+- Warn about gaps
 
-### Accuracy vs Completeness
+### Diagram Layout
 
-Import analysis may miss runtime dependencies (dependency injection, dynamic
-imports). How to handle:
+C4 diagrams need spatial layout. Options:
+- Auto-layout (PlantUML default)
+- Hint-based layout (suggest positions)
+- Manual layout with inferred content
 
-- Warn about incomplete analysis?
-- Allow manual supplementation?
-- Integrate with DI container configuration?
+### Granularity of Components
 
-### Cross-Repository Systems
-
-For solutions that span multiple repositories:
-
-- How to reference external systems defined elsewhere?
-- Shared C4 element registries?
-
-### Versioning and History
-
-C4 diagrams often need to show:
-
-- Current state vs target state
-- Evolution over time
-
-How does inference interact with versioned architecture documentation?
-
-## Relationship to Existing Work
-
-### sphinx_hcd Accelerator Scanning
-
-The `define-accelerator::` directive already does bounded context introspection:
-
-```python
-# From accelerator.py
-code_info = hcd_context.code_info_repo.get(accelerator.code_dir)
-if code_info:
-    # Render entities, use cases, protocols from introspection
-```
-
-C4 inference would use the same data but render it as C4 elements.
-
-### HCD → C4 Bridge
-
-The relationship between HCD and C4 could be explicit:
-
-| HCD | C4 |
-|-----|-----|
-| Accelerator | maps to Container |
-| Application | maps to Container |
-| Integration | maps to External System |
-| Story.pipeline | maps to Component |
-
-This bridge would allow navigation between perspectives:
-- "Which container implements this accelerator?"
-- "Which stories are satisfied by this component?"
+How deep should component inference go?
+- Just top-level classes?
+- Include methods as sub-components?
+- Include class relationships?
 
 ## Success Criteria
 
-A successful implementation would:
-
-1. **Reduce manual C4 authoring** for well-structured Julee solutions
-2. **Stay current automatically** as code evolves
-3. **Integrate with HCD** for traceability across perspectives
-4. **Support hybrid mode** for elements that can't be inferred
-5. **Generate useful diagrams** without manual layout work
+1. **Single source of truth**: Define once, appear in both HCD and C4 views
+2. **Automatic inference**: Well-structured code needs minimal explicit C4
+3. **Consistency guaranteed**: Cannot have persona without corresponding actor
+4. **Progressive detail**: System context auto-generated, component diagrams
+   can be elaborated manually
+5. **Traceability**: Navigate from persona → story → component → code
 
 ## Next Steps
 
-1. **Discuss and refine** this proposal
-2. **Prototype import analysis** to validate relationship inference
-3. **Design the directive API** for inference directives
-4. **Consider ADR** once approach is agreed
+1. **Discuss unification approach** - unified vs federated model
+2. **Prototype persona unification** - single definition, dual rendering
+3. **Extend accelerator directive** - add C4 container generation
+4. **Design inference directives** - API for automatic discovery
 
 ## References
 
 - ADR 001 (julee): Contrib Module Layout
 - ADR 003 (julee): Sphinx HCD Extensions Package
-- ADR 001 (rba): Use Julee Solution Architecture
-- ADR 002 (rba): Documentation Organisation
 - [C4 Model](https://c4model.com/) - Simon Brown
 - [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) - Robert C. Martin
