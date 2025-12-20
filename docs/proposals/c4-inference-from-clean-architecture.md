@@ -407,49 +407,86 @@ heuristics.
 
 ### Proposed Enhancements
 
-#### 1. Protocol Base Classes (Type Hierarchy as Architecture)
+#### 1. Protocols vs Implementations (Abstract vs Concrete)
 
-The key insight: **constructor signatures already declare dependencies**. A use case
-like this is already literate:
+The key architectural distinction:
+
+- **Protocols are abstract** - they define contracts without knowing about external systems
+- **Implementations are concrete** - they know about MinIO, PostgreSQL, Anthropic, etc.
+- **DI container wiring** determines what's actually deployed
+
+Use cases depend on protocols (abstract):
 
 ```python
 class ExtractAssembleDataUseCase:
     def __init__(
         self,
-        document_repo: DocumentRepository,
-        assembly_repo: AssemblyRepository,
-        knowledge_service: KnowledgeService,
+        document_repo: DocumentRepository,    # Protocol - abstract
+        assembly_repo: AssemblyRepository,    # Protocol - abstract
+        knowledge_service: KnowledgeService,  # Protocol - abstract
     ):
 ```
 
-We don't need decorators that repeat this information. Instead, make the **protocol
-types** themselves declare their architectural role:
+Protocols define the contract without external knowledge:
 
 ```python
-from julee.architecture import RepositoryProtocol, ServiceProtocol, ExternalServiceProtocol
-
-class DocumentRepository(RepositoryProtocol):
+class DocumentRepository(Protocol):
     """Repository for document storage and retrieval."""
     async def get(self, id: str) -> Document | None: ...
     async def save(self, entity: Document) -> None: ...
-
-class KnowledgeService(ServiceProtocol):
-    """Service for knowledge extraction operations."""
-
-class AnthropicClient(ExternalServiceProtocol):
-    """Client for Anthropic Claude API."""
-    external_system_name = "Anthropic Claude"
 ```
 
-Now introspection can:
-1. Parse use case `__init__` signatures to find typed parameters
-2. Resolve each parameter's type
-3. Check if type inherits from `RepositoryProtocol` → data access component
-4. Check if type inherits from `ServiceProtocol` → internal service component
-5. Check if type inherits from `ExternalServiceProtocol` → external system dependency
+**Implementations** are where external systems become visible. Decorators on
+implementations (not protocols) declare concrete dependencies:
 
-**No duplication.** The constructor signature IS the source of truth. The protocol
-base classes just make the architectural role of each dependency explicit.
+```python
+from julee.architecture import repository_impl, service_impl
+
+@repository_impl(
+    implements=DocumentRepository,
+    external_system="minio",
+    technology="S3",
+)
+class MinioDocumentRepository:
+    """Stores documents in MinIO via S3 protocol."""
+
+    def __init__(self, client: MinioClient, bucket: str):
+        self.client = client
+        self.bucket = bucket
+
+@repository_impl(
+    implements=DocumentRepository,
+    external_system="postgresql",
+    technology="SQLAlchemy",
+)
+class PostgresDocumentRepository:
+    """Stores documents in PostgreSQL."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+@service_impl(
+    implements=KnowledgeService,
+    external_system="anthropic",
+    technology="Claude API",
+)
+class AnthropicKnowledgeService:
+    """Extracts knowledge using Anthropic Claude."""
+
+    def __init__(self, client: AnthropicClient):
+        self.client = client
+```
+
+This is **not duplication** because:
+1. Use case constructors declare *what* they need (protocols)
+2. Implementation decorators declare *how* they fulfil it (external systems)
+3. Different deployments can wire different implementations
+
+Introspection can now:
+1. Parse use case `__init__` to find protocol dependencies
+2. Find all implementations of each protocol
+3. Read `external_system` from implementation decorators
+4. Check DI container config to see which implementation is wired
 
 #### 2. Bounded Context Manifest
 
@@ -502,25 +539,57 @@ concept mapping, and semantic relationship tracking.
 """
 ```
 
-#### 3. Protocol Markers in Type Hints
+#### 3. DI Container and Settings Introspection
 
-Distinguish protocol types for inference:
+The DI container is the source of truth for what's actually deployed. Introspect
+the container configuration to understand concrete wiring:
 
 ```python
-from julee.architecture import RepositoryProtocol, ServiceProtocol, ExternalService
+# settings.py - declares what implementations are configured
+class Settings(BaseSettings):
+    # Repository backend selection
+    document_backend: Literal["minio", "postgres", "memory"] = "minio"
+    assembly_backend: Literal["minio", "postgres", "memory"] = "minio"
 
-class DocumentRepository(RepositoryProtocol):
-    """Repository for document storage and retrieval."""
+    # External system connection details
+    minio_endpoint: str = "minio:9000"
+    minio_access_key: str
+    minio_secret_key: str
 
-class KnowledgeService(ServiceProtocol):
-    """Service for knowledge extraction operations."""
+    postgres_dsn: str = ""
 
-class AnthropicClient(ExternalService):
-    """Client for Anthropic Claude API."""
-    external_system = "Anthropic Claude"
+    anthropic_api_key: str
+    anthropic_model: str = "claude-sonnet-4-20250514"
+
+    temporal_host: str = "temporal:7233"
+    temporal_namespace: str = "default"
 ```
 
-The `ExternalService` marker automatically creates a C4 external system.
+```python
+# container.py - wires implementations based on settings
+class Container:
+    def __init__(self, settings: Settings):
+        self.settings = settings
+
+    @cached_property
+    def document_repo(self) -> DocumentRepository:
+        if self.settings.document_backend == "minio":
+            return MinioDocumentRepository(self.minio_client, "documents")
+        elif self.settings.document_backend == "postgres":
+            return PostgresDocumentRepository(self.session)
+        else:
+            return MemoryDocumentRepository()
+
+    @cached_property
+    def knowledge_service(self) -> KnowledgeService:
+        return AnthropicKnowledgeService(self.anthropic_client)
+```
+
+Introspection can:
+1. Parse `Settings` class to find external system configuration fields
+2. Parse `Container` class to see which implementations are returned
+3. Cross-reference with `@repository_impl` / `@service_impl` decorators
+4. Build the complete external dependency graph for a deployment
 
 #### 4. Relationship Semantics (Optional Disambiguation)
 
@@ -612,36 +681,48 @@ The story links persona → app → use case. No need to repeat in code.
 
 ### Implementation Approach
 
-#### Phase 1: Non-Breaking Annotations
+#### Phase 1: Implementation Decorators
 
-Add optional decorators and markers that enhance introspection without
-requiring changes to existing code:
+Add decorators for repository and service implementations that declare their
+external system dependencies:
 
 ```python
-# Old code still works
-class MyUseCase:
+# Existing code continues to work via heuristics
+class MinioDocumentRepository:
     pass
 
-# New code gets benefits
-@use_case
-class MyEnhancedUseCase:
+# Decorated code enables precise inference
+@repository_impl(implements=DocumentRepository, external_system="minio")
+class MinioDocumentRepository:
     pass
 ```
 
-#### Phase 2: Manifest Files
+#### Phase 2: DI Container Conventions
 
-Support optional `context.yaml` files that override/supplement inference:
+Standardize DI container patterns for introspection:
 
+```python
+# Container follows conventions that tooling can parse
+class Container:
+    @cached_property
+    def document_repo(self) -> DocumentRepository:
+        # Return type annotation + conditional logic parseable
+        if self.settings.document_backend == "minio":
+            return MinioDocumentRepository(...)
 ```
-src/
-  vocabulary/
-    context.yaml      # Optional manifest
-    __init__.py
-    domain/
-    use_cases/
+
+#### Phase 3: Settings Schema
+
+Add schema annotations to Settings for external system discovery:
+
+```python
+class Settings(BaseSettings):
+    # Annotations enable tooling to understand what's configured
+    minio_endpoint: Annotated[str, ExternalSystem("minio", "S3")]
+    anthropic_api_key: Annotated[str, ExternalSystem("anthropic", "Claude API")]
 ```
 
-#### Phase 3: Validation and Linting
+#### Phase 4: Validation and Linting
 
 Add tooling to validate architectural rules:
 
@@ -650,22 +731,21 @@ julee lint architecture
 # Errors:
 #   src/vocabulary/use_cases/process.py:
 #     UseCase imports from infrastructure (dependency violation)
-#   src/assessment/domain/models/result.py:
-#     Entity missing @entity decorator
+#   src/vocabulary/repositories/minio.py:
+#     Implementation missing @repository_impl decorator
 ```
 
 ### Benefits for C4 Inference
-
-With literate architecture idioms based on **introspecting existing code**:
 
 | What Exists | How to Introspect | C4 Inference |
 |-------------|-------------------|--------------|
 | Class in `domain/models/` | Directory location | Entity component |
 | Class in `use_cases/` | Directory location | Use case component |
-| `__init__` parameter types | AST + type resolution | Dependencies/relationships |
-| Protocol inherits `RepositoryProtocol` | Type hierarchy | Data access component |
-| Protocol inherits `ServiceProtocol` | Type hierarchy | Service component |
-| Protocol inherits `ExternalServiceProtocol` | Type hierarchy | External system |
+| UseCase `__init__` parameters | AST + type resolution | Protocol dependencies |
+| `@repository_impl` decorator | Decorator introspection | External system dependency |
+| `@service_impl` decorator | Decorator introspection | External system dependency |
+| `Settings` class fields | Pydantic schema | Available external systems |
+| `Container` property returns | AST + type analysis | Implementation wiring |
 | Workflow instantiates UseCase | AST analysis | Pipeline "implements" use case |
 | Route has `Depends(use_case)` | FastAPI introspection | Route "exposes" use case |
 | `context.yaml` dependencies | Manifest file | Container relationships |
@@ -674,16 +754,16 @@ With literate architecture idioms based on **introspecting existing code**:
 ### Trade-offs
 
 **Pros:**
-- Introspects existing code structure - no duplication
-- Constructor signatures remain the single source of truth
-- Protocol base classes add minimal overhead
-- Type hierarchy is already how Python expresses "is-a" relationships
-- Validates architectural rules without redundant declarations
+- Protocols remain abstract - no external system knowledge
+- Implementations declare concrete dependencies - where the info belongs
+- DI container is already the wiring source of truth
+- Different deployments can have different external dependencies
+- Decorator info is not duplicative - it adds what protocols can't know
 
 **Cons:**
-- Requires protocol base classes (but these also enable runtime validation)
-- AST parsing is more complex than reading decorators
-- Some relationships may need disambiguation (mitigated by optional `Annotated`)
+- Requires decorating implementations (but this is also documentation)
+- Container introspection requires parsing conditional logic
+- Settings introspection may miss dynamically configured systems
 
 ### Compatibility with Existing Code
 
@@ -698,9 +778,11 @@ All enhancements should be:
 1. **Discuss unification approach** - unified vs federated model
 2. **Prototype persona unification** - single definition, dual rendering
 3. **Extend accelerator directive** - add C4 container generation
-4. **Design inference directives** - API for automatic discovery
-5. **Prototype architectural decorators** - `@entity`, `@use_case`, etc.
-6. **Design context.yaml schema** - bounded context manifest format
+4. **Design `@repository_impl` / `@service_impl` decorators** - implementation metadata
+5. **Design DI container conventions** - parseable wiring patterns
+6. **Design Settings schema annotations** - external system discovery
+7. **Design context.yaml schema** - bounded context manifest format
+8. **Prototype inference tooling** - parse decorators + container + settings
 
 ## References
 
