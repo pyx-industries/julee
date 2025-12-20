@@ -375,12 +375,299 @@ How deep should component inference go?
    can be elaborated manually
 5. **Traceability**: Navigate from persona → story → component → code
 
+## Literate Architecture Idioms
+
+Beyond inference from existing conventions, we could refine the conventions
+themselves to be more self-describing and machine-readable. The goal is
+**literate architecture**: code that declares its architectural role explicitly,
+readable by both humans and tooling.
+
+### Current State
+
+Today's conventions rely on:
+
+1. **Directory structure** - `domain/models/`, `use_cases/`, etc.
+2. **Naming conventions** - `*Repository`, `*UseCase`, `*Service`
+3. **Prose docstrings** - Human-readable but not machine-parseable
+
+```python
+# Current: Architectural role implied by location and naming
+class ExtractAssembleDataUseCase:
+    """
+    Use case for extracting and assembling documents...
+
+    Architectural Notes:
+    - This class contains pure business logic...
+    - Repository dependencies are injected via constructor...
+    """
+```
+
+This works for humans reading the code, but tooling must infer intent from
+heuristics.
+
+### Proposed Enhancements
+
+#### 1. Architectural Role Decorators
+
+Explicit markers that declare what a class is:
+
+```python
+from julee.architecture import entity, use_case, repository_protocol, service_protocol
+
+@entity
+class Document(BaseModel):
+    """A document in the system."""
+
+@use_case(
+    reads_from=[DocumentRepository, AssemblySpecificationRepository],
+    writes_to=[AssemblyRepository],
+    uses=[KnowledgeService],
+)
+class ExtractAssembleDataUseCase:
+    """Extract and assemble documents according to specifications."""
+```
+
+Benefits:
+- Explicit declaration of architectural role
+- Dependencies declared, not just inferred from imports
+- Tooling can validate dependency rules (no outward dependencies)
+- Auto-generates C4 component and relationships
+
+#### 2. Bounded Context Manifest
+
+A `context.yaml` or structured `__init__.py` docstring declaring the context:
+
+```yaml
+# src/vocabulary/context.yaml
+name: Vocabulary
+type: bounded-context
+objective: Manage domain terminology and semantic relationships
+
+entities:
+  - Term
+  - Concept
+  - Relationship
+
+use_cases:
+  - CreateTerm
+  - MapConcepts
+  - ResolveAmbiguity
+
+repository_protocols:
+  - TermRepository
+  - ConceptRepository
+
+service_protocols:
+  - OntologyService
+
+dependencies:
+  - assessment  # uses assessment context for validation
+```
+
+Or as a structured docstring (parseable as YAML front matter):
+
+```python
+"""
+---
+name: Vocabulary
+type: bounded-context
+objective: Manage domain terminology and semantic relationships
+entities: [Term, Concept, Relationship]
+use_cases: [CreateTerm, MapConcepts, ResolveAmbiguity]
+dependencies: [assessment]
+---
+
+Vocabulary bounded context.
+
+This context handles all terminology management, including term creation,
+concept mapping, and semantic relationship tracking.
+"""
+```
+
+#### 3. Protocol Markers in Type Hints
+
+Distinguish protocol types for inference:
+
+```python
+from julee.architecture import RepositoryProtocol, ServiceProtocol, ExternalService
+
+class DocumentRepository(RepositoryProtocol):
+    """Repository for document storage and retrieval."""
+
+class KnowledgeService(ServiceProtocol):
+    """Service for knowledge extraction operations."""
+
+class AnthropicClient(ExternalService):
+    """Client for Anthropic Claude API."""
+    external_system = "Anthropic Claude"
+```
+
+The `ExternalService` marker automatically creates a C4 external system.
+
+#### 4. Relationship Annotations
+
+Explicit declaration of how components relate:
+
+```python
+from julee.architecture import use_case, relationship
+
+@use_case
+class ProcessDocumentUseCase:
+
+    @relationship("reads from")
+    document_repo: DocumentRepository
+
+    @relationship("writes to")
+    assembly_repo: AssemblyRepository
+
+    @relationship("uses")
+    knowledge_service: KnowledgeService
+```
+
+Or via `__init__` parameter annotations:
+
+```python
+def __init__(
+    self,
+    document_repo: Annotated[DocumentRepository, Reads],
+    assembly_repo: Annotated[AssemblyRepository, Writes],
+    knowledge_service: Annotated[KnowledgeService, Uses],
+):
+```
+
+#### 5. Pipeline Declarations
+
+Pipelines (use cases wrapped for Temporal) could declare their relationship
+to use cases:
+
+```python
+from julee.architecture import pipeline
+
+@pipeline(
+    implements=ExtractAssembleDataUseCase,
+    triggers=["document.uploaded", "assembly.requested"],
+)
+class ExtractAssemblePipeline:
+    """Temporal workflow implementing ExtractAssembleDataUseCase."""
+```
+
+This creates:
+- C4 component for the pipeline
+- Relationship: pipeline "implements" use case
+- Event triggers documentation
+
+#### 6. App Entry Point Declarations
+
+API routes and CLI commands could declare what they expose:
+
+```python
+from julee.architecture import api_route, cli_command
+
+@api_route(
+    exposes=ProcessDocumentUseCase,
+    personas=["Solutions Developer", "API Consumer"],
+)
+@router.post("/documents/{id}/process")
+async def process_document(id: str):
+    ...
+
+@cli_command(
+    exposes=ValidateDocumentUseCase,
+    personas=["Solutions Developer"],
+)
+@app.command()
+def validate(document_id: str):
+    ...
+```
+
+### Implementation Approach
+
+#### Phase 1: Non-Breaking Annotations
+
+Add optional decorators and markers that enhance introspection without
+requiring changes to existing code:
+
+```python
+# Old code still works
+class MyUseCase:
+    pass
+
+# New code gets benefits
+@use_case
+class MyEnhancedUseCase:
+    pass
+```
+
+#### Phase 2: Manifest Files
+
+Support optional `context.yaml` files that override/supplement inference:
+
+```
+src/
+  vocabulary/
+    context.yaml      # Optional manifest
+    __init__.py
+    domain/
+    use_cases/
+```
+
+#### Phase 3: Validation and Linting
+
+Add tooling to validate architectural rules:
+
+```bash
+julee lint architecture
+# Errors:
+#   src/vocabulary/use_cases/process.py:
+#     UseCase imports from infrastructure (dependency violation)
+#   src/assessment/domain/models/result.py:
+#     Entity missing @entity decorator
+```
+
+### Benefits for C4 Inference
+
+With literate architecture idioms:
+
+| Idiom | C4 Inference |
+|-------|--------------|
+| `@entity` | Component (entity type) |
+| `@use_case(reads_from=..., writes_to=...)` | Component + relationships |
+| `@repository_protocol` | Component (data access) |
+| `@service_protocol` | Component (service) |
+| `ExternalService` subclass | External system |
+| `@pipeline(implements=...)` | Component + "implements" relationship |
+| `@api_route(exposes=...)` | "exposes" relationship to container |
+| `context.yaml` dependencies | Container relationships |
+
+### Trade-offs
+
+**Pros:**
+- Explicit is better than implicit
+- Tooling becomes reliable, not heuristic
+- Self-documenting code
+- Validates architectural rules at development time
+
+**Cons:**
+- More boilerplate (mitigated by optional adoption)
+- Learning curve for decorators
+- Risk of annotations drifting from reality (mitigated by validation)
+
+### Compatibility with Existing Code
+
+All enhancements should be:
+1. **Optional** - Existing code works without changes
+2. **Incremental** - Add annotations gradually
+3. **Validated** - Lint tools check consistency
+4. **Inferred** - Fall back to current heuristics when annotations missing
+
 ## Next Steps
 
 1. **Discuss unification approach** - unified vs federated model
 2. **Prototype persona unification** - single definition, dual rendering
 3. **Extend accelerator directive** - add C4 container generation
 4. **Design inference directives** - API for automatic discovery
+5. **Prototype architectural decorators** - `@entity`, `@use_case`, etc.
+6. **Design context.yaml schema** - bounded context manifest format
 
 ## References
 
