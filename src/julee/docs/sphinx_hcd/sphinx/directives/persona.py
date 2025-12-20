@@ -1,8 +1,10 @@
 """Persona directives for sphinx_hcd.
 
-Generates PlantUML use case diagrams dynamically from epic and story data.
+Provides directives for defining personas and generating persona indexes.
 
 Provides directives:
+- define-persona: Define a persona with HCD metadata
+- persona-index: Render index of all personas
 - persona-diagram: Generate UML diagram for a single persona showing their epics
 - persona-index-diagram: Generate UML diagram for staff or external persona groups
 """
@@ -10,13 +12,15 @@ Provides directives:
 import os
 
 from docutils import nodes
+from docutils.parsers.rst import directives
 
+from ...domain.models.persona import Persona
 from ...domain.use_cases import (
     derive_personas,
     derive_personas_by_app_type,
     get_epics_for_persona,
 )
-from ...utils import normalize_name, slugify
+from ...utils import normalize_name, parse_list_option, slugify
 from .base import HCDDirective
 
 
@@ -30,6 +34,135 @@ class PersonaIndexDiagramPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for persona-index-diagram, replaced at doctree-resolved."""
 
     pass
+
+
+class PersonaIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder node for persona-index, replaced at doctree-resolved."""
+
+    pass
+
+
+class DefinePersonaDirective(HCDDirective):
+    """Define a persona with HCD metadata.
+
+    Options:
+        :name: Display name (defaults to slug title-cased)
+        :goals: Bullet list of goals
+        :frustrations: Bullet list of frustrations
+        :jobs-to-be-done: Bullet list of JTBD
+
+    Example::
+
+        .. define-persona:: solutions-developer
+           :name: Solutions Developer
+           :goals:
+              Build reliable workflow solutions
+              Maintain audit trails for compliance
+           :frustrations:
+              Boilerplate infrastructure code
+              Unreliable external service integrations
+           :jobs-to-be-done:
+              Implement business processes as durable workflows
+
+           A developer building production systems with Julee...
+    """
+
+    required_arguments = 1
+    has_content = True
+    option_spec = {
+        "name": directives.unchanged,
+        "goals": directives.unchanged,
+        "frustrations": directives.unchanged,
+        "jobs-to-be-done": directives.unchanged,
+    }
+
+    def run(self):
+        slug = self.arguments[0]
+        docname = self.env.docname
+
+        # Parse options
+        name = self.options.get("name", "").strip()
+        if not name:
+            name = slug.replace("-", " ").title()
+
+        goals = parse_list_option(self.options.get("goals", ""))
+        frustrations = parse_list_option(self.options.get("frustrations", ""))
+        jobs_to_be_done = parse_list_option(self.options.get("jobs-to-be-done", ""))
+        context = "\n".join(self.content).strip()
+
+        # Create persona entity
+        persona = Persona(
+            slug=slug,
+            name=name,
+            goals=goals,
+            frustrations=frustrations,
+            jobs_to_be_done=jobs_to_be_done,
+            context=context,
+            docname=docname,
+        )
+
+        # Add to repository
+        self.hcd_context.persona_repo.save(persona)
+
+        # Build output nodes
+        result_nodes = []
+
+        # Context description
+        if context:
+            context_para = nodes.paragraph()
+            context_para += nodes.Text(context)
+            result_nodes.append(context_para)
+
+        # Goals section
+        if goals:
+            result_nodes.extend(self._build_list_section("Goals", goals))
+
+        # Frustrations section
+        if frustrations:
+            result_nodes.extend(self._build_list_section("Frustrations", frustrations))
+
+        # Jobs to be done section
+        if jobs_to_be_done:
+            result_nodes.extend(
+                self._build_list_section("Jobs to be Done", jobs_to_be_done)
+            )
+
+        return result_nodes
+
+    def _build_list_section(self, title: str, items: list[str]) -> list[nodes.Node]:
+        """Build a titled bullet list section."""
+        section_nodes = []
+
+        # Title paragraph
+        title_para = nodes.paragraph()
+        title_para += nodes.strong(text=f"{title}:")
+        section_nodes.append(title_para)
+
+        # Bullet list
+        bullet_list = nodes.bullet_list()
+        for item in items:
+            list_item = nodes.list_item()
+            para = nodes.paragraph()
+            para += nodes.Text(item)
+            list_item += para
+            bullet_list += list_item
+        section_nodes.append(bullet_list)
+
+        return section_nodes
+
+
+class PersonaIndexDirective(HCDDirective):
+    """Render index of all personas.
+
+    Usage::
+
+        .. persona-index::
+    """
+
+    def run(self):
+        # Return placeholder - rendering in doctree-resolved
+        # so we can access all personas after all docs are read
+        return [PersonaIndexPlaceholder()]
 
 
 class PersonaDiagramDirective(HCDDirective):
@@ -326,11 +459,67 @@ def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
     return [node]
 
 
+def build_persona_index(docname: str, hcd_context):
+    """Build the persona index as a bullet list."""
+    from ...config import get_config
+
+    config = get_config()
+
+    all_personas = hcd_context.persona_repo.list_all()
+
+    if not all_personas:
+        para = nodes.paragraph()
+        para += nodes.emphasis(text="No personas defined")
+        return [para]
+
+    bullet_list = nodes.bullet_list()
+
+    for persona in sorted(all_personas, key=lambda p: p.name):
+        item = nodes.list_item()
+        para = nodes.paragraph()
+
+        # Link to persona
+        persona_path = f"{persona.slug}.html"
+        persona_ref = nodes.reference("", "", refuri=persona_path)
+        persona_ref += nodes.strong(text=persona.name)
+        para += persona_ref
+
+        # Show brief info
+        info_parts = []
+        if persona.goals:
+            info_parts.append(f"{len(persona.goals)} goals")
+        if persona.jobs_to_be_done:
+            info_parts.append(f"{len(persona.jobs_to_be_done)} JTBD")
+
+        if info_parts:
+            para += nodes.Text(f" ({', '.join(info_parts)})")
+
+        item += para
+
+        # Context as sub-paragraph if present
+        if persona.context:
+            context_text = persona.context
+            if len(context_text) > 100:
+                context_text = context_text[:100] + "..."
+            desc_para = nodes.paragraph()
+            desc_para += nodes.Text(context_text)
+            item += desc_para
+
+        bullet_list += item
+
+    return [bullet_list]
+
+
 def process_persona_placeholders(app, doctree, docname):
-    """Replace persona diagram placeholders with rendered content."""
+    """Replace persona placeholders with rendered content."""
     from ..context import get_hcd_context
 
     hcd_context = get_hcd_context(app)
+
+    # Process persona-index placeholders
+    for node in doctree.traverse(PersonaIndexPlaceholder):
+        content = build_persona_index(docname, hcd_context)
+        node.replace_self(content)
 
     # Process persona-diagram placeholders
     for node in doctree.traverse(PersonaDiagramPlaceholder):

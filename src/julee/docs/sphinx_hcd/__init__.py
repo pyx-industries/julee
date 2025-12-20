@@ -90,10 +90,13 @@ def setup(app):
         JourneyIndexDirective,
         JourneysForPersonaDirective,
         # Persona directives
+        DefinePersonaDirective,
         PersonaDiagramDirective,
         PersonaDiagramPlaceholder,
+        PersonaIndexDirective,
         PersonaIndexDiagramDirective,
         PersonaIndexDiagramPlaceholder,
+        PersonaIndexPlaceholder,
         StepEpicDirective,
         StepPhaseDirective,
         StepStoryDirective,
@@ -190,8 +193,11 @@ def setup(app):
     app.add_node(IntegrationIndexPlaceholder)
 
     # Register persona directives
+    app.add_directive("define-persona", DefinePersonaDirective)
+    app.add_directive("persona-index", PersonaIndexDirective)
     app.add_directive("persona-diagram", PersonaDiagramDirective)
     app.add_directive("persona-index-diagram", PersonaIndexDiagramDirective)
+    app.add_node(PersonaIndexPlaceholder)
     app.add_node(PersonaDiagramPlaceholder)
     app.add_node(PersonaIndexDiagramPlaceholder)
 
