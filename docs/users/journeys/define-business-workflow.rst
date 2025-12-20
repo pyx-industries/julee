@@ -1,3 +1,6 @@
+Define Business Workflow
+========================
+
 .. define-journey:: define-business-workflow
    :persona: Business Process Analyst
    :intent: Capture business requirements in a way that translates directly to implementation

@@ -67,6 +67,12 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Users
+
+   users/index
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    autoapi/index
