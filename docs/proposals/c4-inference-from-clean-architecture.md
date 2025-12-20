@@ -407,31 +407,49 @@ heuristics.
 
 ### Proposed Enhancements
 
-#### 1. Architectural Role Decorators
+#### 1. Protocol Base Classes (Type Hierarchy as Architecture)
 
-Explicit markers that declare what a class is:
+The key insight: **constructor signatures already declare dependencies**. A use case
+like this is already literate:
 
 ```python
-from julee.architecture import entity, use_case, repository_protocol, service_protocol
-
-@entity
-class Document(BaseModel):
-    """A document in the system."""
-
-@use_case(
-    reads_from=[DocumentRepository, AssemblySpecificationRepository],
-    writes_to=[AssemblyRepository],
-    uses=[KnowledgeService],
-)
 class ExtractAssembleDataUseCase:
-    """Extract and assemble documents according to specifications."""
+    def __init__(
+        self,
+        document_repo: DocumentRepository,
+        assembly_repo: AssemblyRepository,
+        knowledge_service: KnowledgeService,
+    ):
 ```
 
-Benefits:
-- Explicit declaration of architectural role
-- Dependencies declared, not just inferred from imports
-- Tooling can validate dependency rules (no outward dependencies)
-- Auto-generates C4 component and relationships
+We don't need decorators that repeat this information. Instead, make the **protocol
+types** themselves declare their architectural role:
+
+```python
+from julee.architecture import RepositoryProtocol, ServiceProtocol, ExternalServiceProtocol
+
+class DocumentRepository(RepositoryProtocol):
+    """Repository for document storage and retrieval."""
+    async def get(self, id: str) -> Document | None: ...
+    async def save(self, entity: Document) -> None: ...
+
+class KnowledgeService(ServiceProtocol):
+    """Service for knowledge extraction operations."""
+
+class AnthropicClient(ExternalServiceProtocol):
+    """Client for Anthropic Claude API."""
+    external_system_name = "Anthropic Claude"
+```
+
+Now introspection can:
+1. Parse use case `__init__` signatures to find typed parameters
+2. Resolve each parameter's type
+3. Check if type inherits from `RepositoryProtocol` → data access component
+4. Check if type inherits from `ServiceProtocol` → internal service component
+5. Check if type inherits from `ExternalServiceProtocol` → external system dependency
+
+**No duplication.** The constructor signature IS the source of truth. The protocol
+base classes just make the architectural role of each dependency explicit.
 
 #### 2. Bounded Context Manifest
 
@@ -504,81 +522,93 @@ class AnthropicClient(ExternalService):
 
 The `ExternalService` marker automatically creates a C4 external system.
 
-#### 4. Relationship Annotations
+#### 4. Relationship Semantics (Optional Disambiguation)
 
-Explicit declaration of how components relate:
+Most relationships can be inferred from the protocol type:
+- `RepositoryProtocol` → "reads from / writes to" (data access)
+- `ServiceProtocol` → "uses" (internal service)
+- `ExternalServiceProtocol` → "calls" (external system)
 
-```python
-from julee.architecture import use_case, relationship
-
-@use_case
-class ProcessDocumentUseCase:
-
-    @relationship("reads from")
-    document_repo: DocumentRepository
-
-    @relationship("writes to")
-    assembly_repo: AssemblyRepository
-
-    @relationship("uses")
-    knowledge_service: KnowledgeService
-```
-
-Or via `__init__` parameter annotations:
+For finer-grained semantics (read-only vs read-write), use `Annotated` **only when
+disambiguation is needed**:
 
 ```python
 def __init__(
     self,
-    document_repo: Annotated[DocumentRepository, Reads],
-    assembly_repo: Annotated[AssemblyRepository, Writes],
-    knowledge_service: Annotated[KnowledgeService, Uses],
+    # No annotation needed - default is read/write for repositories
+    document_repo: DocumentRepository,
+
+    # Annotation adds semantics without repeating the type
+    audit_repo: Annotated[AuditRepository, WriteOnly],
+    cache: Annotated[CacheService, ReadOnly],
 ):
 ```
 
-#### 5. Pipeline Declarations
+This is **additive metadata**, not duplication. The type (`AuditRepository`) declares
+*what* it is; the annotation (`WriteOnly`) declares *how* it's used.
 
-Pipelines (use cases wrapped for Temporal) could declare their relationship
-to use cases:
+Alternatively, relationship semantics could be inferred from protocol method names:
+- Protocol has `get`, `list`, `find` → supports reads
+- Protocol has `save`, `delete`, `update` → supports writes
+- This makes even `Annotated` unnecessary in most cases
+
+#### 5. Pipeline-to-UseCase Relationships
+
+Pipelines (Temporal workflows) wrap use cases. This relationship can be inferred:
 
 ```python
-from julee.architecture import pipeline
-
-@pipeline(
-    implements=ExtractAssembleDataUseCase,
-    triggers=["document.uploaded", "assembly.requested"],
-)
 class ExtractAssemblePipeline:
-    """Temporal workflow implementing ExtractAssembleDataUseCase."""
+    """Temporal workflow for document assembly."""
+
+    @workflow.run
+    async def run(self, document_id: str) -> Assembly:
+        # The use case instantiation reveals the relationship
+        use_case = ExtractAssembleDataUseCase(
+            document_repo=DocumentRepositoryProxy(),
+            assembly_repo=AssemblyRepositoryProxy(),
+            ...
+        )
+        return await use_case.assemble_data(document_id, ...)
 ```
 
-This creates:
-- C4 component for the pipeline
-- Relationship: pipeline "implements" use case
-- Event triggers documentation
+Introspection can:
+1. Find workflow classes (decorated with `@workflow.defn`)
+2. Parse their `run` method to find use case instantiations
+3. Infer: pipeline "implements" use case
 
-#### 6. App Entry Point Declarations
-
-API routes and CLI commands could declare what they expose:
+If explicit declaration is preferred, a minimal marker suffices:
 
 ```python
-from julee.architecture import api_route, cli_command
+class ExtractAssemblePipeline:
+    """Temporal workflow for document assembly."""
+    implements = ExtractAssembleDataUseCase  # Class attribute, not decorator
+```
 
-@api_route(
-    exposes=ProcessDocumentUseCase,
-    personas=["Solutions Developer", "API Consumer"],
-)
+#### 6. App Entry Points
+
+API routes already have typed dependencies via FastAPI's dependency injection:
+
+```python
 @router.post("/documents/{id}/process")
-async def process_document(id: str):
-    ...
-
-@cli_command(
-    exposes=ValidateDocumentUseCase,
-    personas=["Solutions Developer"],
-)
-@app.command()
-def validate(document_id: str):
+async def process_document(
+    id: str,
+    use_case: ExtractAssembleDataUseCase = Depends(get_extract_assemble_use_case),
+):
     ...
 ```
+
+Introspection can parse the `Depends()` parameters to discover which use cases
+each route exposes. No additional decorators needed.
+
+For persona associations, the existing HCD story system already captures this:
+
+```rst
+.. define-story:: process-document
+   :persona: Solutions Developer
+   :app: api
+```
+
+The story links persona → app → use case. No need to repeat in code.
 
 ### Implementation Approach
 
@@ -626,31 +656,34 @@ julee lint architecture
 
 ### Benefits for C4 Inference
 
-With literate architecture idioms:
+With literate architecture idioms based on **introspecting existing code**:
 
-| Idiom | C4 Inference |
-|-------|--------------|
-| `@entity` | Component (entity type) |
-| `@use_case(reads_from=..., writes_to=...)` | Component + relationships |
-| `@repository_protocol` | Component (data access) |
-| `@service_protocol` | Component (service) |
-| `ExternalService` subclass | External system |
-| `@pipeline(implements=...)` | Component + "implements" relationship |
-| `@api_route(exposes=...)` | "exposes" relationship to container |
-| `context.yaml` dependencies | Container relationships |
+| What Exists | How to Introspect | C4 Inference |
+|-------------|-------------------|--------------|
+| Class in `domain/models/` | Directory location | Entity component |
+| Class in `use_cases/` | Directory location | Use case component |
+| `__init__` parameter types | AST + type resolution | Dependencies/relationships |
+| Protocol inherits `RepositoryProtocol` | Type hierarchy | Data access component |
+| Protocol inherits `ServiceProtocol` | Type hierarchy | Service component |
+| Protocol inherits `ExternalServiceProtocol` | Type hierarchy | External system |
+| Workflow instantiates UseCase | AST analysis | Pipeline "implements" use case |
+| Route has `Depends(use_case)` | FastAPI introspection | Route "exposes" use case |
+| `context.yaml` dependencies | Manifest file | Container relationships |
+| HCD story `:persona:` `:app:` | RST parsing | Persona uses app |
 
 ### Trade-offs
 
 **Pros:**
-- Explicit is better than implicit
-- Tooling becomes reliable, not heuristic
-- Self-documenting code
-- Validates architectural rules at development time
+- Introspects existing code structure - no duplication
+- Constructor signatures remain the single source of truth
+- Protocol base classes add minimal overhead
+- Type hierarchy is already how Python expresses "is-a" relationships
+- Validates architectural rules without redundant declarations
 
 **Cons:**
-- More boilerplate (mitigated by optional adoption)
-- Learning curve for decorators
-- Risk of annotations drifting from reality (mitigated by validation)
+- Requires protocol base classes (but these also enable runtime validation)
+- AST parsing is more complex than reading decorators
+- Some relationships may need disambiguation (mitigated by optional `Annotated`)
 
 ### Compatibility with Existing Code
 
