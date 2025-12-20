@@ -37,6 +37,8 @@ dependencies = [
     "minio>=7.0.0",
     # AI/ML Services
     "anthropic>=0.66.0",
+    # MCP Server Framework
+    "mcp>=1.0.0",
     # Utilities
     "click>=0.8.0",
     "Jinja2>=3.0.0",
