@@ -44,8 +44,9 @@ class RstStoryRepository(RstRepositoryMixin[Story], StoryRepository):
         content = data.get("content", "")
 
         # Parse Gherkin content
-        feature_title, persona, i_want, so_that, gherkin_snippet = \
+        feature_title, persona, i_want, so_that, gherkin_snippet = (
             self._parse_gherkin_content(content)
+        )
 
         return Story(
             slug=data["slug"],
@@ -61,9 +62,7 @@ class RstStoryRepository(RstRepositoryMixin[Story], StoryRepository):
             epilogue_rst=parsed.epilogue,
         )
 
-    def _parse_gherkin_content(
-        self, content: str
-    ) -> tuple[str, str, str, str, str]:
+    def _parse_gherkin_content(self, content: str) -> tuple[str, str, str, str, str]:
         """Parse Gherkin-format content from directive body.
 
         Args:
@@ -110,7 +109,8 @@ class RstStoryRepository(RstRepositoryMixin[Story], StoryRepository):
         """Get all stories for an application."""
         app_normalized = normalize_name(app_slug)
         return [
-            story for story in self.storage.values()
+            story
+            for story in self.storage.values()
             if story.app_normalized == app_normalized
         ]
 
@@ -118,7 +118,8 @@ class RstStoryRepository(RstRepositoryMixin[Story], StoryRepository):
         """Get all stories for a persona."""
         persona_normalized = normalize_name(persona)
         return [
-            story for story in self.storage.values()
+            story
+            for story in self.storage.values()
             if story.persona_normalized == persona_normalized
         ]
 

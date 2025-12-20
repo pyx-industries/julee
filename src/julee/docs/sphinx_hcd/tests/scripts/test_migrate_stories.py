@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from julee.docs.sphinx_hcd.scripts.migrate_stories import main, migrate_stories
 
 
@@ -138,11 +136,16 @@ class TestMainCLI:
         feature_dir.mkdir()
         output_dir = tmp_path / "output"
 
-        result = main([
-            "--feature-dir", str(feature_dir),
-            "--output-dir", str(output_dir),
-            "--project-root", str(tmp_path),
-        ])
+        result = main(
+            [
+                "--feature-dir",
+                str(feature_dir),
+                "--output-dir",
+                str(output_dir),
+                "--project-root",
+                str(tmp_path),
+            ]
+        )
 
         assert result == 0
 
@@ -152,20 +155,27 @@ class TestMainCLI:
         feature_dir.mkdir(parents=True)
         output_dir = tmp_path / "output"
 
-        (feature_dir / "demo.feature").write_text("""\
+        (feature_dir / "demo.feature").write_text(
+            """\
 Feature: Demo Feature
 
   As a Demo User
   I want to demonstrate
   So that it works
-""")
+"""
+        )
 
-        result = main([
-            "--feature-dir", str(tmp_path / "tests" / "e2e"),
-            "--output-dir", str(output_dir),
-            "--project-root", str(tmp_path),
-            "--execute",
-        ])
+        result = main(
+            [
+                "--feature-dir",
+                str(tmp_path / "tests" / "e2e"),
+                "--output-dir",
+                str(output_dir),
+                "--project-root",
+                str(tmp_path),
+                "--execute",
+            ]
+        )
 
         assert result == 0
         assert output_dir.exists()

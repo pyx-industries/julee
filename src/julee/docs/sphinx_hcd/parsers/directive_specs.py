@@ -4,7 +4,6 @@ Defines the option specifications for each directive type, used by both
 docutils parsing and directive registration.
 """
 
-from docutils.parsers.rst import directives
 
 
 def unchanged_optional(argument: str | None) -> str:
@@ -82,19 +81,11 @@ DIRECTIVE_SPECS = {
         }
     },
     # Step directives (nested within journey)
-    "step-story": {
-        "options": {}
-    },
-    "step-epic": {
-        "options": {}
-    },
-    "step-phase": {
-        "options": {}
-    },
+    "step-story": {"options": {}},
+    "step-epic": {"options": {}},
+    "step-phase": {"options": {}},
     # Epic child directive
-    "epic-story": {
-        "options": {}
-    },
+    "epic-story": {"options": {}},
 }
 
 

@@ -9,14 +9,13 @@ import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 from docutils import nodes
 from docutils.core import publish_doctree
 from docutils.parsers.rst import Directive, directives
 from docutils.utils import Reporter
 
-from .directive_specs import DIRECTIVE_SPECS, get_option_spec
+from .directive_specs import DIRECTIVE_SPECS
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +44,16 @@ class DataCollectorDirective(Directive):
             self.state.document.settings.collected_entities = []
 
         # Store directive data
-        self.state.document.settings.collected_entities.append({
-            "directive_type": self.name,
-            "slug": self.arguments[0] if self.arguments else "",
-            "options": dict(self.options),
-            "content": "\n".join(self.content),
-            "lineno": self.lineno,
-            "content_offset": self.content_offset,
-        })
+        self.state.document.settings.collected_entities.append(
+            {
+                "directive_type": self.name,
+                "slug": self.arguments[0] if self.arguments else "",
+                "options": dict(self.options),
+                "content": "\n".join(self.content),
+                "lineno": self.lineno,
+                "content_offset": self.content_offset,
+            }
+        )
 
         return []
 
@@ -167,7 +168,9 @@ def _find_title_block_end(content: str) -> int:
         elif line.strip() and i + 1 < len(lines):
             # Check if next line is underline (overline style)
             next_line = lines[i + 1]
-            if re.match(r"^[=\-~^\"\'`]+$", next_line) and len(next_line) >= len(line.rstrip()):
+            if re.match(r"^[=\-~^\"\'`]+$", next_line) and len(next_line) >= len(
+                line.rstrip()
+            ):
                 i += 1
                 continue
         i += 1
@@ -243,8 +246,10 @@ def _find_last_directive_end(content: str, entities: list[dict]) -> int | None:
         elif line.startswith(".. "):
             # Another directive - could be nested or sibling
             # Check if it's a nested directive (step-*, epic-story)
-            if any(line.startswith(f".. {nested}::") for nested in
-                   ["step-story", "step-epic", "step-phase", "epic-story"]):
+            if any(
+                line.startswith(f".. {nested}::")
+                for nested in ["step-story", "step-epic", "step-phase", "epic-story"]
+            ):
                 end_line += 1
             else:
                 in_directive = False
@@ -495,12 +500,14 @@ def extract_nested_directives(content: str) -> list[NestedDirective]:
 
     for pattern, directive_type in patterns:
         for match in pattern.finditer(content):
-            nested.append(NestedDirective(
-                directive_type=directive_type,
-                ref=match.group(1).strip(),
-                position=match.start(),
-                end_position=match.end(),
-            ))
+            nested.append(
+                NestedDirective(
+                    directive_type=directive_type,
+                    ref=match.group(1).strip(),
+                    position=match.start(),
+                    end_position=match.end(),
+                )
+            )
 
     # Sort by position
     nested.sort(key=lambda x: x.position)

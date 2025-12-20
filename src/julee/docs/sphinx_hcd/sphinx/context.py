@@ -6,7 +6,6 @@ with a unified, type-safe interface.
 """
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..repositories.memory import (
@@ -221,9 +220,7 @@ def _create_rst_context(config) -> HCDContext:
         journey_repo=SyncRepositoryAdapter(
             RstJourneyRepository(config.get_rst_dir("journeys"))
         ),
-        epic_repo=SyncRepositoryAdapter(
-            RstEpicRepository(config.get_rst_dir("epics"))
-        ),
+        epic_repo=SyncRepositoryAdapter(RstEpicRepository(config.get_rst_dir("epics"))),
         app_repo=SyncRepositoryAdapter(
             RstAppRepository(config.get_rst_dir("applications"))
         ),

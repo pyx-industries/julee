@@ -69,7 +69,8 @@ class RstIntegrationRepository(RstRepositoryMixin[Integration], IntegrationRepos
     async def get_by_direction(self, direction: Direction) -> list[Integration]:
         """Get all integrations with a specific data flow direction."""
         return [
-            integration for integration in self.storage.values()
+            integration
+            for integration in self.storage.values()
             if integration.direction == direction
         ]
 
@@ -95,7 +96,8 @@ class RstIntegrationRepository(RstRepositoryMixin[Integration], IntegrationRepos
     async def get_with_dependencies(self) -> list[Integration]:
         """Get all integrations that have external dependencies."""
         return [
-            integration for integration in self.storage.values()
+            integration
+            for integration in self.storage.values()
             if integration.depends_on
         ]
 
@@ -103,6 +105,7 @@ class RstIntegrationRepository(RstRepositoryMixin[Integration], IntegrationRepos
         """Get all integrations that depend on a specific external system."""
         dep_normalized = normalize_name(dep_name)
         return [
-            integration for integration in self.storage.values()
+            integration
+            for integration in self.storage.values()
             if integration.has_dependency(dep_normalized)
         ]

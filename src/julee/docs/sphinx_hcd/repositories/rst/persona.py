@@ -80,15 +80,13 @@ class RstPersonaRepository(RstRepositoryMixin[Persona], PersonaRepository):
     async def get_by_docname(self, docname: str) -> list[Persona]:
         """Get all personas defined in a specific document."""
         return [
-            persona for persona in self.storage.values()
-            if persona.docname == docname
+            persona for persona in self.storage.values() if persona.docname == docname
         ]
 
     async def clear_by_docname(self, docname: str) -> int:
         """Remove all personas defined in a specific document."""
         to_remove = [
-            slug for slug, persona in self.storage.items()
-            if persona.docname == docname
+            slug for slug, persona in self.storage.items() if persona.docname == docname
         ]
         for slug in to_remove:
             del self.storage[slug]

@@ -10,13 +10,13 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
-from ..memory.base import MemoryRepositoryMixin
 from ...parsers.docutils_parser import (
     ParsedDocument,
     find_entity_by_type,
     parse_rst_file,
 )
 from ...templates import render_entity
+from ..memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

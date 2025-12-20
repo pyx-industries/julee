@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from ...domain.models.journey import Journey, JourneyStep, StepType
+from ...domain.models.journey import Journey, JourneyStep
 from ...domain.repositories.journey import JourneyRepository
 from ...parsers.docutils_parser import (
     ParsedDocument,

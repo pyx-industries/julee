@@ -6,7 +6,6 @@ Verifies that:
 3. Document structure (page_title, preamble, epilogue) is preserved
 """
 
-import asyncio
 from pathlib import Path
 
 import pytest

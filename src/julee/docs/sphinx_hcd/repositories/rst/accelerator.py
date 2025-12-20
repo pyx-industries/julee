@@ -73,7 +73,8 @@ class RstAcceleratorRepository(RstRepositoryMixin[Accelerator], AcceleratorRepos
         """Get all accelerators with a specific status."""
         status_normalized = status.lower().strip()
         return [
-            acc for acc in self.storage.values()
+            acc
+            for acc in self.storage.values()
             if acc.status_normalized == status_normalized
         ]
 
@@ -107,15 +108,13 @@ class RstAcceleratorRepository(RstRepositoryMixin[Accelerator], AcceleratorRepos
     async def get_dependents(self, accelerator_slug: str) -> list[Accelerator]:
         """Get accelerators that depend on a specific accelerator."""
         return [
-            acc for acc in self.storage.values()
-            if accelerator_slug in acc.depends_on
+            acc for acc in self.storage.values() if accelerator_slug in acc.depends_on
         ]
 
     async def get_fed_by(self, accelerator_slug: str) -> list[Accelerator]:
         """Get accelerators that feed into a specific accelerator."""
         return [
-            acc for acc in self.storage.values()
-            if accelerator_slug in acc.feeds_into
+            acc for acc in self.storage.values() if accelerator_slug in acc.feeds_into
         ]
 
     async def get_all_statuses(self) -> set[str]:
