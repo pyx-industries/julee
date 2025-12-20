@@ -61,6 +61,7 @@ Documentation Contents
    :caption: Architecture
 
    architecture/framework
+   architecture/c4/index
    architecture/solutions/index
    architecture/clean_architecture/index
    architecture/applications/index
