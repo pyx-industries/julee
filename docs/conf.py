@@ -32,6 +32,10 @@ extensions = [
     'autoapi.extension',            # Automatic API documentation
     'sphinxcontrib.mermaid',        # Mermaid diagram support
     'sphinxcontrib.plantuml',       # PlantUML diagram support
+
+    # Julee documentation extensions (self-documenting)
+    'julee.docs.sphinx_hcd',        # Human-Centered Design directives
+    'julee.docs.sphinx_c4',         # C4 model architecture directives
 ]
 
 # AutoAPI configuration
@@ -91,6 +95,19 @@ autodoc_typehints_description_target = 'documented'
 # PlantUML configuration
 # Requires plantuml to be installed (apt install plantuml on Debian/Ubuntu)
 plantuml_output_format = 'svg'
+
+# sphinx_hcd configuration (Human-Centered Design documentation)
+# Julee uses its own HCD extension for self-documentation
+sphinx_hcd = {
+    'docs_structure': {
+        'applications': 'domain/applications',
+        'personas': 'users/personas',
+        'journeys': 'users/journeys',
+        'epics': 'users/epics',
+        'accelerators': 'domain/accelerators',
+        'stories': 'users/stories',
+    },
+}
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']

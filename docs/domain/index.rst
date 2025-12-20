@@ -8,3 +8,4 @@ that make up the Julee framework.
    :maxdepth: 2
 
    accelerators/index
+   applications/index

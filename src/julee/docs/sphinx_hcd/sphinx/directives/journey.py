@@ -542,8 +542,10 @@ def process_journey_steps(app, doctree):
     for node in doctree.traverse(nodes.container):
         if "journey-steps-placeholder" in node.get("classes", []):
             steps_node = render_journey_steps(journey, docname, hcd_context)
+            # Clear classes before replacing to avoid docutils warning
+            node["classes"] = []
             if steps_node:
-                node.replace_self(steps_node)
+                node.replace_self([steps_node])
             else:
                 node.replace_self([])
             break

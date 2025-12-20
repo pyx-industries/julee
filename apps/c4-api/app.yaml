@@ -1,0 +1,9 @@
+name: C4 REST API
+type: external
+status: active
+description: >
+  REST API exposing C4 model architecture entities for external tools
+  and integrations. Provides access to software systems, containers,
+  components, relationships, and deployment nodes.
+accelerators:
+  - sphinx-c4

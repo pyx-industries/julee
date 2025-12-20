@@ -416,6 +416,8 @@ def process_epic_placeholders(app, doctree, docname):
             for node in doctree.traverse(nodes.container):
                 if "epic-stories-placeholder" in node.get("classes", []):
                     stories_nodes = render_epic_stories(epic, docname, hcd_context)
+                    # Clear classes before replacing to avoid docutils warning
+                    node["classes"] = []
                     if stories_nodes:
                         node.replace_self(stories_nodes)
                     else:
