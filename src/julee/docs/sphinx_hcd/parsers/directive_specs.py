@@ -5,7 +5,6 @@ docutils parsing and directive registration.
 """
 
 
-
 def unchanged_optional(argument: str | None) -> str:
     """Accept any value or None."""
     if argument is None:
