@@ -73,6 +73,12 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Domain
+
+   domain/index
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    autoapi/index

@@ -9,3 +9,4 @@ need to accomplish.
 
    personas/index
    journeys/index
+   epics/index
