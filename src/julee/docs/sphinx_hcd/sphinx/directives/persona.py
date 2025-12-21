@@ -214,6 +214,36 @@ class PersonaIndexDiagramDirective(HCDDirective):
         return [node]
 
 
+def _relative_uri(from_doc: str, to_doc: str) -> str:
+    """Calculate relative URI from one document to another.
+
+    Args:
+        from_doc: Source document path (without .html)
+        to_doc: Target document path (without .html)
+
+    Returns:
+        Relative URI string with .html extension
+    """
+    from_parts = from_doc.split("/")
+    to_parts = to_doc.split("/")
+
+    # Find common prefix length
+    common = 0
+    for i in range(min(len(from_parts), len(to_parts))):
+        if from_parts[i] == to_parts[i]:
+            common += 1
+        else:
+            break
+
+    # Calculate up-levels needed (from source dir, not file)
+    up_levels = len(from_parts) - common - 1
+    down_path = "/".join(to_parts[common:])
+
+    if up_levels > 0:
+        return "../" * up_levels + down_path + ".html"
+    return down_path + ".html"
+
+
 def get_apps_for_epic(epic, all_stories) -> set[str]:
     """Get the set of app slugs used by stories in an epic."""
     apps = set()
@@ -478,8 +508,13 @@ def build_persona_index(docname: str, hcd_context):
         item = nodes.list_item()
         para = nodes.paragraph()
 
-        # Link to persona
-        persona_path = f"{persona.slug}.html"
+        # Link to persona - calculate relative path from current doc
+        if persona.docname:
+            persona_path = _relative_uri(docname, persona.docname)
+        else:
+            # Fallback to config-based path
+            personas_dir = config.get_doc_path("personas")
+            persona_path = _relative_uri(docname, f"{personas_dir}/{persona.slug}")
         persona_ref = nodes.reference("", "", refuri=persona_path)
         persona_ref += nodes.strong(text=persona.name)
         para += persona_ref

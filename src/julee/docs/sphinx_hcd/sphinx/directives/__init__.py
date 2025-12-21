@@ -62,9 +62,9 @@ from .persona import (
     DefinePersonaDirective,
     PersonaDiagramDirective,
     PersonaDiagramPlaceholder,
-    PersonaIndexDirective,
     PersonaIndexDiagramDirective,
     PersonaIndexDiagramPlaceholder,
+    PersonaIndexDirective,
     PersonaIndexPlaceholder,
     process_persona_placeholders,
 )

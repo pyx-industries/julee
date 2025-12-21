@@ -1,60 +1,46 @@
 System Context
 ==============
 
-The Julee Framework is a Python framework for building accountable and
-transparent digital supply chains using Temporal workflows.
+Julee Tooling supports the development of :doc:`solutions <../framework>`.
+This page shows who uses the tooling and what external systems it interacts with.
 
-.. define-software-system:: julee
-   :name: Julee Framework
-   :description: Python framework for building accountable workflow solutions
+Users
+-----
 
-   Julee provides reusable patterns, abstractions, and utilities for building
-   resilient, auditable business processes. Solutions built with Julee maintain
-   impeccable audit trails that become "digital product passports".
+.. persona-index::
 
-External Systems
-----------------
+External System
+---------------
 
-.. define-software-system:: temporal
-   :name: Temporal
-   :description: Workflow orchestration platform
-   :external: true
+The :doc:`Julee Solution <../framework>` being developed is the external system.
+The tooling reads and writes solution artifacts:
 
-   Provides durable execution, retries, and workflow state management.
-
-.. define-software-system:: minio
-   :name: MinIO / S3
-   :description: Object storage for documents and artifacts
-   :external: true
-
-   S3-compatible storage for documents, assemblies, and workflow artifacts.
-
-.. define-software-system:: postgresql
-   :name: PostgreSQL
-   :description: Relational database for Temporal persistence
-   :external: true
-
-   Provides persistence layer for Temporal workflow state.
-
-Relationships
--------------
-
-.. define-relationship:: julee-temporal
-   :from: julee
-   :to: temporal
-   :description: Orchestrates workflows via
-
-.. define-relationship:: julee-minio
-   :from: julee
-   :to: minio
-   :description: Stores documents and artifacts in
-
-.. define-relationship:: temporal-postgresql
-   :from: temporal
-   :to: postgresql
-   :description: Persists workflow state to
+- RST documentation files
+- Code structure and patterns
+- Configuration and manifests
 
 System Context Diagram
 ----------------------
 
-.. system-context-diagram:: julee
+.. uml::
+
+   @startuml
+   !include <C4/C4_Context>
+
+   title System Context - Julee Tooling
+
+   Person(dev, "Solutions Developer", "Builds workflow solutions using Julee patterns")
+   Person(contrib, "Framework Contributor", "Extends accelerators and applications")
+   Person(author, "Documentation Author", "Creates documentation using accelerators")
+
+   System(tooling, "Julee Tooling", "Accelerators and applications for developing solutions")
+
+   System_Ext(solution, "Julee Solution", "The solution being developed - code, docs, config")
+
+   Rel(dev, tooling, "Uses")
+   Rel(contrib, tooling, "Extends")
+   Rel(author, tooling, "Documents with")
+
+   Rel(tooling, solution, "Reads/writes artifacts")
+
+   @enduml

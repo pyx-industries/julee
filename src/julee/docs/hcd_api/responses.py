@@ -276,3 +276,33 @@ class DeletePersonaResponse(BaseModel):
     """Response from deleting a persona."""
 
     deleted: bool
+
+
+# =============================================================================
+# Validation Responses
+# =============================================================================
+
+
+class AcceleratorValidationIssue(BaseModel):
+    """A single validation issue for an accelerator."""
+
+    slug: str
+    issue_type: str  # "undocumented", "no_code", "mismatch"
+    message: str
+
+
+class ValidateAcceleratorsResponse(BaseModel):
+    """Response from validating accelerators against code structure.
+
+    Contains lists of matched accelerators and any issues found.
+    """
+
+    documented_slugs: list[str]
+    discovered_slugs: list[str]
+    matched_slugs: list[str]
+    issues: list[AcceleratorValidationIssue]
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if validation passed with no issues."""
+        return len(self.issues) == 0

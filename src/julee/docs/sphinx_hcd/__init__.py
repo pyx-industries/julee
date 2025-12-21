@@ -69,6 +69,8 @@ def setup(app):
         DefineIntegrationPlaceholder,
         # Journey directives
         DefineJourneyDirective,
+        # Persona directives
+        DefinePersonaDirective,
         DependentAcceleratorsDirective,
         DependentAcceleratorsPlaceholder,
         EpicIndexDirective,
@@ -89,13 +91,11 @@ def setup(app):
         JourneyDependencyGraphPlaceholder,
         JourneyIndexDirective,
         JourneysForPersonaDirective,
-        # Persona directives
-        DefinePersonaDirective,
         PersonaDiagramDirective,
         PersonaDiagramPlaceholder,
-        PersonaIndexDirective,
         PersonaIndexDiagramDirective,
         PersonaIndexDiagramPlaceholder,
+        PersonaIndexDirective,
         PersonaIndexPlaceholder,
         StepEpicDirective,
         StepPhaseDirective,
@@ -113,6 +113,7 @@ def setup(app):
         on_builder_inited,
         on_doctree_read,
         on_doctree_resolved,
+        on_env_check_consistency,
         on_env_purge_doc,
     )
 
@@ -126,6 +127,7 @@ def setup(app):
     app.connect("builder-inited", on_builder_inited, priority=100)
     app.connect("doctree-read", on_doctree_read)
     app.connect("doctree-resolved", on_doctree_resolved)
+    app.connect("env-check-consistency", on_env_check_consistency)
     app.connect("env-purge-doc", on_env_purge_doc)
 
     # Register story directives

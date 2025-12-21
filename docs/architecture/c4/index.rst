@@ -1,9 +1,10 @@
-C4 Architecture Model
-=====================
+C4 Architecture
+===============
 
-This section documents the Julee framework architecture using the C4 model.
-The C4 model provides four levels of abstraction for describing software
-architecture: Context, Containers, Components, and Code.
+This section documents the Julee Tooling architecture using C4 diagrams.
+
+The tooling is self-describing: the C4 accelerator documents the system that
+provides the C4 accelerator.
 
 .. toctree::
    :maxdepth: 2

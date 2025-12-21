@@ -748,3 +748,18 @@ class DeletePersonaRequest(BaseModel):
     """Request for deleting a persona by slug."""
 
     slug: str
+
+
+# =============================================================================
+# Validation DTOs
+# =============================================================================
+
+
+class ValidateAcceleratorsRequest(BaseModel):
+    """Request for validating accelerators against code structure.
+
+    Compares documented accelerators (from RST) with discovered bounded
+    contexts (from src/ directory scanning).
+    """
+
+    pass

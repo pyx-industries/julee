@@ -1,0 +1,438 @@
+// C4 Inference - Clean Architecture Concentric View
+// Dependencies point INWARD (Dependency Rule)
+// Inner = Policy (stable, abstract), Outer = Details (volatile, concrete)
+
+digraph CleanArchitectureC4 {
+    rankdir=TB
+    splines=true
+    nodesep=0.4
+    ranksep=0.6
+    compound=true
+
+    graph [
+        fontname="Helvetica"
+        fontsize=12
+        bgcolor="white"
+        pad=0.3
+        label="Clean Architecture: Dependencies Point Inward\n(Inner = Policy, Outer = Details)"
+        labelloc=t
+        fontsize=14
+    ]
+    node [
+        fontname="Helvetica"
+        fontsize=10
+        shape=box
+        style="filled,rounded"
+    ]
+    edge [
+        fontname="Helvetica"
+        fontsize=8
+        color="#666666"
+    ]
+
+    // ══════════════════════════════════════════════════════════════
+    // LAYER 1 (INNERMOST): ENTITIES - Enterprise Business Rules
+    // "The policies least likely to change when something external changes"
+    // ══════════════════════════════════════════════════════════════
+    subgraph cluster_entities {
+        label="ENTITIES\n(Enterprise Business Rules)"
+        style="filled,rounded"
+        fillcolor="#1a5276"
+        color="#1a5276"
+        fontcolor="white"
+        fontsize=11
+
+        entities [
+            label="Domain Models\n─────────────\nDocument\nAssembly\nTerm\nConcept"
+            fillcolor="#2874a6"
+            fontcolor="white"
+            shape=ellipse
+        ]
+
+        value_objects [
+            label="Value Objects\n─────────────\nDocumentId\nSlug\nStatus"
+            fillcolor="#2874a6"
+            fontcolor="white"
+            shape=ellipse
+        ]
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // LAYER 2: USE CASES - Application Business Rules
+    // "Orchestrate flow of data to/from entities"
+    // ══════════════════════════════════════════════════════════════
+    subgraph cluster_use_cases {
+        label="USE CASES\n(Application Business Rules)"
+        style="filled,rounded"
+        fillcolor="#2e86ab"
+        color="#2e86ab"
+        fontcolor="white"
+        fontsize=11
+
+        use_cases [
+            label="Use Cases\n─────────────────────\nExtractAssembleDataUseCase\nCreateTermUseCase\nMapConceptsUseCase\n\n__init__(self,\n  repo: DocumentRepository,  ← Protocol\n  service: KnowledgeService)  ← Protocol"
+            fillcolor="#5dade2"
+            fontcolor="black"
+        ]
+
+        // Protocols defined HERE (inner layer owns the interface)
+        protocols [
+            label="«interface»\nRepository & Service Protocols\n───────────────────────────\nDocumentRepository(Protocol)\nAssemblyRepository(Protocol)\nKnowledgeService(Protocol)\n\n# Abstract - no external knowledge"
+            fillcolor="#85c1e9"
+            fontcolor="black"
+            shape=component
+        ]
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // LAYER 3: INTERFACE ADAPTERS - Controllers, Gateways, Presenters
+    // "Convert data from use cases to external format"
+    // ══════════════════════════════════════════════════════════════
+    subgraph cluster_adapters {
+        label="INTERFACE ADAPTERS\n(Controllers, Gateways, Presenters)"
+        style="filled,rounded"
+        fillcolor="#48c9b0"
+        color="#48c9b0"
+        fontcolor="black"
+        fontsize=11
+
+        // Implementations live HERE
+        repo_impls [
+            label="Repository Implementations\n──────────────────────────\n@repository_impl(\n  implements=DocumentRepository,\n  external_system=\"minio\",\n  technology=\"S3\"\n)\nclass MinioDocumentRepository:\n    ..."
+            fillcolor="#76d7c4"
+            fontcolor="black"
+        ]
+
+        service_impls [
+            label="Service Implementations\n──────────────────────────\n@service_impl(\n  implements=KnowledgeService,\n  external_system=\"anthropic\",\n  technology=\"Claude API\"\n)\nclass AnthropicKnowledgeService:\n    ..."
+            fillcolor="#76d7c4"
+            fontcolor="black"
+        ]
+
+        controllers [
+            label="Controllers (API Routes)\n──────────────────────────\n@router.post(\"/documents/{id}\")\nasync def process(\n    use_case = Depends(get_use_case)\n):\n    return await use_case.execute(...)"
+            fillcolor="#76d7c4"
+            fontcolor="black"
+        ]
+
+        presenters [
+            label="Presenters\n──────────────────────────\nRST Serializers\nJSON Serializers\nPlantUML Generators"
+            fillcolor="#76d7c4"
+            fontcolor="black"
+        ]
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // LAYER 4 (OUTERMOST): FRAMEWORKS & DRIVERS
+    // "Glue code, details, things that change"
+    // ══════════════════════════════════════════════════════════════
+    subgraph cluster_frameworks {
+        label="FRAMEWORKS & DRIVERS\n(Details - Web, DB, External)"
+        style="filled,rounded"
+        fillcolor="#f5b041"
+        color="#f5b041"
+        fontcolor="black"
+        fontsize=11
+
+        subgraph cluster_config {
+            label="Configuration"
+            style="filled,rounded"
+            fillcolor="#f9e79f"
+            color="#d4ac0d"
+
+            settings [
+                label="Settings (Pydantic)\n─────────────────\nminio_endpoint: str\nanthropic_api_key: str\ntemporal_host: str\npostgres_dsn: str"
+                fillcolor="#fcf3cf"
+            ]
+
+            di_container [
+                label="DI Container\n─────────────────\nclass Container:\n  @cached_property\n  def document_repo(self):\n    return MinioDocumentRepository(...)"
+                fillcolor="#fcf3cf"
+            ]
+        }
+
+        subgraph cluster_external {
+            label="External Systems (Details)"
+            style="filled,rounded"
+            fillcolor="#fadbd8"
+            color="#e74c3c"
+
+            minio [label="MinIO\n(S3)" fillcolor="#f5b7b1"]
+            temporal [label="Temporal\n(Workflows)" fillcolor="#f5b7b1"]
+            anthropic [label="Anthropic\n(Claude)" fillcolor="#f5b7b1"]
+            postgres [label="PostgreSQL\n(Database)" fillcolor="#f5b7b1"]
+        }
+
+        subgraph cluster_frameworks_actual {
+            label="Frameworks (Build Dependencies)"
+            style="filled,rounded"
+            fillcolor="#e8daef"
+            color="#8e44ad"
+
+            fastapi [label="FastAPI" fillcolor="#d7bde2"]
+            temporal_sdk [label="Temporal SDK" fillcolor="#d7bde2"]
+            sqlalchemy [label="SQLAlchemy" fillcolor="#d7bde2"]
+            sphinx [label="Sphinx" fillcolor="#d7bde2"]
+        }
+
+        subgraph cluster_deployables {
+            label="Deployable Containers (C4 Containers)"
+            style="filled,rounded"
+            fillcolor="#d5f5e3"
+            color="#27ae60"
+
+            api_container [
+                label="API Container\n─────────────────\nBuild: imports use cases\nRuntime: serves HTTP\nDeploy: Docker/K8s"
+                fillcolor="#abebc6"
+            ]
+
+            worker_container [
+                label="Worker Container\n─────────────────\nBuild: imports pipelines\nRuntime: executes workflows\nDeploy: Docker/K8s"
+                fillcolor="#abebc6"
+            ]
+
+            docs_container [
+                label="Docs Container\n─────────────────\nBuild: introspects code\nRuntime: serves HTML\nDeploy: GitHub Pages/RTD"
+                fillcolor="#abebc6"
+            ]
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DOCUMENTATION BUILD PROCESS (part of docs container build)
+    // ══════════════════════════════════════════════════════════════
+    subgraph cluster_docs_build {
+        label="Docs Build Process\n(Sphinx build introspects all layers)"
+        style="filled,rounded"
+        fillcolor="#eafaf1"
+        color="#27ae60"
+        fontsize=10
+
+        hcd_docs [
+            label="HCD Directives\n─────────────────\ndefine-persona::\ndefine-journey::\ndefine-story::"
+            fillcolor="#d5f5e3"
+        ]
+
+        c4_docs [
+            label="C4 Directives\n─────────────────\ndefine-container::\ninfer-components::\ncontainer-diagram::"
+            fillcolor="#d5f5e3"
+        ]
+
+        unified_model [
+            label="Unified Domain Model\n─────────────────────\nPerson (Persona=Actor)\nContainer (App|Accelerator)\nComponent (UseCase|Entity)"
+            fillcolor="#82e0aa"
+            shape=cylinder
+        ]
+
+        ast_introspector [
+            label="AST Introspector"
+            fillcolor="#d5f5e3"
+        ]
+
+        decorator_reader [
+            label="Decorator Reader"
+            fillcolor="#d5f5e3"
+        ]
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DEPENDENCY ARROWS (all point INWARD per Dependency Rule)
+    // ══════════════════════════════════════════════════════════════
+
+    // Use Cases depend on Entities (inward)
+    use_cases -> entities [
+        label="depends on"
+        color="#1a5276"
+        penwidth=2
+    ]
+    use_cases -> value_objects [
+        color="#1a5276"
+        penwidth=2
+    ]
+
+    // Protocols defined by Use Cases layer (inner owns interface)
+    protocols -> entities [
+        label="references"
+        color="#1a5276"
+        style=dashed
+    ]
+
+    // Adapters depend on Use Cases (inward)
+    repo_impls -> protocols [
+        label="implements"
+        color="#2e86ab"
+        penwidth=2
+        dir=back
+        style=dashed
+    ]
+    service_impls -> protocols [
+        label="implements"
+        color="#2e86ab"
+        penwidth=2
+        dir=back
+        style=dashed
+    ]
+    controllers -> use_cases [
+        label="calls"
+        color="#2e86ab"
+        penwidth=2
+    ]
+    presenters -> entities [
+        label="formats"
+        color="#2e86ab"
+        penwidth=2
+    ]
+
+    // Frameworks depend on Adapters (inward)
+    di_container -> repo_impls [
+        label="instantiates"
+        color="#48c9b0"
+        penwidth=2
+    ]
+    di_container -> service_impls [
+        color="#48c9b0"
+        penwidth=2
+    ]
+    settings -> di_container [
+        label="configures"
+        color="#48c9b0"
+        style=dashed
+        dir=back
+    ]
+
+    // Deployable containers depend on frameworks
+    api_container -> fastapi [
+        label="built with"
+        color="#27ae60"
+    ]
+    api_container -> controllers [
+        label="contains"
+        color="#27ae60"
+    ]
+
+    worker_container -> temporal_sdk [
+        label="built with"
+        color="#27ae60"
+    ]
+    worker_container -> pipelines [
+        label="contains"
+        color="#27ae60"
+    ]
+
+    docs_container -> sphinx [
+        label="built with"
+        color="#27ae60"
+    ]
+    docs_container -> hcd_docs [
+        label="build process"
+        color="#27ae60"
+        style=dashed
+    ]
+
+    // External systems are DETAILS (outermost)
+    repo_impls -> minio [
+        label="connects to"
+        color="#e74c3c"
+        style=dashed
+    ]
+    repo_impls -> postgres [
+        color="#e74c3c"
+        style=dashed
+    ]
+    service_impls -> anthropic [
+        label="calls"
+        color="#e74c3c"
+        style=dashed
+    ]
+
+    // ══════════════════════════════════════════════════════════════
+    // DOCS BUILD depends on inner layers (compile-time introspection)
+    // ══════════════════════════════════════════════════════════════
+
+    // Directives populate unified model
+    hcd_docs -> unified_model [
+        label="populates"
+        color="#27ae60"
+    ]
+    c4_docs -> unified_model [
+        color="#27ae60"
+    ]
+
+    // AST introspector depends on inner layers (points inward)
+    ast_introspector -> entities [
+        label="reads models"
+        color="#27ae60"
+        penwidth=2
+    ]
+    ast_introspector -> use_cases [
+        label="reads __init__"
+        color="#27ae60"
+        penwidth=2
+    ]
+    ast_introspector -> protocols [
+        label="reads Protocol"
+        color="#27ae60"
+        penwidth=2
+    ]
+
+    // Decorator reader depends on adapters (points inward)
+    decorator_reader -> repo_impls [
+        label="reads @repository_impl"
+        color="#27ae60"
+        penwidth=2
+    ]
+    decorator_reader -> service_impls [
+        label="reads @service_impl"
+        color="#27ae60"
+        penwidth=2
+    ]
+
+    // Introspectors feed unified model
+    ast_introspector -> unified_model [
+        color="#27ae60"
+        style=dashed
+    ]
+    decorator_reader -> unified_model [
+        color="#27ae60"
+        style=dashed
+    ]
+
+    // Unified model reads deployment config
+    unified_model -> settings [
+        label="reads config"
+        color="#27ae60"
+        dir=back
+        penwidth=2
+    ]
+    unified_model -> di_container [
+        label="reads wiring"
+        color="#27ae60"
+        dir=back
+        penwidth=2
+    ]
+
+    // ══════════════════════════════════════════════════════════════
+    // ANNOTATIONS (Uncle Bob's terminology)
+    // ══════════════════════════════════════════════════════════════
+
+    annotation_dip [
+        label="Dependency Inversion Principle\n────────────────────────────\nInner layers define interfaces (Protocols)\nOuter layers provide implementations\n\nProtocols are OWNED by Use Cases layer\nImplementations DEPEND on Protocols"
+        shape=note
+        fillcolor="#fffacd"
+        fontsize=9
+    ]
+
+    annotation_stable [
+        label="Stable Dependencies Principle\n────────────────────────────\nDepend in direction of stability\n\nEntities: Most stable (rarely change)\nExternal Systems: Least stable (change often)\n\nChanging MinIO→S3 shouldn't affect Use Cases"
+        shape=note
+        fillcolor="#fffacd"
+        fontsize=9
+    ]
+
+    annotation_inference [
+        label="Three Peer Containers\n────────────────────────────\nAll are deployable, all depend inward:\n\n• API Container → serves HTTP\n• Worker Container → executes workflows\n• Docs Container → serves HTML\n\nDocs build = compile-time introspection\nDocs runtime = static HTML serving\n\nSame pattern, different artifact."
+        shape=note
+        fillcolor="#e8f8f5"
+        fontsize=9
+    ]
+}

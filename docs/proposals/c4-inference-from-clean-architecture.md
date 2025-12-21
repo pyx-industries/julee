@@ -8,6 +8,18 @@ they represent the same underlying reality. Rather than maintaining separate
 definitions for personas/actors, accelerators/containers, and integrations/external
 systems, a single definition should serve both documentation perspectives.
 
+## Architecture Overview
+
+The following diagram shows how documentation, unified models, inference engines,
+and code layers connect - from RST directives at the top down to external systems
+at the bottom:
+
+![C4 Inference Layers](diagrams/c4-inference-layers.png)
+
+**Key insight**: Documentation and code are both sources of truth. The inference
+engine reads from both, populating a unified domain model that serves HCD and C4
+views without duplication.
+
 ## Motivation
 
 Julee solutions follow strict conventions (ADR 001) that encode architectural

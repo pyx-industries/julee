@@ -1,144 +1,111 @@
 Containers
 ==========
 
-The Julee Framework consists of several containers that work together to
-provide framework capabilities and documentation tooling.
+Julee Tooling consists of applications that expose accelerators for developing
+solutions. Each accelerator is a bounded context with domain models, repositories,
+and use cases.
 
-Core Framework
---------------
+Applications
+------------
 
-.. define-container:: julee-core
-   :system: julee
-   :name: Core Framework
-   :technology: Python
-   :description: Domain models, repositories, and workflow patterns
+Applications provide access to the accelerators through different interfaces.
 
-   The core framework provides:
+**Sphinx Extensions** - generate documentation at build time:
 
-   - Domain models (Document, Assembly, Policy)
-   - Repository protocols and implementations (Memory, MinIO)
-   - Temporal workflow patterns and activities
-   - Use case orchestration
+- ``sphinx_hcd`` - HCD directives (personas, journeys, stories, epics, apps)
+- ``sphinx_c4`` - C4 directives (systems, containers, components, relationships)
 
-.. define-container:: julee-api
-   :system: julee
-   :name: REST API
-   :technology: FastAPI
-   :description: HTTP API for solution interaction
+**REST APIs** - programmatic access:
 
-   Provides REST endpoints for document management, workflow execution,
-   and system configuration.
+- ``hcd_api`` - CRUD operations for HCD entities
+- ``c4_api`` - CRUD operations for C4 entities
 
-.. define-container:: julee-worker
-   :system: julee
-   :name: Temporal Worker
-   :technology: Python / Temporal SDK
-   :description: Executes durable workflows
+**MCP Servers** - AI assistant access:
 
-   Runs Temporal activities and workflows for document processing,
-   assembly generation, and policy validation.
+- ``hcd_mcp`` - MCP protocol for HCD queries and mutations
+- ``c4_mcp`` - MCP protocol for C4 queries and mutations
 
-Documentation Tools
--------------------
+Accelerators
+------------
 
-.. define-container:: sphinx-hcd
-   :system: julee
-   :name: Sphinx HCD Extension
-   :technology: Python / Sphinx
-   :description: Human-Centered Design documentation directives
+Each accelerator is a bounded context for conceptualising solutions.
 
-   Provides RST directives for defining personas, journeys, epics,
-   stories, and applications with automatic cross-referencing.
+**HCD Accelerator** - human-centered design:
 
-.. define-container:: sphinx-c4
-   :system: julee
-   :name: Sphinx C4 Extension
-   :technology: Python / Sphinx
-   :description: C4 model architecture documentation directives
+- Personas - types of users
+- Journeys - user goals and flows
+- Stories - specific interactions (Gherkin)
+- Epics - groups of related stories
+- Applications - entry points users interact with
 
-   Provides RST directives for defining software systems, containers,
-   components, relationships, and generating PlantUML diagrams.
+**C4 Accelerator** - software architecture:
 
-.. define-container:: hcd-api
-   :system: julee
-   :name: HCD REST API
-   :technology: FastAPI
-   :description: API for HCD documentation entities
+- Software Systems - top-level system boundaries
+- Containers - deployable units
+- Components - modules within containers
+- Relationships - dependencies and interactions
 
-   Exposes CRUD operations for personas, journeys, epics, stories,
-   and applications to external tools.
+Foundation
+----------
 
-.. define-container:: hcd-mcp
-   :system: julee
-   :name: HCD MCP Server
-   :technology: Python / MCP
-   :description: Model Context Protocol server for AI assistants
+Both accelerators are built on clean architecture idioms:
 
-   Enables AI assistants to query and manipulate HCD documentation
-   entities through the MCP protocol.
-
-.. define-container:: c4-api
-   :system: julee
-   :name: C4 REST API
-   :technology: FastAPI
-   :description: API for C4 architecture entities
-
-   Exposes C4 model elements (systems, containers, components,
-   relationships) to external tools.
-
-.. define-container:: c4-mcp
-   :system: julee
-   :name: C4 MCP Server
-   :technology: Python / MCP
-   :description: Model Context Protocol server for architecture queries
-
-   Enables AI assistants to query C4 architecture models through
-   the MCP protocol.
-
-Container Relationships
------------------------
-
-.. define-relationship:: core-temporal
-   :from: julee-core
-   :to: temporal
-   :description: Executes workflows via Temporal SDK
-
-.. define-relationship:: core-minio
-   :from: julee-core
-   :to: minio
-   :description: Stores artifacts via S3 protocol
-
-.. define-relationship:: api-core
-   :from: julee-api
-   :to: julee-core
-   :description: Uses domain models and use cases
-
-.. define-relationship:: worker-core
-   :from: julee-worker
-   :to: julee-core
-   :description: Executes workflows using core patterns
-
-.. define-relationship:: hcd-api-sphinx-hcd
-   :from: hcd-api
-   :to: sphinx-hcd
-   :description: Shares domain models with
-
-.. define-relationship:: hcd-mcp-sphinx-hcd
-   :from: hcd-mcp
-   :to: sphinx-hcd
-   :description: Shares domain models with
-
-.. define-relationship:: c4-api-sphinx-c4
-   :from: c4-api
-   :to: sphinx-c4
-   :description: Shares domain models with
-
-.. define-relationship:: c4-mcp-sphinx-c4
-   :from: c4-mcp
-   :to: sphinx-c4
-   :description: Shares domain models with
+- Domain models (Pydantic entities)
+- Repository protocols (abstract persistence)
+- Use cases (application business rules)
+- Memory and file-based repository implementations
 
 Container Diagram
 -----------------
 
-.. container-diagram:: julee
+.. uml::
+
+   @startuml
+   !include <C4/C4_Container>
+
+   title Container Diagram - Julee Tooling
+
+   Person(user, "User", "Any persona using the tooling")
+
+   System_Boundary(tooling, "Julee Tooling") {
+
+      Container_Boundary(apps, "Applications") {
+         Container(sphinx_hcd, "sphinx_hcd", "Python/Sphinx", "HCD documentation directives")
+         Container(sphinx_c4, "sphinx_c4", "Python/Sphinx", "C4 documentation directives")
+         Container(hcd_api, "hcd_api", "FastAPI", "HCD REST API")
+         Container(c4_api, "c4_api", "FastAPI", "C4 REST API")
+         Container(hcd_mcp, "hcd_mcp", "MCP", "HCD AI assistant access")
+         Container(c4_mcp, "c4_mcp", "MCP", "C4 AI assistant access")
+      }
+
+      Container_Boundary(accelerators, "Accelerators") {
+         Container(hcd, "HCD Accelerator", "Python", "Personas, journeys, stories, epics, apps")
+         Container(c4, "C4 Accelerator", "Python", "Systems, containers, components, relationships")
+      }
+
+      Container(foundation, "Foundation", "Python", "Clean architecture idioms and utilities")
+   }
+
+   System_Ext(solution, "Julee Solution", "Code, docs, config")
+
+   Rel(user, sphinx_hcd, "Writes RST")
+   Rel(user, sphinx_c4, "Writes RST")
+   Rel(user, hcd_api, "HTTP")
+   Rel(user, c4_api, "HTTP")
+   Rel(user, hcd_mcp, "MCP")
+   Rel(user, c4_mcp, "MCP")
+
+   Rel(sphinx_hcd, hcd, "Uses")
+   Rel(sphinx_c4, c4, "Uses")
+   Rel(hcd_api, hcd, "Uses")
+   Rel(c4_api, c4, "Uses")
+   Rel(hcd_mcp, hcd, "Uses")
+   Rel(c4_mcp, c4, "Uses")
+
+   Rel(hcd, foundation, "Built on")
+   Rel(c4, foundation, "Built on")
+
+   Rel(hcd, solution, "Reads/writes")
+   Rel(c4, solution, "Reads/writes")
+
+   @enduml
