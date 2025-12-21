@@ -39,8 +39,9 @@ class PlantUMLSerializer:
             "Landscape": "C4_Context",
         }
         include_name = includes.get(diagram_type, "C4_Context")
+        # Use PlantUML stdlib format (works with standard PlantUML installation)
         return f"""@startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/{include_name}.puml
+!include <C4/{include_name}>
 
 """
 
@@ -51,6 +52,10 @@ class PlantUMLSerializer:
     def _escape(self, text: str) -> str:
         """Escape special characters for PlantUML."""
         return text.replace('"', '\\"').replace("\n", "\\n")
+
+    def _id(self, slug: str) -> str:
+        """Convert slug to valid PlantUML identifier (no hyphens)."""
+        return slug.replace("-", "_")
 
     def _element_type_to_func(self, element_type: ElementType) -> str:
         """Map element type to PlantUML function name."""
@@ -80,21 +85,33 @@ class PlantUMLSerializer:
             lines.append(f'title "{self._escape(title)}"')
             lines.append("")
 
-        # Persons
+        # Persons - use enriched data if available, fall back to slugs
+        person_by_slug = {p.slug: p for p in data.persons}
         for slug in data.person_slugs:
-            lines.append(f'Person({slug}, "{slug}")')
+            pid = self._id(slug)
+            if slug in person_by_slug:
+                person = person_by_slug[slug]
+                if person.description:
+                    lines.append(
+                        f'Person({pid}, "{self._escape(person.name)}", '
+                        f'"{self._escape(person.description)}")'
+                    )
+                else:
+                    lines.append(f'Person({pid}, "{self._escape(person.name)}")')
+            else:
+                lines.append(f'Person({pid}, "{slug}")')
 
         # Main system (internal)
         system = data.system
         lines.append(
-            f'System({system.slug}, "{self._escape(system.name)}", '
+            f'System({self._id(system.slug)}, "{self._escape(system.name)}", '
             f'"{self._escape(system.description)}")'
         )
 
         # External systems
         for ext_sys in data.external_systems:
             lines.append(
-                f'System_Ext({ext_sys.slug}, "{self._escape(ext_sys.name)}", '
+                f'System_Ext({self._id(ext_sys.slug)}, "{self._escape(ext_sys.name)}", '
                 f'"{self._escape(ext_sys.description)}")'
             )
 
@@ -102,8 +119,8 @@ class PlantUMLSerializer:
 
         # Relationships
         for rel in data.relationships:
-            src = rel.source_slug
-            dst = rel.destination_slug
+            src = self._id(rel.source_slug)
+            dst = self._id(rel.destination_slug)
             desc = self._escape(rel.description)
             if rel.technology:
                 lines.append(f'Rel({src}, {dst}, "{desc}", "{rel.technology}")')

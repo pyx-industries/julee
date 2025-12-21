@@ -14,6 +14,7 @@ from .diagrams import (
     DynamicDiagramDirective,
     SystemContextDiagramDirective,
     SystemLandscapeDiagramDirective,
+    process_c4_diagram_placeholders,
 )
 from .dynamic_step import DefineDynamicStepDirective
 from .relationship import DefineRelationshipDirective
@@ -57,3 +58,6 @@ def setup(app):
     app.add_directive("system-landscape-diagram", SystemLandscapeDiagramDirective)
     app.add_directive("deployment-diagram", DeploymentDiagramDirective)
     app.add_directive("dynamic-diagram", DynamicDiagramDirective)
+
+    # Register placeholder resolution at doctree-resolved
+    app.connect("doctree-resolved", process_c4_diagram_placeholders)

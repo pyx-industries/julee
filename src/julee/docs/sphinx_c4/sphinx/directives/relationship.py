@@ -36,6 +36,7 @@ class DefineRelationshipDirective(C4Directive):
         "technology": directives.unchanged,
         "bidirectional": directives.flag,
         "tags": directives.unchanged,
+        "hidden": directives.flag,
     }
 
     def _parse_element_ref(self, ref: str) -> tuple[ElementType, str]:
@@ -66,6 +67,7 @@ class DefineRelationshipDirective(C4Directive):
         bidirectional = "bidirectional" in self.options
         tags_str = self.options.get("tags", "")
         tags = [t.strip() for t in tags_str.split(",") if t.strip()]
+        hidden = "hidden" in self.options
 
         source_type, source_slug = self._parse_element_ref(from_ref)
         dest_type, dest_slug = self._parse_element_ref(to_ref)
@@ -90,6 +92,10 @@ class DefineRelationshipDirective(C4Directive):
         # Store in environment
         storage = self.get_c4_storage()
         storage["relationships"][slug] = relationship
+
+        # If hidden, return empty (just register, no output)
+        if hidden:
+            return []
 
         # Build output nodes - minimal inline display
         result_nodes = []

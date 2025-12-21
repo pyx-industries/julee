@@ -3,11 +3,19 @@
 Provides directives for generating C4 diagrams using PlantUML.
 """
 
+import os
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 
 from ...serializers.plantuml import PlantUMLSerializer
 from .base import C4Directive
+
+
+class SystemContextDiagramPlaceholder(nodes.General, nodes.Element):
+    """Placeholder node for system-context-diagram, replaced at doctree-resolved."""
+
+    pass
 
 
 class DiagramDirective(C4Directive):
@@ -22,11 +30,12 @@ class DiagramDirective(C4Directive):
         """Get the PlantUML serializer."""
         return PlantUMLSerializer()
 
-    def make_plantuml_node(self, puml_source: str) -> nodes.Node:
+    def make_plantuml_node(self, puml_source: str, docname: str) -> nodes.Node:
         """Create a PlantUML node or fallback to literal block.
 
         Args:
             puml_source: PlantUML source code
+            docname: Document name for path resolution
 
         Returns:
             PlantUML node or literal block
@@ -36,6 +45,9 @@ class DiagramDirective(C4Directive):
 
             node = plantuml(puml_source)
             node["uml"] = puml_source
+            # Required by sphinxcontrib.plantuml for rendering
+            node["incdir"] = os.path.dirname(docname)
+            node["filename"] = os.path.basename(docname)
             return node
         except ImportError:
             # Fallback to literal block if PlantUML not available
@@ -51,6 +63,7 @@ class SystemContextDiagramDirective(DiagramDirective):
            :title: Banking System Context
 
     Shows the software system in its environment with users and external systems.
+    Uses placeholder pattern for deferred rendering after all docs are read.
     """
 
     required_arguments = 1
@@ -60,54 +73,12 @@ class SystemContextDiagramDirective(DiagramDirective):
         system_slug = self.arguments[0]
         title = self.options.get("title", f"System Context: {system_slug}")
 
-        storage = self.get_c4_storage()
-        system = storage["software_systems"].get(system_slug)
-
-        if not system:
-            return self.empty_result(f"Software system '{system_slug}' not found")
-
-        # Gather relationships involving this system
-        relationships = [
-            r
-            for r in storage["relationships"].values()
-            if r.involves_element_by_slug(system_slug)
-        ]
-
-        # Gather external systems
-        external_systems = []
-        person_slugs = []
-        for rel in relationships:
-            for el_type, el_slug in [
-                (rel.source_type, rel.source_slug),
-                (rel.destination_type, rel.destination_slug),
-            ]:
-                if el_slug == system_slug:
-                    continue
-                if el_type.value == "software_system":
-                    ext_sys = storage["software_systems"].get(el_slug)
-                    if ext_sys and ext_sys not in external_systems:
-                        external_systems.append(ext_sys)
-                elif el_type.value == "person":
-                    if el_slug not in person_slugs:
-                        person_slugs.append(el_slug)
-
-        # Build diagram data
-        from ...domain.use_cases.diagrams.system_context import SystemContextDiagramData
-
-        data = SystemContextDiagramData(
-            system=system,
-            external_systems=external_systems,
-            person_slugs=person_slugs,
-            relationships=relationships,
-        )
-
-        # Generate PlantUML
-        serializer = self.get_serializer()
-        puml = serializer.serialize_system_context(data, title)
-
-        result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
-        return result_nodes
+        # Return placeholder - rendering in doctree-resolved
+        # so we can access HCD personas after all docs are read
+        node = SystemContextDiagramPlaceholder()
+        node["system_slug"] = system_slug
+        node["title"] = title
+        return [node]
 
 
 class ContainerDiagramDirective(DiagramDirective):
@@ -182,7 +153,7 @@ class ContainerDiagramDirective(DiagramDirective):
         puml = serializer.serialize_container_diagram(data, title)
 
         result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
+        result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
         return result_nodes
 
 
@@ -271,7 +242,7 @@ class ComponentDiagramDirective(DiagramDirective):
         puml = serializer.serialize_component_diagram(data, title)
 
         result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
+        result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
         return result_nodes
 
 
@@ -337,7 +308,7 @@ class SystemLandscapeDiagramDirective(DiagramDirective):
         puml = serializer.serialize_system_landscape(data, title)
 
         result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
+        result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
         return result_nodes
 
 
@@ -409,7 +380,7 @@ class DeploymentDiagramDirective(DiagramDirective):
         puml = serializer.serialize_deployment_diagram(data, title)
 
         result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
+        result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
         return result_nodes
 
 
@@ -497,5 +468,154 @@ class DynamicDiagramDirective(DiagramDirective):
         puml = serializer.serialize_dynamic_diagram(data, title)
 
         result_nodes = []
-        result_nodes.append(self.make_plantuml_node(puml))
+        result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
         return result_nodes
+
+
+def _first_sentence(text: str) -> str:
+    """Extract the first sentence from text.
+
+    Args:
+        text: Multi-sentence text
+
+    Returns:
+        First sentence (up to first period followed by space or end)
+    """
+    if not text:
+        return ""
+    # Find first sentence-ending punctuation followed by space or end
+    for i, char in enumerate(text):
+        if char in ".!?" and (i + 1 >= len(text) or text[i + 1] in " \n"):
+            return text[: i + 1]
+    # No sentence ending found, return as-is (but truncate if too long)
+    if len(text) > 100:
+        return text[:97] + "..."
+    return text
+
+
+def _get_c4_storage(app):
+    """Get C4 storage from app environment."""
+    if not hasattr(app.env, "c4_storage"):
+        app.env.c4_storage = {
+            "software_systems": {},
+            "containers": {},
+            "components": {},
+            "relationships": {},
+            "deployment_nodes": {},
+            "dynamic_steps": {},
+        }
+    return app.env.c4_storage
+
+
+def _make_plantuml_node(puml_source: str, docname: str) -> nodes.Node:
+    """Create a PlantUML node or fallback to literal block."""
+    try:
+        from sphinxcontrib.plantuml import plantuml
+
+        node = plantuml(puml_source)
+        node["uml"] = puml_source
+        node["incdir"] = os.path.dirname(docname)
+        node["filename"] = os.path.basename(docname)
+        return node
+    except ImportError:
+        return nodes.literal_block(puml_source, puml_source)
+
+
+def build_system_context_diagram(system_slug: str, title: str, docname: str, app):
+    """Build the system context diagram for a software system.
+
+    Args:
+        system_slug: Slug of the software system
+        title: Diagram title
+        docname: Document name for path resolution
+        app: Sphinx application
+
+    Returns:
+        List of docutils nodes
+    """
+    from ...domain.use_cases.diagrams.system_context import (
+        PersonInfo,
+        SystemContextDiagramData,
+    )
+    from ...serializers.plantuml import PlantUMLSerializer
+
+    storage = _get_c4_storage(app)
+    system = storage["software_systems"].get(system_slug)
+
+    if not system:
+        para = nodes.paragraph()
+        para += nodes.emphasis(text=f"Software system '{system_slug}' not found")
+        return [para]
+
+    # Gather relationships involving this system
+    relationships = [
+        r for r in storage["relationships"].values() if r.involves_system(system_slug)
+    ]
+
+    # Gather external systems and person slugs
+    external_systems = []
+    person_slugs = []
+    for rel in relationships:
+        for el_type, el_slug in [
+            (rel.source_type, rel.source_slug),
+            (rel.destination_type, rel.destination_slug),
+        ]:
+            if el_slug == system_slug:
+                continue
+            if el_type.value == "software_system":
+                ext_sys = storage["software_systems"].get(el_slug)
+                if ext_sys and ext_sys not in external_systems:
+                    external_systems.append(ext_sys)
+            elif el_type.value == "person":
+                if el_slug not in person_slugs:
+                    person_slugs.append(el_slug)
+
+    # Try to look up HCD personas for richer person data
+    persons = []
+    try:
+        from julee.docs.sphinx_hcd.sphinx.context import get_hcd_context
+
+        hcd_context = get_hcd_context(app)
+        for slug in person_slugs:
+            persona = hcd_context.persona_repo.get(slug)
+            if persona:
+                persons.append(
+                    PersonInfo(
+                        slug=persona.slug,
+                        name=persona.name,
+                        description=_first_sentence(persona.context or ""),
+                    )
+                )
+    except (ImportError, AttributeError) as e:
+        # HCD extension not loaded or no personas - use slugs only
+        pass
+    except Exception as e:
+        # Log unexpected errors
+        pass
+
+    data = SystemContextDiagramData(
+        system=system,
+        external_systems=external_systems,
+        person_slugs=person_slugs,
+        persons=persons,
+        relationships=relationships,
+    )
+
+    # Generate PlantUML
+    serializer = PlantUMLSerializer()
+    puml = serializer.serialize_system_context(data, title)
+
+    return [_make_plantuml_node(puml, docname)]
+
+
+def process_c4_diagram_placeholders(app, doctree, docname):
+    """Replace C4 diagram placeholders with rendered content.
+
+    Called at doctree-resolved event, after all documents have been read.
+    """
+    # Process system-context-diagram placeholders
+    for node in doctree.traverse(SystemContextDiagramPlaceholder):
+        system_slug = node["system_slug"]
+        title = node["title"]
+        content = build_system_context_diagram(system_slug, title, docname, app)
+        node.replace_self(content)

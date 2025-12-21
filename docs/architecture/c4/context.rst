@@ -4,13 +4,46 @@ System Context
 Julee Tooling supports the development of :doc:`solutions <../framework>`.
 This page shows who uses the tooling and what external systems it interacts with.
 
-Users
------
+.. define-software-system:: julee-tooling
+   :name: Julee Tooling
+   :type: internal
+   :hidden:
+
+   Accelerators and applications for developing solutions
+
+.. define-software-system:: julee-solution
+   :name: Julee Solution
+   :type: external
+   :hidden:
+
+   The solution being developed - code, docs, config
+
+.. define-relationship::
+   :from: person:solutions-developer
+   :to: system:julee-tooling
+   :description: Uses
+   :hidden:
+
+.. define-relationship::
+   :from: person:framework-contributor
+   :to: system:julee-tooling
+   :description: Extends
+   :hidden:
+
+.. define-relationship::
+   :from: person:documentation-author
+   :to: system:julee-tooling
+   :description: Documents with
+   :hidden:
+
+.. define-relationship::
+   :from: system:julee-tooling
+   :to: system:julee-solution
+   :description: Reads/writes artifacts
+   :hidden:
 
 .. persona-index::
-
-External System
----------------
+   :format: summary
 
 The :doc:`Julee Solution <../framework>` being developed is the external system.
 The tooling reads and writes solution artifacts:
@@ -19,28 +52,5 @@ The tooling reads and writes solution artifacts:
 - Code structure and patterns
 - Configuration and manifests
 
-System Context Diagram
-----------------------
-
-.. uml::
-
-   @startuml
-   !include <C4/C4_Context>
-
-   title System Context - Julee Tooling
-
-   Person(dev, "Solutions Developer", "Builds workflow solutions using Julee patterns")
-   Person(contrib, "Framework Contributor", "Extends accelerators and applications")
-   Person(author, "Documentation Author", "Creates documentation using accelerators")
-
-   System(tooling, "Julee Tooling", "Accelerators and applications for developing solutions")
-
-   System_Ext(solution, "Julee Solution", "The solution being developed - code, docs, config")
-
-   Rel(dev, tooling, "Uses")
-   Rel(contrib, tooling, "Extends")
-   Rel(author, tooling, "Documents with")
-
-   Rel(tooling, solution, "Reads/writes artifacts")
-
-   @enduml
+.. system-context-diagram:: julee-tooling
+   :title: System Context - Julee Tooling

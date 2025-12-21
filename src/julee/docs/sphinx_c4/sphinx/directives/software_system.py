@@ -33,6 +33,7 @@ class DefineSoftwareSystemDirective(C4Directive):
         "technology": directives.unchanged,
         "url": directives.unchanged,
         "tags": directives.unchanged,
+        "hidden": directives.flag,
     }
 
     def run(self) -> list[nodes.Node]:
@@ -45,6 +46,7 @@ class DefineSoftwareSystemDirective(C4Directive):
         tags_str = self.options.get("tags", "")
         tags = [t.strip() for t in tags_str.split(",") if t.strip()]
         description = "\n".join(self.content).strip()
+        hidden = "hidden" in self.options
 
         # Create software system
         software_system = SoftwareSystem(
@@ -62,6 +64,10 @@ class DefineSoftwareSystemDirective(C4Directive):
         # Store in environment
         storage = self.get_c4_storage()
         storage["software_systems"][slug] = software_system
+
+        # If hidden, return empty (just register, no output)
+        if hidden:
+            return []
 
         # Build output nodes
         result_nodes = []

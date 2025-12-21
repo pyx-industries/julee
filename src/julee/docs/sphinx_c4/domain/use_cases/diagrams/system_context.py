@@ -15,12 +15,22 @@ from ...repositories.software_system import SoftwareSystemRepository
 
 
 @dataclass
+class PersonInfo:
+    """Minimal person info for diagrams."""
+
+    slug: str
+    name: str
+    description: str = ""
+
+
+@dataclass
 class SystemContextDiagramData:
     """Data for rendering a system context diagram."""
 
     system: SoftwareSystem
     external_systems: list[SoftwareSystem] = field(default_factory=list)
     person_slugs: list[str] = field(default_factory=list)
+    persons: list[PersonInfo] = field(default_factory=list)
     relationships: list[Relationship] = field(default_factory=list)
 
 

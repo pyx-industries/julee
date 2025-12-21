@@ -157,12 +157,23 @@ class PersonaIndexDirective(HCDDirective):
     Usage::
 
         .. persona-index::
+           :format: list
+
+    Options:
+        :format: Output format - "list" (bullet list with descriptions) or
+                 "summary" (single paragraph naming all personas). Default: list
     """
+
+    option_spec = {
+        "format": directives.unchanged,
+    }
 
     def run(self):
         # Return placeholder - rendering in doctree-resolved
         # so we can access all personas after all docs are read
-        return [PersonaIndexPlaceholder()]
+        node = PersonaIndexPlaceholder()
+        node["format"] = self.options.get("format", "list")
+        return [node]
 
 
 class PersonaDiagramDirective(HCDDirective):
@@ -489,8 +500,57 @@ def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
     return [node]
 
 
-def build_persona_index(docname: str, hcd_context):
-    """Build the persona index as a bullet list."""
+def _first_sentence(text: str) -> str:
+    """Extract the first sentence from text.
+
+    Args:
+        text: Multi-sentence text
+
+    Returns:
+        First sentence (up to first period followed by space or end)
+    """
+    if not text:
+        return ""
+    # Find first sentence-ending punctuation followed by space or end
+    for i, char in enumerate(text):
+        if char in ".!?" and (i + 1 >= len(text) or text[i + 1] in " \n"):
+            return text[: i + 1]
+    # No sentence ending found, return as-is
+    return text
+
+
+def _persona_link(persona, docname: str, config) -> nodes.reference:
+    """Create a reference node linking to a persona page.
+
+    Args:
+        persona: Persona entity
+        docname: Current document name (for relative path calculation)
+        config: HCD config
+
+    Returns:
+        Reference node with persona name
+    """
+    if persona.docname:
+        persona_path = _relative_uri(docname, persona.docname)
+    else:
+        personas_dir = config.get_doc_path("personas")
+        persona_path = _relative_uri(docname, f"{personas_dir}/{persona.slug}")
+    ref = nodes.reference("", "", refuri=persona_path)
+    ref += nodes.Text(persona.name)
+    return ref
+
+
+def build_persona_index(docname: str, hcd_context, format: str = "list"):
+    """Build the persona index in the specified format.
+
+    Args:
+        docname: Current document name
+        hcd_context: HCD context with repositories
+        format: "list" for bullet list, "summary" for paragraph
+
+    Returns:
+        List of docutils nodes
+    """
     from ...config import get_config
 
     config = get_config()
@@ -502,43 +562,69 @@ def build_persona_index(docname: str, hcd_context):
         para += nodes.emphasis(text="No personas defined")
         return [para]
 
+    sorted_personas = sorted(all_personas, key=lambda p: p.name)
+
+    if format == "summary":
+        return _build_persona_summary(sorted_personas, docname, config)
+    return _build_persona_list(sorted_personas, docname, config)
+
+
+def _build_persona_summary(personas, docname: str, config) -> list[nodes.Node]:
+    """Build a paragraph summary of personas.
+
+    Example output:
+    "Human Centered Design identifies 3 Personas that interact with
+    Julee Tooling: Documentation Author, Framework Contributor, and
+    Solutions Developer."
+    """
+    para = nodes.paragraph()
+    count = len(personas)
+    para += nodes.Text(f"Human Centered Design identifies {count} ")
+
+    # Link to personas index
+    personas_dir = config.get_doc_path("personas")
+    personas_ref = nodes.reference("", "", refuri=f"{_relative_uri(docname, personas_dir + '/index')}")
+    personas_ref += nodes.Text("Personas")
+    para += personas_ref
+
+    para += nodes.Text(" that interact with Julee Tooling: ")
+
+    # List persona names with links
+    for i, persona in enumerate(personas):
+        if i > 0:
+            if i == len(personas) - 1:
+                para += nodes.Text(", and ")
+            else:
+                para += nodes.Text(", ")
+        para += _persona_link(persona, docname, config)
+
+    para += nodes.Text(".")
+    return [para]
+
+
+def _build_persona_list(personas, docname: str, config) -> list[nodes.Node]:
+    """Build a bullet list of personas with first-sentence descriptions."""
     bullet_list = nodes.bullet_list()
 
-    for persona in sorted(all_personas, key=lambda p: p.name):
+    for persona in personas:
         item = nodes.list_item()
         para = nodes.paragraph()
 
-        # Link to persona - calculate relative path from current doc
-        if persona.docname:
-            persona_path = _relative_uri(docname, persona.docname)
-        else:
-            # Fallback to config-based path
-            personas_dir = config.get_doc_path("personas")
-            persona_path = _relative_uri(docname, f"{personas_dir}/{persona.slug}")
-        persona_ref = nodes.reference("", "", refuri=persona_path)
-        persona_ref += nodes.strong(text=persona.name)
-        para += persona_ref
-
-        # Show brief info
-        info_parts = []
-        if persona.goals:
-            info_parts.append(f"{len(persona.goals)} goals")
-        if persona.jobs_to_be_done:
-            info_parts.append(f"{len(persona.jobs_to_be_done)} JTBD")
-
-        if info_parts:
-            para += nodes.Text(f" ({', '.join(info_parts)})")
+        # Link to persona
+        ref = _persona_link(persona, docname, config)
+        strong_ref = nodes.reference("", "", refuri=ref["refuri"])
+        strong_ref += nodes.strong(text=persona.name)
+        para += strong_ref
 
         item += para
 
-        # Context as sub-paragraph if present
+        # First sentence of context as description
         if persona.context:
-            context_text = persona.context
-            if len(context_text) > 100:
-                context_text = context_text[:100] + "..."
-            desc_para = nodes.paragraph()
-            desc_para += nodes.Text(context_text)
-            item += desc_para
+            first = _first_sentence(persona.context)
+            if first:
+                desc_para = nodes.paragraph()
+                desc_para += nodes.Text(first)
+                item += desc_para
 
         bullet_list += item
 
@@ -553,7 +639,8 @@ def process_persona_placeholders(app, doctree, docname):
 
     # Process persona-index placeholders
     for node in doctree.traverse(PersonaIndexPlaceholder):
-        content = build_persona_index(docname, hcd_context)
+        format_type = node.get("format", "list")
+        content = build_persona_index(docname, hcd_context, format=format_type)
         node.replace_self(content)
 
     # Process persona-diagram placeholders
