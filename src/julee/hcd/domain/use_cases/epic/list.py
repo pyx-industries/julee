@@ -1,0 +1,32 @@
+"""ListEpicsUseCase.
+
+Use case for listing all epics.
+"""
+
+from ..requests import ListEpicsRequest
+from ..responses import ListEpicsResponse
+from ...repositories.epic import EpicRepository
+
+
+class ListEpicsUseCase:
+    """Use case for listing all epics."""
+
+    def __init__(self, epic_repo: EpicRepository) -> None:
+        """Initialize with repository dependency.
+
+        Args:
+            epic_repo: Epic repository instance
+        """
+        self.epic_repo = epic_repo
+
+    async def execute(self, request: ListEpicsRequest) -> ListEpicsResponse:
+        """List all epics.
+
+        Args:
+            request: List request (extensible for future filtering)
+
+        Returns:
+            Response containing list of all epics
+        """
+        epics = await self.epic_repo.list_all()
+        return ListEpicsResponse(epics=epics)

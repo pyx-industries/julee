@@ -1,0 +1,13 @@
+{% from "base.rst.j2" import page_title, preamble, epilogue, option, directive_content %}
+{# Integration entity RST template #}
+{{ page_title(entity.page_title) -}}
+{{ preamble(entity.preamble_rst) -}}
+.. define-integration:: {{ entity.slug }}
+{% if entity.name and entity.name != entity.slug %}
+   :name: {{ entity.name }}
+{% endif %}
+{% if entity.direction and entity.direction.value != 'bidirectional' %}
+   :direction: {{ entity.direction.value }}
+{% endif %}
+{{ directive_content(entity.description) }}
+{{ epilogue(entity.epilogue_rst) }}

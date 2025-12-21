@@ -1,0 +1,33 @@
+"""CreateJourneyUseCase.
+
+Use case for creating a new journey.
+"""
+
+from ..requests import CreateJourneyRequest
+from ..responses import CreateJourneyResponse
+from ...repositories.journey import JourneyRepository
+
+
+class CreateJourneyUseCase:
+    """Use case for creating a journey."""
+
+    def __init__(self, journey_repo: JourneyRepository) -> None:
+        """Initialize with repository dependency.
+
+        Args:
+            journey_repo: Journey repository instance
+        """
+        self.journey_repo = journey_repo
+
+    async def execute(self, request: CreateJourneyRequest) -> CreateJourneyResponse:
+        """Create a new journey.
+
+        Args:
+            request: Journey creation request with journey data
+
+        Returns:
+            Response containing the created journey
+        """
+        journey = request.to_domain_model()
+        await self.journey_repo.save(journey)
+        return CreateJourneyResponse(journey=journey)
