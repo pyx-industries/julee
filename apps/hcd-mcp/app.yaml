@@ -1,9 +1,0 @@
-name: HCD MCP Server
-type: external
-status: active
-description: >
-  Model Context Protocol server enabling AI assistants to interact with
-  Human-Centered Design documentation. Provides tools for listing and
-  querying personas, journeys, epics, stories, and applications.
-accelerators:
-  - sphinx-hcd

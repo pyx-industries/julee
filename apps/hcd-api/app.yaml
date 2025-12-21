@@ -1,9 +1,0 @@
-name: HCD REST API
-type: external
-status: active
-description: >
-  REST API exposing Human-Centered Design entities for external tools
-  and integrations. Provides CRUD operations for personas, journeys,
-  epics, stories, and applications.
-accelerators:
-  - sphinx-hcd

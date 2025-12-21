@@ -1,9 +1,0 @@
-name: C4 MCP Server
-type: external
-status: active
-description: >
-  Model Context Protocol server enabling AI assistants to interact with
-  C4 model architecture documentation. Provides tools for querying
-  software systems, containers, components, and relationships.
-accelerators:
-  - sphinx-c4

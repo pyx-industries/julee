@@ -1,9 +1,0 @@
-name: Sphinx C4 Extension
-type: staff
-status: active
-description: >
-  Sphinx extension providing RST directives for C4 model architecture
-  documentation. Defines software systems, containers, components,
-  relationships, and deployment nodes with diagram generation.
-accelerators:
-  - sphinx-c4

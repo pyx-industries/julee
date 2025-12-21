@@ -7,7 +7,9 @@ import os
 import sys
 
 # Add the project root to the path so Sphinx can find the modules
-sys.path.insert(0, os.path.abspath('..'))
+project_root = os.path.abspath('..')
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, 'src'))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -34,19 +36,23 @@ extensions = [
     'sphinxcontrib.plantuml',       # PlantUML diagram support
 
     # Julee documentation extensions (self-documenting)
-    'julee.docs.sphinx_hcd',        # Human-Centered Design directives
-    'julee.docs.sphinx_c4',         # C4 model architecture directives
+    'apps.sphinx.hcd',              # Human-Centered Design directives
+    'apps.sphinx.c4',               # C4 model architecture directives
 ]
 
 # AutoAPI configuration
 autoapi_type = 'python'
 autoapi_dirs = [
-    '../src/julee/api',
-    '../src/julee/domain',
+    '../src/julee/ceap/domain',
+    '../src/julee/hcd/domain',
+    '../src/julee/c4/domain',
     '../src/julee/repositories',
     '../src/julee/services',
     '../src/julee/workflows',
     '../src/julee/util',
+    '../apps/api',
+    '../apps/mcp',
+    '../apps/sphinx',
 ]
 autoapi_options = [
     'members',

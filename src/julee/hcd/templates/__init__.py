@@ -8,7 +8,7 @@ from jinja2 import Environment, PackageLoader
 
 # Create Jinja2 environment with RST-friendly settings
 _env = Environment(
-    loader=PackageLoader("julee.docs.sphinx_hcd", "templates"),
+    loader=PackageLoader("julee.hcd", "templates"),
     trim_blocks=True,
     lstrip_blocks=True,
     keep_trailing_newline=True,

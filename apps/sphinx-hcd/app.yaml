@@ -1,9 +1,0 @@
-name: Sphinx HCD Extension
-type: staff
-status: active
-description: >
-  Sphinx extension providing RST directives for Human-Centered Design
-  documentation. Defines personas, journeys, epics, stories, and applications
-  with automatic cross-referencing and validation.
-accelerators:
-  - sphinx-hcd
