@@ -1,14 +1,17 @@
-Sphinx HCD
-==========
+HCD Accelerator
+===============
 
-.. define-accelerator:: sphinx-hcd
+.. define-accelerator:: hcd
+   :name: HCD Accelerator
    :status: active
+   :concepts: Persona, Journey, Epic, Story, App, Accelerator, Integration
+   :path: src/julee/hcd/
+   :technology: Python
 
-   Human-Centered Design documentation extension for Sphinx. Provides
-   directives for defining personas, journeys, epics, stories, applications,
-   and integrations with automatic cross-referencing and validation.
-
-   Located at ``src/julee/docs/sphinx_hcd/``.
+   Human-Centered Design bounded context for documenting solutions from
+   a user perspective. Provides domain models, repositories, and use cases
+   for managing personas, journeys, epics, stories, applications, accelerators,
+   and integrations.
 
    **Capabilities:**
 

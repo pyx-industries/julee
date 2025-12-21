@@ -1,14 +1,13 @@
 Polling
 =======
 
-.. define-accelerator:: polling
-   :status: active
+.. define-contrib:: polling
+   :name: Polling Workflow
+   :technology: Python, Temporal
+   :path: src/julee/contrib/polling/
 
-   Contrib module for polling external data sources. Provides a reusable
-   pattern for periodically fetching data from HTTP endpoints and
+   Reusable pattern for periodically fetching data from HTTP endpoints and
    processing it through Temporal workflows.
-
-   Located at ``src/julee/contrib/polling/``.
 
    **Capabilities:**
 

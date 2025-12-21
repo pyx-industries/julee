@@ -15,6 +15,8 @@ Solutions Developer
       Implement business processes as durable workflows
       Expose capabilities via API, CLI, or worker
       Configure retries and error handling
+   :uses-apps: api, mcp
+   :uses-contrib: polling
 
    A developer building production systems with Julee. They work within a
    bounded context, implementing use cases that orchestrate business logic.

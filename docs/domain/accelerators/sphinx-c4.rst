@@ -1,14 +1,16 @@
-Sphinx C4
-=========
+C4 Accelerator
+==============
 
-.. define-accelerator:: sphinx-c4
+.. define-accelerator:: c4
+   :name: C4 Accelerator
    :status: active
+   :concepts: SoftwareSystem, Container, Component, Relationship, DeploymentNode, DynamicStep
+   :path: src/julee/c4/
+   :technology: Python
 
-   C4 model architecture documentation extension for Sphinx. Provides
-   directives for defining software systems, containers, components,
-   relationships, and deployment nodes following the C4 model.
-
-   Located at ``src/julee/docs/sphinx_c4/``.
+   C4 model architecture bounded context for documenting software architecture.
+   Provides domain models, repositories, and use cases for managing software
+   systems, containers, components, relationships, and deployment infrastructure.
 
    **Capabilities:**
 

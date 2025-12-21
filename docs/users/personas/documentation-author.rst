@@ -15,6 +15,7 @@ Documentation Author
       Define personas, journeys, and epics
       Document architecture using C4 model
       Generate diagrams from structured data
+   :uses-apps: sphinx
 
    A technical writer or architect documenting Julee solutions. They use
    the sphinx_hcd and sphinx_c4 extensions to create documentation that
