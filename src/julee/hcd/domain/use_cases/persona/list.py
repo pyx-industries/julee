@@ -3,9 +3,9 @@
 Use case for listing all defined personas.
 """
 
+from ...repositories.persona import PersonaRepository
 from ..requests import ListPersonasRequest
 from ..responses import ListPersonasResponse
-from ...repositories.persona import PersonaRepository
 
 
 class ListPersonasUseCase:

@@ -3,9 +3,9 @@
 Use case for deleting a software system.
 """
 
+from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import DeleteSoftwareSystemRequest
 from ..responses import DeleteSoftwareSystemResponse
-from ...repositories.software_system import SoftwareSystemRepository
 
 
 class DeleteSoftwareSystemUseCase:

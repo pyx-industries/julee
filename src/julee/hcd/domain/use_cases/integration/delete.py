@@ -3,9 +3,9 @@
 Use case for deleting an integration.
 """
 
+from ...repositories.integration import IntegrationRepository
 from ..requests import DeleteIntegrationRequest
 from ..responses import DeleteIntegrationResponse
-from ...repositories.integration import IntegrationRepository
 
 
 class DeleteIntegrationUseCase:

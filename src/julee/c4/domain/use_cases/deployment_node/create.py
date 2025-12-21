@@ -3,9 +3,9 @@
 Use case for creating a new deployment node.
 """
 
+from ...repositories.deployment_node import DeploymentNodeRepository
 from ..requests import CreateDeploymentNodeRequest
 from ..responses import CreateDeploymentNodeResponse
-from ...repositories.deployment_node import DeploymentNodeRepository
 
 
 class CreateDeploymentNodeUseCase:

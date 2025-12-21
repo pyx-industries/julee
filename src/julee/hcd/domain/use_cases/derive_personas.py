@@ -8,6 +8,7 @@ it with epic participation data.
 from collections import defaultdict
 
 from julee.hcd.utils import normalize_name
+
 from ..models.app import App
 from ..models.epic import Epic
 from ..models.persona import Persona

@@ -3,9 +3,9 @@
 Use case for updating an existing relationship.
 """
 
+from ...repositories.relationship import RelationshipRepository
 from ..requests import UpdateRelationshipRequest
 from ..responses import UpdateRelationshipResponse
-from ...repositories.relationship import RelationshipRepository
 
 
 class UpdateRelationshipUseCase:

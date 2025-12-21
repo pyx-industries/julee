@@ -3,9 +3,9 @@
 Use case for updating an existing component.
 """
 
+from ...repositories.component import ComponentRepository
 from ..requests import UpdateComponentRequest
 from ..responses import UpdateComponentResponse
-from ...repositories.component import ComponentRepository
 
 
 class UpdateComponentUseCase:

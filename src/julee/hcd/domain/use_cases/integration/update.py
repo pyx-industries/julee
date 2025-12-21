@@ -3,9 +3,9 @@
 Use case for updating an existing integration.
 """
 
+from ...repositories.integration import IntegrationRepository
 from ..requests import UpdateIntegrationRequest
 from ..responses import UpdateIntegrationResponse
-from ...repositories.integration import IntegrationRepository
 
 
 class UpdateIntegrationUseCase:

@@ -4,6 +4,7 @@ Finds apps, stories, journeys, and integrations related to an accelerator.
 """
 
 from julee.hcd.utils import normalize_name
+
 from ..models.accelerator import Accelerator
 from ..models.app import App
 from ..models.code_info import BoundedContextInfo

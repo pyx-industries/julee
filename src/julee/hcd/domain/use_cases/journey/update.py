@@ -3,9 +3,9 @@
 Use case for updating an existing journey.
 """
 
+from ...repositories.journey import JourneyRepository
 from ..requests import UpdateJourneyRequest
 from ..responses import UpdateJourneyResponse
-from ...repositories.journey import JourneyRepository
 
 
 class UpdateJourneyUseCase:

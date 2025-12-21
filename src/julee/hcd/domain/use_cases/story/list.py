@@ -3,9 +3,9 @@
 Use case for listing all stories.
 """
 
+from ...repositories.story import StoryRepository
 from ..requests import ListStoriesRequest
 from ..responses import ListStoriesResponse
-from ...repositories.story import StoryRepository
 
 
 class ListStoriesUseCase:

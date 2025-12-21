@@ -3,9 +3,9 @@
 Use case for getting a deployment node by slug.
 """
 
+from ...repositories.deployment_node import DeploymentNodeRepository
 from ..requests import GetDeploymentNodeRequest
 from ..responses import GetDeploymentNodeResponse
-from ...repositories.deployment_node import DeploymentNodeRepository
 
 
 class GetDeploymentNodeUseCase:

@@ -3,9 +3,9 @@
 Use case for deleting a journey.
 """
 
+from ...repositories.journey import JourneyRepository
 from ..requests import DeleteJourneyRequest
 from ..responses import DeleteJourneyResponse
-from ...repositories.journey import JourneyRepository
 
 
 class DeleteJourneyUseCase:

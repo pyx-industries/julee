@@ -3,10 +3,11 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.epic import Epic
 from ...domain.repositories.epic import EpicRepository
 from ...parsers.docutils_parser import ParsedDocument, extract_story_refs
-from julee.hcd.utils import normalize_name
 from .base import RstRepositoryMixin
 
 logger = logging.getLogger(__name__)

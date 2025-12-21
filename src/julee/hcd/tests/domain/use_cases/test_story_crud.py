@@ -2,6 +2,7 @@
 
 import pytest
 
+from julee.hcd.domain.models.story import Story
 from julee.hcd.domain.use_cases.requests import (
     CreateStoryRequest,
     DeleteStoryRequest,
@@ -9,7 +10,6 @@ from julee.hcd.domain.use_cases.requests import (
     ListStoriesRequest,
     UpdateStoryRequest,
 )
-from julee.hcd.domain.models.story import Story
 from julee.hcd.domain.use_cases.story import (
     CreateStoryUseCase,
     DeleteStoryUseCase,

@@ -3,9 +3,9 @@
 Use case for deleting a component.
 """
 
+from ...repositories.component import ComponentRepository
 from ..requests import DeleteComponentRequest
 from ..responses import DeleteComponentResponse
-from ...repositories.component import ComponentRepository
 
 
 class DeleteComponentUseCase:

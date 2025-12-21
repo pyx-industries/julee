@@ -4,6 +4,7 @@ Finds stories, personas, journeys, and epics related to an app.
 """
 
 from julee.hcd.utils import normalize_name
+
 from ..models.app import App
 from ..models.epic import Epic
 from ..models.journey import Journey

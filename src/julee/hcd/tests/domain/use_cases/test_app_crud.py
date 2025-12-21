@@ -2,13 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.use_cases.requests import (
-    CreateAppRequest,
-    DeleteAppRequest,
-    GetAppRequest,
-    ListAppsRequest,
-    UpdateAppRequest,
-)
 from julee.hcd.domain.models.app import App, AppType
 from julee.hcd.domain.use_cases.app import (
     CreateAppUseCase,
@@ -16,6 +9,13 @@ from julee.hcd.domain.use_cases.app import (
     GetAppUseCase,
     ListAppsUseCase,
     UpdateAppUseCase,
+)
+from julee.hcd.domain.use_cases.requests import (
+    CreateAppRequest,
+    DeleteAppRequest,
+    GetAppRequest,
+    ListAppsRequest,
+    UpdateAppRequest,
 )
 from julee.hcd.repositories.memory.app import MemoryAppRepository
 

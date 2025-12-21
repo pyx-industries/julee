@@ -3,9 +3,9 @@
 Use case for updating an existing container.
 """
 
+from ...repositories.container import ContainerRepository
 from ..requests import UpdateContainerRequest
 from ..responses import UpdateContainerResponse
-from ...repositories.container import ContainerRepository
 
 
 class UpdateContainerUseCase:

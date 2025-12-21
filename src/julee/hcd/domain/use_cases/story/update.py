@@ -3,9 +3,9 @@
 Use case for updating an existing story.
 """
 
+from ...repositories.story import StoryRepository
 from ..requests import UpdateStoryRequest
 from ..responses import UpdateStoryResponse
-from ...repositories.story import StoryRepository
 
 
 class UpdateStoryUseCase:

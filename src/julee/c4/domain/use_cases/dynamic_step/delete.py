@@ -3,9 +3,9 @@
 Use case for deleting a dynamic step.
 """
 
+from ...repositories.dynamic_step import DynamicStepRepository
 from ..requests import DeleteDynamicStepRequest
 from ..responses import DeleteDynamicStepResponse
-from ...repositories.dynamic_step import DynamicStepRepository
 
 
 class DeleteDynamicStepUseCase:

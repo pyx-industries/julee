@@ -3,6 +3,8 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.journey import Journey, JourneyStep
 from ...domain.repositories.journey import JourneyRepository
 from ...parsers.docutils_parser import (
@@ -11,7 +13,6 @@ from ...parsers.docutils_parser import (
     parse_comma_list,
     parse_multiline_list,
 )
-from julee.hcd.utils import normalize_name
 from .base import RstRepositoryMixin
 
 logger = logging.getLogger(__name__)

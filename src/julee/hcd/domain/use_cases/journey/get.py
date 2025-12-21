@@ -3,9 +3,9 @@
 Use case for getting a journey by slug.
 """
 
+from ...repositories.journey import JourneyRepository
 from ..requests import GetJourneyRequest
 from ..responses import GetJourneyResponse
-from ...repositories.journey import JourneyRepository
 
 
 class GetJourneyUseCase:

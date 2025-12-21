@@ -4,6 +4,7 @@ Finds epics and journeys that reference a specific story.
 """
 
 from julee.hcd.utils import normalize_name
+
 from ..models.epic import Epic
 from ..models.journey import Journey
 from ..models.story import Story

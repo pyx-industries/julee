@@ -2,9 +2,10 @@
 
 import logging
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.journey import Journey
 from ...domain.repositories.journey import JourneyRepository
-from julee.hcd.utils import normalize_name
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)

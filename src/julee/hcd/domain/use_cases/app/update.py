@@ -3,9 +3,9 @@
 Use case for updating an existing app.
 """
 
+from ...repositories.app import AppRepository
 from ..requests import UpdateAppRequest
 from ..responses import UpdateAppResponse
-from ...repositories.app import AppRepository
 
 
 class UpdateAppUseCase:

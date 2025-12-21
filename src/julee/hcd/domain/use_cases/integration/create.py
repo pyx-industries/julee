@@ -3,9 +3,9 @@
 Use case for creating a new integration.
 """
 
+from ...repositories.integration import IntegrationRepository
 from ..requests import CreateIntegrationRequest
 from ..responses import CreateIntegrationResponse
-from ...repositories.integration import IntegrationRepository
 
 
 class CreateIntegrationUseCase:

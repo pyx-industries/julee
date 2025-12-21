@@ -2,9 +2,10 @@
 
 import logging
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.persona import Persona
 from ...domain.repositories.persona import PersonaRepository
-from julee.hcd.utils import normalize_name
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)

@@ -3,9 +3,9 @@
 Use case for creating a new component.
 """
 
+from ...repositories.component import ComponentRepository
 from ..requests import CreateComponentRequest
 from ..responses import CreateComponentResponse
-from ...repositories.component import ComponentRepository
 
 
 class CreateComponentUseCase:

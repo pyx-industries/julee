@@ -3,9 +3,9 @@
 Use case for deleting a deployment node.
 """
 
+from ...repositories.deployment_node import DeploymentNodeRepository
 from ..requests import DeleteDeploymentNodeRequest
 from ..responses import DeleteDeploymentNodeResponse
-from ...repositories.deployment_node import DeploymentNodeRepository
 
 
 class DeleteDeploymentNodeUseCase:

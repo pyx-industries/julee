@@ -5,8 +5,8 @@ Use case for getting a defined persona by slug.
 
 from pydantic import BaseModel
 
-from ..responses import GetPersonaResponse
 from ...repositories.persona import PersonaRepository
+from ..responses import GetPersonaResponse
 
 
 class GetPersonaBySlugRequest(BaseModel):

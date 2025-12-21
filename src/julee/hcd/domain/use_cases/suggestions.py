@@ -5,6 +5,7 @@ and cross-entity validation rules.
 """
 
 from julee.hcd.utils import normalize_name
+
 from ..models.accelerator import Accelerator
 from ..models.app import App
 from ..models.epic import Epic

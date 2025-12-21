@@ -2,9 +2,10 @@
 
 import logging
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.app import App, AppType
 from ...domain.repositories.app import AppRepository
-from julee.hcd.utils import normalize_name
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)

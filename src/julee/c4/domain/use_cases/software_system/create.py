@@ -3,9 +3,9 @@
 Use case for creating a new software system.
 """
 
+from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import CreateSoftwareSystemRequest
 from ..responses import CreateSoftwareSystemResponse
-from ...repositories.software_system import SoftwareSystemRepository
 
 
 class CreateSoftwareSystemUseCase:

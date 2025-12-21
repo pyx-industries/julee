@@ -3,9 +3,9 @@
 Use case for listing all accelerators.
 """
 
+from ...repositories.accelerator import AcceleratorRepository
 from ..requests import ListAcceleratorsRequest
 from ..responses import ListAcceleratorsResponse
-from ...repositories.accelerator import AcceleratorRepository
 
 
 class ListAcceleratorsUseCase:

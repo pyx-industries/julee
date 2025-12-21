@@ -3,9 +3,9 @@
 Use case for getting a relationship by slug.
 """
 
+from ...repositories.relationship import RelationshipRepository
 from ..requests import GetRelationshipRequest
 from ..responses import GetRelationshipResponse
-from ...repositories.relationship import RelationshipRepository
 
 
 class GetRelationshipUseCase:

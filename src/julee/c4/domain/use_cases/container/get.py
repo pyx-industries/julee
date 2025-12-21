@@ -3,9 +3,9 @@
 Use case for getting a container by slug.
 """
 
+from ...repositories.container import ContainerRepository
 from ..requests import GetContainerRequest
 from ..responses import GetContainerResponse
-from ...repositories.container import ContainerRepository
 
 
 class GetContainerUseCase:

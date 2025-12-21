@@ -3,11 +3,12 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.story import Story
 from ...domain.repositories.story import StoryRepository
 from ...parsers.gherkin import scan_feature_directory
 from ...serializers.gherkin import get_story_filename, serialize_story
-from julee.hcd.utils import normalize_name
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)

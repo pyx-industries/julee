@@ -3,9 +3,9 @@
 Use case for deleting an app.
 """
 
+from ...repositories.app import AppRepository
 from ..requests import DeleteAppRequest
 from ..responses import DeleteAppResponse
-from ...repositories.app import AppRepository
 
 
 class DeleteAppUseCase:

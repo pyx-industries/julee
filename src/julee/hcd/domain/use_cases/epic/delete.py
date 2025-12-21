@@ -3,9 +3,9 @@
 Use case for deleting an epic.
 """
 
+from ...repositories.epic import EpicRepository
 from ..requests import DeleteEpicRequest
 from ..responses import DeleteEpicResponse
-from ...repositories.epic import EpicRepository
 
 
 class DeleteEpicUseCase:

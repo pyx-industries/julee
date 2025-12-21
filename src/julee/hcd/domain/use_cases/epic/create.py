@@ -3,9 +3,9 @@
 Use case for creating a new epic.
 """
 
+from ...repositories.epic import EpicRepository
 from ..requests import CreateEpicRequest
 from ..responses import CreateEpicResponse
-from ...repositories.epic import EpicRepository
 
 
 class CreateEpicUseCase:

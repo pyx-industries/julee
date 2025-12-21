@@ -3,9 +3,9 @@
 Use case for updating an existing accelerator.
 """
 
+from ...repositories.accelerator import AcceleratorRepository
 from ..requests import UpdateAcceleratorRequest
 from ..responses import UpdateAcceleratorResponse
-from ...repositories.accelerator import AcceleratorRepository
 
 
 class UpdateAcceleratorUseCase:

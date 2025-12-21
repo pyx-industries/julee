@@ -3,9 +3,9 @@
 Use case for listing all deployment nodes.
 """
 
+from ...repositories.deployment_node import DeploymentNodeRepository
 from ..requests import ListDeploymentNodesRequest
 from ..responses import ListDeploymentNodesResponse
-from ...repositories.deployment_node import DeploymentNodeRepository
 
 
 class ListDeploymentNodesUseCase:

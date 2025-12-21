@@ -3,9 +3,9 @@
 Use case for getting a story by slug.
 """
 
+from ...repositories.story import StoryRepository
 from ..requests import GetStoryRequest
 from ..responses import GetStoryResponse
-from ...repositories.story import StoryRepository
 
 
 class GetStoryUseCase:

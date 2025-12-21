@@ -2,9 +2,10 @@
 
 import logging
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.epic import Epic
 from ...domain.repositories.epic import EpicRepository
-from julee.hcd.utils import normalize_name
 from .base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)

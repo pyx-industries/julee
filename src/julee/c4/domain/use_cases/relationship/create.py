@@ -3,9 +3,9 @@
 Use case for creating a new relationship.
 """
 
+from ...repositories.relationship import RelationshipRepository
 from ..requests import CreateRelationshipRequest
 from ..responses import CreateRelationshipResponse
-from ...repositories.relationship import RelationshipRepository
 
 
 class CreateRelationshipUseCase:

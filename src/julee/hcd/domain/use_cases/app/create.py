@@ -3,9 +3,9 @@
 Use case for creating a new app.
 """
 
+from ...repositories.app import AppRepository
 from ..requests import CreateAppRequest
 from ..responses import CreateAppResponse
-from ...repositories.app import AppRepository
 
 
 class CreateAppUseCase:

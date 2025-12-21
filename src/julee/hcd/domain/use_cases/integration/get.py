@@ -3,9 +3,9 @@
 Use case for getting an integration by slug.
 """
 
+from ...repositories.integration import IntegrationRepository
 from ..requests import GetIntegrationRequest
 from ..responses import GetIntegrationResponse
-from ...repositories.integration import IntegrationRepository
 
 
 class GetIntegrationUseCase:

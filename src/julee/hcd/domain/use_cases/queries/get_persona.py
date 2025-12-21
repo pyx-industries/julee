@@ -7,11 +7,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..requests import DerivePersonasRequest, GetPersonaRequest
-from ..responses import GetPersonaResponse
 from julee.hcd.utils import normalize_name
+
 from ...repositories.epic import EpicRepository
 from ...repositories.story import StoryRepository
+from ..requests import DerivePersonasRequest, GetPersonaRequest
+from ..responses import GetPersonaResponse
 from .derive_personas import DerivePersonasUseCase
 
 if TYPE_CHECKING:

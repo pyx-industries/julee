@@ -3,9 +3,9 @@
 Use case for updating an existing deployment node.
 """
 
+from ...repositories.deployment_node import DeploymentNodeRepository
 from ..requests import UpdateDeploymentNodeRequest
 from ..responses import UpdateDeploymentNodeResponse
-from ...repositories.deployment_node import DeploymentNodeRepository
 
 
 class UpdateDeploymentNodeUseCase:

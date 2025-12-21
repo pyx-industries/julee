@@ -3,9 +3,9 @@
 Use case for getting a component by slug.
 """
 
+from ...repositories.component import ComponentRepository
 from ..requests import GetComponentRequest
 from ..responses import GetComponentResponse
-from ...repositories.component import ComponentRepository
 
 
 class GetComponentUseCase:

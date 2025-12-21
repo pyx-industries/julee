@@ -2,13 +2,6 @@
 
 import pytest
 
-from julee.c4.domain.use_cases.requests import (
-    CreateRelationshipRequest,
-    DeleteRelationshipRequest,
-    GetRelationshipRequest,
-    ListRelationshipsRequest,
-    UpdateRelationshipRequest,
-)
 from julee.c4.domain.models.relationship import (
     ElementType,
     Relationship,
@@ -19,6 +12,13 @@ from julee.c4.domain.use_cases.relationship import (
     GetRelationshipUseCase,
     ListRelationshipsUseCase,
     UpdateRelationshipUseCase,
+)
+from julee.c4.domain.use_cases.requests import (
+    CreateRelationshipRequest,
+    DeleteRelationshipRequest,
+    GetRelationshipRequest,
+    ListRelationshipsRequest,
+    UpdateRelationshipRequest,
 )
 from julee.c4.repositories.memory.relationship import (
     MemoryRelationshipRepository,

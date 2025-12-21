@@ -3,9 +3,9 @@
 Use case for updating an existing persona.
 """
 
+from ...repositories.persona import PersonaRepository
 from ..requests import UpdatePersonaRequest
 from ..responses import UpdatePersonaResponse
-from ...repositories.persona import PersonaRepository
 
 
 class UpdatePersonaUseCase:

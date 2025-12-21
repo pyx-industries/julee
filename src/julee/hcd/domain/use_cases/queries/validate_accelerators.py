@@ -8,13 +8,13 @@ with discovered bounded contexts (from src/ directory scanning) to identify:
 - Documented accelerators that have no corresponding code
 """
 
+from ...repositories.accelerator import AcceleratorRepository
+from ...repositories.code_info import CodeInfoRepository
 from ..requests import ValidateAcceleratorsRequest
 from ..responses import (
     AcceleratorValidationIssue,
     ValidateAcceleratorsResponse,
 )
-from ...repositories.accelerator import AcceleratorRepository
-from ...repositories.code_info import CodeInfoRepository
 
 
 class ValidateAcceleratorsUseCase:

@@ -3,9 +3,9 @@
 Use case for creating a new persona.
 """
 
+from ...repositories.persona import PersonaRepository
 from ..requests import CreatePersonaRequest
 from ..responses import CreatePersonaResponse
-from ...repositories.persona import PersonaRepository
 
 
 class CreatePersonaUseCase:

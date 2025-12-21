@@ -3,9 +3,9 @@
 Use case for creating a new story.
 """
 
+from ...repositories.story import StoryRepository
 from ..requests import CreateStoryRequest
 from ..responses import CreateStoryResponse
-from ...repositories.story import StoryRepository
 
 
 class CreateStoryUseCase:

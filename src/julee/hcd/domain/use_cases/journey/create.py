@@ -3,9 +3,9 @@
 Use case for creating a new journey.
 """
 
+from ...repositories.journey import JourneyRepository
 from ..requests import CreateJourneyRequest
 from ..responses import CreateJourneyResponse
-from ...repositories.journey import JourneyRepository
 
 
 class CreateJourneyUseCase:

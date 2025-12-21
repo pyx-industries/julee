@@ -3,9 +3,9 @@
 Use case for creating a new dynamic step.
 """
 
+from ...repositories.dynamic_step import DynamicStepRepository
 from ..requests import CreateDynamicStepRequest
 from ..responses import CreateDynamicStepResponse
-from ...repositories.dynamic_step import DynamicStepRepository
 
 
 class CreateDynamicStepUseCase:

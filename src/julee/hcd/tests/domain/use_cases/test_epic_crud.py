@@ -2,13 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.use_cases.requests import (
-    CreateEpicRequest,
-    DeleteEpicRequest,
-    GetEpicRequest,
-    ListEpicsRequest,
-    UpdateEpicRequest,
-)
 from julee.hcd.domain.models.epic import Epic
 from julee.hcd.domain.use_cases.epic import (
     CreateEpicUseCase,
@@ -16,6 +9,13 @@ from julee.hcd.domain.use_cases.epic import (
     GetEpicUseCase,
     ListEpicsUseCase,
     UpdateEpicUseCase,
+)
+from julee.hcd.domain.use_cases.requests import (
+    CreateEpicRequest,
+    DeleteEpicRequest,
+    GetEpicRequest,
+    ListEpicsRequest,
+    UpdateEpicRequest,
 )
 from julee.hcd.repositories.memory.epic import MemoryEpicRepository
 

@@ -3,9 +3,9 @@
 Use case for listing all software systems.
 """
 
+from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import ListSoftwareSystemsRequest
 from ..responses import ListSoftwareSystemsResponse
-from ...repositories.software_system import SoftwareSystemRepository
 
 
 class ListSoftwareSystemsUseCase:

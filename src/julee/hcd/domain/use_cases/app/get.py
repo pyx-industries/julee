@@ -3,9 +3,9 @@
 Use case for getting an app by slug.
 """
 
+from ...repositories.app import AppRepository
 from ..requests import GetAppRequest
 from ..responses import GetAppResponse
-from ...repositories.app import AppRepository
 
 
 class GetAppUseCase:

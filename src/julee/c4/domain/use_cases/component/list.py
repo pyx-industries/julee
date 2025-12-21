@@ -3,9 +3,9 @@
 Use case for listing all components.
 """
 
+from ...repositories.component import ComponentRepository
 from ..requests import ListComponentsRequest
 from ..responses import ListComponentsResponse
-from ...repositories.component import ComponentRepository
 
 
 class ListComponentsUseCase:

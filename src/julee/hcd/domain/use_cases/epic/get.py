@@ -3,9 +3,9 @@
 Use case for getting an epic by slug.
 """
 
+from ...repositories.epic import EpicRepository
 from ..requests import GetEpicRequest
 from ..responses import GetEpicResponse
-from ...repositories.epic import EpicRepository
 
 
 class GetEpicUseCase:

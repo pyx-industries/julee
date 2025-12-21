@@ -3,10 +3,11 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.app import App, AppType
 from ...domain.repositories.app import AppRepository
 from ...parsers.docutils_parser import ParsedDocument, parse_comma_list
-from julee.hcd.utils import normalize_name
 from .base import RstRepositoryMixin
 
 logger = logging.getLogger(__name__)

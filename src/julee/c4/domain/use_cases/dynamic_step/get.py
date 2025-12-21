@@ -3,9 +3,9 @@
 Use case for getting a dynamic step by slug.
 """
 
+from ...repositories.dynamic_step import DynamicStepRepository
 from ..requests import GetDynamicStepRequest
 from ..responses import GetDynamicStepResponse
-from ...repositories.dynamic_step import DynamicStepRepository
 
 
 class GetDynamicStepUseCase:

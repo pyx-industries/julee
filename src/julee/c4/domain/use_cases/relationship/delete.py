@@ -3,9 +3,9 @@
 Use case for deleting a relationship.
 """
 
+from ...repositories.relationship import RelationshipRepository
 from ..requests import DeleteRelationshipRequest
 from ..responses import DeleteRelationshipResponse
-from ...repositories.relationship import RelationshipRepository
 
 
 class DeleteRelationshipUseCase:

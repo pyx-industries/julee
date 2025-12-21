@@ -3,9 +3,9 @@
 Use case for creating a new accelerator.
 """
 
+from ...repositories.accelerator import AcceleratorRepository
 from ..requests import CreateAcceleratorRequest
 from ..responses import CreateAcceleratorResponse
-from ...repositories.accelerator import AcceleratorRepository
 
 
 class CreateAcceleratorUseCase:

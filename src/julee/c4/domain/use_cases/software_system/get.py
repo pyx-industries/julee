@@ -3,9 +3,9 @@
 Use case for getting a software system by slug.
 """
 
+from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import GetSoftwareSystemRequest
 from ..responses import GetSoftwareSystemResponse
-from ...repositories.software_system import SoftwareSystemRepository
 
 
 class GetSoftwareSystemUseCase:

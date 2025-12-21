@@ -2,14 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.use_cases.requests import (
-    CreateAcceleratorRequest,
-    DeleteAcceleratorRequest,
-    GetAcceleratorRequest,
-    IntegrationReferenceInput,
-    ListAcceleratorsRequest,
-    UpdateAcceleratorRequest,
-)
 from julee.hcd.domain.models.accelerator import (
     Accelerator,
     IntegrationReference,
@@ -20,6 +12,14 @@ from julee.hcd.domain.use_cases.accelerator import (
     GetAcceleratorUseCase,
     ListAcceleratorsUseCase,
     UpdateAcceleratorUseCase,
+)
+from julee.hcd.domain.use_cases.requests import (
+    CreateAcceleratorRequest,
+    DeleteAcceleratorRequest,
+    GetAcceleratorRequest,
+    IntegrationReferenceInput,
+    ListAcceleratorsRequest,
+    UpdateAcceleratorRequest,
 )
 from julee.hcd.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,

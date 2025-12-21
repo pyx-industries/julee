@@ -3,9 +3,9 @@
 Use case for listing all integrations.
 """
 
+from ...repositories.integration import IntegrationRepository
 from ..requests import ListIntegrationsRequest
 from ..responses import ListIntegrationsResponse
-from ...repositories.integration import IntegrationRepository
 
 
 class ListIntegrationsUseCase:

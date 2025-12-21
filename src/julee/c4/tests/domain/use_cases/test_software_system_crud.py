@@ -2,16 +2,16 @@
 
 import pytest
 
+from julee.c4.domain.models.software_system import (
+    SoftwareSystem,
+    SystemType,
+)
 from julee.c4.domain.use_cases.requests import (
     CreateSoftwareSystemRequest,
     DeleteSoftwareSystemRequest,
     GetSoftwareSystemRequest,
     ListSoftwareSystemsRequest,
     UpdateSoftwareSystemRequest,
-)
-from julee.c4.domain.models.software_system import (
-    SoftwareSystem,
-    SystemType,
 )
 from julee.c4.domain.use_cases.software_system import (
     CreateSoftwareSystemUseCase,

@@ -3,9 +3,9 @@
 Use case for listing all relationships.
 """
 
+from ...repositories.relationship import RelationshipRepository
 from ..requests import ListRelationshipsRequest
 from ..responses import ListRelationshipsResponse
-from ...repositories.relationship import RelationshipRepository
 
 
 class ListRelationshipsUseCase:

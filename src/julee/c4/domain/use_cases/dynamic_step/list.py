@@ -3,9 +3,9 @@
 Use case for listing all dynamic steps.
 """
 
+from ...repositories.dynamic_step import DynamicStepRepository
 from ..requests import ListDynamicStepsRequest
 from ..responses import ListDynamicStepsResponse
-from ...repositories.dynamic_step import DynamicStepRepository
 
 
 class ListDynamicStepsUseCase:

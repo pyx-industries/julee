@@ -3,9 +3,9 @@
 Use case for updating an existing dynamic step.
 """
 
+from ...repositories.dynamic_step import DynamicStepRepository
 from ..requests import UpdateDynamicStepRequest
 from ..responses import UpdateDynamicStepResponse
-from ...repositories.dynamic_step import DynamicStepRepository
 
 
 class UpdateDynamicStepUseCase:

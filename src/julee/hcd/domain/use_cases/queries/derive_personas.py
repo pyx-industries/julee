@@ -14,12 +14,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..requests import DerivePersonasRequest
-from ..responses import DerivePersonasResponse
 from julee.hcd.utils import normalize_name
+
 from ...models.persona import Persona
 from ...repositories.epic import EpicRepository
 from ...repositories.story import StoryRepository
+from ..requests import DerivePersonasRequest
+from ..responses import DerivePersonasResponse
 
 if TYPE_CHECKING:
     from ...repositories.persona import PersonaRepository

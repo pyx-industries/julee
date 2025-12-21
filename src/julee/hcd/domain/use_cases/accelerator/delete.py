@@ -3,9 +3,9 @@
 Use case for deleting an accelerator.
 """
 
+from ...repositories.accelerator import AcceleratorRepository
 from ..requests import DeleteAcceleratorRequest
 from ..responses import DeleteAcceleratorResponse
-from ...repositories.accelerator import AcceleratorRepository
 
 
 class DeleteAcceleratorUseCase:

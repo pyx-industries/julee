@@ -3,9 +3,9 @@
 Use case for getting an accelerator by slug.
 """
 
+from ...repositories.accelerator import AcceleratorRepository
 from ..requests import GetAcceleratorRequest
 from ..responses import GetAcceleratorResponse
-from ...repositories.accelerator import AcceleratorRepository
 
 
 class GetAcceleratorUseCase:

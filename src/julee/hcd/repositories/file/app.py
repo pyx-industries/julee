@@ -3,11 +3,12 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.utils import normalize_name
+
 from ...domain.models.app import App, AppType
 from ...domain.repositories.app import AppRepository
 from ...parsers.yaml import scan_app_manifests
 from ...serializers.yaml import serialize_app
-from julee.hcd.utils import normalize_name
 from .base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)

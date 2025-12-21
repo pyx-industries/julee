@@ -3,9 +3,9 @@
 Use case for deleting a persona.
 """
 
+from ...repositories.persona import PersonaRepository
 from ..requests import DeletePersonaRequest
 from ..responses import DeletePersonaResponse
-from ...repositories.persona import PersonaRepository
 
 
 class DeletePersonaUseCase:

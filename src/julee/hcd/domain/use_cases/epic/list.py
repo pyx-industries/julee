@@ -3,9 +3,9 @@
 Use case for listing all epics.
 """
 
+from ...repositories.epic import EpicRepository
 from ..requests import ListEpicsRequest
 from ..responses import ListEpicsResponse
-from ...repositories.epic import EpicRepository
 
 
 class ListEpicsUseCase:

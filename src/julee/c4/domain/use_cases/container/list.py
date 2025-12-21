@@ -3,9 +3,9 @@
 Use case for listing all containers.
 """
 
+from ...repositories.container import ContainerRepository
 from ..requests import ListContainersRequest
 from ..responses import ListContainersResponse
-from ...repositories.container import ContainerRepository
 
 
 class ListContainersUseCase:

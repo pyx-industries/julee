@@ -3,9 +3,9 @@
 Use case for updating an existing software system.
 """
 
+from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import UpdateSoftwareSystemRequest
 from ..responses import UpdateSoftwareSystemResponse
-from ...repositories.software_system import SoftwareSystemRepository
 
 
 class UpdateSoftwareSystemUseCase:

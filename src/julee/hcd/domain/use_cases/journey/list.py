@@ -3,9 +3,9 @@
 Use case for listing all journeys.
 """
 
+from ...repositories.journey import JourneyRepository
 from ..requests import ListJourneysRequest
 from ..responses import ListJourneysResponse
-from ...repositories.journey import JourneyRepository
 
 
 class ListJourneysUseCase:

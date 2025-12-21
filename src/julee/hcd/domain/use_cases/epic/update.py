@@ -3,9 +3,9 @@
 Use case for updating an existing epic.
 """
 
+from ...repositories.epic import EpicRepository
 from ..requests import UpdateEpicRequest
 from ..responses import UpdateEpicResponse
-from ...repositories.epic import EpicRepository
 
 
 class UpdateEpicUseCase:

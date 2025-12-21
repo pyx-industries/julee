@@ -3,9 +3,9 @@
 Use case for listing all apps.
 """
 
+from ...repositories.app import AppRepository
 from ..requests import ListAppsRequest
 from ..responses import ListAppsResponse
-from ...repositories.app import AppRepository
 
 
 class ListAppsUseCase:

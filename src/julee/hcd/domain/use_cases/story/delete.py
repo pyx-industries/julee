@@ -3,9 +3,9 @@
 Use case for deleting a story.
 """
 
+from ...repositories.story import StoryRepository
 from ..requests import DeleteStoryRequest
 from ..responses import DeleteStoryResponse
-from ...repositories.story import StoryRepository
 
 
 class DeleteStoryUseCase:
