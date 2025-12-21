@@ -29,7 +29,7 @@ from pydantic import BaseModel
 from urllib3.response import BaseHTTPResponse
 
 # Import ContentStream here to avoid circular imports
-from julee.domain.models.custom_fields.content_stream import (
+from julee.ceap.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 

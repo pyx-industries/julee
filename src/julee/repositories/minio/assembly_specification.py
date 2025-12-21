@@ -15,10 +15,10 @@ schema and query mappings.
 
 import logging
 
-from julee.domain.models.assembly_specification import (
+from julee.ceap.domain.models.assembly_specification import (
     AssemblySpecification,
 )
-from julee.domain.repositories.assembly_specification import (
+from julee.ceap.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 

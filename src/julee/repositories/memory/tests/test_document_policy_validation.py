@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from julee.domain.models.policy import (
+from julee.ceap.domain.models.policy import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )

@@ -23,8 +23,8 @@ from julee.api.dependencies import (
     get_knowledge_service_query_repository,
 )
 from julee.api.requests import CreateKnowledgeServiceQueryRequest
-from julee.domain.models import KnowledgeServiceQuery
-from julee.domain.repositories.knowledge_service_query import (
+from julee.ceap.domain.models import KnowledgeServiceQuery
+from julee.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 

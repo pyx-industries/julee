@@ -12,8 +12,8 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.domain.models.policy import DocumentPolicyValidation
-from julee.domain.use_cases import ValidateDocumentUseCase
+from julee.ceap.domain.models.policy import DocumentPolicyValidation
+from julee.ceap.domain.use_cases import ValidateDocumentUseCase
 from julee.repositories.temporal.proxies import (
     WorkflowDocumentRepositoryProxy,
     WorkflowKnowledgeServiceConfigRepositoryProxy,

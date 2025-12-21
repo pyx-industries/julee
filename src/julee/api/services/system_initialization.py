@@ -13,7 +13,7 @@ to the appropriate use cases.
 import logging
 from typing import Any
 
-from julee.domain.use_cases.initialize_system_data import (
+from julee.ceap.domain.use_cases.initialize_system_data import (
     InitializeSystemDataUseCase,
 )
 
