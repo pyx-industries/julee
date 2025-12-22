@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from temporalio import workflow
+from temporalio.workflow import ParentClosePolicy
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
 from julee.contrib.polling.infrastructure.temporal.proxies import (
@@ -73,12 +74,13 @@ class NewDataDetectionPipeline:
             True if successfully triggered, False otherwise
         """
         try:
-            # Start external workflow for downstream processing (fire-and-forget)
+            # Start child workflow for downstream processing with abandon policy
             await workflow.start_child_workflow(
                 downstream_pipeline,  # This would be the workflow class name
                 args=[previous_data, new_data],
                 id=f"downstream-{self.endpoint_id}-{workflow.info().workflow_id}",
                 task_queue="downstream-processing-queue",
+                parent_close_policy=ParentClosePolicy.ABANDON,
             )
 
             workflow.logger.info(
