@@ -44,8 +44,9 @@ extensions = [
 autoapi_type = 'python'
 autoapi_dirs = [
     '../src/julee/ceap/domain',
-    '../src/julee/hcd/domain',
-    '../src/julee/c4/domain',
+    '../src/julee/hcd',
+    '../src/julee/c4',
+    '../src/julee/shared',
     '../src/julee/repositories',
     '../src/julee/services',
     '../src/julee/workflows',
@@ -59,7 +60,6 @@ autoapi_options = [
     'undoc-members',
     'show-inheritance',
     'show-module-summary',
-    'imported-members',
 ]
 autoapi_ignore = [
     '*migrations*',
@@ -70,6 +70,7 @@ autoapi_ignore = [
 autoapi_keep_files = True
 autoapi_add_toctree_entry = True
 autoapi_member_order = 'groupwise'
+autoapi_python_class_content = 'init'  # Document __init__ signature only, not class body
 
 # Napoleon settings (for Google/NumPy style docstrings)
 napoleon_google_docstring = True
