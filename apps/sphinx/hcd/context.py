@@ -19,9 +19,23 @@ from julee.hcd.repositories.memory import (
     MemoryPersonaRepository,
     MemoryStoryRepository,
 )
+
 from .adapters import SyncRepositoryAdapter
+from .repositories import (
+    SphinxEnvAcceleratorRepository,
+    SphinxEnvAppRepository,
+    SphinxEnvCodeInfoRepository,
+    SphinxEnvContribRepository,
+    SphinxEnvEpicRepository,
+    SphinxEnvIntegrationRepository,
+    SphinxEnvJourneyRepository,
+    SphinxEnvPersonaRepository,
+    SphinxEnvStoryRepository,
+)
 
 if TYPE_CHECKING:
+    from sphinx.environment import BuildEnvironment
+
     from julee.hcd.domain.models import (
         Accelerator,
         App,
@@ -177,6 +191,10 @@ def ensure_hcd_context(app) -> HCDContext:
 def _create_context(app) -> HCDContext:
     """Create an HCDContext with the configured backend.
 
+    Uses SphinxEnv repositories by default for parallel-safe builds.
+    Data is stored in app.env.hcd_storage which is properly pickled
+    between worker processes.
+
     Args:
         app: Sphinx application object
 
@@ -188,13 +206,14 @@ def _create_context(app) -> HCDContext:
     try:
         config = get_config()
     except RuntimeError:
-        # Config not initialized yet, use defaults
-        return HCDContext()
+        # Config not initialized yet, use SphinxEnv repos with app.env
+        return create_sphinx_env_context(app.env)
 
     if config.use_rst_backend:
         return _create_rst_context(config)
 
-    return HCDContext()
+    # Default: use SphinxEnv repos for parallel-safe builds
+    return create_sphinx_env_context(app.env)
 
 
 def _create_rst_context(config) -> HCDContext:
@@ -238,4 +257,30 @@ def _create_rst_context(config) -> HCDContext:
         ),
         # Code info stays in memory (not stored in RST)
         code_info_repo=SyncRepositoryAdapter(MemoryCodeInfoRepository()),
+    )
+
+
+def create_sphinx_env_context(env: "BuildEnvironment") -> HCDContext:
+    """Create an HCDContext with Sphinx env-backed repositories.
+
+    This creates repositories that store data in env.hcd_storage, which is
+    properly pickled between worker processes during parallel builds and
+    merged back via the env-merge-info event.
+
+    Args:
+        env: Sphinx BuildEnvironment
+
+    Returns:
+        HCDContext with SphinxEnv repositories
+    """
+    return HCDContext(
+        story_repo=SyncRepositoryAdapter(SphinxEnvStoryRepository(env)),
+        journey_repo=SyncRepositoryAdapter(SphinxEnvJourneyRepository(env)),
+        epic_repo=SyncRepositoryAdapter(SphinxEnvEpicRepository(env)),
+        app_repo=SyncRepositoryAdapter(SphinxEnvAppRepository(env)),
+        accelerator_repo=SyncRepositoryAdapter(SphinxEnvAcceleratorRepository(env)),
+        integration_repo=SyncRepositoryAdapter(SphinxEnvIntegrationRepository(env)),
+        contrib_repo=SyncRepositoryAdapter(SphinxEnvContribRepository(env)),
+        persona_repo=SyncRepositoryAdapter(SphinxEnvPersonaRepository(env)),
+        code_info_repo=SyncRepositoryAdapter(SphinxEnvCodeInfoRepository(env)),
     )

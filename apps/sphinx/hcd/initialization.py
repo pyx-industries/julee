@@ -7,7 +7,7 @@ repositories with data that doesn't change during the build.
 import logging
 
 from .config import get_config
-from .context import HCDContext, set_hcd_context
+from .context import HCDContext, create_sphinx_env_context, set_hcd_context
 
 from julee.hcd.parsers import (
     scan_app_manifests,
@@ -32,10 +32,13 @@ def initialize_hcd_context(app) -> None:
     Journeys, epics, and accelerators are populated during doctree
     processing as they're defined in RST files.
 
+    Uses SphinxEnv repositories for parallel-safe builds. Data is stored
+    in app.env.hcd_storage which is properly pickled between workers.
+
     Args:
         app: Sphinx application object
     """
-    context = HCDContext()
+    context = create_sphinx_env_context(app.env)
     set_hcd_context(app, context)
 
     config = get_config()

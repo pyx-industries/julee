@@ -10,6 +10,7 @@ from .adapters import SyncRepositoryAdapter
 from .config import init_config
 from .context import (
     HCDContext,
+    create_sphinx_env_context,
     ensure_hcd_context,
     get_hcd_context,
     set_hcd_context,
@@ -95,6 +96,7 @@ def setup(app):
         on_doctree_read,
         on_doctree_resolved,
         on_env_check_consistency,
+        on_env_merge_info,
         on_env_purge_doc,
     )
 
@@ -109,6 +111,7 @@ def setup(app):
     app.connect("doctree-read", on_doctree_read)
     app.connect("doctree-resolved", on_doctree_resolved)
     app.connect("env-check-consistency", on_env_check_consistency)
+    app.connect("env-merge-info", on_env_merge_info)
     app.connect("env-purge-doc", on_env_purge_doc)
 
     # Register story directives
@@ -204,7 +207,7 @@ def setup(app):
 
     return {
         "version": "2.0",
-        "parallel_read_safe": False,
+        "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
 
@@ -217,6 +220,7 @@ def _init_config_handler(app):
 __all__ = [
     "HCDContext",
     "SyncRepositoryAdapter",
+    "create_sphinx_env_context",
     "ensure_hcd_context",
     "get_hcd_context",
     "initialize_hcd_context",
