@@ -5,7 +5,7 @@ FastMCP server for managing HCD domain objects via Model Context Protocol.
 
 from fastmcp import FastMCP
 
-from ..mcp_shared import (
+from ..shared import (
     create_annotation,
     delete_annotation,
     read_only_annotation,

@@ -120,11 +120,18 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
     )
 
 
-def scan_bounded_contexts(src_dir: Path) -> list[BoundedContextInfo]:
+def scan_bounded_contexts(
+    src_dir: Path,
+    exclude: list[str] | None = None,
+) -> list[BoundedContextInfo]:
     """Scan a source directory for all bounded contexts.
+
+    Only includes directories that have the structure of a bounded context
+    (i.e., contain a domain/ subdirectory with models or repositories).
 
     Args:
         src_dir: Root source directory (e.g., project/src/)
+        exclude: List of directory names to exclude (e.g., ["shared"])
 
     Returns:
         List of BoundedContextInfo objects for all discovered contexts
@@ -133,11 +140,19 @@ def scan_bounded_contexts(src_dir: Path) -> list[BoundedContextInfo]:
         logger.info(f"Source directory not found: {src_dir}")
         return []
 
+    exclude = exclude or []
     contexts = []
     for context_dir in src_dir.iterdir():
         if not context_dir.is_dir():
             continue
         if context_dir.name.startswith((".", "_")):
+            continue
+        if context_dir.name in exclude:
+            continue
+
+        # Only consider directories with domain/ structure as bounded contexts
+        domain_dir = context_dir / "domain"
+        if not domain_dir.exists():
             continue
 
         context_info = parse_bounded_context(context_dir)

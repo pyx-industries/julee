@@ -19,17 +19,6 @@ class Persona(BaseModel):
     A persona represents a type of user who interacts with the system.
     Personas can be explicitly defined with rich HCD metadata or derived
     from user stories (the "As a..." in "As a [persona], I want to...").
-
-    Attributes:
-        slug: URL-safe identifier
-        name: Display name of the persona (e.g., "Knowledge Curator")
-        goals: What the persona wants to achieve
-        frustrations: Pain points and problems
-        jobs_to_be_done: JTBD framework items
-        context: Background and situational context
-        app_slugs: List of app slugs this persona uses (derived from stories)
-        epic_slugs: List of epic slugs containing stories for this persona
-        docname: RST document where this persona is defined
     """
 
     slug: str = ""
@@ -39,6 +28,8 @@ class Persona(BaseModel):
     jobs_to_be_done: list[str] = Field(default_factory=list)
     context: str = ""
     app_slugs: list[str] = Field(default_factory=list)
+    accelerator_slugs: list[str] = Field(default_factory=list)
+    contrib_slugs: list[str] = Field(default_factory=list)
     epic_slugs: list[str] = Field(default_factory=list)
     docname: str = ""
 

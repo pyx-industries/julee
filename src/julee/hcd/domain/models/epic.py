@@ -14,12 +14,6 @@ class Epic(BaseModel):
 
     An epic represents a collection of related stories that together
     deliver a larger piece of functionality or business value.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "credential-creation")
-        description: Human-readable description of the epic
-        story_refs: List of story feature titles in this epic
-        docname: RST document name (for incremental builds)
     """
 
     slug: str

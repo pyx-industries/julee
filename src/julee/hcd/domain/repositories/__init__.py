@@ -8,6 +8,7 @@ from .accelerator import AcceleratorRepository
 from .app import AppRepository
 from .base import BaseRepository
 from .code_info import CodeInfoRepository
+from .contrib import ContribRepository
 from .epic import EpicRepository
 from .integration import IntegrationRepository
 from .journey import JourneyRepository
@@ -18,6 +19,7 @@ __all__ = [
     "AppRepository",
     "BaseRepository",
     "CodeInfoRepository",
+    "ContribRepository",
     "EpicRepository",
     "IntegrationRepository",
     "JourneyRepository",

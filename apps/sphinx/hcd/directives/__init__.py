@@ -28,6 +28,24 @@ from .app import (
     process_app_placeholders,
 )
 from .base import HCDDirective, make_deprecated_directive
+from .c4_bridge import (
+    AcceleratorListDirective,
+    AcceleratorListPlaceholder,
+    AppListByInterfaceDirective,
+    AppListByInterfacePlaceholder,
+    C4ContainerDiagramDirective,
+    C4ContainerDiagramPlaceholder,
+    process_c4_bridge_placeholders,
+)
+from .contrib import (
+    ContribIndexDirective,
+    ContribIndexPlaceholder,
+    ContribListDirective,
+    ContribListPlaceholder,
+    DefineContribDirective,
+    DefineContribPlaceholder,
+    process_contrib_placeholders,
+)
 from .epic import (
     DefineEpicDirective,
     EpicIndexDirective,
@@ -163,4 +181,20 @@ __all__ = [
     "PersonaIndexDiagramDirective",
     "PersonaIndexDiagramPlaceholder",
     "process_persona_placeholders",
+    # C4 bridge directives
+    "C4ContainerDiagramDirective",
+    "C4ContainerDiagramPlaceholder",
+    "AppListByInterfaceDirective",
+    "AppListByInterfacePlaceholder",
+    "AcceleratorListDirective",
+    "AcceleratorListPlaceholder",
+    "process_c4_bridge_placeholders",
+    # Contrib directives
+    "DefineContribDirective",
+    "DefineContribPlaceholder",
+    "ContribIndexDirective",
+    "ContribIndexPlaceholder",
+    "ContribListDirective",
+    "ContribListPlaceholder",
+    "process_contrib_placeholders",
 ]

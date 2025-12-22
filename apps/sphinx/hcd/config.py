@@ -16,7 +16,7 @@ DEFAULT_CONFIG = {
         # Where to find integration manifests: */integration.yaml
         "integration_manifests": "src/integrations/",
         # Where to find bounded context code: {slug}/ directories
-        "bounded_contexts": "src/",
+        "bounded_contexts": "src/julee/",
     },
     "docs_structure": {
         # RST file locations relative to docs root

@@ -13,19 +13,6 @@ class Story(BaseModel):
 
     Stories are the primary unit of user-facing functionality in HCD.
     They capture who wants to do what and why.
-
-    Attributes:
-        slug: URL-safe identifier derived from feature title
-        feature_title: The Feature: line from the Gherkin file
-        persona: The actor from "As a <persona>"
-        persona_normalized: Lowercase, spaces-normalized persona for matching
-        i_want: The action from "I want to <action>"
-        so_that: The benefit from "So that <benefit>"
-        app_slug: The application this story belongs to
-        app_normalized: Lowercase, spaces-normalized app name for matching
-        file_path: Relative path to the .feature file
-        abs_path: Absolute path to the .feature file
-        gherkin_snippet: The story header portion of the feature file
     """
 
     slug: str

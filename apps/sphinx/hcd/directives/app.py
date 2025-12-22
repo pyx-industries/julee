@@ -7,15 +7,16 @@ Provides directives for rendering application information:
 """
 
 from docutils import nodes
+from docutils.parsers.rst import directives
 
-from julee.hcd.domain.models.app import App, AppType
+from julee.hcd.domain.models.app import App, AppInterface, AppType
 from julee.hcd.domain.use_cases import (
     get_epics_for_app,
     get_journeys_for_app,
     get_personas_for_app,
     get_stories_for_app,
 )
-from julee.hcd.utils import normalize_name, slugify
+from julee.hcd.utils import normalize_name, parse_csv_option, slugify
 from apps.sphinx.shared import path_to_root
 from .base import HCDDirective
 
@@ -39,17 +40,78 @@ class AppsForPersonaPlaceholder(nodes.General, nodes.Element):
 
 
 class DefineAppDirective(HCDDirective):
-    """Render app info from YAML manifest plus derived data.
+    """Define an app with metadata for C4 mapping.
 
     Usage::
 
-        .. define-app:: credential-tool
+        .. define-app:: sphinx-hcd
+           :interface: sphinx
+           :technology: Python/Sphinx
+           :accelerators: hcd
+
+           Human-Centered Design documentation extension for Sphinx.
+
+    If app already exists from YAML manifest, updates it with directive fields.
+    Otherwise creates a new app entry.
     """
 
     required_arguments = 1
+    has_content = True
+    option_spec = {
+        "type": directives.unchanged,
+        "status": directives.unchanged,
+        "interface": directives.unchanged,
+        "technology": directives.unchanged,
+        "accelerators": directives.unchanged,
+    }
 
     def run(self):
         app_slug = self.arguments[0]
+        docname = self.env.docname
+
+        # Parse options
+        app_type_str = self.options.get("type", "").strip()
+        status = self.options.get("status", "").strip() or None
+        interface_str = self.options.get("interface", "").strip()
+        technology = self.options.get("technology", "").strip()
+        accelerators = parse_csv_option(self.options.get("accelerators", ""))
+        description = "\n".join(self.content).strip()
+
+        # Get existing app from YAML manifest (if any)
+        existing_app = self.hcd_context.app_repo.get(app_slug)
+
+        if existing_app:
+            # Update existing app with directive fields
+            update_data = {}
+            if interface_str:
+                update_data["interface"] = AppInterface.from_string(interface_str)
+            if technology:
+                update_data["technology"] = technology
+            if accelerators:
+                update_data["accelerators"] = accelerators
+            if description:
+                update_data["description"] = description
+            if status:
+                update_data["status"] = status
+            update_data["docname"] = docname
+
+            if update_data:
+                updated = existing_app.model_copy(update=update_data)
+                self.hcd_context.app_repo.save(updated)
+        else:
+            # Create new app from directive
+            app = App(
+                slug=app_slug,
+                name=app_slug.replace("-", " ").title(),
+                app_type=AppType.from_string(app_type_str) if app_type_str else AppType.UNKNOWN,
+                status=status,
+                description=description,
+                accelerators=accelerators,
+                interface=AppInterface.from_string(interface_str) if interface_str else AppInterface.UNKNOWN,
+                technology=technology,
+                docname=docname,
+            )
+            self.hcd_context.app_repo.save(app)
 
         # Track documented apps in environment (for validation)
         if not hasattr(self.env, "documented_apps"):

@@ -15,20 +15,6 @@ class DynamicStep(BaseModel):
     Represents a numbered interaction in a dynamic diagram.
     Dynamic diagrams show runtime behavior for specific scenarios
     (user stories, use cases, features).
-
-    Attributes:
-        slug: URL-safe identifier for this step
-        sequence_name: Name of the sequence/scenario this belongs to
-        step_number: Order in the sequence (1-based)
-        source_type: Type of element initiating the interaction
-        source_slug: Slug of source element (or persona normalized_name)
-        destination_type: Type of element receiving the interaction
-        destination_slug: Slug of destination element
-        description: What happens in this step
-        technology: How the interaction occurs (protocol/method)
-        return_value: What is returned (optional)
-        is_async: Whether this is an asynchronous interaction
-        docname: RST document where defined
     """
 
     slug: str

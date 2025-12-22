@@ -38,13 +38,7 @@ class Direction(str, Enum):
 
 
 class ExternalDependency(BaseModel):
-    """External system that an integration depends on.
-
-    Attributes:
-        name: Display name of the external system
-        url: Optional URL for documentation or reference
-        description: Optional brief description
-    """
+    """External system that an integration depends on."""
 
     name: str
     url: str | None = None
@@ -80,16 +74,6 @@ class Integration(BaseModel):
 
     Integrations represent connections to external systems, defining
     data flow direction and external dependencies.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "pilot-data-collection")
-        module: Python module name (e.g., "pilot_data_collection")
-        name: Display name
-        description: Human-readable description
-        direction: Data flow direction
-        depends_on: List of external dependencies
-        manifest_path: Path to the integration.yaml file
-        name_normalized: Lowercase name for matching
     """
 
     slug: str

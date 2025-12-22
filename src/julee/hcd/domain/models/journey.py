@@ -33,11 +33,6 @@ class JourneyStep(BaseModel):
 
     Steps can be stories (feature references), epics (epic references),
     or phases (grouping labels for subsequent steps).
-
-    Attributes:
-        step_type: The type of step (story, epic, phase)
-        ref: Reference identifier (story title, epic slug, or phase title)
-        description: Optional description (primarily for phases)
     """
 
     step_type: StepType
@@ -111,19 +106,6 @@ class Journey(BaseModel):
     A journey represents a persona's path through the system to achieve
     a goal. It captures the user's motivation, the value delivered, and
     the sequence of steps they follow.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "build-vocabulary")
-        persona: The persona undertaking this journey
-        persona_normalized: Lowercase persona for matching
-        intent: What the persona wants (their motivation)
-        outcome: What success looks like (business value)
-        goal: Activity description (what they do)
-        depends_on: Journey slugs that must be completed first
-        steps: Sequence of journey steps
-        preconditions: Conditions that must be true before starting
-        postconditions: Conditions that will be true after completion
-        docname: RST document name (for incremental builds)
     """
 
     slug: str

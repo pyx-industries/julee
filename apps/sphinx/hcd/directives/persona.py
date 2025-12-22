@@ -20,7 +20,7 @@ from julee.hcd.domain.use_cases import (
     derive_personas_by_app_type,
     get_epics_for_persona,
 )
-from julee.hcd.utils import normalize_name, parse_list_option, slugify
+from julee.hcd.utils import normalize_name, parse_csv_option, parse_list_option, slugify
 from .base import HCDDirective
 
 
@@ -74,6 +74,9 @@ class DefinePersonaDirective(HCDDirective):
         "goals": directives.unchanged,
         "frustrations": directives.unchanged,
         "jobs-to-be-done": directives.unchanged,
+        "uses-apps": directives.unchanged,
+        "uses-accelerators": directives.unchanged,
+        "uses-contrib": directives.unchanged,
     }
 
     def run(self):
@@ -88,6 +91,9 @@ class DefinePersonaDirective(HCDDirective):
         goals = parse_list_option(self.options.get("goals", ""))
         frustrations = parse_list_option(self.options.get("frustrations", ""))
         jobs_to_be_done = parse_list_option(self.options.get("jobs-to-be-done", ""))
+        app_slugs = parse_csv_option(self.options.get("uses-apps", ""))
+        accelerator_slugs = parse_csv_option(self.options.get("uses-accelerators", ""))
+        contrib_slugs = parse_csv_option(self.options.get("uses-contrib", ""))
         context = "\n".join(self.content).strip()
 
         # Create persona entity
@@ -97,6 +103,9 @@ class DefinePersonaDirective(HCDDirective):
             goals=goals,
             frustrations=frustrations,
             jobs_to_be_done=jobs_to_be_done,
+            app_slugs=app_slugs,
+            accelerator_slugs=accelerator_slugs,
+            contrib_slugs=contrib_slugs,
             context=context,
             docname=docname,
         )

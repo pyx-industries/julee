@@ -8,6 +8,7 @@ from .accelerator import MemoryAcceleratorRepository
 from .app import MemoryAppRepository
 from .base import MemoryRepositoryMixin
 from .code_info import MemoryCodeInfoRepository
+from .contrib import MemoryContribRepository
 from .epic import MemoryEpicRepository
 from .integration import MemoryIntegrationRepository
 from .journey import MemoryJourneyRepository
@@ -18,6 +19,7 @@ __all__ = [
     "MemoryAcceleratorRepository",
     "MemoryAppRepository",
     "MemoryCodeInfoRepository",
+    "MemoryContribRepository",
     "MemoryEpicRepository",
     "MemoryIntegrationRepository",
     "MemoryJourneyRepository",

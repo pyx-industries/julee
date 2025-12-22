@@ -33,10 +33,22 @@ def setup(app):
         AppIndexPlaceholder,
         AppsForPersonaDirective,
         AppsForPersonaPlaceholder,
+        AcceleratorListDirective,
+        AcceleratorListPlaceholder,
+        AppListByInterfaceDirective,
+        AppListByInterfacePlaceholder,
+        C4ContainerDiagramDirective,
+        C4ContainerDiagramPlaceholder,
+        ContribIndexDirective,
+        ContribIndexPlaceholder,
+        ContribListDirective,
+        ContribListPlaceholder,
         DefineAcceleratorDirective,
         DefineAcceleratorPlaceholder,
         DefineAppDirective,
         DefineAppPlaceholder,
+        DefineContribDirective,
+        DefineContribPlaceholder,
         DefineEpicDirective,
         DefineIntegrationDirective,
         DefineIntegrationPlaceholder,
@@ -171,6 +183,22 @@ def setup(app):
     app.add_node(PersonaIndexPlaceholder)
     app.add_node(PersonaDiagramPlaceholder)
     app.add_node(PersonaIndexDiagramPlaceholder)
+
+    # Register C4 bridge directives (HCD -> C4)
+    app.add_directive("c4-container-diagram", C4ContainerDiagramDirective)
+    app.add_directive("app-list-by-interface", AppListByInterfaceDirective)
+    app.add_directive("accelerator-list", AcceleratorListDirective)
+    app.add_node(C4ContainerDiagramPlaceholder)
+    app.add_node(AppListByInterfacePlaceholder)
+    app.add_node(AcceleratorListPlaceholder)
+
+    # Register contrib directives
+    app.add_directive("define-contrib", DefineContribDirective)
+    app.add_directive("contrib-index", ContribIndexDirective)
+    app.add_directive("contrib-list", ContribListDirective)
+    app.add_node(DefineContribPlaceholder)
+    app.add_node(ContribIndexPlaceholder)
+    app.add_node(ContribListPlaceholder)
 
     logger.info("Loaded apps.sphinx.hcd extensions")
 

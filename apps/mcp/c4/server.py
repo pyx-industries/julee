@@ -7,7 +7,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from ..mcp_shared import (
+from ..shared import (
     create_annotation,
     delete_annotation,
     diagram_annotation,

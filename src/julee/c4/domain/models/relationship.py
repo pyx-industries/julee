@@ -27,18 +27,6 @@ class Relationship(BaseModel):
 
     When source_type or destination_type is PERSON, the corresponding slug
     should be the persona's normalized_name, which references an HCD Persona.
-
-    Attributes:
-        slug: URL-safe identifier (auto-generated from source/destination if empty)
-        source_type: Type of source element
-        source_slug: Slug of source element (or persona normalized_name)
-        destination_type: Type of destination element
-        destination_slug: Slug of destination element (or persona normalized_name)
-        description: What this relationship represents (e.g., "Reads from")
-        technology: Protocol/technology used (e.g., "HTTPS/JSON")
-        tags: Arbitrary tags for filtering
-        bidirectional: Whether relationship goes both ways
-        docname: RST document where defined
     """
 
     slug: str = ""

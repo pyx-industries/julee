@@ -103,15 +103,7 @@ def register_collector_directives() -> None:
 
 @dataclass
 class ParsedDocument:
-    """Parsed RST document with extracted structure and entities.
-
-    Attributes:
-        title: Page title (first H1 heading)
-        preamble: Content before the first directive
-        epilogue: Content after the last directive
-        entities: List of collected entity data
-        raw_content: Original RST content
-    """
+    """Parsed RST document with extracted structure and entities."""
 
     title: str = ""
     preamble: str = ""
@@ -459,15 +451,7 @@ _EPIC_STORY_PATTERN = re.compile(r"^\s*\.\.\s+epic-story::\s*(.+)$", re.MULTILIN
 
 @dataclass
 class NestedDirective:
-    """A nested directive extracted from content.
-
-    Attributes:
-        directive_type: Type of directive (e.g., 'step-story')
-        ref: Reference/argument value
-        description: Optional description content
-        position: Character position in parent content (start)
-        end_position: Character position after directive line
-    """
+    """A nested directive extracted from content."""
 
     directive_type: str
     ref: str

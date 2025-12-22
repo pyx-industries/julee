@@ -33,11 +33,6 @@ class ContainerInstance(BaseModel):
     """A deployed instance of a container.
 
     Represents a container running within a deployment node.
-
-    Attributes:
-        container_slug: Reference to the Container being deployed
-        instance_count: Number of instances (for scaling)
-        properties: Key-value properties (version, config, etc.)
     """
 
     container_slug: str
@@ -61,20 +56,6 @@ class DeploymentNode(BaseModel):
 
     Deployment nodes can be nested to represent infrastructure hierarchy
     (e.g., Cloud Region > Availability Zone > Kubernetes Cluster > Pod).
-
-    Attributes:
-        slug: URL-safe identifier
-        name: Display name (e.g., "Production Web Server")
-        environment: Deployment environment (e.g., "production", "staging")
-        node_type: Classification of infrastructure
-        description: What this node represents
-        technology: Infrastructure technology (e.g., "AWS EC2 t3.large")
-        instances: Number of node instances (for scaling representation)
-        parent_slug: Parent deployment node (for nesting)
-        container_instances: Containers deployed to this node
-        properties: Key-value properties (IP, URL, etc.)
-        tags: Arbitrary tags
-        docname: RST document where defined
     """
 
     slug: str

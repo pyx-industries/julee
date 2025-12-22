@@ -14,18 +14,6 @@ class Component(BaseModel):
     A component is a grouping of related functionality encapsulated
     behind a well-defined interface. Components exist within containers
     and are NOT separately deployable units.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "auth-controller")
-        name: Display name (e.g., "Authentication Controller")
-        container_slug: Parent container this component belongs to
-        system_slug: Grandparent software system (denormalized for queries)
-        description: What this component does
-        technology: Implementation technology (e.g., "Spring MVC Controller")
-        interface: Interface description (e.g., "REST API endpoints")
-        code_path: Path to implementation code (optional, for linking)
-        tags: Arbitrary tags for filtering/grouping
-        docname: RST document where defined
     """
 
     slug: str

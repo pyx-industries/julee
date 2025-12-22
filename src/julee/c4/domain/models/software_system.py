@@ -23,17 +23,6 @@ class SoftwareSystem(BaseModel):
 
     The highest level of abstraction in C4. Represents something that
     delivers value to its users, whether human or not.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "banking-system")
-        name: Display name (e.g., "Internet Banking System")
-        description: Brief description of what the system does
-        system_type: Classification (internal, external, existing)
-        owner: Team or organization that owns this system
-        technology: High-level technology stack description
-        url: Link to system documentation or interface
-        tags: Arbitrary tags for filtering/grouping
-        docname: RST document where defined (for Sphinx incremental builds)
     """
 
     slug: str

@@ -66,21 +66,31 @@ class DefineAcceleratorDirective(HCDDirective):
     Usage::
 
         .. define-accelerator:: vocabulary-catalog
+           :name: Vocabulary Catalog
            :status: active
            :milestone: MVP
            :acceptance: All vocab terms published to CDC
+           :concepts: Term, Definition, Category
+           :path: src/julee/vocab/
+           :technology: Python
            :sources-from: kafka
            :publishes-to: elasticsearch
            :depends-on: document-processor
            :feeds-into: compliance-mapper
+
+           Business objective description goes here.
     """
 
     required_arguments = 1
     has_content = True
     option_spec = {
+        "name": directives.unchanged,
         "status": directives.unchanged,
         "milestone": directives.unchanged,
         "acceptance": directives.unchanged,
+        "concepts": directives.unchanged,
+        "path": directives.unchanged,
+        "technology": directives.unchanged,
         "sources-from": directives.unchanged,
         "publishes-to": directives.unchanged,
         "depends-on": directives.unchanged,
@@ -92,9 +102,13 @@ class DefineAcceleratorDirective(HCDDirective):
         docname = self.env.docname
 
         # Parse options
+        name = self.options.get("name", "").strip()
         status = self.options.get("status", "").strip()
         milestone = self.options.get("milestone", "").strip() or None
         acceptance = self.options.get("acceptance", "").strip() or None
+        concepts = parse_list_option(self.options.get("concepts", ""))
+        bounded_context_path = self.options.get("path", "").strip()
+        technology = self.options.get("technology", "").strip() or "Python"
         sources_from = parse_integration_options(self.options.get("sources-from", ""))
         publishes_to = parse_integration_options(self.options.get("publishes-to", ""))
         depends_on = parse_list_option(self.options.get("depends-on", ""))
@@ -104,19 +118,23 @@ class DefineAcceleratorDirective(HCDDirective):
         # Create accelerator entity
         accelerator = Accelerator(
             slug=slug,
+            name=name,
             status=status,
             milestone=milestone,
             acceptance=acceptance,
             objective=objective,
+            domain_concepts=concepts,
+            bounded_context_path=bounded_context_path,
+            technology=technology,
             sources_from=[
                 IntegrationReference(
-                    slug=s["slug"], description=s.get("description", "")
+                    slug=s["slug"], description=s.get("description") or ""
                 )
                 for s in sources_from
             ],
             publishes_to=[
                 IntegrationReference(
-                    slug=p["slug"], description=p.get("description", "")
+                    slug=p["slug"], description=p.get("description") or ""
                 )
                 for p in publishes_to
             ],

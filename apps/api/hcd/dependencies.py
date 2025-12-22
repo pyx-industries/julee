@@ -49,7 +49,7 @@ from julee.hcd.domain.use_cases import (
     UpdateJourneyUseCase,
     UpdateStoryUseCase,
 )
-from ..sphinx_hcd.repositories.file import (
+from julee.hcd.repositories.file import (
     FileAcceleratorRepository,
     FileAppRepository,
     FileEpicRepository,

@@ -11,14 +11,15 @@ from ..domain.models.journey import Journey, StepType
 def serialize_epic(epic: Epic) -> str:
     """Serialize an Epic to RST directive format.
 
-    Produces RST matching the define-epic directive:
-        .. define-epic:: <slug>
+    Produces RST matching the define-epic directive::
 
-           <description>
+        .. define-epic:: slug
 
-        .. epic-story:: <story_ref_1>
+           Description text here.
 
-        .. epic-story:: <story_ref_2>
+        .. epic-story:: story_ref_1
+
+        .. epic-story:: story_ref_2
 
     Args:
         epic: Epic domain object to serialize
@@ -48,26 +49,27 @@ def serialize_epic(epic: Epic) -> str:
 def serialize_journey(journey: Journey) -> str:
     """Serialize a Journey to RST directive format.
 
-    Produces RST matching the define-journey directive:
-        .. define-journey:: <slug>
-           :persona: <persona>
-           :intent: <intent>
-           :outcome: <outcome>
-           :depends-on: <dep1>, <dep2>
-           :preconditions: <cond1>
-               <cond2>
-           :postconditions: <cond1>
-               <cond2>
+    Produces RST matching the define-journey directive::
 
-           <goal>
+        .. define-journey:: slug
+           :persona: persona_slug
+           :intent: User wants to do something
+           :outcome: User achieves goal
+           :depends-on: dep1, dep2
+           :preconditions: cond1
+               cond2
+           :postconditions: cond1
+               cond2
 
-        .. step-phase:: <phase_title>
+           Goal description here.
 
-           <phase_description>
+        .. step-phase:: Phase Title
 
-        .. step-story:: <story_title>
+           Phase description.
 
-        .. step-epic:: <epic_slug>
+        .. step-story:: Story Title
+
+        .. step-epic:: epic_slug
 
     Args:
         journey: Journey domain object to serialize
@@ -126,17 +128,18 @@ def serialize_journey(journey: Journey) -> str:
 def serialize_accelerator(accelerator: Accelerator) -> str:
     """Serialize an Accelerator to RST directive format.
 
-    Produces RST matching the define-accelerator directive:
-        .. define-accelerator:: <slug>
-           :status: <status>
-           :milestone: <milestone>
-           :acceptance: <acceptance>
-           :sources-from: <int1>, <int2>
-           :publishes-to: <int1>, <int2>
-           :depends-on: <accel1>, <accel2>
-           :feeds-into: <accel1>, <accel2>
+    Produces RST matching the define-accelerator directive::
 
-           <objective>
+        .. define-accelerator:: slug
+           :status: active
+           :milestone: MVP
+           :acceptance: Criteria met
+           :sources-from: int1, int2
+           :publishes-to: int1, int2
+           :depends-on: accel1, accel2
+           :feeds-into: accel1, accel2
+
+           Objective description here.
 
     Args:
         accelerator: Accelerator domain object to serialize

@@ -14,16 +14,12 @@ from ..domain.models.software_system import SoftwareSystem
 def serialize_software_system(system: SoftwareSystem) -> str:
     """Serialize a SoftwareSystem to RST directive format.
 
-    Produces RST matching the define-software-system directive:
-        .. define-software-system:: <slug>
-           :name: <name>
-           :type: <system_type>
-           :owner: <owner>
-           :technology: <technology>
-           :url: <url>
-           :tags: <tag1>, <tag2>
+    Produces RST matching the define-software-system directive::
 
-           <description>
+        .. define-software-system:: slug
+           :name: Name
+           :type: internal
+           ...
 
     Args:
         system: SoftwareSystem domain object to serialize
@@ -60,16 +56,13 @@ def serialize_software_system(system: SoftwareSystem) -> str:
 def serialize_container(container: Container) -> str:
     """Serialize a Container to RST directive format.
 
-    Produces RST matching the define-container directive:
-        .. define-container:: <slug>
-           :name: <name>
-           :system: <system_slug>
-           :type: <container_type>
-           :technology: <technology>
-           :url: <url>
-           :tags: <tag1>, <tag2>
+    Produces RST matching the define-container directive::
 
-           <description>
+        .. define-container:: slug
+           :name: Name
+           :system: system-slug
+           :type: service
+           ...
 
     Args:
         container: Container domain object to serialize
@@ -105,17 +98,12 @@ def serialize_container(container: Container) -> str:
 def serialize_component(component: Component) -> str:
     """Serialize a Component to RST directive format.
 
-    Produces RST matching the define-component directive:
-        .. define-component:: <slug>
-           :name: <name>
-           :container: <container_slug>
-           :system: <system_slug>
-           :technology: <technology>
-           :interface: <interface>
-           :code-path: <code_path>
-           :tags: <tag1>, <tag2>
+    Produces RST matching the define-component directive::
 
-           <description>
+        .. define-component:: slug
+           :name: Name
+           :container: container-slug
+           ...
 
     Args:
         component: Component domain object to serialize
@@ -152,17 +140,12 @@ def serialize_component(component: Component) -> str:
 def serialize_relationship(relationship: Relationship) -> str:
     """Serialize a Relationship to RST directive format.
 
-    Produces RST matching the define-relationship directive:
-        .. define-relationship:: <slug>
-           :source-type: <source_type>
-           :source: <source_slug>
-           :destination-type: <destination_type>
-           :destination: <destination_slug>
-           :technology: <technology>
-           :bidirectional: <true/false>
-           :tags: <tag1>, <tag2>
+    Produces RST matching the define-relationship directive::
 
-           <description>
+        .. define-relationship:: slug
+           :source-type: container
+           :source: source-slug
+           ...
 
     Args:
         relationship: Relationship domain object to serialize
@@ -198,20 +181,12 @@ def serialize_relationship(relationship: Relationship) -> str:
 def serialize_deployment_node(node: DeploymentNode) -> str:
     """Serialize a DeploymentNode to RST directive format.
 
-    Produces RST matching the define-deployment-node directive:
-        .. define-deployment-node:: <slug>
-           :name: <name>
-           :environment: <environment>
-           :type: <node_type>
-           :technology: <technology>
-           :instances: <instances>
-           :parent: <parent_slug>
-           :tags: <tag1>, <tag2>
+    Produces RST matching the define-deployment-node directive::
 
-           <description>
-
-        .. deploy-container:: <container_slug>
-           :instances: <count>
+        .. define-deployment-node:: slug
+           :name: Name
+           :environment: production
+           ...
 
     Args:
         node: DeploymentNode domain object to serialize
@@ -257,19 +232,12 @@ def serialize_deployment_node(node: DeploymentNode) -> str:
 def serialize_dynamic_step(step: DynamicStep) -> str:
     """Serialize a DynamicStep to RST directive format.
 
-    Produces RST matching the define-dynamic-step directive:
-        .. define-dynamic-step:: <slug>
-           :sequence: <sequence_name>
-           :step: <step_number>
-           :source-type: <source_type>
-           :source: <source_slug>
-           :destination-type: <destination_type>
-           :destination: <destination_slug>
-           :technology: <technology>
-           :return: <return_value>
-           :async: <true/false>
+    Produces RST matching the define-dynamic-step directive::
 
-           <description>
+        .. define-dynamic-step:: slug
+           :sequence: sequence-name
+           :step: 1
+           ...
 
     Args:
         step: DynamicStep domain object to serialize

@@ -12,6 +12,7 @@ from julee.hcd.repositories.memory import (
     MemoryAcceleratorRepository,
     MemoryAppRepository,
     MemoryCodeInfoRepository,
+    MemoryContribRepository,
     MemoryEpicRepository,
     MemoryIntegrationRepository,
     MemoryJourneyRepository,
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
         Accelerator,
         App,
         BoundedContextInfo,
+        ContribModule,
         Epic,
         Integration,
         Journey,
@@ -43,15 +45,6 @@ class HCDContext:
 
     This context is created at builder-inited and attached to the
     Sphinx app object. It can be retrieved using get_hcd_context().
-
-    Attributes:
-        story_repo: Repository for Story entities
-        journey_repo: Repository for Journey entities
-        epic_repo: Repository for Epic entities
-        app_repo: Repository for App entities
-        accelerator_repo: Repository for Accelerator entities
-        integration_repo: Repository for Integration entities
-        code_info_repo: Repository for BoundedContextInfo entities
     """
 
     story_repo: SyncRepositoryAdapter["Story"] = field(
@@ -72,6 +65,9 @@ class HCDContext:
     integration_repo: SyncRepositoryAdapter["Integration"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryIntegrationRepository())
     )
+    contrib_repo: SyncRepositoryAdapter["ContribModule"] = field(
+        default_factory=lambda: SyncRepositoryAdapter(MemoryContribRepository())
+    )
     persona_repo: SyncRepositoryAdapter["Persona"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryPersonaRepository())
     )
@@ -90,6 +86,7 @@ class HCDContext:
         self.app_repo.clear()
         self.accelerator_repo.clear()
         self.integration_repo.clear()
+        self.contrib_repo.clear()
         self.persona_repo.clear()
         self.code_info_repo.clear()
 
@@ -97,7 +94,7 @@ class HCDContext:
         """Clear entities defined in a specific document.
 
         Used during incremental builds when a document is re-read.
-        Only entities that track docname are cleared (journey, epic, accelerator).
+        Only entities that track docname are cleared.
 
         Args:
             docname: RST document name
@@ -123,6 +120,12 @@ class HCDContext:
         accel_async = self.accelerator_repo.async_repo
         results["accelerators"] = self.accelerator_repo.run_async(
             accel_async.clear_by_docname(docname)  # type: ignore
+        )
+
+        # Contrib repo has clear_by_docname
+        contrib_async = self.contrib_repo.async_repo
+        results["contrib"] = self.contrib_repo.run_async(
+            contrib_async.clear_by_docname(docname)  # type: ignore
         )
 
         return results

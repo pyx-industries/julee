@@ -12,10 +12,6 @@ class IntegrationReference(BaseModel):
 
     Used for sources_from and publishes_to relationships where
     an accelerator may specify what data it sources or publishes.
-
-    Attributes:
-        slug: Integration slug (e.g., "pilot-data-collection")
-        description: What is sourced/published (e.g., "Scheme documentation")
     """
 
     slug: str
@@ -50,21 +46,10 @@ class Accelerator(BaseModel):
     An accelerator represents a bounded context that provides business
     capabilities. It may have associated code in src/{slug}/ and is
     exposed through one or more applications.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "vocabulary")
-        status: Development status (e.g., "alpha", "production", "future")
-        milestone: Target milestone (e.g., "2 (Nov 2025)")
-        acceptance: Acceptance criteria description
-        objective: Business objective/description
-        sources_from: Integrations this accelerator reads from
-        feeds_into: Other accelerators this one feeds data into
-        publishes_to: Integrations this accelerator writes to
-        depends_on: Other accelerators this one depends on
-        docname: RST document name (for incremental builds)
     """
 
     slug: str
+    name: str = ""
     status: str = ""
     milestone: str | None = None
     acceptance: str | None = None
@@ -74,6 +59,11 @@ class Accelerator(BaseModel):
     publishes_to: list[IntegrationReference] = Field(default_factory=list)
     depends_on: list[str] = Field(default_factory=list)
     docname: str = ""
+
+    # C4 mapping fields
+    domain_concepts: list[str] = Field(default_factory=list)
+    bounded_context_path: str = ""
+    technology: str = "Python"
 
     # Document structure (RST round-trip)
     page_title: str = ""
@@ -91,12 +81,30 @@ class Accelerator(BaseModel):
     @property
     def display_title(self) -> str:
         """Get formatted title for display."""
+        if self.name:
+            return self.name
         return self.slug.replace("-", " ").title()
 
     @property
     def status_normalized(self) -> str:
         """Get normalized status for grouping."""
         return self.status.lower().strip() if self.status else ""
+
+    @property
+    def concepts_description(self) -> str:
+        """Get comma-separated domain concepts for C4 diagrams."""
+        if self.domain_concepts:
+            return ", ".join(self.domain_concepts)
+        return ""
+
+    @property
+    def c4_description(self) -> str:
+        """Get description for C4 container diagrams."""
+        if self.objective:
+            return self.objective
+        if self.domain_concepts:
+            return self.concepts_description
+        return f"{self.display_title} bounded context"
 
     def has_integration_dependency(self, integration_slug: str) -> bool:
         """Check if accelerator depends on an integration.

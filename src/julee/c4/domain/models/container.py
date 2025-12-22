@@ -33,17 +33,6 @@ class Container(BaseModel):
 
     Note: This has nothing to do with Docker. The term "container" in C4
     predates containerization technology.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "api-application")
-        name: Display name (e.g., "API Application")
-        system_slug: Parent software system this container belongs to
-        description: What this container does
-        container_type: Classification (web_application, database, etc.)
-        technology: Specific technology (e.g., "Python 3.11, FastAPI")
-        url: Link to container documentation
-        tags: Arbitrary tags for filtering/grouping
-        docname: RST document where defined
     """
 
     slug: str

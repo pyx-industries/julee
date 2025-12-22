@@ -28,22 +28,55 @@ class AppType(str, Enum):
             return cls.UNKNOWN
 
 
+class AppInterface(str, Enum):
+    """Application interface type for C4 mapping."""
+
+    SPHINX = "sphinx"
+    API = "api"
+    MCP = "mcp"
+    WEB = "web"
+    CLI = "cli"
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def from_string(cls, value: str) -> "AppInterface":
+        """Convert string to AppInterface, defaulting to UNKNOWN."""
+        try:
+            return cls(value.lower())
+        except ValueError:
+            return cls.UNKNOWN
+
+    @property
+    def user_relationship(self) -> str:
+        """Get C4 relationship label for user → app."""
+        labels = {
+            AppInterface.SPHINX: "Writes RST",
+            AppInterface.API: "HTTP",
+            AppInterface.MCP: "MCP",
+            AppInterface.WEB: "Uses",
+            AppInterface.CLI: "Runs",
+        }
+        return labels.get(self, "Uses")
+
+    @property
+    def accelerator_relationship(self) -> str:
+        """Get C4 relationship label for app → accelerator."""
+        labels = {
+            AppInterface.SPHINX: "Documents",
+            AppInterface.API: "Exposes",
+            AppInterface.MCP: "Provides tools for",
+            AppInterface.WEB: "Presents",
+            AppInterface.CLI: "Executes",
+        }
+        return labels.get(self, "Uses")
+
+
 class App(BaseModel):
     """Application entity.
 
     Apps represent distinct applications in the system, defined via YAML
-    manifests. They serve as containers for stories and provide organization
-    for the documentation.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "staff-portal")
-        name: Display name (e.g., "Staff Portal")
-        app_type: Classification (staff, external, member-tool)
-        status: Optional status indicator (e.g., "in-development", "live")
-        description: Human-readable description
-        accelerators: List of accelerator slugs associated with this app
-        manifest_path: Path to the app.yaml file
-        name_normalized: Lowercase name for matching
+    manifests or RST directives. They serve as containers for stories and
+    provide organization for the documentation.
     """
 
     slug: str
@@ -55,10 +88,15 @@ class App(BaseModel):
     manifest_path: str = ""
     name_normalized: str = ""
 
+    # C4 mapping fields
+    interface: AppInterface = AppInterface.UNKNOWN
+    technology: str = ""
+
     # Document structure (RST round-trip)
     page_title: str = ""
     preamble_rst: str = ""
     epilogue_rst: str = ""
+    docname: str = ""
 
     @field_validator("slug", mode="before")
     @classmethod
@@ -154,3 +192,31 @@ class App(BaseModel):
             AppType.UNKNOWN: "Unknown",
         }
         return labels.get(self.app_type, str(self.app_type))
+
+    @property
+    def interface_label(self) -> str:
+        """Get human-readable interface label for C4 diagrams."""
+        labels = {
+            AppInterface.SPHINX: "Sphinx Extension",
+            AppInterface.API: "REST API",
+            AppInterface.MCP: "MCP Server",
+            AppInterface.WEB: "Web Application",
+            AppInterface.CLI: "CLI Tool",
+            AppInterface.UNKNOWN: "Application",
+        }
+        return labels.get(self.interface, str(self.interface))
+
+    @property
+    def c4_technology(self) -> str:
+        """Get technology string for C4 diagrams."""
+        if self.technology:
+            return self.technology
+        # Default based on interface
+        defaults = {
+            AppInterface.SPHINX: "Python/Sphinx",
+            AppInterface.API: "FastAPI",
+            AppInterface.MCP: "FastMCP",
+            AppInterface.WEB: "Python",
+            AppInterface.CLI: "Python/Click",
+        }
+        return defaults.get(self.interface, "Python")

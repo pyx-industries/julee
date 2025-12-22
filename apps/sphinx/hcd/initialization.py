@@ -104,7 +104,8 @@ def _load_code_info(context: HCDContext, config) -> None:
         logger.info(f"Source directory not found: {src_dir}")
         return
 
-    contexts = scan_bounded_contexts(src_dir)
+    # Exclude 'shared' - it's foundation code, not an accelerator
+    contexts = scan_bounded_contexts(src_dir, exclude=["shared"])
     for code_info in contexts:
         context.code_info_repo.save(code_info)
 
