@@ -20,3 +20,23 @@ CEAP Accelerator
    - Policy validation and enforcement
    - Knowledge service integration for AI-powered extraction
    - Temporal workflow orchestration for durability
+
+Domain Entities
+---------------
+
+.. accelerator-entity-list:: ceap
+
+Entity Diagram
+~~~~~~~~~~~~~~
+
+.. entity-diagram:: ceap
+
+Use Cases
+---------
+
+.. accelerator-usecase-list:: ceap
+
+Code Reference
+--------------
+
+.. list-accelerator-code:: ceap

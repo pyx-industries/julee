@@ -20,3 +20,23 @@ HCD Accelerator
    - Generate index pages and relationship diagrams
    - Validate documentation coverage at build time
    - RST repository backend for lossless round-trip editing
+
+Use Case Diagrams
+-----------------
+
+Create Accelerator
+~~~~~~~~~~~~~~~~~~
+
+.. usecase-ssd:: julee.hcd.domain.use_cases:CreateAcceleratorUseCase
+   :title: Create Accelerator Flow
+
+Create Story
+~~~~~~~~~~~~
+
+.. usecase-ssd:: julee.hcd.domain.use_cases:CreateStoryUseCase
+   :title: Create Story Flow
+
+Code Reference
+--------------
+
+.. list-accelerator-code:: hcd
