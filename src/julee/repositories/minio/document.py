@@ -21,9 +21,7 @@ import multihash  # type: ignore[import-untyped]
 from minio.error import S3Error  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict
 
-from julee.ceap.domain.models.custom_fields.content_stream import (
-    ContentStream,
-)
+from julee.ceap.domain.models.content_stream import ContentStream
 from julee.ceap.domain.models.document import Document
 from julee.ceap.domain.repositories.document import DocumentRepository
 

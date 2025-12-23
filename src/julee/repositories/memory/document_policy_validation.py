@@ -15,7 +15,9 @@ All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.policy import DocumentPolicyValidation
+from julee.ceap.domain.models.document_policy_validation import (
+    DocumentPolicyValidation,
+)
 from julee.ceap.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )

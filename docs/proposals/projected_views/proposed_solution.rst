@@ -196,28 +196,173 @@ What This Enables
 5. **Solution independence**: Julee solutions only need to follow the doctrine.
    They get all viewpoints for free.
 
+Reconciliation Model
+--------------------
+
+Bidirectional Development
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Code and documentation may be created in any order:
+
+- **Design-first**: Ideas emerge in documentation before implementation
+- **Code-first**: Implementation exists before formal documentation
+- **Convergence**: Both paths lead to cohesive, coherent, documented code
+
+The projection mechanism must handle all cases, not assume code exists first.
+
+Documentation Sources
+~~~~~~~~~~~~~~~~~~~~~
+
+Documentation can live in multiple places:
+
+1. **RST directives**: External documentation in ``.rst`` files
+2. **Code docstrings**: Inline documentation introspected from code
+
+These aren't competing—they represent a **maturity lifecycle**::
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    Documentation Lifecycle                       │
+    ├─────────────────────────────────────────────────────────────────┤
+    │                                                                  │
+    │  Design Phase          Implementation         Maturity           │
+    │  ─────────────         ──────────────         ────────           │
+    │                                                                  │
+    │  RST directives   →    RST + docstrings   →   docstrings only   │
+    │  (ideas emerge)        (code created)         (self-documenting) │
+    │                                                                  │
+    │  .. declare-bc::       .. declare-bc::        (RST retired)      │
+    │     payments              payments                               │
+    │                        src/payments/          src/payments/      │
+    │                        """Handles..."""       """Handles..."""   │
+    │                                                                  │
+    └─────────────────────────────────────────────────────────────────┘
+
+At maturity, code becomes **literate and self-documenting**. RST files that
+merely echo docstring content can be retired.
+
+How Reconciliation Works
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Viewpoint directives declare items that may or may not have corresponding code.
+Introspection discovers code that may or may not have corresponding declarations.
+
+Three states result from matching by identity (slug):
+
+**Matched** (declaration and/or docstring + code structure)::
+
+    Source                            Status
+    ─────────────────────────────    ─────────────────────────
+    RST directive exists              Optional (can be retired)
+    Code exists                       ✓ Required
+    Docstring exists                  ✓ Required for maturity
+
+    Result: Cross-referenced, complete. No warnings.
+
+**Doc-only** (RST declaration, no code)::
+
+    Source                            Status
+    ─────────────────────────────    ─────────────────────────
+    RST directive exists              ✓ Design intent captured
+    Code exists                       ✗ Missing
+
+    Result: Warning — "payments: missing implementation"
+
+**Code-only** (code exists, no documentation)::
+
+    Source                            Status
+    ─────────────────────────────    ─────────────────────────
+    RST directive exists              ✗ Not required if docstrings complete
+    Code exists                       ✓ Present
+    Docstring exists                  ✗ Missing or incomplete
+
+    Result: Warning — "payments: undocumented" (if docstrings insufficient)
+
+Identity Matching
+~~~~~~~~~~~~~~~~~
+
+Reconciliation requires a stable identity that links declarations to code.
+The **slug** serves this purpose:
+
+- RST directive: ``.. declare-bounded-context:: payments`` → slug = "payments"
+- Code path: ``src/julee/payments/`` → slug = "payments"
+- Docstring: extracted from ``payments/__init__.py``
+
+When slugs match, the viewpoint merges information from all sources:
+
+- Description from docstring (authoritative when code is mature)
+- Description from RST (authoritative during design phase)
+- Structure from code (always introspected)
+- Source locations for cross-referencing
+
+Workflow Integration
+~~~~~~~~~~~~~~~~~~~~
+
+The reconciliation model supports the full development lifecycle:
+
+1. **Design phase**:
+
+   - Write RST directives capturing design intent
+   - Build docs → see "missing implementation" warnings
+   - RST serves as specification
+
+2. **Implementation phase**:
+
+   - Create code following doctrine
+   - Add comprehensive docstrings
+   - RST and docstrings coexist, cross-reference
+
+3. **Maturity phase**:
+
+   - Docstrings are complete and authoritative
+   - RST files become redundant
+   - Retire RST, code is self-documenting
+   - Views project from introspected code + docstrings
+
 The Flow
 --------
 
 ::
 
-    ┌─────────────────────────────────────────────────────────────┐
-    │                     Code (Python files)                      │
-    └─────────────────────────────────────────────────────────────┘
+    ┌──────────────────────┐              ┌──────────────────────┐
+    │   RST Documentation  │              │   Code (Python)      │
+    │   (declarations)     │              │   (structure +       │
+    │                      │              │    docstrings)       │
+    └──────────┬───────────┘              └──────────┬───────────┘
+               │                                      │
+               │                                      │ parsed by
+               │                                      ▼
+               │              ┌─────────────────────────────────────┐
+               │              │            julee.code               │
+               │              │  ┌───────────┐    ┌──────────────┐  │
+               │              │  │ Doctrine  │───▶│ Introspection│  │
+               │              │  │ (rules)   │    │  (parsing)   │  │
+               │              │  └───────────┘    └──────┬───────┘  │
+               │              │                          │          │
+               │              │                          ▼          │
+               │              │                 ┌──────────────┐    │
+               │              │                 │ Code Models  │    │
+               │              │                 │(BoundedCtx)  │    │
+               │              │                 └──────────────┘    │
+               │              └────────────────────────┬────────────┘
+               │                                       │
+               └───────────────────┬───────────────────┘
+                                   │
+                                   ▼
+                         ┌─────────────────┐
+                         │ Reconciliation  │
+                         │ (match by slug) │
+                         └────────┬────────┘
                                   │
-                                  │ parsed by
-                                  ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                     julee.code                               │
-    │  ┌─────────────┐    ┌─────────────┐    ┌─────────────────┐  │
-    │  │  Doctrine   │    │Introspection│    │  Code Models    │  │
-    │  │  (rules)    │───▶│  (parsing)  │───▶│(BoundedContext) │  │
-    │  └─────────────┘    └─────────────┘    └─────────────────┘  │
-    └─────────────────────────────────────────────────────────────┘
-                                  │
-                                  │ consumed by
                    ┌──────────────┼──────────────┐
                    ▼              ▼              ▼
+              ┌─────────┐   ┌─────────┐   ┌─────────┐
+              │ Matched │   │Doc-only │   │Code-only│
+              │  (OK)   │   │(warning)│   │(warning)│
+              └────┬────┘   └─────────┘   └─────────┘
+                   │
+                   ▼
+    ┌──────────────┼──────────────┐
+    ▼              ▼              ▼
     ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
     │   julee.hcd    │ │   julee.c4     │ │   julee.uml    │
     │  ┌──────────┐  │ │  ┌──────────┐  │ │  ┌──────────┐  │

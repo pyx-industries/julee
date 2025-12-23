@@ -74,6 +74,14 @@ def setup(app):
         JourneyDependencyGraphPlaceholder,
         JourneyIndexDirective,
         JourneysForPersonaDirective,
+        ListAcceleratorCodeDirective,
+        AcceleratorCodePlaceholder,
+        AcceleratorEntityListDirective,
+        AcceleratorEntityListPlaceholder,
+        AcceleratorUseCaseListDirective,
+        AcceleratorUseCaseListPlaceholder,
+        EntityDiagramDirective,
+        EntityDiagramPlaceholder,
         PersonaDiagramDirective,
         PersonaDiagramPlaceholder,
         PersonaIndexDiagramDirective,
@@ -202,6 +210,25 @@ def setup(app):
     app.add_node(DefineContribPlaceholder)
     app.add_node(ContribIndexPlaceholder)
     app.add_node(ContribListPlaceholder)
+
+    # Register code link directives
+    app.add_directive("list-accelerator-code", ListAcceleratorCodeDirective)
+    app.add_node(AcceleratorCodePlaceholder)
+
+    # Register entity diagram directives
+    app.add_directive("entity-diagram", EntityDiagramDirective)
+    app.add_node(EntityDiagramPlaceholder)
+
+    # Register accelerator entity/usecase list directives
+    app.add_directive("accelerator-entity-list", AcceleratorEntityListDirective)
+    app.add_node(AcceleratorEntityListPlaceholder)
+    app.add_directive("accelerator-usecase-list", AcceleratorUseCaseListDirective)
+    app.add_node(AcceleratorUseCaseListPlaceholder)
+
+    # Register shared directives
+    from apps.sphinx.shared.directives import UseCaseSSDDirective
+
+    app.add_directive("usecase-ssd", UseCaseSSDDirective)
 
     logger.info("Loaded apps.sphinx.hcd extensions")
 

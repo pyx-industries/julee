@@ -287,7 +287,58 @@ C4 can now auto-discover from code while still allowing manual override::
         # Manual declarations override auto-discovered
         return merge_by_slug(auto_containers, manual_containers)
 
-Phase 4: Remove Bridge
+Phase 4: Implement Reconciliation
+----------------------------------
+
+Step 4.1: Define Reconciliation Logic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the reconciliation layer that matches declarations to code::
+
+    # julee/code/domain/services/reconciliation.py
+
+    class ReconciliationResult:
+        matched: list[MatchedItem]      # Declaration + code exist
+        doc_only: list[DocOnlyItem]     # Declaration, no code
+        code_only: list[CodeOnlyItem]   # Code, no declaration/docstring
+
+    class Reconciler:
+        def reconcile(
+            self,
+            declarations: list[Declaration],   # From RST directives
+            introspected: list[CodeModel],     # From julee.code
+        ) -> ReconciliationResult:
+            """Match declarations to introspected code by slug."""
+            ...
+
+Step 4.2: Integrate with Sphinx Build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Emit warnings during doc build for unmatched items::
+
+    # During Sphinx doctree-resolved
+
+    result = reconciler.reconcile(declarations, introspected)
+
+    for item in result.doc_only:
+        logger.warning(f"{item.slug}: missing implementation")
+
+    for item in result.code_only:
+        if not item.has_sufficient_docstring:
+            logger.warning(f"{item.slug}: undocumented")
+
+Step 4.3: Support Documentation Lifecycle
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Allow RST directives to be optional when docstrings are complete:
+
+- **Design phase**: RST required, code optional
+- **Implementation phase**: Both present, cross-referenced
+- **Maturity phase**: Docstrings sufficient, RST can be retired
+
+The warning logic adapts based on what documentation sources exist.
+
+Phase 5: Remove Bridge
 ----------------------
 
 The ``c4_bridge.py`` becomes unnecessary because:
@@ -298,7 +349,7 @@ The ``c4_bridge.py`` becomes unnecessary because:
 
 The bridge can be removed or simplified to a thin coordination layer.
 
-Phase 5: Enable UML Viewpoint
+Phase 6: Enable UML Viewpoint
 -----------------------------
 
 With the foundation in place, adding UML is straightforward::
@@ -345,8 +396,9 @@ Incremental Approach
 3. **Validate equivalence** ensure new introspection matches old
 4. **Switch HCD** to consume only julee.code
 5. **Add C4 projection** enable auto-discovery
-6. **Remove old code** delete duplicated models and parsers
-7. **Add UML** new viewpoint using the foundation
+6. **Implement reconciliation** match declarations to code, emit warnings
+7. **Remove old code** delete duplicated models and parsers
+8. **Add UML** new viewpoint using the foundation
 
 Backwards Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -361,8 +413,10 @@ Testing Strategy
 
 1. **Unit tests for julee.code** doctrine validation, introspection
 2. **Projection tests** verify correct mapping from code to views
-3. **Integration tests** Sphinx builds produce same output
-4. **Self-description test** julee describes itself correctly
+3. **Reconciliation tests** verify matching, doc-only, code-only detection
+4. **Integration tests** Sphinx builds produce same output
+5. **Self-description test** julee describes itself correctly
+6. **Lifecycle tests** verify RST can be retired when docstrings complete
 
 Success Criteria
 ----------------
@@ -376,6 +430,8 @@ The refactoring is complete when:
 5. Adding a new viewpoint requires only projection rules
 6. Julee documents itself through all viewpoints
 7. Julee solutions get viewpoints by following doctrine
+8. Reconciliation warns on missing code or missing documentation
+9. Mature code can retire RST when docstrings are complete
 
 Open Questions
 --------------
@@ -394,3 +450,12 @@ Open Questions
 
 5. **Non-Python code**: How do we handle bounded contexts with non-Python
    components (TypeScript frontends, etc.)?
+
+6. **Docstring sufficiency**: What constitutes a "complete" docstring that
+   allows RST retirement? Objective? Full description? Examples?
+
+7. **Lifecycle transitions**: How do we signal that a module has reached
+   maturity and RST can be retired? Explicit marker or automatic detection?
+
+8. **Directive migration**: When docstrings subsume RST content, should we
+   provide tooling to migrate directive options into docstring annotations?

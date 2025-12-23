@@ -29,7 +29,7 @@ from julee.ceap.domain.models.assembly_specification import (
     AssemblySpecificationStatus,
 )
 
-from .factories import AssemblyFactory
+from .factories import AssemblySpecificationFactory
 
 pytestmark = pytest.mark.unit
 
@@ -365,7 +365,7 @@ class TestAssemblySerialization:
             "required": ["meeting_info"],
         }
 
-        assembly = AssemblyFactory.build(
+        assembly = AssemblySpecificationFactory.build(
             assembly_specification_id="meeting-minutes-v1",
             name="Meeting Minutes",
             applicability="Corporate meeting recordings",
@@ -393,7 +393,7 @@ class TestAssemblySerialization:
     def test_assembly_json_roundtrip(self) -> None:
         """Test that AssemblySpecification can be serialized to JSON and
         deserialized back."""
-        original_assembly = AssemblyFactory.build()
+        original_assembly = AssemblySpecificationFactory.build()
 
         # Serialize to JSON
         json_str = original_assembly.model_dump_json()
@@ -466,7 +466,7 @@ class TestAssemblyDefaults:
     )
     def test_assembly_status_values(self, status: AssemblySpecificationStatus) -> None:
         """Test AssemblySpecification with different status values."""
-        assembly = AssemblyFactory.build(status=status)
+        assembly = AssemblySpecificationFactory.build(status=status)
         assert assembly.status == status
 
 
@@ -488,8 +488,8 @@ class TestAssemblyVersionValidation:
         """Test version field validation - we can add semver checks later, not
         needed yet (if at all)."""
         if expected_success:
-            assembly = AssemblyFactory.build(version=version)
+            assembly = AssemblySpecificationFactory.build(version=version)
             assert assembly.version == version.strip()
         else:
             with pytest.raises((ValueError, ValidationError)):
-                AssemblyFactory.build(version=version)
+                AssemblySpecificationFactory.build(version=version)

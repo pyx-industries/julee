@@ -24,7 +24,7 @@ from julee.ceap.domain.models import (
     KnowledgeServiceQuery,
     Policy,
 )
-from julee.ceap.domain.models.policy import (
+from julee.ceap.domain.models.document_policy_validation import (
     DocumentPolicyValidationStatus,
 )
 from julee.ceap.domain.repositories import (

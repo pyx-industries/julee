@@ -24,8 +24,8 @@ import yaml
 from julee.ceap.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
-    KnowledgeServiceQuery,
 )
+from julee.ceap.domain.models.knowledge_service_query import KnowledgeServiceQuery
 from julee.ceap.domain.models.document import Document, DocumentStatus
 from julee.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,

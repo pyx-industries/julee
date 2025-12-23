@@ -4,11 +4,15 @@ Processes placeholders that need cross-document data (all documents read).
 """
 
 from ..directives import (
+    process_accelerator_code_placeholders,
+    process_accelerator_entity_list_placeholders,
     process_accelerator_placeholders,
+    process_accelerator_usecase_list_placeholders,
     process_app_placeholders,
     process_c4_bridge_placeholders,
     process_contrib_placeholders,
     process_dependency_graph_placeholder,
+    process_entity_diagram_placeholders,
     process_epic_placeholders,
     process_integration_placeholders,
     process_persona_placeholders,
@@ -49,3 +53,13 @@ def on_doctree_resolved(app, doctree, docname):
 
     # Process C4 bridge placeholders (HCD -> C4 diagrams)
     process_c4_bridge_placeholders(app, doctree, docname)
+
+    # Process code link placeholders
+    process_accelerator_code_placeholders(app, doctree, docname)
+
+    # Process entity diagram placeholders
+    process_entity_diagram_placeholders(app, doctree, docname)
+
+    # Process accelerator entity/usecase list placeholders
+    process_accelerator_entity_list_placeholders(app, doctree, docname)
+    process_accelerator_usecase_list_placeholders(app, doctree, docname)

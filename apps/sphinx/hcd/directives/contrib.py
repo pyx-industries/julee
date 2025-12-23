@@ -118,11 +118,11 @@ def build_contrib_content(slug: str, docname: str, hcd_context):
 
     result_nodes = []
 
-    # Description
+    # Description - parse as RST for formatting support
     if contrib.description:
-        desc_para = nodes.paragraph()
-        desc_para += nodes.Text(contrib.description)
-        result_nodes.append(desc_para)
+        from .base import parse_rst_content
+        desc_nodes = parse_rst_content(contrib.description, f"<{slug}>")
+        result_nodes.extend(desc_nodes)
 
     # Seealso with metadata
     seealso_node = seealso()

@@ -15,7 +15,7 @@ should be avoided.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.assembly_specification import (
+from julee.ceap.domain.models.knowledge_service_query import (
     KnowledgeServiceQuery,
 )
 from julee.ceap.domain.repositories.knowledge_service_query import (

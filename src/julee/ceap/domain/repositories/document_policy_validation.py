@@ -31,7 +31,9 @@ stubs that delegate to activities for durability and proper error handling.
 
 from typing import Protocol, runtime_checkable
 
-from julee.ceap.domain.models.policy import DocumentPolicyValidation
+from julee.ceap.domain.models.document_policy_validation import (
+    DocumentPolicyValidation,
+)
 
 from .base import BaseRepository
 

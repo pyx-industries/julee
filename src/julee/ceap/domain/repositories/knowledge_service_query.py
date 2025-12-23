@@ -22,7 +22,7 @@ that are used during the assembly process.
 
 from typing import Protocol, runtime_checkable
 
-from julee.ceap.domain.models.assembly_specification import (
+from julee.ceap.domain.models.knowledge_service_query import (
     KnowledgeServiceQuery,
 )
 

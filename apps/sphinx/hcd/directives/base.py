@@ -182,6 +182,36 @@ class HCDDirective(SphinxDirective):
         return para
 
 
+def parse_rst_content(rst_text: str, source_name: str = "<rst>") -> list[nodes.Node]:
+    """Parse RST text into docutils nodes.
+
+    Args:
+        rst_text: RST-formatted text to parse
+        source_name: Name for error messages
+
+    Returns:
+        List of docutils nodes
+    """
+    from docutils.core import publish_doctree
+    from docutils.parsers.rst import Parser
+
+    # Parse RST to doctree with full RST support
+    doctree = publish_doctree(
+        rst_text,
+        source_path=source_name,
+        parser=Parser(),
+        settings_overrides={
+            "report_level": 4,  # Only show severe errors
+            "halt_level": 5,  # Never halt
+            "input_encoding": "unicode",
+            "output_encoding": "unicode",
+        },
+    )
+
+    # Return children of the document (skip the document node itself)
+    return list(doctree.children)
+
+
 def make_deprecated_directive(
     base_class: type,
     old_name: str,

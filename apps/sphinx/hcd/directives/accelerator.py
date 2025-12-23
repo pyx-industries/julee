@@ -17,7 +17,6 @@ from docutils.parsers.rst import directives
 from julee.hcd.domain.models.accelerator import Accelerator, IntegrationReference
 from julee.hcd.domain.use_cases import (
     get_apps_for_accelerator,
-    get_code_info_for_accelerator,
     get_fed_by_accelerators,
     get_publish_integrations,
     get_source_integrations,
@@ -275,30 +274,14 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
     all_accelerators = hcd_context.accelerator_repo.list_all()
     all_apps = hcd_context.app_repo.list_all()
     all_integrations = hcd_context.integration_repo.list_all()
-    all_code_infos = hcd_context.code_info_repo.list_all()
 
     result_nodes = []
 
-    # Objective/description
+    # Objective/description - parse as RST for formatting support
     if accelerator.objective:
-        obj_para = nodes.paragraph()
-        obj_para += nodes.Text(accelerator.objective)
-        result_nodes.append(obj_para)
-
-    # Code info from introspection
-    code_info = get_code_info_for_accelerator(accelerator, all_code_infos)
-    if code_info:
-        if code_info.entities:
-            entities_para = nodes.paragraph()
-            entities_para += nodes.strong(text="Entities: ")
-            entities_para += nodes.Text(", ".join(e.name for e in code_info.entities))
-            result_nodes.append(entities_para)
-
-        if code_info.use_cases:
-            uc_para = nodes.paragraph()
-            uc_para += nodes.strong(text="Use Cases: ")
-            uc_para += nodes.Text(", ".join(uc.name for uc in code_info.use_cases))
-            result_nodes.append(uc_para)
+        from .base import parse_rst_content
+        obj_nodes = parse_rst_content(accelerator.objective, f"<{slug}>")
+        result_nodes.extend(obj_nodes)
 
     # Seealso with metadata
     seealso_node = seealso()

@@ -15,7 +15,9 @@ status, scores, transformation results, and metadata.
 
 import logging
 
-from julee.ceap.domain.models.policy import DocumentPolicyValidation
+from julee.ceap.domain.models.document_policy_validation import (
+    DocumentPolicyValidation,
+)
 from julee.ceap.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )

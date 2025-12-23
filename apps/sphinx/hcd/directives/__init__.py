@@ -37,6 +37,20 @@ from .c4_bridge import (
     C4ContainerDiagramPlaceholder,
     process_c4_bridge_placeholders,
 )
+from .code_links import (
+    AcceleratorCodePlaceholder,
+    AcceleratorEntityListDirective,
+    AcceleratorEntityListPlaceholder,
+    AcceleratorUseCaseListDirective,
+    AcceleratorUseCaseListPlaceholder,
+    EntityDiagramDirective,
+    EntityDiagramPlaceholder,
+    ListAcceleratorCodeDirective,
+    process_accelerator_code_placeholders,
+    process_accelerator_entity_list_placeholders,
+    process_accelerator_usecase_list_placeholders,
+    process_entity_diagram_placeholders,
+)
 from .contrib import (
     ContribIndexDirective,
     ContribIndexPlaceholder,
@@ -197,4 +211,19 @@ __all__ = [
     "ContribListDirective",
     "ContribListPlaceholder",
     "process_contrib_placeholders",
+    # Code link directives
+    "ListAcceleratorCodeDirective",
+    "AcceleratorCodePlaceholder",
+    "process_accelerator_code_placeholders",
+    # Entity diagram directives
+    "EntityDiagramDirective",
+    "EntityDiagramPlaceholder",
+    "process_entity_diagram_placeholders",
+    # Accelerator entity/usecase list directives
+    "AcceleratorEntityListDirective",
+    "AcceleratorEntityListPlaceholder",
+    "process_accelerator_entity_list_placeholders",
+    "AcceleratorUseCaseListDirective",
+    "AcceleratorUseCaseListPlaceholder",
+    "process_accelerator_usecase_list_placeholders",
 ]

@@ -60,6 +60,10 @@ Key Principles
    to describe itself, enabling documentation that stays synchronized with
    the codebase.
 
+6. **Bidirectional development**: Code and documentation may be created in
+   any order. Ideas emerge in either place. Viewpoints reconcile declarations
+   with introspected code, reporting gaps in either direction.
+
 Dependency Tree
 ---------------
 

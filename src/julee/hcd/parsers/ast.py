@@ -8,16 +8,84 @@ import ast
 import logging
 from pathlib import Path
 
-from ..domain.models.code_info import BoundedContextInfo, ClassInfo
+from ..domain.models.code_info import BoundedContextInfo, ClassInfo, FieldInfo
 
 logger = logging.getLogger(__name__)
 
 
-def parse_python_classes(directory: Path) -> list[ClassInfo]:
+def _get_annotation_str(node: ast.expr | None) -> str:
+    """Convert an AST annotation node to a string representation."""
+    if node is None:
+        return ""
+    try:
+        return ast.unparse(node)
+    except Exception:
+        return ""
+
+
+def _extract_base_classes(class_node: ast.ClassDef) -> list[str]:
+    """Extract base class names from a class definition."""
+    bases = []
+    for base in class_node.bases:
+        try:
+            bases.append(ast.unparse(base))
+        except Exception:
+            pass
+    return bases
+
+
+def _extract_class_fields(class_node: ast.ClassDef) -> list[FieldInfo]:
+    """Extract field information from a class definition.
+
+    Handles:
+    - Simple class attributes with type annotations
+    - Pydantic Field() defaults
+    - Regular default values
+    """
+    fields = []
+    for node in class_node.body:
+        # Handle annotated assignments: field: Type = value
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            name = node.target.id
+            type_annotation = _get_annotation_str(node.annotation)
+            default = None
+            if node.value is not None:
+                try:
+                    default = ast.unparse(node.value)
+                except Exception:
+                    default = "..."
+            fields.append(
+                FieldInfo(name=name, type_annotation=type_annotation, default=default)
+            )
+    return fields
+
+
+def _parse_class_node(class_node: ast.ClassDef, file_name: str) -> ClassInfo:
+    """Parse a class AST node into ClassInfo with full details."""
+    docstring = ast.get_docstring(class_node) or ""
+    first_line = docstring.split("\n")[0].strip() if docstring else ""
+    return ClassInfo(
+        name=class_node.name,
+        docstring=first_line,
+        file=file_name,
+        bases=_extract_base_classes(class_node),
+        fields=_extract_class_fields(class_node),
+    )
+
+
+def parse_python_classes(
+    directory: Path,
+    recursive: bool = True,
+    exclude_tests: bool = True,
+    exclude_files: list[str] | None = None,
+) -> list[ClassInfo]:
     """Extract class information from Python files in a directory using AST.
 
     Args:
         directory: Directory to scan for .py files
+        recursive: If True, scan subdirectories recursively
+        exclude_tests: If True, exclude test files and test classes
+        exclude_files: List of file names to exclude (e.g., ["requests.py"])
 
     Returns:
         List of ClassInfo objects sorted by class name
@@ -25,9 +93,21 @@ def parse_python_classes(directory: Path) -> list[ClassInfo]:
     if not directory.exists():
         return []
 
+    exclude_files = exclude_files or []
     classes = []
-    for py_file in directory.glob("*.py"):
+    pattern = "**/*.py" if recursive else "*.py"
+    for py_file in directory.glob(pattern):
+        # Skip private/internal files
         if py_file.name.startswith("_"):
+            continue
+
+        # Skip test files
+        if exclude_tests:
+            if py_file.name.startswith("test_") or "/tests/" in str(py_file):
+                continue
+
+        # Skip explicitly excluded files
+        if py_file.name in exclude_files:
             continue
 
         try:
@@ -36,19 +116,43 @@ def parse_python_classes(directory: Path) -> list[ClassInfo]:
 
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
-                    docstring = ast.get_docstring(node) or ""
-                    first_line = docstring.split("\n")[0].strip() if docstring else ""
-                    classes.append(
-                        ClassInfo(
-                            name=node.name,
-                            docstring=first_line,
-                            file=py_file.name,
-                        )
-                    )
+                    # Skip test classes
+                    if exclude_tests and node.name.startswith("Test"):
+                        continue
+
+                    classes.append(_parse_class_node(node, py_file.name))
         except SyntaxError as e:
             logger.warning(f"Syntax error in {py_file}: {e}")
         except Exception as e:
             logger.warning(f"Could not parse {py_file}: {e}")
+
+    return sorted(classes, key=lambda c: c.name)
+
+
+def parse_python_classes_from_file(file_path: Path) -> list[ClassInfo]:
+    """Extract class information from a single Python file.
+
+    Args:
+        file_path: Path to the Python file
+
+    Returns:
+        List of ClassInfo objects sorted by class name
+    """
+    if not file_path.exists():
+        return []
+
+    classes = []
+    try:
+        source = file_path.read_text()
+        tree = ast.parse(source, filename=str(file_path))
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                classes.append(_parse_class_node(node, file_path.name))
+    except SyntaxError as e:
+        logger.warning(f"Syntax error in {file_path}: {e}")
+    except Exception as e:
+        logger.warning(f"Could not parse {file_path}: {e}")
 
     return sorted(classes, key=lambda c: c.name)
 
@@ -90,7 +194,7 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
         - models/ (entities)
         - repositories/ (repository protocols)
         - services/ (service protocols)
-      - use_cases/ (use case classes)
+        - use_cases/ (use case classes, requests.py, responses.py)
       - infrastructure/ (optional)
 
     Args:
@@ -105,10 +209,27 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
     init_file = context_dir / "__init__.py"
     objective, full_docstring = parse_module_docstring(init_file)
 
+    # Check both use_cases/ and domain/use_cases/ locations
+    use_cases_dir = context_dir / "use_cases"
+    if not use_cases_dir.exists():
+        use_cases_dir = context_dir / "domain" / "use_cases"
+
+    # Parse requests and responses from dedicated files
+    requests = parse_python_classes_from_file(use_cases_dir / "requests.py")
+    responses = parse_python_classes_from_file(use_cases_dir / "responses.py")
+
+    # Parse use cases, excluding requests.py and responses.py
+    use_cases = parse_python_classes(
+        use_cases_dir,
+        exclude_files=["requests.py", "responses.py"],
+    )
+
     return BoundedContextInfo(
         slug=context_dir.name,
         entities=parse_python_classes(context_dir / "domain" / "models"),
-        use_cases=parse_python_classes(context_dir / "use_cases"),
+        use_cases=use_cases,
+        requests=requests,
+        responses=responses,
         repository_protocols=parse_python_classes(
             context_dir / "domain" / "repositories"
         ),

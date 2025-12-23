@@ -7,12 +7,22 @@ Used to document bounded contexts and their ADR 001-compliant structure.
 from pydantic import BaseModel, Field, field_validator
 
 
+class FieldInfo(BaseModel):
+    """Information about a class field/attribute."""
+
+    name: str
+    type_annotation: str = ""
+    default: str | None = None
+
+
 class ClassInfo(BaseModel):
     """Information about a Python class extracted via AST."""
 
     name: str
     docstring: str = ""
     file: str = ""
+    bases: list[str] = Field(default_factory=list)
+    fields: list[FieldInfo] = Field(default_factory=list)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -33,6 +43,8 @@ class BoundedContextInfo(BaseModel):
     slug: str
     entities: list[ClassInfo] = Field(default_factory=list)
     use_cases: list[ClassInfo] = Field(default_factory=list)
+    requests: list[ClassInfo] = Field(default_factory=list)
+    responses: list[ClassInfo] = Field(default_factory=list)
     repository_protocols: list[ClassInfo] = Field(default_factory=list)
     service_protocols: list[ClassInfo] = Field(default_factory=list)
     has_infrastructure: bool = False

@@ -177,11 +177,11 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
 
     result_nodes = []
 
-    # Description first
+    # Description first - parse as RST for formatting support
     if app.description:
-        desc_para = nodes.paragraph()
-        desc_para += nodes.Text(app.description)
-        result_nodes.append(desc_para)
+        from .base import parse_rst_content
+        desc_nodes = parse_rst_content(app.description, f"<{app.slug}>")
+        result_nodes.extend(desc_nodes)
 
     # Stories count and link
     app_stories = get_stories_for_app(app, all_stories)
@@ -266,54 +266,45 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
 
 
 def build_app_index(docname: str, hcd_context):
-    """Build the app index grouped by type."""
+    """Build the app index grouped by interface."""
     all_apps = hcd_context.app_repo.list_all()
-    all_stories = hcd_context.story_repo.list_all()
 
     if not all_apps:
         para = nodes.paragraph()
         para += nodes.emphasis(text="No apps defined")
         return [para]
 
-    # Group apps by type
-    by_type: dict[AppType, list[App]] = {
-        AppType.STAFF: [],
-        AppType.EXTERNAL: [],
-        AppType.MEMBER_TOOL: [],
-    }
-
+    # Group apps by interface
+    by_interface: dict[AppInterface, list[App]] = {}
     for app in all_apps:
-        if app.app_type in by_type:
-            by_type[app.app_type].append(app)
-        else:
-            by_type.setdefault(app.app_type, []).append(app)
+        by_interface.setdefault(app.interface, []).append(app)
 
     result_nodes = []
 
-    type_sections = [
-        (AppType.STAFF, "Staff Applications"),
-        (AppType.EXTERNAL, "External Applications"),
-        (AppType.MEMBER_TOOL, "Member Tools"),
+    # Define interface sections with labels
+    interface_sections = [
+        (AppInterface.SPHINX, "Documentation Extensions"),
+        (AppInterface.API, "REST APIs"),
+        (AppInterface.MCP, "MCP Servers"),
+        (AppInterface.WEB, "Web Applications"),
+        (AppInterface.CLI, "CLI Tools"),
+        (AppInterface.UNKNOWN, "Other Applications"),
     ]
 
-    for type_key, type_label in type_sections:
-        apps = by_type.get(type_key, [])
+    for interface_key, interface_label in interface_sections:
+        apps = by_interface.get(interface_key, [])
         if not apps:
             continue
 
         # Section heading
         heading = nodes.paragraph()
-        heading += nodes.strong(text=type_label)
+        heading += nodes.strong(text=interface_label)
         result_nodes.append(heading)
 
         # App list
         app_list = nodes.bullet_list()
 
         for app in sorted(apps, key=lambda a: a.name):
-            # Get personas for this app
-            app_stories = get_stories_for_app(app, all_stories)
-            personas = {s.persona for s in app_stories}
-
             item = nodes.list_item()
             para = nodes.paragraph()
 
@@ -323,9 +314,17 @@ def build_app_index(docname: str, hcd_context):
             ref += nodes.Text(app.name)
             para += ref
 
-            # Personas
-            if personas:
-                para += nodes.Text(f" ({', '.join(sorted(personas))})")
+            # Technology tag
+            if app.technology:
+                para += nodes.Text(f" — {app.technology}")
+
+            # Description snippet
+            if app.description:
+                desc = app.description.split(".")[0] + "."
+                if len(desc) > 80:
+                    desc = desc[:77] + "..."
+                para += nodes.Text(f" ")
+                para += nodes.emphasis(text=desc)
 
             item += para
             app_list += item
