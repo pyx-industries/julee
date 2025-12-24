@@ -22,11 +22,11 @@ from typing import (
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from julee.ceap.entities.knowledge_service_config import (
+    from julee.contrib.ceap.entities.knowledge_service_config import (
         KnowledgeServiceConfig,
     )
 
-from julee.ceap.entities.document import Document
+from julee.contrib.ceap.entities.document import Document
 
 
 class QueryResult(BaseModel):

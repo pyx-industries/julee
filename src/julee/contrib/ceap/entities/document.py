@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
-from julee.ceap.entities.content_stream import ContentStream
+from julee.contrib.ceap.entities.content_stream import ContentStream
 
 
 def delegate_to_content(*method_names: str) -> Callable[[type], type]:

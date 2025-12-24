@@ -15,11 +15,11 @@ from pathlib import Path
 import pytest
 import yaml
 
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.ceap.use_cases.initialize_system_data import (
+from julee.contrib.ceap.use_cases.initialize_system_data import (
     InitializeSystemDataUseCase,
 )
 from julee.repositories.memory.assembly_specification import (

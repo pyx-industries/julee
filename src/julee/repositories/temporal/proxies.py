@@ -11,21 +11,21 @@ workflow.execute_activity() with the appropriate activity names, timeouts,
 and retry policies.
 """
 
-from julee.ceap.repositories.assembly import AssemblyRepository
-from julee.ceap.repositories.assembly_specification import (
+from julee.contrib.ceap.repositories.assembly import AssemblyRepository
+from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee.ceap.repositories.document import DocumentRepository
-from julee.ceap.repositories.document_policy_validation import (
+from julee.contrib.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
-from julee.ceap.repositories.knowledge_service_config import (
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee.ceap.repositories.knowledge_service_query import (
+from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee.ceap.repositories.policy import PolicyRepository
+from julee.contrib.ceap.repositories.policy import PolicyRepository
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (

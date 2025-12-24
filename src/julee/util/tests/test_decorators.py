@@ -25,7 +25,7 @@ from temporalio import activity
 
 # Project imports
 import julee.util.temporal.decorators as decorators_module
-from julee.ceap.repositories.base import BaseRepository
+from julee.contrib.ceap.repositories.base import BaseRepository
 from julee.util.temporal.decorators import (
     _extract_concrete_type_from_base,
     _needs_pydantic_validation,

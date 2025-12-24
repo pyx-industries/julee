@@ -24,7 +24,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.entities.assembly_specification import (
+from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )

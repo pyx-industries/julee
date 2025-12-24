@@ -10,11 +10,11 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.ceap.entities.content_stream import (
+from julee.contrib.ceap.entities.content_stream import (
     ContentStream,
 )
-from julee.ceap.entities.document import Document, DocumentStatus
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )

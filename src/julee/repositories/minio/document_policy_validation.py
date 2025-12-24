@@ -15,10 +15,10 @@ status, scores, transformation results, and metadata.
 
 import logging
 
-from julee.ceap.entities.document_policy_validation import (
+from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
 )
-from julee.ceap.repositories.document_policy_validation import (
+from julee.contrib.ceap.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
 

@@ -15,10 +15,10 @@ import multihash
 import pytest
 from minio.error import S3Error
 
-from julee.ceap.entities.content_stream import (
+from julee.contrib.ceap.entities.content_stream import (
     ContentStream,
 )
-from julee.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.repositories.minio.document import MinioDocumentRepository
 
 from .fake_client import FakeMinioClient

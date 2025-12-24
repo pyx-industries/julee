@@ -19,7 +19,7 @@ import jsonschema
 import multihash
 from pydantic import BaseModel, Field
 
-from julee.ceap.entities import (
+from julee.contrib.ceap.entities import (
     Assembly,
     AssemblySpecification,
     AssemblyStatus,
@@ -27,7 +27,7 @@ from julee.ceap.entities import (
     DocumentStatus,
     KnowledgeServiceQuery,
 )
-from julee.ceap.repositories import (
+from julee.contrib.ceap.repositories import (
     AssemblyRepository,
     AssemblySpecificationRepository,
     DocumentRepository,

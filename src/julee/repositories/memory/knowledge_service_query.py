@@ -15,10 +15,10 @@ should be avoided.
 import logging
 from typing import Any
 
-from julee.ceap.entities.knowledge_service_query import (
+from julee.contrib.ceap.entities.knowledge_service_query import (
     KnowledgeServiceQuery,
 )
-from julee.ceap.repositories.knowledge_service_query import (
+from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 

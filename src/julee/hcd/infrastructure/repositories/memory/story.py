@@ -24,6 +24,38 @@ class MemoryStoryRepository(MemoryRepositoryMixin[Story], StoryRepository):
         self.entity_name = "Story"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Story | None:
+        """Get a story by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Story | None]:
+        """Get multiple stories by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Story) -> None:
+        """Save a story."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Story]:
+        """List all stories."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a story by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all stories."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # StoryRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_app(self, app_slug: str) -> list[Story]:
         """Get all stories for an application."""
         app_normalized = normalize_name(app_slug)

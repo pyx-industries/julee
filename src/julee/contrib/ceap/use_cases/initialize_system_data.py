@@ -22,24 +22,24 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
-from julee.ceap.entities.assembly_specification import (
+from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee.ceap.entities.document import Document, DocumentStatus
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
-from julee.ceap.repositories.assembly_specification import (
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee.ceap.repositories.document import DocumentRepository
-from julee.ceap.repositories.knowledge_service_config import (
+from julee.contrib.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee.ceap.repositories.knowledge_service_query import (
+from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 

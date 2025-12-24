@@ -6,7 +6,7 @@ Clean Architecture principles. These models are framework-independent and
 contain only business logic.
 
 Re-exports commonly used models for convenient importing:
-    from julee.ceap.entities import Document, Assembly, Policy
+    from julee.contrib.ceap.entities import Document, Assembly, Policy
 """
 
 # Document models

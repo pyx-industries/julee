@@ -24,16 +24,16 @@ from minio import Minio
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 
-from julee.ceap.repositories.assembly_specification import (
+from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee.ceap.repositories.document import (
+from julee.contrib.ceap.repositories.document import (
     DocumentRepository,
 )
-from julee.ceap.repositories.knowledge_service_config import (
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-from julee.ceap.repositories.knowledge_service_query import (
+from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 from julee.repositories.minio.assembly_specification import (
@@ -224,7 +224,7 @@ class StartupDependenciesProvider:
         from julee.api.services.system_initialization import (
             SystemInitializationService,
         )
-        from julee.ceap.use_cases.initialize_system_data import (
+        from julee.contrib.ceap.use_cases.initialize_system_data import (
             InitializeSystemDataUseCase,
         )
 

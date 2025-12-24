@@ -20,8 +20,8 @@ from fastapi.responses import Response
 from fastapi_pagination import Page, paginate
 
 from apps.api.ceap.dependencies import get_document_repository
-from julee.ceap.entities.document import Document
-from julee.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.entities.document import Document
+from julee.contrib.ceap.repositories.document import DocumentRepository
 
 logger = logging.getLogger(__name__)
 

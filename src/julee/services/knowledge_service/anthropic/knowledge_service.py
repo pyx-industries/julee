@@ -19,8 +19,8 @@ from typing import Any
 
 from anthropic import AsyncAnthropic
 
-from julee.ceap.entities.document import Document
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.document import Document
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
 

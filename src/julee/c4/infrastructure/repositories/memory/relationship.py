@@ -19,6 +19,38 @@ class MemoryRelationshipRepository(
         self.entity_name = "Relationship"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Relationship | None:
+        """Get a relationship by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Relationship | None]:
+        """Get multiple relationships by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Relationship) -> None:
+        """Save a relationship."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Relationship]:
+        """List all relationships."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a relationship by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all relationships."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # RelationshipRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_for_element(
         self,
         element_type: ElementType,

@@ -20,10 +20,10 @@ from fastapi_pagination import Page, paginate
 from apps.api.ceap.dependencies import (
     get_knowledge_service_config_repository,
 )
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.ceap.repositories.knowledge_service_config import (
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
 

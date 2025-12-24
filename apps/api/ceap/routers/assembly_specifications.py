@@ -22,8 +22,8 @@ from apps.api.ceap.dependencies import (
     get_assembly_specification_repository,
 )
 from apps.api.ceap.requests import CreateAssemblySpecificationRequest
-from julee.ceap.entities import AssemblySpecification
-from julee.ceap.repositories.assembly_specification import (
+from julee.contrib.ceap.entities import AssemblySpecification
+from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 

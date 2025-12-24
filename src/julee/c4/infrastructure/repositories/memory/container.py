@@ -17,6 +17,38 @@ class MemoryContainerRepository(MemoryRepositoryMixin[Container], ContainerRepos
         self.entity_name = "Container"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Container | None:
+        """Get a container by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Container | None]:
+        """Get multiple containers by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Container) -> None:
+        """Save a container."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Container]:
+        """List all containers."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a container by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all containers."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # ContainerRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_system(self, system_slug: str) -> list[Container]:
         """Get all containers within a software system."""
         return [c for c in self.storage.values() if c.system_slug == system_slug]

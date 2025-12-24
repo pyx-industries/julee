@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.ceap.entities.policy import Policy, PolicyStatus
+from julee.contrib.ceap.entities.policy import Policy, PolicyStatus
 from julee.repositories.minio.policy import MinioPolicyRepository
 
 from .fake_client import FakeMinioClient

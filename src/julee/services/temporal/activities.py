@@ -16,11 +16,11 @@ import logging
 
 from typing_extensions import override
 
-from julee.ceap.entities.document import Document
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.document import Document
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.repositories.document import DocumentRepository
 from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )

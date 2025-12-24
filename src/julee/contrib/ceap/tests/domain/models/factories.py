@@ -13,18 +13,18 @@ from factory.base import Factory
 from factory.declarations import LazyAttribute, LazyFunction
 from factory.faker import Faker
 
-from julee.ceap.entities.assembly import Assembly, AssemblyStatus
-from julee.ceap.entities.assembly_specification import (
+from julee.contrib.ceap.entities.assembly import Assembly, AssemblyStatus
+from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee.ceap.entities.content_stream import ContentStream
-from julee.ceap.entities.document import Document, DocumentStatus
-from julee.ceap.entities.document_policy_validation import (
+from julee.contrib.ceap.entities.content_stream import ContentStream
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
-from julee.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 
 
 class AssemblyFactory(Factory):

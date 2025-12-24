@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from julee.ceap.entities.document_policy_validation import (
+from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.entities.policy import (
+from julee.contrib.ceap.entities.policy import (
     Policy,
     PolicyStatus,
 )

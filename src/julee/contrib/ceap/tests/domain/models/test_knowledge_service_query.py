@@ -21,7 +21,7 @@ Design decisions documented:
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 
 from .factories import KnowledgeServiceQueryFactory
 

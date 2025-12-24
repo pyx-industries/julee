@@ -15,7 +15,7 @@ from fastapi_pagination import add_pagination
 
 from apps.api.ceap.dependencies import get_document_repository
 from apps.api.ceap.routers.documents import router
-from julee.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.repositories.memory import MemoryDocumentRepository
 
 pytestmark = pytest.mark.unit

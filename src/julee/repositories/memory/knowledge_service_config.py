@@ -16,10 +16,10 @@ interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.entities.knowledge_service_config import (
+from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.ceap.repositories.knowledge_service_config import (
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
 

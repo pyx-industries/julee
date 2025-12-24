@@ -17,6 +17,38 @@ class MemoryComponentRepository(MemoryRepositoryMixin[Component], ComponentRepos
         self.entity_name = "Component"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Component | None:
+        """Get a component by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Component | None]:
+        """Get multiple components by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Component) -> None:
+        """Save a component."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Component]:
+        """List all components."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a component by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all components."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # ComponentRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_container(self, container_slug: str) -> list[Component]:
         """Get all components within a container."""
         return [c for c in self.storage.values() if c.container_slug == container_slug]

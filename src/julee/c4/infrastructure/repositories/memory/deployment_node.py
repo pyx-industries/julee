@@ -19,6 +19,38 @@ class MemoryDeploymentNodeRepository(
         self.entity_name = "DeploymentNode"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> DeploymentNode | None:
+        """Get a deployment node by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, DeploymentNode | None]:
+        """Get multiple deployment nodes by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: DeploymentNode) -> None:
+        """Save a deployment node."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[DeploymentNode]:
+        """List all deployment nodes."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a deployment node by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all deployment nodes."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # DeploymentNodeRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_environment(self, environment: str) -> list[DeploymentNode]:
         """Get all nodes in a specific environment."""
         return [n for n in self.storage.values() if n.environment == environment]

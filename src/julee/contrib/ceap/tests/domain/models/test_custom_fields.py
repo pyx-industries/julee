@@ -17,7 +17,7 @@ from typing import Any
 
 import pytest
 
-from julee.ceap.entities.content_stream import ContentStream
+from julee.contrib.ceap.entities.content_stream import ContentStream
 
 pytestmark = pytest.mark.unit
 

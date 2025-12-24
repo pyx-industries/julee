@@ -12,10 +12,10 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.ceap.entities.document_policy_validation import (
+from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
 )
-from julee.ceap.use_cases import (
+from julee.contrib.ceap.use_cases import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )

@@ -20,6 +20,38 @@ class MemorySoftwareSystemRepository(
         self.entity_name = "SoftwareSystem"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> SoftwareSystem | None:
+        """Get a software system by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, SoftwareSystem | None]:
+        """Get multiple software systems by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: SoftwareSystem) -> None:
+        """Save a software system."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[SoftwareSystem]:
+        """List all software systems."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a software system by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all software systems."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # SoftwareSystemRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_type(self, system_type: SystemType) -> list[SoftwareSystem]:
         """Get all systems of a specific type."""
         return [s for s in self.storage.values() if s.system_type == system_type]
