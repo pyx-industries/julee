@@ -13,6 +13,12 @@ See: docs/architecture/solutions/pipelines.rst
 from pathlib import Path
 from textwrap import dedent
 
+import pytest
+
+from julee.shared.domain.use_cases import (
+    ListCodeArtifactsRequest,
+    ListPipelinesUseCase,
+)
 from julee.shared.parsers.ast import parse_pipelines_from_file
 
 
@@ -242,58 +248,141 @@ class TestPipelineStructure:
 
 
 # =============================================================================
-# DOCTRINE: Pipeline Compliance
+# DOCTRINE: Pipeline Compliance (Real Codebase)
 # =============================================================================
 
 
-class TestPipelineCompliance:
-    """Doctrine about overall pipeline compliance."""
+class TestPipelineComplianceReal:
+    """Doctrine tests that run against the real codebase."""
 
-    def test_compliant_pipeline_MUST_satisfy_all_requirements(self, tmp_path: Path):
-        """A compliant pipeline MUST have all required elements.
+    @pytest.mark.asyncio
+    async def test_all_pipelines_MUST_have_workflow_decorator(self, repo):
+        """All pipeline classes MUST be decorated with @workflow.defn."""
+        use_case = ListPipelinesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
 
-        Required:
+        # Skip test if no pipelines found
+        if not response.pipelines:
+            pytest.skip("No pipelines found in codebase")
+
+        violations = []
+        for pipeline in response.pipelines:
+            if not pipeline.has_workflow_decorator:
+                violations.append(
+                    f"{pipeline.bounded_context}.{pipeline.name}: "
+                    f"missing @workflow.defn decorator"
+                )
+
+        assert (
+            not violations
+        ), "Pipelines missing @workflow.defn decorator:\n" + "\n".join(violations)
+
+    @pytest.mark.asyncio
+    async def test_all_pipelines_MUST_have_run_method(self, repo):
+        """All pipeline classes MUST have a run() method."""
+        use_case = ListPipelinesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        if not response.pipelines:
+            pytest.skip("No pipelines found in codebase")
+
+        violations = []
+        for pipeline in response.pipelines:
+            if not pipeline.has_run_method:
+                violations.append(
+                    f"{pipeline.bounded_context}.{pipeline.name}: "
+                    f"missing run() method"
+                )
+
+        assert not violations, "Pipelines missing run() method:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_all_pipelines_MUST_have_run_decorator(self, repo):
+        """All pipeline run() methods MUST be decorated with @workflow.run."""
+        use_case = ListPipelinesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        if not response.pipelines:
+            pytest.skip("No pipelines found in codebase")
+
+        violations = []
+        for pipeline in response.pipelines:
+            if pipeline.has_run_method and not pipeline.has_run_decorator:
+                violations.append(
+                    f"{pipeline.bounded_context}.{pipeline.name}: "
+                    f"run() method missing @workflow.run decorator"
+                )
+
+        assert (
+            not violations
+        ), "Pipeline run() methods missing @workflow.run decorator:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_all_pipelines_MUST_delegate_to_use_case(self, repo):
+        """All pipelines MUST delegate to a UseCase's execute() method.
+
+        A pipeline that contains business logic directly (instead of
+        delegating to a UseCase) violates the pipeline pattern. The
+        pipeline should only handle Temporal concerns, not business logic.
+        """
+        use_case = ListPipelinesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        if not response.pipelines:
+            pytest.skip("No pipelines found in codebase")
+
+        violations = []
+        for pipeline in response.pipelines:
+            if not pipeline.delegates_to_use_case:
+                expected_uc = pipeline.expected_use_case_name or "{Prefix}UseCase"
+                violations.append(
+                    f"{pipeline.bounded_context}.{pipeline.name}: "
+                    f"does NOT delegate to UseCase (expected: {expected_uc})"
+                )
+
+        assert not violations, (
+            "Pipelines not delegating to UseCase (contain business logic):\n"
+            + "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_all_pipelines_MUST_be_compliant(self, repo):
+        """All pipelines MUST satisfy all pipeline doctrine requirements.
+
+        This is a comprehensive check that ensures:
         1. @workflow.defn decorator
         2. run() method with @workflow.run decorator
         3. Delegates to a UseCase (doesn't contain business logic)
         """
-        content = '''
-        from temporalio import workflow
+        use_case = ListPipelinesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
 
-        @workflow.defn
-        class CompliantPipeline:
-            """A fully compliant pipeline."""
+        if not response.pipelines:
+            pytest.skip("No pipelines found in codebase")
 
-            @workflow.run
-            async def run(self, request) -> dict:
-                use_case = SomeUseCase(repo=WorkflowRepoProxy())
-                return await use_case.execute(request)
-        '''
-        file_path = create_pipeline_file(tmp_path, content)
-        pipelines = parse_pipelines_from_file(file_path)
+        non_compliant = []
+        for pipeline in response.pipelines:
+            if not pipeline.is_compliant:
+                issues = []
+                if not pipeline.has_workflow_decorator:
+                    issues.append("missing @workflow.defn")
+                if not pipeline.has_run_method:
+                    issues.append("missing run() method")
+                if not pipeline.has_run_decorator:
+                    issues.append("missing @workflow.run")
+                if not pipeline.delegates_to_use_case:
+                    issues.append(
+                        "contains business logic (should delegate to UseCase)"
+                    )
 
-        assert len(pipelines) == 1
-        pipeline = pipelines[0]
-        assert pipeline.is_compliant is True
+                non_compliant.append(
+                    f"{pipeline.bounded_context}.{pipeline.name}: {', '.join(issues)}"
+                )
 
-    def test_non_compliant_pipeline_missing_delegation_MUST_fail(self, tmp_path: Path):
-        """A pipeline that doesn't delegate to a UseCase MUST NOT be compliant."""
-        content = '''
-        from temporalio import workflow
-
-        @workflow.defn
-        class NonCompliantPipeline:
-            """Pipeline that contains business logic - not compliant."""
-
-            @workflow.run
-            async def run(self) -> dict:
-                # Business logic directly in pipeline - WRONG
-                result = await some_service.do_stuff()
-                return {"result": result}
-        '''
-        file_path = create_pipeline_file(tmp_path, content)
-        pipelines = parse_pipelines_from_file(file_path)
-
-        assert len(pipelines) == 1
-        pipeline = pipelines[0]
-        assert pipeline.is_compliant is False
+        assert not non_compliant, "Non-compliant pipelines found:\n" + "\n".join(
+            non_compliant
+        )

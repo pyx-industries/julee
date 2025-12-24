@@ -8,34 +8,13 @@ from pathlib import Path
 
 import pytest
 
+from julee.shared.doctrine.conftest import create_bounded_context, create_solution
+from julee.shared.domain.doctrine_constants import RESERVED_WORDS, VIEWPOINT_SLUGS
 from julee.shared.domain.use_cases import (
     ListBoundedContextsRequest,
     ListBoundedContextsUseCase,
 )
 from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
-from julee.shared.repositories.introspection.bounded_context import (
-    RESERVED_WORDS,
-    VIEWPOINT_SLUGS,
-)
-
-
-def create_bounded_context(base_path: Path, name: str, layers: list[str] | None = None):
-    """Helper to create a bounded context directory structure."""
-    ctx_path = base_path / name
-    ctx_path.mkdir(parents=True)
-    (ctx_path / "__init__.py").touch()
-    for layer in layers or ["models", "use_cases"]:
-        layer_path = ctx_path / "domain" / layer
-        layer_path.mkdir(parents=True)
-    return ctx_path
-
-
-def create_solution(tmp_path: Path) -> Path:
-    """Create a solution root with standard structure."""
-    root = tmp_path / "src" / "julee"
-    root.mkdir(parents=True)
-    return root
-
 
 # =============================================================================
 # DOCTRINE: Bounded Context Structure

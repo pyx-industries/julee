@@ -40,17 +40,22 @@ class StructuralMarkers(BaseModel):
 
 
 class BoundedContext(BaseModel):
-    """A bounded context in code.
+    """A linguistic and conceptual boundary around a domain model.
 
-    This is the foundational entity representing a bounded context as it
-    exists in the filesystem. Viewpoint accelerators (HCD, C4) project
-    onto this entity to provide different perspectives.
+    In Domain-Driven Design, a bounded context defines the scope within which
+    a particular domain model applies. The same word can mean different things
+    in different contexts - "Account" means something different in Banking vs
+    Authentication. The bounded context makes these distinctions explicit.
 
-    In julee:
-    - Bounded contexts "scream" at the top level (no nesting under accelerators/)
-    - They follow Clean Architecture patterns
-    - They cannot use reserved words as names
-    - They are Python packages (have __init__.py)
+    In Clean Architecture terms, each bounded context is an independent
+    deployable unit with its own domain layer, use cases, and infrastructure.
+    Dependencies between contexts flow through well-defined interfaces, never
+    through shared domain models.
+
+    Julee's "Screaming Architecture" places bounded contexts at the top level
+    of the codebase. When you open the src/ directory, the first thing you see
+    are the business capabilities: hcd/, c4/, ceap/, polling/. The architecture
+    screams what the system does, not what frameworks it uses.
     """
 
     # Identity

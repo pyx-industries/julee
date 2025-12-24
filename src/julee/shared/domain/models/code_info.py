@@ -56,71 +56,8 @@ class ClassInfo(BaseModel):
         return v.strip()
 
 
-class PipelineInfo(BaseModel):
-    """Information about a pipeline extracted via AST.
-
-    A pipeline is a UseCase treated for Temporal workflow execution.
-    This model captures both the pipeline class and its relationship
-    to the wrapped use case.
-
-    Key validation checks:
-    - has_workflow_decorator: True if @workflow.defn present
-    - has_run_method: True if run() method exists
-    - wrapped_use_case: Name of UseCase being wrapped (if detectable)
-    - delegates_to_use_case: True if run() delegates rather than implements
-    """
-
-    name: str
-    docstring: str = ""
-    file: str = ""
-    bounded_context: str = ""
-    has_workflow_decorator: bool = False
-    has_run_decorator: bool = False
-    has_run_method: bool = False
-    wrapped_use_case: str | None = None
-    delegates_to_use_case: bool = False
-    methods: list["MethodInfo"] = Field(default_factory=list)
-
-    @field_validator("name", mode="before")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        """Validate name is not empty."""
-        if not v or not v.strip():
-            raise ValueError("name cannot be empty")
-        return v.strip()
-
-    @property
-    def expected_use_case_name(self) -> str | None:
-        """Derive the expected use case name from pipeline name.
-
-        Example: NewDataDetectionPipeline -> NewDataDetectionUseCase
-                 ExtractAssemblePipeline -> ExtractAssembleUseCase or ExtractAssembleDataUseCase
-        """
-        from julee.shared.domain.doctrine_constants import (
-            PIPELINE_SUFFIX,
-            USE_CASE_SUFFIX,
-        )
-
-        if not self.name.endswith(PIPELINE_SUFFIX):
-            return None
-        prefix = self.name[: -len(PIPELINE_SUFFIX)]
-        return f"{prefix}{USE_CASE_SUFFIX}"
-
-    @property
-    def is_compliant(self) -> bool:
-        """Check if pipeline follows doctrine pattern.
-
-        A compliant pipeline:
-        1. Has @workflow.defn decorator
-        2. Has run() method with @workflow.run decorator
-        3. Delegates to a UseCase (doesn't contain business logic directly)
-        """
-        return (
-            self.has_workflow_decorator
-            and self.has_run_method
-            and self.has_run_decorator
-            and self.delegates_to_use_case
-        )
+# PipelineInfo moved to pipeline.py - import here for backwards compatibility
+from julee.shared.domain.models.pipeline import Pipeline as PipelineInfo  # noqa: E402
 
 
 class BoundedContextInfo(BaseModel):
