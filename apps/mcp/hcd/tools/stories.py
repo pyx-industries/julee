@@ -4,18 +4,18 @@ All operations delegate to use-case classes following clean architecture.
 Responses include contextual suggestions based on domain semantics.
 """
 
-from julee.hcd.domain.use_cases.requests import (
-    CreateStoryRequest,
-    DeleteStoryRequest,
-    GetStoryRequest,
-    ListStoriesRequest,
-    UpdateStoryRequest,
-)
 from apps.mcp.shared import (
     ResponseFormat,
     format_entity,
     not_found_error,
     paginate_results,
+)
+from julee.hcd.domain.use_cases.story import (
+    CreateStoryRequest,
+    DeleteStoryRequest,
+    GetStoryRequest,
+    ListStoriesRequest,
+    UpdateStoryRequest,
 )
 from julee.hcd.domain.use_cases.suggestions import compute_story_suggestions
 from ..context import (

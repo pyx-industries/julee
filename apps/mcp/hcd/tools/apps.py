@@ -4,14 +4,14 @@ All operations delegate to use-case classes following clean architecture.
 Responses include contextual suggestions based on domain semantics.
 """
 
-from julee.hcd.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.hcd.domain.use_cases.app import (
     CreateAppRequest,
     DeleteAppRequest,
     GetAppRequest,
     ListAppsRequest,
     UpdateAppRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from julee.hcd.domain.use_cases.suggestions import compute_app_suggestions
 from ..context import (
     get_create_app_use_case,

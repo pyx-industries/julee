@@ -1,11 +1,20 @@
-"""DeleteIntegrationUseCase.
+"""Delete integration use case with co-located request/response."""
 
-Use case for deleting an integration.
-"""
+from pydantic import BaseModel
 
 from ...repositories.integration import IntegrationRepository
-from ..requests import DeleteIntegrationRequest
-from ..responses import DeleteIntegrationResponse
+
+
+class DeleteIntegrationRequest(BaseModel):
+    """Request for deleting an integration by slug."""
+
+    slug: str
+
+
+class DeleteIntegrationResponse(BaseModel):
+    """Response from deleting an integration."""
+
+    deleted: bool
 
 
 class DeleteIntegrationUseCase:

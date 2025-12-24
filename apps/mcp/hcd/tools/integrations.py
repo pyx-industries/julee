@@ -6,15 +6,15 @@ Responses include contextual suggestions based on domain semantics.
 
 from typing import Any
 
-from julee.hcd.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.hcd.domain.use_cases.integration import (
     CreateIntegrationRequest,
     DeleteIntegrationRequest,
-    ExternalDependencyInput,
+    ExternalDependencyItem,
     GetIntegrationRequest,
     ListIntegrationsRequest,
     UpdateIntegrationRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from julee.hcd.domain.use_cases.suggestions import compute_integration_suggestions
 from ..context import (
     get_create_integration_use_case,
@@ -49,8 +49,8 @@ async def create_integration(
     """
     use_case = get_create_integration_use_case()
 
-    # Convert dicts to ExternalDependencyInput objects
-    deps = [ExternalDependencyInput(**d) for d in (depends_on or [])]
+    # Convert dicts to ExternalDependencyItem objects
+    deps = [ExternalDependencyItem(**d) for d in (depends_on or [])]
 
     request = CreateIntegrationRequest(
         slug=slug,
@@ -220,10 +220,10 @@ async def update_integration(
     """
     use_case = get_update_integration_use_case()
 
-    # Convert dicts to ExternalDependencyInput objects if provided
+    # Convert dicts to ExternalDependencyItem objects if provided
     deps = None
     if depends_on is not None:
-        deps = [ExternalDependencyInput(**d) for d in depends_on]
+        deps = [ExternalDependencyItem(**d) for d in depends_on]
 
     request = UpdateIntegrationRequest(
         slug=slug,

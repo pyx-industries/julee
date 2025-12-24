@@ -1,11 +1,21 @@
-"""GetContainerUseCase.
+"""Get container use case with co-located request/response."""
 
-Use case for getting a container by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.container import Container
 from ...repositories.container import ContainerRepository
-from ..requests import GetContainerRequest
-from ..responses import GetContainerResponse
+
+
+class GetContainerRequest(BaseModel):
+    """Request for getting a container by slug."""
+
+    slug: str
+
+
+class GetContainerResponse(BaseModel):
+    """Response from getting a container."""
+
+    container: Container | None
 
 
 class GetContainerUseCase:

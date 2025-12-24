@@ -1,11 +1,20 @@
-"""DeleteJourneyUseCase.
+"""Delete journey use case with co-located request/response."""
 
-Use case for deleting a journey.
-"""
+from pydantic import BaseModel
 
 from ...repositories.journey import JourneyRepository
-from ..requests import DeleteJourneyRequest
-from ..responses import DeleteJourneyResponse
+
+
+class DeleteJourneyRequest(BaseModel):
+    """Request for deleting a journey by slug."""
+
+    slug: str
+
+
+class DeleteJourneyResponse(BaseModel):
+    """Response from deleting a journey."""
+
+    deleted: bool
 
 
 class DeleteJourneyUseCase:

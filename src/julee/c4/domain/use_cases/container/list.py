@@ -1,11 +1,21 @@
-"""ListContainersUseCase.
+"""List containers use case with co-located request/response."""
 
-Use case for listing all containers.
-"""
+from pydantic import BaseModel
 
+from ...models.container import Container
 from ...repositories.container import ContainerRepository
-from ..requests import ListContainersRequest
-from ..responses import ListContainersResponse
+
+
+class ListContainersRequest(BaseModel):
+    """Request for listing containers."""
+
+    pass
+
+
+class ListContainersResponse(BaseModel):
+    """Response from listing containers."""
+
+    containers: list[Container]
 
 
 class ListContainersUseCase:

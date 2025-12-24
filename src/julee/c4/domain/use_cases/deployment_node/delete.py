@@ -1,11 +1,20 @@
-"""DeleteDeploymentNodeUseCase.
+"""Delete deployment node use case with co-located request/response."""
 
-Use case for deleting a deployment node.
-"""
+from pydantic import BaseModel
 
 from ...repositories.deployment_node import DeploymentNodeRepository
-from ..requests import DeleteDeploymentNodeRequest
-from ..responses import DeleteDeploymentNodeResponse
+
+
+class DeleteDeploymentNodeRequest(BaseModel):
+    """Request for deleting a deployment node by slug."""
+
+    slug: str
+
+
+class DeleteDeploymentNodeResponse(BaseModel):
+    """Response from deleting a deployment node."""
+
+    deleted: bool
 
 
 class DeleteDeploymentNodeUseCase:

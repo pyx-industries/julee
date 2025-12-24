@@ -1,11 +1,52 @@
-"""CreateRelationshipUseCase.
+"""Create relationship use case with co-located request/response."""
 
-Use case for creating a new relationship.
-"""
 
+from pydantic import BaseModel, Field
+
+from ...models.relationship import ElementType, Relationship
 from ...repositories.relationship import RelationshipRepository
-from ..requests import CreateRelationshipRequest
-from ..responses import CreateRelationshipResponse
+
+
+class CreateRelationshipRequest(BaseModel):
+    """Request model for creating a relationship."""
+
+    slug: str = Field(
+        default="", description="URL-safe identifier (auto-generated if empty)"
+    )
+    source_type: str = Field(description="Type of source element")
+    source_slug: str = Field(description="Slug of source element")
+    destination_type: str = Field(description="Type of destination element")
+    destination_slug: str = Field(description="Slug of destination element")
+    description: str = Field(default="Uses", description="Relationship description")
+    technology: str = Field(default="", description="Protocol/technology used")
+    bidirectional: bool = Field(
+        default=False, description="Whether relationship goes both ways"
+    )
+    tags: list[str] = Field(default_factory=list, description="Classification tags")
+
+    def to_domain_model(self) -> Relationship:
+        """Convert to Relationship."""
+        slug = self.slug
+        if not slug:
+            slug = f"{self.source_slug}-to-{self.destination_slug}"
+        return Relationship(
+            slug=slug,
+            source_type=ElementType(self.source_type),
+            source_slug=self.source_slug,
+            destination_type=ElementType(self.destination_type),
+            destination_slug=self.destination_slug,
+            description=self.description,
+            technology=self.technology,
+            bidirectional=self.bidirectional,
+            tags=self.tags,
+            docname="",
+        )
+
+
+class CreateRelationshipResponse(BaseModel):
+    """Response from creating a relationship."""
+
+    relationship: Relationship
 
 
 class CreateRelationshipUseCase:

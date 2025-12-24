@@ -1,11 +1,21 @@
-"""GetStoryUseCase.
+"""Get story use case with co-located request/response."""
 
-Use case for getting a story by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.story import Story
 from ...repositories.story import StoryRepository
-from ..requests import GetStoryRequest
-from ..responses import GetStoryResponse
+
+
+class GetStoryRequest(BaseModel):
+    """Request for getting a story by slug."""
+
+    slug: str
+
+
+class GetStoryResponse(BaseModel):
+    """Response from getting a story."""
+
+    story: Story | None
 
 
 class GetStoryUseCase:

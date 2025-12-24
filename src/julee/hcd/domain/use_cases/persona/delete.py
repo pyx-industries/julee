@@ -1,11 +1,20 @@
-"""DeletePersonaUseCase.
+"""Delete persona use case with co-located request/response."""
 
-Use case for deleting a persona.
-"""
+from pydantic import BaseModel
 
 from ...repositories.persona import PersonaRepository
-from ..requests import DeletePersonaRequest
-from ..responses import DeletePersonaResponse
+
+
+class DeletePersonaRequest(BaseModel):
+    """Request for deleting a persona by slug."""
+
+    slug: str
+
+
+class DeletePersonaResponse(BaseModel):
+    """Response from deleting a persona."""
+
+    deleted: bool
 
 
 class DeletePersonaUseCase:

@@ -4,18 +4,16 @@ import pytest
 
 from julee.c4.domain.models.component import Component
 from julee.c4.domain.use_cases.component import (
-    CreateComponentUseCase,
-    DeleteComponentUseCase,
-    GetComponentUseCase,
-    ListComponentsUseCase,
-    UpdateComponentUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     CreateComponentRequest,
+    CreateComponentUseCase,
     DeleteComponentRequest,
+    DeleteComponentUseCase,
     GetComponentRequest,
+    GetComponentUseCase,
     ListComponentsRequest,
+    ListComponentsUseCase,
     UpdateComponentRequest,
+    UpdateComponentUseCase,
 )
 from julee.c4.repositories.memory.component import (
     MemoryComponentRepository,

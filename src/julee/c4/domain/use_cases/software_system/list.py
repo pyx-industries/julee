@@ -1,11 +1,24 @@
-"""ListSoftwareSystemsUseCase.
+"""ListSoftwareSystemsUseCase with co-located request/response.
 
 Use case for listing all software systems.
 """
 
+from pydantic import BaseModel
+
+from ...models.software_system import SoftwareSystem
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import ListSoftwareSystemsRequest
-from ..responses import ListSoftwareSystemsResponse
+
+
+class ListSoftwareSystemsRequest(BaseModel):
+    """Request for listing software systems."""
+
+    pass
+
+
+class ListSoftwareSystemsResponse(BaseModel):
+    """Response from listing software systems."""
+
+    software_systems: list[SoftwareSystem]
 
 
 class ListSoftwareSystemsUseCase:

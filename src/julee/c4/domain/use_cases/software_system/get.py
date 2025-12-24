@@ -1,11 +1,24 @@
-"""GetSoftwareSystemUseCase.
+"""GetSoftwareSystemUseCase with co-located request/response.
 
 Use case for getting a software system by slug.
 """
 
+from pydantic import BaseModel
+
+from ...models.software_system import SoftwareSystem
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import GetSoftwareSystemRequest
-from ..responses import GetSoftwareSystemResponse
+
+
+class GetSoftwareSystemRequest(BaseModel):
+    """Request for getting a software system by slug."""
+
+    slug: str
+
+
+class GetSoftwareSystemResponse(BaseModel):
+    """Response from getting a software system."""
+
+    software_system: SoftwareSystem | None
 
 
 class GetSoftwareSystemUseCase:

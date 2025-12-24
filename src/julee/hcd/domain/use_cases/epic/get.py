@@ -1,11 +1,21 @@
-"""GetEpicUseCase.
+"""Get epic use case with co-located request/response."""
 
-Use case for getting an epic by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.epic import Epic
 from ...repositories.epic import EpicRepository
-from ..requests import GetEpicRequest
-from ..responses import GetEpicResponse
+
+
+class GetEpicRequest(BaseModel):
+    """Request for getting an epic by slug."""
+
+    slug: str
+
+
+class GetEpicResponse(BaseModel):
+    """Response from getting an epic."""
+
+    epic: Epic | None
 
 
 class GetEpicUseCase:

@@ -7,18 +7,16 @@ from julee.c4.domain.models.relationship import (
     Relationship,
 )
 from julee.c4.domain.use_cases.relationship import (
-    CreateRelationshipUseCase,
-    DeleteRelationshipUseCase,
-    GetRelationshipUseCase,
-    ListRelationshipsUseCase,
-    UpdateRelationshipUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     CreateRelationshipRequest,
+    CreateRelationshipUseCase,
     DeleteRelationshipRequest,
+    DeleteRelationshipUseCase,
     GetRelationshipRequest,
+    GetRelationshipUseCase,
     ListRelationshipsRequest,
+    ListRelationshipsUseCase,
     UpdateRelationshipRequest,
+    UpdateRelationshipUseCase,
 )
 from julee.c4.repositories.memory.relationship import (
     MemoryRelationshipRepository,

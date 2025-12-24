@@ -1,11 +1,21 @@
-"""ListJourneysUseCase.
+"""List journeys use case with co-located request/response."""
 
-Use case for listing all journeys.
-"""
+from pydantic import BaseModel
 
+from ...models.journey import Journey
 from ...repositories.journey import JourneyRepository
-from ..requests import ListJourneysRequest
-from ..responses import ListJourneysResponse
+
+
+class ListJourneysRequest(BaseModel):
+    """Request for listing journeys."""
+
+    pass
+
+
+class ListJourneysResponse(BaseModel):
+    """Response from listing journeys."""
+
+    journeys: list[Journey]
 
 
 class ListJourneysUseCase:

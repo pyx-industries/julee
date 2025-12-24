@@ -1,15 +1,31 @@
-"""GetBoundedContextUseCase.
+"""GetBoundedContextUseCase with co-located request/response.
 
 Use case for getting a single bounded context by slug.
 """
 
+from pydantic import BaseModel, Field
+
+from julee.shared.domain.models.bounded_context import BoundedContext
 from julee.shared.domain.repositories import BoundedContextRepository
-from julee.shared.domain.use_cases.requests import GetBoundedContextRequest
-from julee.shared.domain.use_cases.responses import GetBoundedContextResponse
+
+
+class GetBoundedContextRequest(BaseModel):
+    """Request for getting a bounded context by slug."""
+
+    slug: str = Field(description="The bounded context slug to look up")
+
+
+class GetBoundedContextResponse(BaseModel):
+    """Response from getting a bounded context."""
+
+    bounded_context: BoundedContext | None
 
 
 class GetBoundedContextUseCase:
-    """Use case for getting a bounded context by slug."""
+    """Use case for getting a bounded context by slug.
+
+    .. usecase-documentation:: julee.shared.domain.use_cases.bounded_context.get:GetBoundedContextUseCase
+    """
 
     def __init__(self, bounded_context_repo: BoundedContextRepository) -> None:
         """Initialize with repository dependency.

@@ -7,18 +7,16 @@ from julee.c4.domain.models.deployment_node import (
     NodeType,
 )
 from julee.c4.domain.use_cases.deployment_node import (
-    CreateDeploymentNodeUseCase,
-    DeleteDeploymentNodeUseCase,
-    GetDeploymentNodeUseCase,
-    ListDeploymentNodesUseCase,
-    UpdateDeploymentNodeUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     CreateDeploymentNodeRequest,
+    CreateDeploymentNodeUseCase,
     DeleteDeploymentNodeRequest,
+    DeleteDeploymentNodeUseCase,
     GetDeploymentNodeRequest,
+    GetDeploymentNodeUseCase,
     ListDeploymentNodesRequest,
+    ListDeploymentNodesUseCase,
     UpdateDeploymentNodeRequest,
+    UpdateDeploymentNodeUseCase,
 )
 from julee.c4.repositories.memory.deployment_node import (
     MemoryDeploymentNodeRepository,

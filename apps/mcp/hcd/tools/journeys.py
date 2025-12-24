@@ -6,15 +6,15 @@ Responses include contextual suggestions based on domain semantics.
 
 from typing import Any
 
-from julee.hcd.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.hcd.domain.use_cases.journey import (
     CreateJourneyRequest,
     DeleteJourneyRequest,
     GetJourneyRequest,
-    JourneyStepInput,
+    JourneyStepItem,
     ListJourneysRequest,
     UpdateJourneyRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from julee.hcd.domain.use_cases.suggestions import compute_journey_suggestions
 from ..context import (
     get_create_journey_use_case,
@@ -55,11 +55,11 @@ async def create_journey(
     """
     use_case = get_create_journey_use_case()
 
-    # Convert step dicts to JourneyStepInput objects
+    # Convert step dicts to JourneyStepItem objects
     step_inputs = []
     if steps:
         for step in steps:
-            step_inputs.append(JourneyStepInput(**step))
+            step_inputs.append(JourneyStepItem(**step))
 
     request = CreateJourneyRequest(
         slug=slug,
@@ -218,10 +218,10 @@ async def update_journey(
     """
     use_case = get_update_journey_use_case()
 
-    # Convert step dicts to JourneyStepInput objects if provided
+    # Convert step dicts to JourneyStepItem objects if provided
     step_inputs = None
     if steps is not None:
-        step_inputs = [JourneyStepInput(**s) for s in steps]
+        step_inputs = [JourneyStepItem(**s) for s in steps]
 
     request = UpdateJourneyRequest(
         slug=slug,

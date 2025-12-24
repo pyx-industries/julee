@@ -1,10 +1,12 @@
-"""GetComponentDiagramUseCase.
+"""GetComponentDiagramUseCase with co-located request/response.
 
 Use case for computing a component diagram.
 
 A Component diagram shows the components that make up a container,
 plus the relationships between them.
 """
+
+from pydantic import BaseModel, Field
 
 from ...models.container import Container
 from ...models.diagrams import ComponentDiagram
@@ -14,8 +16,21 @@ from ...repositories.component import ComponentRepository
 from ...repositories.container import ContainerRepository
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import GetComponentDiagramRequest
-from ..responses import GetComponentDiagramResponse
+
+
+class GetComponentDiagramRequest(BaseModel):
+    """Request for generating a component diagram."""
+
+    container_slug: str = Field(description="Container to show components for")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
+
+
+class GetComponentDiagramResponse(BaseModel):
+    """Response from computing a component diagram."""
+
+    diagram: ComponentDiagram | None
 
 
 class GetComponentDiagramUseCase:

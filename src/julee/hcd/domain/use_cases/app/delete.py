@@ -1,11 +1,20 @@
-"""DeleteAppUseCase.
+"""Delete app use case with co-located request/response."""
 
-Use case for deleting an app.
-"""
+from pydantic import BaseModel
 
 from ...repositories.app import AppRepository
-from ..requests import DeleteAppRequest
-from ..responses import DeleteAppResponse
+
+
+class DeleteAppRequest(BaseModel):
+    """Request for deleting an app by slug."""
+
+    slug: str
+
+
+class DeleteAppResponse(BaseModel):
+    """Response from deleting an app."""
+
+    deleted: bool
 
 
 class DeleteAppUseCase:

@@ -1,11 +1,45 @@
-"""CreateEpicUseCase.
+"""Create epic use case with co-located request/response."""
 
-Use case for creating a new epic.
-"""
+from pydantic import BaseModel, Field, field_validator
 
+from ...models.epic import Epic
 from ...repositories.epic import EpicRepository
-from ..requests import CreateEpicRequest
-from ..responses import CreateEpicResponse
+
+
+class CreateEpicRequest(BaseModel):
+    """Request model for creating an epic.
+
+    Fields excluded from client control:
+    - docname: Set when persisted
+    """
+
+    slug: str = Field(description="URL-safe identifier")
+    description: str = Field(
+        default="", description="Human-readable description of the epic"
+    )
+    story_refs: list[str] = Field(
+        default_factory=list, description="List of story feature titles in this epic"
+    )
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: str) -> str:
+        return Epic.validate_slug(v)
+
+    def to_domain_model(self) -> Epic:
+        """Convert to Epic."""
+        return Epic(
+            slug=self.slug,
+            description=self.description,
+            story_refs=self.story_refs,
+            docname="",
+        )
+
+
+class CreateEpicResponse(BaseModel):
+    """Response from creating an epic."""
+
+    epic: Epic
 
 
 class CreateEpicUseCase:

@@ -1,4 +1,4 @@
-"""Request model for Clean Architecture DTOs."""
+"""Request model for Clean Architecture use case inputs."""
 
 from julee.shared.domain.models.code_info import ClassInfo
 
@@ -6,9 +6,9 @@ from julee.shared.domain.models.code_info import ClassInfo
 class Request(ClassInfo):
     """The input boundary - data crossing into the application from outside.
 
-    Requests are Data Transfer Objects that carry input across the boundary
-    from the outer world into your use cases. They are the firewall between
-    messy external data and your pristine domain.
+    Requests carry input across the boundary from the outer world into your
+    use cases. They are the firewall between messy external data and your
+    pristine domain.
 
     A web controller receives JSON, parses it, and creates a Request. A CLI
     command gathers arguments and creates a Request. A message handler

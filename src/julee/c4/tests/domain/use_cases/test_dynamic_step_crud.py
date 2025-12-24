@@ -5,18 +5,16 @@ import pytest
 from julee.c4.domain.models.dynamic_step import DynamicStep
 from julee.c4.domain.models.relationship import ElementType
 from julee.c4.domain.use_cases.dynamic_step import (
-    CreateDynamicStepUseCase,
-    DeleteDynamicStepUseCase,
-    GetDynamicStepUseCase,
-    ListDynamicStepsUseCase,
-    UpdateDynamicStepUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     CreateDynamicStepRequest,
+    CreateDynamicStepUseCase,
     DeleteDynamicStepRequest,
+    DeleteDynamicStepUseCase,
     GetDynamicStepRequest,
+    GetDynamicStepUseCase,
     ListDynamicStepsRequest,
+    ListDynamicStepsUseCase,
     UpdateDynamicStepRequest,
+    UpdateDynamicStepUseCase,
 )
 from julee.c4.repositories.memory.dynamic_step import (
     MemoryDynamicStepRepository,

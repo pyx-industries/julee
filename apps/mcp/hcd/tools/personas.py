@@ -5,8 +5,8 @@ All operations delegate to use-case classes following clean architecture.
 Responses include contextual suggestions based on domain semantics.
 """
 
-from julee.hcd.domain.use_cases.requests import DerivePersonasRequest, GetPersonaRequest
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.hcd.domain.use_cases.queries import DerivePersonasRequest, GetPersonaRequest
 from julee.hcd.domain.use_cases.suggestions import compute_persona_suggestions
 from ..context import (
     get_derive_personas_use_case,

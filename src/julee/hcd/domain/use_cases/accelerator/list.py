@@ -1,11 +1,21 @@
-"""ListAcceleratorsUseCase.
+"""List accelerators use case with co-located request/response."""
 
-Use case for listing all accelerators.
-"""
+from pydantic import BaseModel
 
+from ...models.accelerator import Accelerator
 from ...repositories.accelerator import AcceleratorRepository
-from ..requests import ListAcceleratorsRequest
-from ..responses import ListAcceleratorsResponse
+
+
+class ListAcceleratorsRequest(BaseModel):
+    """Request for listing accelerators."""
+
+    pass
+
+
+class ListAcceleratorsResponse(BaseModel):
+    """Response from listing accelerators."""
+
+    accelerators: list[Accelerator]
 
 
 class ListAcceleratorsUseCase:

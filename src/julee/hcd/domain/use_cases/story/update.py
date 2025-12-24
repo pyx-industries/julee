@@ -1,11 +1,46 @@
-"""UpdateStoryUseCase.
+"""Update story use case with co-located request/response."""
 
-Use case for updating an existing story.
-"""
+from pydantic import BaseModel
 
+from ...models.story import Story
 from ...repositories.story import StoryRepository
-from ..requests import UpdateStoryRequest
-from ..responses import UpdateStoryResponse
+
+
+class UpdateStoryRequest(BaseModel):
+    """Request for updating a story (slug identifies target)."""
+
+    slug: str
+    feature_title: str | None = None
+    persona: str | None = None
+    i_want: str | None = None
+    so_that: str | None = None
+    file_path: str | None = None
+    abs_path: str | None = None
+    gherkin_snippet: str | None = None
+
+    def apply_to(self, existing: Story) -> Story:
+        """Apply non-None fields to existing story."""
+        updates = {
+            k: v
+            for k, v in {
+                "feature_title": self.feature_title,
+                "persona": self.persona,
+                "i_want": self.i_want,
+                "so_that": self.so_that,
+                "file_path": self.file_path,
+                "abs_path": self.abs_path,
+                "gherkin_snippet": self.gherkin_snippet,
+            }.items()
+            if v is not None
+        }
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateStoryResponse(BaseModel):
+    """Response from updating a story."""
+
+    story: Story | None
+    found: bool = True
 
 
 class UpdateStoryUseCase:

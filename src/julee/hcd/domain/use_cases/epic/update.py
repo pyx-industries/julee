@@ -1,11 +1,36 @@
-"""UpdateEpicUseCase.
+"""Update epic use case with co-located request/response."""
 
-Use case for updating an existing epic.
-"""
+from pydantic import BaseModel
 
+from ...models.epic import Epic
 from ...repositories.epic import EpicRepository
-from ..requests import UpdateEpicRequest
-from ..responses import UpdateEpicResponse
+
+
+class UpdateEpicRequest(BaseModel):
+    """Request for updating an epic."""
+
+    slug: str
+    description: str | None = None
+    story_refs: list[str] | None = None
+
+    def apply_to(self, existing: Epic) -> Epic:
+        """Apply non-None fields to existing epic."""
+        updates = {
+            k: v
+            for k, v in {
+                "description": self.description,
+                "story_refs": self.story_refs,
+            }.items()
+            if v is not None
+        }
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateEpicResponse(BaseModel):
+    """Response from updating an epic."""
+
+    epic: Epic | None
+    found: bool = True
 
 
 class UpdateEpicUseCase:

@@ -1,4 +1,4 @@
-"""DerivePersonasUseCase.
+"""DerivePersonasUseCase with co-located request/response.
 
 Use case for deriving personas from stories and epics.
 
@@ -14,16 +14,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel
+
 from julee.hcd.utils import normalize_name
 
 from ...models.persona import Persona
 from ...repositories.epic import EpicRepository
 from ...repositories.story import StoryRepository
-from ..requests import DerivePersonasRequest
-from ..responses import DerivePersonasResponse
 
 if TYPE_CHECKING:
     from ...repositories.persona import PersonaRepository
+
+
+class DerivePersonasRequest(BaseModel):
+    """Request for deriving personas from stories and epics."""
+
+    pass
+
+
+class DerivePersonasResponse(BaseModel):
+    """Response from deriving personas."""
+
+    personas: list[Persona]
 
 
 class DerivePersonasUseCase:

@@ -4,18 +4,16 @@ import pytest
 
 from julee.hcd.domain.models.persona import Persona
 from julee.hcd.domain.use_cases.persona import (
+    CreatePersonaRequest,
     CreatePersonaUseCase,
+    DeletePersonaRequest,
     DeletePersonaUseCase,
     GetPersonaBySlugRequest,
     GetPersonaBySlugUseCase,
-    ListPersonasUseCase,
-    UpdatePersonaUseCase,
-)
-from julee.hcd.domain.use_cases.requests import (
-    CreatePersonaRequest,
-    DeletePersonaRequest,
     ListPersonasRequest,
+    ListPersonasUseCase,
     UpdatePersonaRequest,
+    UpdatePersonaUseCase,
 )
 from julee.hcd.repositories.memory.persona import MemoryPersonaRepository
 

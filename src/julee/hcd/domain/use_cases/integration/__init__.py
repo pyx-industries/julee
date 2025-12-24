@@ -3,16 +3,44 @@
 CRUD operations for Integration entities.
 """
 
-from .create import CreateIntegrationUseCase
-from .delete import DeleteIntegrationUseCase
-from .get import GetIntegrationUseCase
-from .list import ListIntegrationsUseCase
-from .update import UpdateIntegrationUseCase
+from .create import (
+    CreateIntegrationRequest,
+    CreateIntegrationResponse,
+    CreateIntegrationUseCase,
+    ExternalDependencyItem,
+)
+from .delete import (
+    DeleteIntegrationRequest,
+    DeleteIntegrationResponse,
+    DeleteIntegrationUseCase,
+)
+from .get import GetIntegrationRequest, GetIntegrationResponse, GetIntegrationUseCase
+from .list import (
+    ListIntegrationsRequest,
+    ListIntegrationsResponse,
+    ListIntegrationsUseCase,
+)
+from .update import (
+    UpdateIntegrationRequest,
+    UpdateIntegrationResponse,
+    UpdateIntegrationUseCase,
+)
 
 __all__ = [
+    "CreateIntegrationRequest",
+    "CreateIntegrationResponse",
     "CreateIntegrationUseCase",
-    "GetIntegrationUseCase",
-    "ListIntegrationsUseCase",
-    "UpdateIntegrationUseCase",
+    "DeleteIntegrationRequest",
+    "DeleteIntegrationResponse",
     "DeleteIntegrationUseCase",
+    "ExternalDependencyItem",
+    "GetIntegrationRequest",
+    "GetIntegrationResponse",
+    "GetIntegrationUseCase",
+    "ListIntegrationsRequest",
+    "ListIntegrationsResponse",
+    "ListIntegrationsUseCase",
+    "UpdateIntegrationRequest",
+    "UpdateIntegrationResponse",
+    "UpdateIntegrationUseCase",
 ]

@@ -1,11 +1,41 @@
-"""UpdateRelationshipUseCase.
+"""Update relationship use case with co-located request/response."""
 
-Use case for updating an existing relationship.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.relationship import Relationship
 from ...repositories.relationship import RelationshipRepository
-from ..requests import UpdateRelationshipRequest
-from ..responses import UpdateRelationshipResponse
+
+
+class UpdateRelationshipRequest(BaseModel):
+    """Request for updating a relationship."""
+
+    slug: str
+    description: str | None = None
+    technology: str | None = None
+    bidirectional: bool | None = None
+    tags: list[str] | None = None
+
+    def apply_to(self, existing: Relationship) -> Relationship:
+        """Apply non-None fields to existing relationship."""
+        updates: dict[str, Any] = {}
+        if self.description is not None:
+            updates["description"] = self.description
+        if self.technology is not None:
+            updates["technology"] = self.technology
+        if self.bidirectional is not None:
+            updates["bidirectional"] = self.bidirectional
+        if self.tags is not None:
+            updates["tags"] = self.tags
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateRelationshipResponse(BaseModel):
+    """Response from updating a relationship."""
+
+    relationship: Relationship | None
+    found: bool = True
 
 
 class UpdateRelationshipUseCase:

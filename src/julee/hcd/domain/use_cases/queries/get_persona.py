@@ -1,4 +1,4 @@
-"""GetPersonaUseCase.
+"""GetPersonaUseCase with co-located request/response.
 
 Use case for getting a persona by name.
 """
@@ -7,16 +7,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel, Field
+
 from julee.hcd.utils import normalize_name
 
+from ...models.persona import Persona
 from ...repositories.epic import EpicRepository
 from ...repositories.story import StoryRepository
-from ..requests import DerivePersonasRequest, GetPersonaRequest
-from ..responses import GetPersonaResponse
-from .derive_personas import DerivePersonasUseCase
+from .derive_personas import DerivePersonasRequest, DerivePersonasUseCase
 
 if TYPE_CHECKING:
     from ...repositories.persona import PersonaRepository
+
+
+class GetPersonaRequest(BaseModel):
+    """Request for getting a persona by name."""
+
+    name: str = Field(description="Persona name to search for")
+
+
+class GetPersonaResponse(BaseModel):
+    """Response from getting a persona by name."""
+
+    persona: Persona | None
 
 
 class GetPersonaUseCase:

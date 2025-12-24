@@ -26,8 +26,10 @@ from julee.ceap.domain.models.document_policy_validation import (
 )
 from julee.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.ceap.domain.models.policy import Policy, PolicyStatus
-from julee.ceap.domain.use_cases import ValidateDocumentUseCase
-from julee.ceap.domain.use_cases.requests import ValidateDocumentRequest
+from julee.ceap.domain.use_cases import (
+    ValidateDocumentRequest,
+    ValidateDocumentUseCase,
+)
 from julee.repositories.memory import (
     MemoryDocumentPolicyValidationRepository,
     MemoryDocumentRepository,

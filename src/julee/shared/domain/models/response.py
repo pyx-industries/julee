@@ -1,4 +1,4 @@
-"""Response model for Clean Architecture DTOs."""
+"""Response model for Clean Architecture use case outputs."""
 
 from julee.shared.domain.models.code_info import ClassInfo
 

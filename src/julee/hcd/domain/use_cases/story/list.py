@@ -1,11 +1,21 @@
-"""ListStoriesUseCase.
+"""List stories use case with co-located request/response."""
 
-Use case for listing all stories.
-"""
+from pydantic import BaseModel
 
+from ...models.story import Story
 from ...repositories.story import StoryRepository
-from ..requests import ListStoriesRequest
-from ..responses import ListStoriesResponse
+
+
+class ListStoriesRequest(BaseModel):
+    """Request for listing stories (extensible for filtering/pagination)."""
+
+    pass
+
+
+class ListStoriesResponse(BaseModel):
+    """Response from listing stories."""
+
+    stories: list[Story]
 
 
 class ListStoriesUseCase:

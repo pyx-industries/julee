@@ -1,11 +1,21 @@
-"""GetRelationshipUseCase.
+"""Get relationship use case with co-located request/response."""
 
-Use case for getting a relationship by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.relationship import Relationship
 from ...repositories.relationship import RelationshipRepository
-from ..requests import GetRelationshipRequest
-from ..responses import GetRelationshipResponse
+
+
+class GetRelationshipRequest(BaseModel):
+    """Request for getting a relationship by slug."""
+
+    slug: str
+
+
+class GetRelationshipResponse(BaseModel):
+    """Response from getting a relationship."""
+
+    relationship: Relationship | None
 
 
 class GetRelationshipUseCase:

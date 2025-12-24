@@ -1,11 +1,20 @@
-"""DeleteAcceleratorUseCase.
+"""Delete accelerator use case with co-located request/response."""
 
-Use case for deleting an accelerator.
-"""
+from pydantic import BaseModel
 
 from ...repositories.accelerator import AcceleratorRepository
-from ..requests import DeleteAcceleratorRequest
-from ..responses import DeleteAcceleratorResponse
+
+
+class DeleteAcceleratorRequest(BaseModel):
+    """Request for deleting an accelerator by slug."""
+
+    slug: str
+
+
+class DeleteAcceleratorResponse(BaseModel):
+    """Response from deleting an accelerator."""
+
+    deleted: bool
 
 
 class DeleteAcceleratorUseCase:

@@ -44,7 +44,7 @@ Alternative considered: "Command" (CQRS terminology) - may revisit.
 """
 
 REQUEST_SUFFIX: Final[str] = "Request"
-"""Suffix for use case request DTOs.
+"""Suffix for use case request classes.
 
 Requests carry input data to use cases. They validate and transform
 external input into domain-safe structures.
@@ -55,7 +55,7 @@ Rationale: Pairs with Response; clear input/output semantics.
 """
 
 RESPONSE_SUFFIX: Final[str] = "Response"
-"""Suffix for use case response DTOs.
+"""Suffix for use case response classes.
 
 Responses carry output data from use cases. They structure domain
 results for consumption by the application layer.
@@ -73,7 +73,7 @@ structures within a request that need their own validation.
 
 Example: JourneyStepItem (nested within CreateJourneyRequest)
 
-Rationale: Distinguishes nested DTOs from top-level requests.
+Rationale: Distinguishes nested input types from top-level requests.
 """
 
 REPOSITORY_SUFFIX: Final[str] = "Repository"
@@ -124,7 +124,7 @@ ENTITY_FORBIDDEN_SUFFIXES: Final[tuple[str, ...]] = (
 """Suffixes that entities MUST NOT use.
 
 Entities represent domain concepts - they should not be confused with
-application-layer artifacts like use cases or DTOs.
+application-layer artifacts like use cases or request/response classes.
 
 Example violation: InvoiceUseCase as an entity name
 """
@@ -194,7 +194,7 @@ Can import: Nothing (except standard library, pydantic)
 LAYER_USE_CASES: Final[str] = "use_cases"
 """Middle layer: application business rules.
 
-Contains: Use case classes, request/response DTOs
+Contains: Use case classes, request/response classes
 Can import: models, repositories (protocols), services (protocols)
 """
 

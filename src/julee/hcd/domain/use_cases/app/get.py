@@ -1,11 +1,21 @@
-"""GetAppUseCase.
+"""Get app use case with co-located request/response."""
 
-Use case for getting an app by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.app import App
 from ...repositories.app import AppRepository
-from ..requests import GetAppRequest
-from ..responses import GetAppResponse
+
+
+class GetAppRequest(BaseModel):
+    """Request for getting an app by slug."""
+
+    slug: str
+
+
+class GetAppResponse(BaseModel):
+    """Response from getting an app."""
+
+    app: App | None
 
 
 class GetAppUseCase:

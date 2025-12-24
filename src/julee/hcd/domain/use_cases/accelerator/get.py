@@ -1,11 +1,21 @@
-"""GetAcceleratorUseCase.
+"""Get accelerator use case with co-located request/response."""
 
-Use case for getting an accelerator by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.accelerator import Accelerator
 from ...repositories.accelerator import AcceleratorRepository
-from ..requests import GetAcceleratorRequest
-from ..responses import GetAcceleratorResponse
+
+
+class GetAcceleratorRequest(BaseModel):
+    """Request for getting an accelerator by slug."""
+
+    slug: str
+
+
+class GetAcceleratorResponse(BaseModel):
+    """Response from getting an accelerator."""
+
+    accelerator: Accelerator | None
 
 
 class GetAcceleratorUseCase:

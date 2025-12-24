@@ -15,8 +15,10 @@ from temporalio.common import RetryPolicy
 from julee.ceap.domain.models.document_policy_validation import (
     DocumentPolicyValidation,
 )
-from julee.ceap.domain.use_cases import ValidateDocumentUseCase
-from julee.ceap.domain.use_cases.requests import ValidateDocumentRequest
+from julee.ceap.domain.use_cases import (
+    ValidateDocumentRequest,
+    ValidateDocumentUseCase,
+)
 from julee.repositories.temporal.proxies import (
     WorkflowDocumentRepositoryProxy,
     WorkflowKnowledgeServiceConfigRepositoryProxy,

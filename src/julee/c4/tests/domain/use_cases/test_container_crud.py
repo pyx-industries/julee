@@ -7,18 +7,16 @@ from julee.c4.domain.models.container import (
     ContainerType,
 )
 from julee.c4.domain.use_cases.container import (
-    CreateContainerUseCase,
-    DeleteContainerUseCase,
-    GetContainerUseCase,
-    ListContainersUseCase,
-    UpdateContainerUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     CreateContainerRequest,
+    CreateContainerUseCase,
     DeleteContainerRequest,
+    DeleteContainerUseCase,
     GetContainerRequest,
+    GetContainerUseCase,
     ListContainersRequest,
+    ListContainersUseCase,
     UpdateContainerRequest,
+    UpdateContainerUseCase,
 )
 from julee.c4.repositories.memory.container import (
     MemoryContainerRepository,

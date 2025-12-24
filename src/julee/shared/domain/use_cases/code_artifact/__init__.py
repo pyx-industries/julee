@@ -25,9 +25,19 @@ from julee.shared.domain.use_cases.code_artifact.list_service_protocols import (
 from julee.shared.domain.use_cases.code_artifact.list_use_cases import (
     ListUseCasesUseCase,
 )
+from julee.shared.domain.use_cases.code_artifact.uc_interfaces import (
+    CodeArtifactWithContext,
+    ListCodeArtifactsRequest,
+    ListCodeArtifactsResponse,
+    ListPipelinesResponse,
+)
 
 __all__ = [
+    "CodeArtifactWithContext",
+    "ListCodeArtifactsRequest",
+    "ListCodeArtifactsResponse",
     "ListEntitiesUseCase",
+    "ListPipelinesResponse",
     "ListPipelinesUseCase",
     "ListRepositoryProtocolsUseCase",
     "ListRequestsUseCase",

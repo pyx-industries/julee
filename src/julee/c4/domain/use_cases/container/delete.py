@@ -1,11 +1,20 @@
-"""DeleteContainerUseCase.
+"""Delete container use case with co-located request/response."""
 
-Use case for deleting a container.
-"""
+from pydantic import BaseModel
 
 from ...repositories.container import ContainerRepository
-from ..requests import DeleteContainerRequest
-from ..responses import DeleteContainerResponse
+
+
+class DeleteContainerRequest(BaseModel):
+    """Request for deleting a container by slug."""
+
+    slug: str
+
+
+class DeleteContainerResponse(BaseModel):
+    """Response from deleting a container."""
+
+    deleted: bool
 
 
 class DeleteContainerUseCase:

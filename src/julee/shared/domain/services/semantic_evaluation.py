@@ -18,13 +18,64 @@ Implementations may use various approaches:
 
 from typing import Protocol, runtime_checkable
 
+from pydantic import BaseModel, Field
+
 from julee.shared.domain.models import EvaluationResult
-from julee.shared.domain.use_cases.requests import (
-    EvaluateDocstringQualityRequest,
-    EvaluateMethodComplexityRequest,
-    EvaluateNamingQualityRequest,
-    EvaluateSingleResponsibilityRequest,
-)
+
+
+class EvaluateDocstringQualityRequest(BaseModel):
+    """Request for evaluating docstring quality.
+
+    Used by SemanticEvaluationService to assess whether a docstring
+    adequately describes its subject.
+    """
+
+    docstring: str = Field(description="The docstring text to evaluate")
+    context: str = Field(
+        description="What the docstring describes (e.g., 'CreateInvoiceUseCase')"
+    )
+
+
+class EvaluateSingleResponsibilityRequest(BaseModel):
+    """Request for evaluating single responsibility principle.
+
+    Used by SemanticEvaluationService to assess whether a class
+    has a single responsibility.
+    """
+
+    class_name: str = Field(description="Name of the class")
+    class_docstring: str = Field(default="", description="Class docstring")
+    method_names: list[str] = Field(
+        default_factory=list, description="Names of public methods in the class"
+    )
+    field_names: list[str] = Field(
+        default_factory=list, description="Names of fields/attributes in the class"
+    )
+
+
+class EvaluateNamingQualityRequest(BaseModel):
+    """Request for evaluating naming quality.
+
+    Used by SemanticEvaluationService to assess whether a name
+    is meaningful and appropriate.
+    """
+
+    name: str = Field(description="The identifier name to evaluate")
+    kind: str = Field(description="What it is: 'class', 'method', 'variable', 'field'")
+    context: str = Field(
+        default="", description="Surrounding context (class name, module, etc.)"
+    )
+
+
+class EvaluateMethodComplexityRequest(BaseModel):
+    """Request for evaluating method complexity.
+
+    Used by SemanticEvaluationService to assess whether a method
+    is too complex.
+    """
+
+    method_source: str = Field(description="The method's source code")
+    method_name: str = Field(description="The name of the method")
 
 
 @runtime_checkable

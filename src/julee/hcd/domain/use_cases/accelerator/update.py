@@ -1,11 +1,54 @@
-"""UpdateAcceleratorUseCase.
+"""Update accelerator use case with co-located request/response."""
 
-Use case for updating an existing accelerator.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.accelerator import Accelerator
 from ...repositories.accelerator import AcceleratorRepository
-from ..requests import UpdateAcceleratorRequest
-from ..responses import UpdateAcceleratorResponse
+from .create import IntegrationReferenceItem
+
+
+class UpdateAcceleratorRequest(BaseModel):
+    """Request for updating an accelerator."""
+
+    slug: str
+    status: str | None = None
+    milestone: str | None = None
+    acceptance: str | None = None
+    objective: str | None = None
+    sources_from: list[IntegrationReferenceItem] | None = None
+    feeds_into: list[str] | None = None
+    publishes_to: list[IntegrationReferenceItem] | None = None
+    depends_on: list[str] | None = None
+
+    def apply_to(self, existing: Accelerator) -> Accelerator:
+        """Apply non-None fields to existing accelerator."""
+        updates: dict[str, Any] = {}
+        if self.status is not None:
+            updates["status"] = self.status
+        if self.milestone is not None:
+            updates["milestone"] = self.milestone
+        if self.acceptance is not None:
+            updates["acceptance"] = self.acceptance
+        if self.objective is not None:
+            updates["objective"] = self.objective
+        if self.sources_from is not None:
+            updates["sources_from"] = [s.to_domain_model() for s in self.sources_from]
+        if self.feeds_into is not None:
+            updates["feeds_into"] = self.feeds_into
+        if self.publishes_to is not None:
+            updates["publishes_to"] = [p.to_domain_model() for p in self.publishes_to]
+        if self.depends_on is not None:
+            updates["depends_on"] = self.depends_on
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateAcceleratorResponse(BaseModel):
+    """Response from updating an accelerator."""
+
+    accelerator: Accelerator | None
+    found: bool = True
 
 
 class UpdateAcceleratorUseCase:

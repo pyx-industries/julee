@@ -6,12 +6,13 @@ Use case for listing domain entities across bounded contexts.
 from pathlib import Path
 
 from julee.shared.domain.repositories import BoundedContextRepository
-from julee.shared.domain.use_cases.requests import ListCodeArtifactsRequest
-from julee.shared.domain.use_cases.responses import (
+from julee.shared.parsers.ast import parse_bounded_context
+
+from .uc_interfaces import (
     CodeArtifactWithContext,
+    ListCodeArtifactsRequest,
     ListCodeArtifactsResponse,
 )
-from julee.shared.parsers.ast import parse_bounded_context
 
 
 class ListEntitiesUseCase:

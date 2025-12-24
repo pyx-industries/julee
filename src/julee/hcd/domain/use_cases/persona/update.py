@@ -1,11 +1,44 @@
-"""UpdatePersonaUseCase.
+"""Update persona use case with co-located request/response."""
 
-Use case for updating an existing persona.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.persona import Persona
 from ...repositories.persona import PersonaRepository
-from ..requests import UpdatePersonaRequest
-from ..responses import UpdatePersonaResponse
+
+
+class UpdatePersonaRequest(BaseModel):
+    """Request for updating a persona."""
+
+    slug: str
+    name: str | None = None
+    goals: list[str] | None = None
+    frustrations: list[str] | None = None
+    jobs_to_be_done: list[str] | None = None
+    context: str | None = None
+
+    def apply_to(self, existing: Persona) -> Persona:
+        """Apply non-None fields to existing persona."""
+        updates: dict[str, Any] = {}
+        if self.name is not None:
+            updates["name"] = self.name
+        if self.goals is not None:
+            updates["goals"] = self.goals
+        if self.frustrations is not None:
+            updates["frustrations"] = self.frustrations
+        if self.jobs_to_be_done is not None:
+            updates["jobs_to_be_done"] = self.jobs_to_be_done
+        if self.context is not None:
+            updates["context"] = self.context
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdatePersonaResponse(BaseModel):
+    """Response from updating a persona."""
+
+    persona: Persona | None
+    found: bool = True
 
 
 class UpdatePersonaUseCase:

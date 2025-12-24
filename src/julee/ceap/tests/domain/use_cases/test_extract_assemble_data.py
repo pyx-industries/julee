@@ -25,8 +25,10 @@ from julee.ceap.domain.models import (
     KnowledgeServiceQuery,
 )
 from julee.ceap.domain.models.knowledge_service_config import ServiceApi
-from julee.ceap.domain.use_cases import ExtractAssembleDataUseCase
-from julee.ceap.domain.use_cases.requests import ExtractAssembleDataRequest
+from julee.ceap.domain.use_cases import (
+    ExtractAssembleDataRequest,
+    ExtractAssembleDataUseCase,
+)
 from julee.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,

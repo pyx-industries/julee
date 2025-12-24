@@ -7,19 +7,17 @@ from julee.hcd.domain.models.accelerator import (
     IntegrationReference,
 )
 from julee.hcd.domain.use_cases.accelerator import (
-    CreateAcceleratorUseCase,
-    DeleteAcceleratorUseCase,
-    GetAcceleratorUseCase,
-    ListAcceleratorsUseCase,
-    UpdateAcceleratorUseCase,
-)
-from julee.hcd.domain.use_cases.requests import (
     CreateAcceleratorRequest,
+    CreateAcceleratorUseCase,
     DeleteAcceleratorRequest,
+    DeleteAcceleratorUseCase,
     GetAcceleratorRequest,
+    GetAcceleratorUseCase,
     IntegrationReferenceItem,
     ListAcceleratorsRequest,
+    ListAcceleratorsUseCase,
     UpdateAcceleratorRequest,
+    UpdateAcceleratorUseCase,
 )
 from julee.hcd.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,

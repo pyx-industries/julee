@@ -1,11 +1,20 @@
-"""DeleteDynamicStepUseCase.
+"""Delete dynamic step use case with co-located request/response."""
 
-Use case for deleting a dynamic step.
-"""
+from pydantic import BaseModel
 
 from ...repositories.dynamic_step import DynamicStepRepository
-from ..requests import DeleteDynamicStepRequest
-from ..responses import DeleteDynamicStepResponse
+
+
+class DeleteDynamicStepRequest(BaseModel):
+    """Request for deleting a dynamic step by slug."""
+
+    slug: str
+
+
+class DeleteDynamicStepResponse(BaseModel):
+    """Response from deleting a dynamic step."""
+
+    deleted: bool
 
 
 class DeleteDynamicStepUseCase:

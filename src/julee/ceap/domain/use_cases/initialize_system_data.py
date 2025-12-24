@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import BaseModel
 
 from julee.ceap.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -42,9 +43,18 @@ from julee.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 
-from .requests import InitializeSystemDataRequest
-
 logger = logging.getLogger(__name__)
+
+
+class InitializeSystemDataRequest(BaseModel):
+    """Request for initializing system data.
+
+    Used by InitializeSystemDataUseCase to bootstrap required
+    system configurations. Currently has no parameters as the
+    use case loads from fixtures.
+    """
+
+    pass
 
 
 class InitializeSystemDataUseCase:

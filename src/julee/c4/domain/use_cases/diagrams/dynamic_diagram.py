@@ -1,10 +1,12 @@
-"""GetDynamicDiagramUseCase.
+"""GetDynamicDiagramUseCase with co-located request/response.
 
 Use case for computing a dynamic diagram.
 
 A Dynamic diagram shows how elements collaborate at runtime to
 accomplish a specific use case or scenario.
 """
+
+from pydantic import BaseModel, Field
 
 from ...models.component import Component
 from ...models.container import Container
@@ -15,8 +17,21 @@ from ...repositories.component import ComponentRepository
 from ...repositories.container import ContainerRepository
 from ...repositories.dynamic_step import DynamicStepRepository
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import GetDynamicDiagramRequest
-from ..responses import GetDynamicDiagramResponse
+
+
+class GetDynamicDiagramRequest(BaseModel):
+    """Request for generating a dynamic diagram."""
+
+    sequence_name: str = Field(description="Dynamic sequence to show")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
+
+
+class GetDynamicDiagramResponse(BaseModel):
+    """Response from computing a dynamic diagram."""
+
+    diagram: DynamicDiagram | None
 
 
 class GetDynamicDiagramUseCase:

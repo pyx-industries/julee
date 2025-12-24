@@ -1,11 +1,21 @@
-"""ListIntegrationsUseCase.
+"""List integrations use case with co-located request/response."""
 
-Use case for listing all integrations.
-"""
+from pydantic import BaseModel
 
+from ...models.integration import Integration
 from ...repositories.integration import IntegrationRepository
-from ..requests import ListIntegrationsRequest
-from ..responses import ListIntegrationsResponse
+
+
+class ListIntegrationsRequest(BaseModel):
+    """Request for listing integrations."""
+
+    pass
+
+
+class ListIntegrationsResponse(BaseModel):
+    """Response from listing integrations."""
+
+    integrations: list[Integration]
 
 
 class ListIntegrationsUseCase:

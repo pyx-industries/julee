@@ -1,11 +1,54 @@
-"""UpdateJourneyUseCase.
+"""Update journey use case with co-located request/response."""
 
-Use case for updating an existing journey.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.journey import Journey
 from ...repositories.journey import JourneyRepository
-from ..requests import UpdateJourneyRequest
-from ..responses import UpdateJourneyResponse
+from .create import JourneyStepItem
+
+
+class UpdateJourneyRequest(BaseModel):
+    """Request for updating a journey."""
+
+    slug: str
+    persona: str | None = None
+    intent: str | None = None
+    outcome: str | None = None
+    goal: str | None = None
+    depends_on: list[str] | None = None
+    steps: list[JourneyStepItem] | None = None
+    preconditions: list[str] | None = None
+    postconditions: list[str] | None = None
+
+    def apply_to(self, existing: Journey) -> Journey:
+        """Apply non-None fields to existing journey."""
+        updates: dict[str, Any] = {}
+        if self.persona is not None:
+            updates["persona"] = self.persona
+        if self.intent is not None:
+            updates["intent"] = self.intent
+        if self.outcome is not None:
+            updates["outcome"] = self.outcome
+        if self.goal is not None:
+            updates["goal"] = self.goal
+        if self.depends_on is not None:
+            updates["depends_on"] = self.depends_on
+        if self.steps is not None:
+            updates["steps"] = [s.to_domain_model() for s in self.steps]
+        if self.preconditions is not None:
+            updates["preconditions"] = self.preconditions
+        if self.postconditions is not None:
+            updates["postconditions"] = self.postconditions
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateJourneyResponse(BaseModel):
+    """Response from updating a journey."""
+
+    journey: Journey | None
+    found: bool = True
 
 
 class UpdateJourneyUseCase:

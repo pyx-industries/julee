@@ -19,11 +19,7 @@ from julee.shared.domain.models.dependency_rule import DependencyRule
 from julee.shared.domain.models.entity import Entity
 from julee.shared.domain.models.evaluation import EvaluationResult
 from julee.shared.domain.models.pipeline import Pipeline
-from julee.shared.domain.models.repository_protocol import RepositoryProtocol
-from julee.shared.domain.models.request import Request
-from julee.shared.domain.models.response import Response
-from julee.shared.domain.models.service_protocol import ServiceProtocol
-from julee.shared.domain.models.use_case import UseCase
+from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
 
 # Routing models
 from julee.shared.domain.models.pipeline_route import (
@@ -35,7 +31,11 @@ from julee.shared.domain.models.pipeline_route import (
     Route,
 )
 from julee.shared.domain.models.pipeline_router import PipelineRouter
-from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
+from julee.shared.domain.models.repository_protocol import RepositoryProtocol
+from julee.shared.domain.models.request import Request
+from julee.shared.domain.models.response import Response
+from julee.shared.domain.models.service_protocol import ServiceProtocol
+from julee.shared.domain.models.use_case import UseCase
 
 # Backwards compatibility aliases
 MultiplexRouter = PipelineRouter

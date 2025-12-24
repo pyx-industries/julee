@@ -1,11 +1,21 @@
-"""ListDeploymentNodesUseCase.
+"""List deployment nodes use case with co-located request/response."""
 
-Use case for listing all deployment nodes.
-"""
+from pydantic import BaseModel
 
+from ...models.deployment_node import DeploymentNode
 from ...repositories.deployment_node import DeploymentNodeRepository
-from ..requests import ListDeploymentNodesRequest
-from ..responses import ListDeploymentNodesResponse
+
+
+class ListDeploymentNodesRequest(BaseModel):
+    """Request for listing deployment nodes."""
+
+    pass
+
+
+class ListDeploymentNodesResponse(BaseModel):
+    """Response from listing deployment nodes."""
+
+    deployment_nodes: list[DeploymentNode]
 
 
 class ListDeploymentNodesUseCase:

@@ -1,11 +1,21 @@
-"""ListDynamicStepsUseCase.
+"""List dynamic steps use case with co-located request/response."""
 
-Use case for listing all dynamic steps.
-"""
+from pydantic import BaseModel
 
+from ...models.dynamic_step import DynamicStep
 from ...repositories.dynamic_step import DynamicStepRepository
-from ..requests import ListDynamicStepsRequest
-from ..responses import ListDynamicStepsResponse
+
+
+class ListDynamicStepsRequest(BaseModel):
+    """Request for listing dynamic steps."""
+
+    pass
+
+
+class ListDynamicStepsResponse(BaseModel):
+    """Response from listing dynamic steps."""
+
+    dynamic_steps: list[DynamicStep]
 
 
 class ListDynamicStepsUseCase:

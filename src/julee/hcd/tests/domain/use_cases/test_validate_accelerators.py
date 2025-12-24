@@ -4,8 +4,10 @@ import pytest
 
 from julee.hcd.domain.models.accelerator import Accelerator
 from julee.hcd.domain.models.code_info import BoundedContextInfo, ClassInfo
-from julee.hcd.domain.use_cases.queries import ValidateAcceleratorsUseCase
-from julee.hcd.domain.use_cases.requests import ValidateAcceleratorsRequest
+from julee.hcd.domain.use_cases.queries import (
+    ValidateAcceleratorsRequest,
+    ValidateAcceleratorsUseCase,
+)
 from julee.hcd.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )

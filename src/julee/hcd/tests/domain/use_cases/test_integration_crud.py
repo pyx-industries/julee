@@ -8,19 +8,17 @@ from julee.hcd.domain.models.integration import (
     Integration,
 )
 from julee.hcd.domain.use_cases.integration import (
-    CreateIntegrationUseCase,
-    DeleteIntegrationUseCase,
-    GetIntegrationUseCase,
-    ListIntegrationsUseCase,
-    UpdateIntegrationUseCase,
-)
-from julee.hcd.domain.use_cases.requests import (
     CreateIntegrationRequest,
+    CreateIntegrationUseCase,
     DeleteIntegrationRequest,
+    DeleteIntegrationUseCase,
     ExternalDependencyItem,
     GetIntegrationRequest,
+    GetIntegrationUseCase,
     ListIntegrationsRequest,
+    ListIntegrationsUseCase,
     UpdateIntegrationRequest,
+    UpdateIntegrationUseCase,
 )
 from julee.hcd.repositories.memory.integration import (
     MemoryIntegrationRepository,

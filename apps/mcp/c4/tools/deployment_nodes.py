@@ -2,15 +2,15 @@
 
 from typing import Any
 
-from julee.c4.domain.use_cases.requests import (
-    ContainerInstanceInput,
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.c4.domain.use_cases.deployment_node import (
+    ContainerInstanceItem,
     CreateDeploymentNodeRequest,
     DeleteDeploymentNodeRequest,
     GetDeploymentNodeRequest,
     ListDeploymentNodesRequest,
     UpdateDeploymentNodeRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_deployment_node_use_case,
     get_delete_deployment_node_use_case,
@@ -34,7 +34,7 @@ async def create_deployment_node(
 ) -> dict:
     """Create a new deployment node."""
     use_case = get_create_deployment_node_use_case()
-    instances = [ContainerInstanceInput(**ci) for ci in (container_instances or [])]
+    instances = [ContainerInstanceItem(**ci) for ci in (container_instances or [])]
     request = CreateDeploymentNodeRequest(
         slug=slug,
         name=name,
@@ -123,7 +123,7 @@ async def update_deployment_node(
     use_case = get_update_deployment_node_use_case()
     instances = None
     if container_instances is not None:
-        instances = [ContainerInstanceInput(**ci) for ci in container_instances]
+        instances = [ContainerInstanceItem(**ci) for ci in container_instances]
     request = UpdateDeploymentNodeRequest(
         slug=slug,
         name=name,

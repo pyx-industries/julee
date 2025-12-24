@@ -1,13 +1,13 @@
 """MCP tools for Container CRUD operations."""
 
-from julee.c4.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.c4.domain.use_cases.container import (
     CreateContainerRequest,
     DeleteContainerRequest,
     GetContainerRequest,
     ListContainersRequest,
     UpdateContainerRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_container_use_case,
     get_delete_container_use_case,

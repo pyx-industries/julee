@@ -1,11 +1,21 @@
-"""GetIntegrationUseCase.
+"""Get integration use case with co-located request/response."""
 
-Use case for getting an integration by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.integration import Integration
 from ...repositories.integration import IntegrationRepository
-from ..requests import GetIntegrationRequest
-from ..responses import GetIntegrationResponse
+
+
+class GetIntegrationRequest(BaseModel):
+    """Request for getting an integration by slug."""
+
+    slug: str
+
+
+class GetIntegrationResponse(BaseModel):
+    """Response from getting an integration."""
+
+    integration: Integration | None
 
 
 class GetIntegrationUseCase:

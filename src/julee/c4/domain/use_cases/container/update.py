@@ -1,11 +1,50 @@
-"""UpdateContainerUseCase.
+"""Update container use case with co-located request/response."""
 
-Use case for updating an existing container.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.container import Container, ContainerType
 from ...repositories.container import ContainerRepository
-from ..requests import UpdateContainerRequest
-from ..responses import UpdateContainerResponse
+
+
+class UpdateContainerRequest(BaseModel):
+    """Request for updating a container."""
+
+    slug: str
+    name: str | None = None
+    system_slug: str | None = None
+    description: str | None = None
+    container_type: str | None = None
+    technology: str | None = None
+    url: str | None = None
+    tags: list[str] | None = None
+
+    def apply_to(self, existing: Container) -> Container:
+        """Apply non-None fields to existing container."""
+        updates: dict[str, Any] = {}
+        if self.name is not None:
+            updates["name"] = self.name
+        if self.system_slug is not None:
+            updates["system_slug"] = self.system_slug
+        if self.description is not None:
+            updates["description"] = self.description
+        if self.container_type is not None:
+            updates["container_type"] = ContainerType(self.container_type)
+        if self.technology is not None:
+            updates["technology"] = self.technology
+        if self.url is not None:
+            updates["url"] = self.url
+        if self.tags is not None:
+            updates["tags"] = self.tags
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateContainerResponse(BaseModel):
+    """Response from updating a container."""
+
+    container: Container | None
+    found: bool = True
 
 
 class UpdateContainerUseCase:

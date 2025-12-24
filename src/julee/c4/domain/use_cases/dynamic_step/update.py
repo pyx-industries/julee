@@ -1,11 +1,44 @@
-"""UpdateDynamicStepUseCase.
+"""Update dynamic step use case with co-located request/response."""
 
-Use case for updating an existing dynamic step.
-"""
+from typing import Any
 
+from pydantic import BaseModel
+
+from ...models.dynamic_step import DynamicStep
 from ...repositories.dynamic_step import DynamicStepRepository
-from ..requests import UpdateDynamicStepRequest
-from ..responses import UpdateDynamicStepResponse
+
+
+class UpdateDynamicStepRequest(BaseModel):
+    """Request for updating a dynamic step."""
+
+    slug: str
+    step_number: int | None = None
+    description: str | None = None
+    technology: str | None = None
+    return_description: str | None = None
+    is_return: bool | None = None
+
+    def apply_to(self, existing: DynamicStep) -> DynamicStep:
+        """Apply non-None fields to existing dynamic step."""
+        updates: dict[str, Any] = {}
+        if self.step_number is not None:
+            updates["step_number"] = self.step_number
+        if self.description is not None:
+            updates["description"] = self.description
+        if self.technology is not None:
+            updates["technology"] = self.technology
+        if self.return_description is not None:
+            updates["return_value"] = self.return_description
+        if self.is_return is not None:
+            updates["is_async"] = self.is_return
+        return existing.model_copy(update=updates) if updates else existing
+
+
+class UpdateDynamicStepResponse(BaseModel):
+    """Response from updating a dynamic step."""
+
+    dynamic_step: DynamicStep | None
+    found: bool = True
 
 
 class UpdateDynamicStepUseCase:

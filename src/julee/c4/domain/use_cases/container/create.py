@@ -1,11 +1,64 @@
-"""CreateContainerUseCase.
+"""Create container use case with co-located request/response."""
 
-Use case for creating a new container.
-"""
 
+from pydantic import BaseModel, Field, field_validator
+
+from ...models.container import Container, ContainerType
 from ...repositories.container import ContainerRepository
-from ..requests import CreateContainerRequest
-from ..responses import CreateContainerResponse
+
+
+class CreateContainerRequest(BaseModel):
+    """Request model for creating a container."""
+
+    slug: str = Field(description="URL-safe identifier")
+    name: str = Field(description="Display name")
+    system_slug: str = Field(description="Parent software system slug")
+    description: str = Field(default="", description="Human-readable description")
+    container_type: str = Field(default="other", description="Type of container")
+    technology: str = Field(default="", description="Specific technology stack")
+    url: str = Field(default="", description="Link to documentation")
+    tags: list[str] = Field(default_factory=list, description="Classification tags")
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("slug cannot be empty")
+        return v.strip()
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("name cannot be empty")
+        return v.strip()
+
+    @field_validator("system_slug")
+    @classmethod
+    def validate_system_slug(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("system_slug cannot be empty")
+        return v.strip()
+
+    def to_domain_model(self) -> Container:
+        """Convert to Container."""
+        return Container(
+            slug=self.slug,
+            name=self.name,
+            system_slug=self.system_slug,
+            description=self.description,
+            container_type=ContainerType(self.container_type),
+            technology=self.technology,
+            url=self.url,
+            tags=self.tags,
+            docname="",
+        )
+
+
+class CreateContainerResponse(BaseModel):
+    """Response from creating a container."""
+
+    container: Container
 
 
 class CreateContainerUseCase:

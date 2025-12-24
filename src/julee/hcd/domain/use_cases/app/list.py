@@ -1,11 +1,21 @@
-"""ListAppsUseCase.
+"""List apps use case with co-located request/response."""
 
-Use case for listing all apps.
-"""
+from pydantic import BaseModel
 
+from ...models.app import App
 from ...repositories.app import AppRepository
-from ..requests import ListAppsRequest
-from ..responses import ListAppsResponse
+
+
+class ListAppsRequest(BaseModel):
+    """Request for listing apps."""
+
+    pass
+
+
+class ListAppsResponse(BaseModel):
+    """Response from listing apps."""
+
+    apps: list[App]
 
 
 class ListAppsUseCase:

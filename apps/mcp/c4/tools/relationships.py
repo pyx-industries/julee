@@ -1,13 +1,13 @@
 """MCP tools for Relationship CRUD operations."""
 
-from julee.c4.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.c4.domain.use_cases.relationship import (
     CreateRelationshipRequest,
     DeleteRelationshipRequest,
     GetRelationshipRequest,
     ListRelationshipsRequest,
     UpdateRelationshipRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_relationship_use_case,
     get_delete_relationship_use_case,

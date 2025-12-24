@@ -1,4 +1,4 @@
-"""GetContainerDiagramUseCase.
+"""GetContainerDiagramUseCase with co-located request/response.
 
 Use case for computing a container diagram.
 
@@ -6,14 +6,29 @@ A Container diagram shows the containers (applications, data stores, etc.)
 that make up a software system, plus the relationships between them.
 """
 
+from pydantic import BaseModel, Field
+
 from ...models.diagrams import ContainerDiagram
 from ...models.relationship import ElementType, Relationship
 from ...models.software_system import SoftwareSystem
 from ...repositories.container import ContainerRepository
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import GetContainerDiagramRequest
-from ..responses import GetContainerDiagramResponse
+
+
+class GetContainerDiagramRequest(BaseModel):
+    """Request for generating a container diagram."""
+
+    system_slug: str = Field(description="Software system to show containers for")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
+
+
+class GetContainerDiagramResponse(BaseModel):
+    """Response from computing a container diagram."""
+
+    diagram: ContainerDiagram | None
 
 
 class GetContainerDiagramUseCase:

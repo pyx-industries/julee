@@ -1,11 +1,21 @@
-"""ListEpicsUseCase.
+"""List epics use case with co-located request/response."""
 
-Use case for listing all epics.
-"""
+from pydantic import BaseModel
 
+from ...models.epic import Epic
 from ...repositories.epic import EpicRepository
-from ..requests import ListEpicsRequest
-from ..responses import ListEpicsResponse
+
+
+class ListEpicsRequest(BaseModel):
+    """Request for listing epics."""
+
+    pass
+
+
+class ListEpicsResponse(BaseModel):
+    """Response from listing epics."""
+
+    epics: list[Epic]
 
 
 class ListEpicsUseCase:

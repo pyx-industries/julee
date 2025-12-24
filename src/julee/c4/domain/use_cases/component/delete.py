@@ -1,11 +1,20 @@
-"""DeleteComponentUseCase.
+"""Delete component use case with co-located request/response."""
 
-Use case for deleting a component.
-"""
+from pydantic import BaseModel
 
 from ...repositories.component import ComponentRepository
-from ..requests import DeleteComponentRequest
-from ..responses import DeleteComponentResponse
+
+
+class DeleteComponentRequest(BaseModel):
+    """Request for deleting a component by slug."""
+
+    slug: str
+
+
+class DeleteComponentResponse(BaseModel):
+    """Response from deleting a component."""
+
+    deleted: bool
 
 
 class DeleteComponentUseCase:

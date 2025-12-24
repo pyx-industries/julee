@@ -1,11 +1,20 @@
-"""DeleteRelationshipUseCase.
+"""Delete relationship use case with co-located request/response."""
 
-Use case for deleting a relationship.
-"""
+from pydantic import BaseModel
 
 from ...repositories.relationship import RelationshipRepository
-from ..requests import DeleteRelationshipRequest
-from ..responses import DeleteRelationshipResponse
+
+
+class DeleteRelationshipRequest(BaseModel):
+    """Request for deleting a relationship by slug."""
+
+    slug: str
+
+
+class DeleteRelationshipResponse(BaseModel):
+    """Response from deleting a relationship."""
+
+    deleted: bool
 
 
 class DeleteRelationshipUseCase:

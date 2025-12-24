@@ -40,6 +40,12 @@ class Pipeline(BaseModel):
     delegates_to_use_case: bool = False
     methods: list[MethodInfo] = Field(default_factory=list)
 
+    # run_next() pattern attributes
+    has_run_next_method: bool = False
+    run_next_has_workflow_decorator: bool = False
+    run_calls_run_next: bool = False
+    sets_dispatches_on_response: bool = False
+
     @field_validator("name", mode="before")
     @classmethod
     def validate_name(cls, v: str) -> str:

@@ -6,18 +6,16 @@ from julee.c4.domain.models.software_system import (
     SoftwareSystem,
     SystemType,
 )
-from julee.c4.domain.use_cases.requests import (
-    CreateSoftwareSystemRequest,
-    DeleteSoftwareSystemRequest,
-    GetSoftwareSystemRequest,
-    ListSoftwareSystemsRequest,
-    UpdateSoftwareSystemRequest,
-)
 from julee.c4.domain.use_cases.software_system import (
+    CreateSoftwareSystemRequest,
     CreateSoftwareSystemUseCase,
+    DeleteSoftwareSystemRequest,
     DeleteSoftwareSystemUseCase,
+    GetSoftwareSystemRequest,
     GetSoftwareSystemUseCase,
+    ListSoftwareSystemsRequest,
     ListSoftwareSystemsUseCase,
+    UpdateSoftwareSystemRequest,
     UpdateSoftwareSystemUseCase,
 )
 from julee.c4.repositories.memory.software_system import (

@@ -1,4 +1,4 @@
-"""GetDeploymentDiagramUseCase.
+"""GetDeploymentDiagramUseCase with co-located request/response.
 
 Use case for computing a deployment diagram.
 
@@ -6,13 +6,28 @@ A Deployment diagram shows how containers are deployed to infrastructure
 nodes in a specific environment.
 """
 
+from pydantic import BaseModel, Field
+
 from ...models.container import Container
 from ...models.diagrams import DeploymentDiagram
 from ...repositories.container import ContainerRepository
 from ...repositories.deployment_node import DeploymentNodeRepository
 from ...repositories.relationship import RelationshipRepository
-from ..requests import GetDeploymentDiagramRequest
-from ..responses import GetDeploymentDiagramResponse
+
+
+class GetDeploymentDiagramRequest(BaseModel):
+    """Request for generating a deployment diagram."""
+
+    environment: str = Field(description="Deployment environment to show")
+    format: str = Field(
+        default="plantuml", description="Output format: plantuml, structurizr, data"
+    )
+
+
+class GetDeploymentDiagramResponse(BaseModel):
+    """Response from computing a deployment diagram."""
+
+    diagram: DeploymentDiagram
 
 
 class GetDeploymentDiagramUseCase:

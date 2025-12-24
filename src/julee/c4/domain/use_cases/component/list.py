@@ -1,11 +1,21 @@
-"""ListComponentsUseCase.
+"""List components use case with co-located request/response."""
 
-Use case for listing all components.
-"""
+from pydantic import BaseModel
 
+from ...models.component import Component
 from ...repositories.component import ComponentRepository
-from ..requests import ListComponentsRequest
-from ..responses import ListComponentsResponse
+
+
+class ListComponentsRequest(BaseModel):
+    """Request for listing components."""
+
+    pass
+
+
+class ListComponentsResponse(BaseModel):
+    """Response from listing components."""
+
+    components: list[Component]
 
 
 class ListComponentsUseCase:

@@ -1,11 +1,59 @@
-"""CreatePersonaUseCase.
+"""Create persona use case with co-located request/response."""
 
-Use case for creating a new persona.
-"""
+from pydantic import BaseModel, Field, field_validator
 
+from ...models.persona import Persona
 from ...repositories.persona import PersonaRepository
-from ..requests import CreatePersonaRequest
-from ..responses import CreatePersonaResponse
+
+
+class CreatePersonaRequest(BaseModel):
+    """Request model for creating a persona.
+
+    Creates a first-class persona definition with HCD metadata.
+    """
+
+    slug: str = Field(description="URL-safe identifier")
+    name: str = Field(description="Display name (used in Gherkin 'As a {name}')")
+    goals: list[str] = Field(
+        default_factory=list, description="What the persona wants to achieve"
+    )
+    frustrations: list[str] = Field(
+        default_factory=list, description="Pain points and problems"
+    )
+    jobs_to_be_done: list[str] = Field(
+        default_factory=list, description="JTBD framework items"
+    )
+    context: str = Field(default="", description="Background and situational context")
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("slug cannot be empty")
+        return v.strip()
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        return Persona.validate_name(v)
+
+    def to_domain_model(self, docname: str = "") -> Persona:
+        """Convert to Persona."""
+        return Persona.from_definition(
+            slug=self.slug,
+            name=self.name,
+            goals=self.goals,
+            frustrations=self.frustrations,
+            jobs_to_be_done=self.jobs_to_be_done,
+            context=self.context,
+            docname=docname,
+        )
+
+
+class CreatePersonaResponse(BaseModel):
+    """Response from creating a persona."""
+
+    persona: Persona
 
 
 class CreatePersonaUseCase:

@@ -1,11 +1,20 @@
-"""DeleteStoryUseCase.
+"""Delete story use case with co-located request/response."""
 
-Use case for deleting a story.
-"""
+from pydantic import BaseModel
 
 from ...repositories.story import StoryRepository
-from ..requests import DeleteStoryRequest
-from ..responses import DeleteStoryResponse
+
+
+class DeleteStoryRequest(BaseModel):
+    """Request for deleting a story by slug."""
+
+    slug: str
+
+
+class DeleteStoryResponse(BaseModel):
+    """Response from deleting a story."""
+
+    deleted: bool
 
 
 class DeleteStoryUseCase:

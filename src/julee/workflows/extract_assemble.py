@@ -13,8 +13,10 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from julee.ceap.domain.models.assembly import Assembly
-from julee.ceap.domain.use_cases import ExtractAssembleDataUseCase
-from julee.ceap.domain.use_cases.requests import ExtractAssembleDataRequest
+from julee.ceap.domain.use_cases import (
+    ExtractAssembleDataRequest,
+    ExtractAssembleDataUseCase,
+)
 from julee.repositories.temporal.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,

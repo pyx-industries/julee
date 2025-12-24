@@ -16,20 +16,18 @@ from julee.c4.domain.models.software_system import (
     SystemType,
 )
 from julee.c4.domain.use_cases.diagrams import (
-    GetComponentDiagramUseCase,
-    GetContainerDiagramUseCase,
-    GetDeploymentDiagramUseCase,
-    GetDynamicDiagramUseCase,
-    GetSystemContextDiagramUseCase,
-    GetSystemLandscapeDiagramUseCase,
-)
-from julee.c4.domain.use_cases.requests import (
     GetComponentDiagramRequest,
+    GetComponentDiagramUseCase,
     GetContainerDiagramRequest,
+    GetContainerDiagramUseCase,
     GetDeploymentDiagramRequest,
+    GetDeploymentDiagramUseCase,
     GetDynamicDiagramRequest,
+    GetDynamicDiagramUseCase,
     GetSystemContextDiagramRequest,
+    GetSystemContextDiagramUseCase,
     GetSystemLandscapeDiagramRequest,
+    GetSystemLandscapeDiagramUseCase,
 )
 from julee.c4.repositories.memory.component import (
     MemoryComponentRepository,

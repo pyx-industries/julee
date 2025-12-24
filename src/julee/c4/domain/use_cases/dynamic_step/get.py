@@ -1,11 +1,21 @@
-"""GetDynamicStepUseCase.
+"""Get dynamic step use case with co-located request/response."""
 
-Use case for getting a dynamic step by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.dynamic_step import DynamicStep
 from ...repositories.dynamic_step import DynamicStepRepository
-from ..requests import GetDynamicStepRequest
-from ..responses import GetDynamicStepResponse
+
+
+class GetDynamicStepRequest(BaseModel):
+    """Request for getting a dynamic step by slug."""
+
+    slug: str
+
+
+class GetDynamicStepResponse(BaseModel):
+    """Response from getting a dynamic step."""
+
+    dynamic_step: DynamicStep | None
 
 
 class GetDynamicStepUseCase:

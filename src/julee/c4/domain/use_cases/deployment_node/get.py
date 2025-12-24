@@ -1,11 +1,21 @@
-"""GetDeploymentNodeUseCase.
+"""Get deployment node use case with co-located request/response."""
 
-Use case for getting a deployment node by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.deployment_node import DeploymentNode
 from ...repositories.deployment_node import DeploymentNodeRepository
-from ..requests import GetDeploymentNodeRequest
-from ..responses import GetDeploymentNodeResponse
+
+
+class GetDeploymentNodeRequest(BaseModel):
+    """Request for getting a deployment node by slug."""
+
+    slug: str
+
+
+class GetDeploymentNodeResponse(BaseModel):
+    """Response from getting a deployment node."""
+
+    deployment_node: DeploymentNode | None
 
 
 class GetDeploymentNodeUseCase:

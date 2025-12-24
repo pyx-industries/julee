@@ -1,11 +1,21 @@
-"""GetJourneyUseCase.
+"""Get journey use case with co-located request/response."""
 
-Use case for getting a journey by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.journey import Journey
 from ...repositories.journey import JourneyRepository
-from ..requests import GetJourneyRequest
-from ..responses import GetJourneyResponse
+
+
+class GetJourneyRequest(BaseModel):
+    """Request for getting a journey by slug."""
+
+    slug: str
+
+
+class GetJourneyResponse(BaseModel):
+    """Response from getting a journey."""
+
+    journey: Journey | None
 
 
 class GetJourneyUseCase:

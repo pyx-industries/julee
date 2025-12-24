@@ -1,21 +1,22 @@
 """ListResponsesUseCase.
 
-Use case for listing response DTOs across bounded contexts.
+Use case for listing response classes across bounded contexts.
 """
 
 from pathlib import Path
 
 from julee.shared.domain.repositories import BoundedContextRepository
-from julee.shared.domain.use_cases.requests import ListCodeArtifactsRequest
-from julee.shared.domain.use_cases.responses import (
+from julee.shared.parsers.ast import parse_bounded_context
+
+from .uc_interfaces import (
     CodeArtifactWithContext,
+    ListCodeArtifactsRequest,
     ListCodeArtifactsResponse,
 )
-from julee.shared.parsers.ast import parse_bounded_context
 
 
 class ListResponsesUseCase:
-    """Use case for listing response DTOs."""
+    """Use case for listing response classes."""
 
     def __init__(self, bounded_context_repo: BoundedContextRepository) -> None:
         """Initialize with repository dependency.
@@ -28,13 +29,13 @@ class ListResponsesUseCase:
     async def execute(
         self, request: ListCodeArtifactsRequest
     ) -> ListCodeArtifactsResponse:
-        """List response DTOs across bounded contexts.
+        """List response classes across bounded contexts.
 
         Args:
             request: Request with optional bounded_context filter
 
         Returns:
-            Response containing list of response DTOs with their bounded context
+            Response containing list of response classes with their bounded context
         """
         # Get bounded contexts to scan
         if request.bounded_context:

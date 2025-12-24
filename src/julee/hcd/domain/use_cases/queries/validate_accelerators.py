@@ -1,4 +1,4 @@
-"""ValidateAcceleratorsUseCase.
+"""ValidateAcceleratorsUseCase with co-located request/response.
 
 Use case for validating accelerators against code structure.
 
@@ -8,13 +8,38 @@ with discovered bounded contexts (from src/ directory scanning) to identify:
 - Documented accelerators that have no corresponding code
 """
 
+from pydantic import BaseModel
+
+from ...models.accelerator import AcceleratorValidationIssue
 from ...repositories.accelerator import AcceleratorRepository
 from ...repositories.code_info import CodeInfoRepository
-from ..requests import ValidateAcceleratorsRequest
-from ..responses import (
-    AcceleratorValidationIssue,
-    ValidateAcceleratorsResponse,
-)
+
+
+class ValidateAcceleratorsRequest(BaseModel):
+    """Request for validating accelerators against code structure.
+
+    Compares documented accelerators (from RST) with discovered bounded
+    contexts (from src/ directory scanning).
+    """
+
+    pass
+
+
+class ValidateAcceleratorsResponse(BaseModel):
+    """Response from validating accelerators against code structure.
+
+    Contains lists of matched accelerators and any issues found.
+    """
+
+    documented_slugs: list[str]
+    discovered_slugs: list[str]
+    matched_slugs: list[str]
+    issues: list[AcceleratorValidationIssue]
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if validation passed with no issues."""
+        return len(self.issues) == 0
 
 
 class ValidateAcceleratorsUseCase:

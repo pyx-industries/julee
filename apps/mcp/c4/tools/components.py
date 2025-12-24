@@ -1,13 +1,13 @@
 """MCP tools for Component CRUD operations."""
 
-from julee.c4.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.c4.domain.use_cases.component import (
     CreateComponentRequest,
     DeleteComponentRequest,
     GetComponentRequest,
     ListComponentsRequest,
     UpdateComponentRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from ..context import (
     get_create_component_use_case,
     get_delete_component_use_case,

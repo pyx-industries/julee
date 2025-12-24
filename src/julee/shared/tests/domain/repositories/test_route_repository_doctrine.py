@@ -11,8 +11,6 @@ See: docs/architecture/proposals/pipeline_router_design.md
 """
 
 import pytest
-from pydantic import BaseModel
-
 
 # =============================================================================
 # DOCTRINE: PipelineRouteRepository Protocol
@@ -24,7 +22,7 @@ class TestPipelineRouteRepositoryDoctrine:
 
     def test_route_repository_MUST_be_protocol(self):
         """PipelineRouteRepository MUST be defined as a Protocol for structural typing."""
-        from typing import Protocol, runtime_checkable
+        from typing import Protocol
 
         from julee.shared.domain.repositories.pipeline_route import (
             PipelineRouteRepository,
@@ -37,10 +35,11 @@ class TestPipelineRouteRepositoryDoctrine:
 
     def test_route_repository_MUST_have_list_all_method(self):
         """PipelineRouteRepository MUST have list_all() method returning all routes."""
+        import inspect
+
         from julee.shared.domain.repositories.pipeline_route import (
             PipelineRouteRepository,
         )
-        import inspect
 
         assert hasattr(PipelineRouteRepository, "list_all")
         sig = inspect.signature(PipelineRouteRepository.list_all)
@@ -51,10 +50,11 @@ class TestPipelineRouteRepositoryDoctrine:
 
     def test_route_repository_MUST_have_list_for_response_type_method(self):
         """PipelineRouteRepository MUST have list_for_response_type() for filtered queries."""
+        import inspect
+
         from julee.shared.domain.repositories.pipeline_route import (
             PipelineRouteRepository,
         )
-        import inspect
 
         assert hasattr(PipelineRouteRepository, "list_for_response_type")
         sig = inspect.signature(PipelineRouteRepository.list_for_response_type)
@@ -79,11 +79,7 @@ class TestPipelineRouteRepositoryContract:
     def mock_route_repository(self):
         """Create a minimal mock implementation for testing contract."""
         from julee.shared.domain.models.pipeline_route import (
-            PipelineCondition,
             PipelineRoute,
-        )
-        from julee.shared.domain.repositories.pipeline_route import (
-            PipelineRouteRepository,
         )
 
         class MockPipelineRouteRepository:

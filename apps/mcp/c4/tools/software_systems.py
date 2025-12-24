@@ -1,17 +1,17 @@
 """MCP tools for SoftwareSystem CRUD operations."""
 
-from julee.c4.domain.use_cases.requests import (
-    CreateSoftwareSystemRequest,
-    DeleteSoftwareSystemRequest,
-    GetSoftwareSystemRequest,
-    ListSoftwareSystemsRequest,
-    UpdateSoftwareSystemRequest,
-)
 from apps.mcp.shared import (
     ResponseFormat,
     format_entity,
     not_found_error,
     paginate_results,
+)
+from julee.c4.domain.use_cases.software_system import (
+    CreateSoftwareSystemRequest,
+    DeleteSoftwareSystemRequest,
+    GetSoftwareSystemRequest,
+    ListSoftwareSystemsRequest,
+    UpdateSoftwareSystemRequest,
 )
 from ..context import (
     get_create_software_system_use_case,

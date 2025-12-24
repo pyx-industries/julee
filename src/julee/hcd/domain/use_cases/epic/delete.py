@@ -1,11 +1,20 @@
-"""DeleteEpicUseCase.
+"""Delete epic use case with co-located request/response."""
 
-Use case for deleting an epic.
-"""
+from pydantic import BaseModel
 
 from ...repositories.epic import EpicRepository
-from ..requests import DeleteEpicRequest
-from ..responses import DeleteEpicResponse
+
+
+class DeleteEpicRequest(BaseModel):
+    """Request for deleting an epic by slug."""
+
+    slug: str
+
+
+class DeleteEpicResponse(BaseModel):
+    """Response from deleting an epic."""
+
+    deleted: bool
 
 
 class DeleteEpicUseCase:

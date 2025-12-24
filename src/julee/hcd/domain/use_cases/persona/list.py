@@ -1,11 +1,21 @@
-"""ListPersonasUseCase.
+"""List personas use case with co-located request/response."""
 
-Use case for listing all defined personas.
-"""
+from pydantic import BaseModel
 
+from ...models.persona import Persona
 from ...repositories.persona import PersonaRepository
-from ..requests import ListPersonasRequest
-from ..responses import ListPersonasResponse
+
+
+class ListPersonasRequest(BaseModel):
+    """Request for listing personas."""
+
+    pass
+
+
+class ListPersonasResponse(BaseModel):
+    """Response from listing personas."""
+
+    personas: list[Persona]
 
 
 class ListPersonasUseCase:

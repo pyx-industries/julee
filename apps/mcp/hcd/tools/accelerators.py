@@ -6,15 +6,15 @@ Responses include contextual suggestions based on domain semantics.
 
 from typing import Any
 
-from julee.hcd.domain.use_cases.requests import (
+from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
+from julee.hcd.domain.use_cases.accelerator import (
     CreateAcceleratorRequest,
     DeleteAcceleratorRequest,
     GetAcceleratorRequest,
-    IntegrationReferenceInput,
+    IntegrationReferenceItem,
     ListAcceleratorsRequest,
     UpdateAcceleratorRequest,
 )
-from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from julee.hcd.domain.use_cases.suggestions import compute_accelerator_suggestions
 from ..context import (
     get_create_accelerator_use_case,
@@ -55,9 +55,9 @@ async def create_accelerator(
     """
     use_case = get_create_accelerator_use_case()
 
-    # Convert dicts to IntegrationReferenceInput objects
-    sources = [IntegrationReferenceInput(**s) for s in (sources_from or [])]
-    publishes = [IntegrationReferenceInput(**p) for p in (publishes_to or [])]
+    # Convert dicts to IntegrationReferenceItem objects
+    sources = [IntegrationReferenceItem(**s) for s in (sources_from or [])]
+    publishes = [IntegrationReferenceItem(**p) for p in (publishes_to or [])]
 
     request = CreateAcceleratorRequest(
         slug=slug,
@@ -218,13 +218,13 @@ async def update_accelerator(
     """
     use_case = get_update_accelerator_use_case()
 
-    # Convert dicts to IntegrationReferenceInput objects if provided
+    # Convert dicts to IntegrationReferenceItem objects if provided
     sources = None
     if sources_from is not None:
-        sources = [IntegrationReferenceInput(**s) for s in sources_from]
+        sources = [IntegrationReferenceItem(**s) for s in sources_from]
     publishes = None
     if publishes_to is not None:
-        publishes = [IntegrationReferenceInput(**p) for p in publishes_to]
+        publishes = [IntegrationReferenceItem(**p) for p in publishes_to]
 
     request = UpdateAcceleratorRequest(
         slug=slug,

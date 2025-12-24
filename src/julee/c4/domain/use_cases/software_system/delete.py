@@ -1,11 +1,23 @@
-"""DeleteSoftwareSystemUseCase.
+"""DeleteSoftwareSystemUseCase with co-located request/response.
 
 Use case for deleting a software system.
 """
 
+from pydantic import BaseModel
+
 from ...repositories.software_system import SoftwareSystemRepository
-from ..requests import DeleteSoftwareSystemRequest
-from ..responses import DeleteSoftwareSystemResponse
+
+
+class DeleteSoftwareSystemRequest(BaseModel):
+    """Request for deleting a software system by slug."""
+
+    slug: str
+
+
+class DeleteSoftwareSystemResponse(BaseModel):
+    """Response from deleting a software system."""
+
+    deleted: bool
 
 
 class DeleteSoftwareSystemUseCase:

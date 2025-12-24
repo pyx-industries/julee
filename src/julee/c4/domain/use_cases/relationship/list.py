@@ -1,11 +1,21 @@
-"""ListRelationshipsUseCase.
+"""List relationships use case with co-located request/response."""
 
-Use case for listing all relationships.
-"""
+from pydantic import BaseModel
 
+from ...models.relationship import Relationship
 from ...repositories.relationship import RelationshipRepository
-from ..requests import ListRelationshipsRequest
-from ..responses import ListRelationshipsResponse
+
+
+class ListRelationshipsRequest(BaseModel):
+    """Request for listing relationships."""
+
+    pass
+
+
+class ListRelationshipsResponse(BaseModel):
+    """Response from listing relationships."""
+
+    relationships: list[Relationship]
 
 
 class ListRelationshipsUseCase:

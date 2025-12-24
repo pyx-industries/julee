@@ -1,11 +1,21 @@
-"""GetComponentUseCase.
+"""Get component use case with co-located request/response."""
 
-Use case for getting a component by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.component import Component
 from ...repositories.component import ComponentRepository
-from ..requests import GetComponentRequest
-from ..responses import GetComponentResponse
+
+
+class GetComponentRequest(BaseModel):
+    """Request for getting a component by slug."""
+
+    slug: str
+
+
+class GetComponentResponse(BaseModel):
+    """Response from getting a component."""
+
+    component: Component | None
 
 
 class GetComponentUseCase:
