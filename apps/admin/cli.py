@@ -15,6 +15,7 @@ from apps.admin.commands.artifacts import (
 )
 from apps.admin.commands.contexts import contexts_group
 from apps.admin.commands.doctrine import doctrine_group
+from apps.admin.commands.routes import routes_group
 
 
 @click.group()
@@ -35,6 +36,7 @@ cli.add_command(repositories_group)
 cli.add_command(services_group)
 cli.add_command(requests_group)
 cli.add_command(responses_group)
+cli.add_command(routes_group)
 cli.add_command(doctrine_group)
 
 
