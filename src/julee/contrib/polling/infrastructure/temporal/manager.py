@@ -23,6 +23,7 @@ from temporalio.client import (
 )
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+from julee.contrib.polling.domain.use_cases import NewDataDetectionRequest
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,6 @@ class PollingManager:
         endpoint_id: str,
         config: PollingConfig,
         interval_seconds: int,
-        downstream_pipeline: str | None = None,
     ) -> str:
         """
         Start polling an HTTP endpoint at regular intervals.
@@ -82,7 +82,6 @@ class PollingManager:
             endpoint_id: Unique identifier for this polling operation
             config: Configuration for the polling operation
             interval_seconds: How often to poll (in seconds)
-            downstream_pipeline: Optional pipeline to trigger when new data detected
 
         Returns:
             Schedule ID that was created
@@ -90,6 +89,10 @@ class PollingManager:
         Raises:
             ValueError: If endpoint_id is already being polled
             RuntimeError: If Temporal client is not available
+
+        Note:
+            Downstream routing is handled via the routing_registry.
+            Solution developers should register routes at startup.
         """
         if endpoint_id in self._active_polls:
             raise ValueError(f"Endpoint {endpoint_id} is already being polled")
@@ -99,10 +102,19 @@ class PollingManager:
 
         schedule_id = f"poll-{endpoint_id}"
 
+        # Convert PollingConfig to NewDataDetectionRequest
+        request = NewDataDetectionRequest(
+            endpoint_identifier=config.endpoint_identifier,
+            polling_protocol=config.polling_protocol,
+            connection_params=config.connection_params,
+            polling_params=config.polling_params,
+            timeout_seconds=config.timeout_seconds,
+        )
+
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
                 "NewDataDetectionPipeline",
-                args=[config, downstream_pipeline],
+                args=[request.model_dump()],
                 id=f"{schedule_id}-{{.timestamp}}",
                 task_queue=self._task_queue,
             ),
@@ -143,7 +155,6 @@ class PollingManager:
             "schedule_id": schedule_id,
             "config": config,
             "interval_seconds": interval_seconds,
-            "downstream_pipeline": downstream_pipeline,
         }
 
         return schedule_id
@@ -196,7 +207,6 @@ class PollingManager:
                     "interval_seconds": poll_info["interval_seconds"],
                     "endpoint_identifier": poll_info["config"].endpoint_identifier,
                     "polling_protocol": poll_info["config"].polling_protocol.value,
-                    "downstream_pipeline": poll_info.get("downstream_pipeline"),
                 }
             )
 
@@ -233,7 +243,6 @@ class PollingManager:
             "schedule_id": schedule_id,
             "interval_seconds": poll_info["interval_seconds"],
             "is_paused": schedule_description.schedule.state.paused,
-            "downstream_pipeline": poll_info.get("downstream_pipeline"),
         }
 
     async def pause_polling(self, endpoint_id: str) -> bool:
