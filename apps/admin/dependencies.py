@@ -9,7 +9,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.shared.use_cases import (
+from julee.core.use_cases import (
     GetBoundedContextUseCase,
     ListBoundedContextsUseCase,
     ListEntitiesUseCase,
@@ -19,7 +19,7 @@ from julee.shared.use_cases import (
     ListServiceProtocolsUseCase,
     ListUseCasesUseCase,
 )
-from julee.shared.infrastructure.repositories.introspection import FilesystemBoundedContextRepository
+from julee.core.infrastructure.repositories.introspection import FilesystemBoundedContextRepository
 
 
 PROJECT_ROOT_MARKERS = ("pyproject.toml", "setup.py", ".git")

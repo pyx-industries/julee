@@ -3,7 +3,7 @@
 Re-exports shared utilities for use within the HCD accelerator.
 """
 
-from julee.shared.utils import (
+from julee.core.utils import (
     kebab_to_snake,
     normalize_name,
     parse_csv_option,

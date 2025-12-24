@@ -10,8 +10,8 @@ from typing import Callable
 
 import click
 
-from julee.shared.entities.pipeline_route import PipelineRoute
-from julee.shared.infrastructure.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
+from julee.core.entities.pipeline_route import PipelineRoute
+from julee.core.infrastructure.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
 
 
 # Default route modules to load

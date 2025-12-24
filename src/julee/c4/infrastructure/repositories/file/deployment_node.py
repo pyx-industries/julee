@@ -7,7 +7,7 @@ from julee.c4.entities.deployment_node import DeploymentNode, NodeType
 from julee.c4.parsers.rst import scan_deployment_node_directory
 from julee.c4.repositories.deployment_node import DeploymentNodeRepository
 from julee.c4.serializers.rst import serialize_deployment_node
-from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
+from julee.core.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

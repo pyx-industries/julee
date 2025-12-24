@@ -5,9 +5,8 @@ Defines the interface for bounded context code introspection data access.
 
 from typing import Protocol, runtime_checkable
 
+from julee.core.repositories.base import BaseRepository
 from julee.hcd.entities.code_info import BoundedContextInfo
-
-from .base import BaseRepository
 
 
 @runtime_checkable

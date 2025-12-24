@@ -3,12 +3,12 @@
 import logging
 from pathlib import Path
 
+from julee.core.infrastructure.repositories.file.base import FileRepositoryMixin
 from julee.hcd.entities.journey import Journey, StepType
 from julee.hcd.parsers.rst import scan_journey_directory
 from julee.hcd.repositories.journey import JourneyRepository
 from julee.hcd.serializers.rst import serialize_journey
 from julee.hcd.utils import normalize_name
-from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

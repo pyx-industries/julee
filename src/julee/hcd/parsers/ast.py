@@ -1,10 +1,10 @@
 """Python code introspection parser.
 
-Re-exports from julee.shared.parsers.ast for backward compatibility.
+Re-exports from julee.core.parsers.ast for backward compatibility.
 These parsers are core introspection tools and live in shared/.
 """
 
-from julee.shared.parsers.ast import (
+from julee.core.parsers.ast import (
     parse_bounded_context,
     parse_module_docstring,
     parse_python_classes,

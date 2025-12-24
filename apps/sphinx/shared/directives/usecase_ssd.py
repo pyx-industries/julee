@@ -42,7 +42,7 @@ class UseCaseSSDDirective(SphinxDirective):
 
         try:
             # 1. Resolve class from module:ClassName
-            from julee.shared.introspection import (
+            from julee.core.introspection import (
                 introspect_use_case,
                 resolve_use_case_class,
             )
@@ -53,7 +53,7 @@ class UseCaseSSDDirective(SphinxDirective):
             metadata = introspect_use_case(use_case_cls)
 
             # 3. Generate PlantUML via Jinja template
-            from julee.shared.templates import render_ssd
+            from julee.core.templates import render_ssd
 
             puml_source = render_ssd(metadata, title=title)
 

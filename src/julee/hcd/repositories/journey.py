@@ -5,9 +5,8 @@ Defines the interface for journey data access.
 
 from typing import Protocol, runtime_checkable
 
+from julee.core.repositories.base import BaseRepository
 from julee.hcd.entities.journey import Journey
-
-from .base import BaseRepository
 
 
 @runtime_checkable

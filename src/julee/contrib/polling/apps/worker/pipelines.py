@@ -24,12 +24,12 @@ from julee.contrib.polling.domain.use_cases import (
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
-from julee.shared.entities.pipeline_dispatch import PipelineDispatchItem
-from julee.shared.infrastructure.pipeline_routing import (
+from julee.core.entities.pipeline_dispatch import PipelineDispatchItem
+from julee.core.infrastructure.pipeline_routing import (
     RegistryPipelineRequestTransformer,
     pipeline_routing_registry,
 )
-from julee.shared.use_cases.pipeline_route_response import (
+from julee.core.use_cases.pipeline_route_response import (
     PipelineRouteResponseRequest,
     PipelineRouteResponseUseCase,
 )

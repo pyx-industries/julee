@@ -2,9 +2,9 @@
 
 import logging
 
+from julee.core.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 from julee.hcd.entities.contrib import ContribModule
 from julee.hcd.repositories.contrib import ContribRepository
-from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

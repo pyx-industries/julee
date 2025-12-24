@@ -4,7 +4,7 @@ Defines async repository interfaces following julee patterns.
 Implementations live in the repositories/ directory.
 """
 
-from julee.shared.repositories.base import BaseRepository
+from julee.core.repositories.base import BaseRepository
 
 from .accelerator import AcceleratorRepository
 from .app import AppRepository

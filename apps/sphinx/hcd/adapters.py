@@ -9,7 +9,7 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
-from julee.shared.repositories.base import BaseRepository
+from julee.core.repositories.base import BaseRepository
 
 T = TypeVar("T", bound=BaseModel)
 

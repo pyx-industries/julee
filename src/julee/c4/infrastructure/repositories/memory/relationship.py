@@ -2,7 +2,7 @@
 
 from julee.c4.entities.relationship import ElementType, Relationship
 from julee.c4.repositories.relationship import RelationshipRepository
-from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
+from julee.core.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 
 class MemoryRelationshipRepository(

@@ -10,13 +10,13 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
+from julee.core.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 from julee.hcd.parsers.docutils_parser import (
     ParsedDocument,
     find_entity_by_type,
     parse_rst_file,
 )
 from julee.hcd.templates import render_entity
-from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

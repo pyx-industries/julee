@@ -7,7 +7,7 @@ from julee.c4.entities.container import Container, ContainerType
 from julee.c4.parsers.rst import scan_container_directory
 from julee.c4.repositories.container import ContainerRepository
 from julee.c4.serializers.rst import serialize_container
-from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
+from julee.core.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

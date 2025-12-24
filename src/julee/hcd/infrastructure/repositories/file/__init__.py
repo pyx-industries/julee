@@ -5,7 +5,7 @@ These repositories persist domain objects to their source file formats
 (Gherkin, YAML, RST) and provide full CRUD operations.
 """
 
-from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
+from julee.core.infrastructure.repositories.file.base import FileRepositoryMixin
 
 from .accelerator import FileAcceleratorRepository
 from .app import FileAppRepository

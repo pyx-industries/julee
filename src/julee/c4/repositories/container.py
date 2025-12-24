@@ -3,8 +3,7 @@
 from typing import Protocol, runtime_checkable
 
 from julee.c4.entities.container import Container, ContainerType
-
-from .base import BaseRepository
+from julee.core.repositories.base import BaseRepository
 
 
 @runtime_checkable

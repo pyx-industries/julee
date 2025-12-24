@@ -3,7 +3,7 @@
 Defines the abstract interfaces for C4 entity repositories.
 """
 
-from julee.shared.repositories.base import BaseRepository
+from julee.core.repositories.base import BaseRepository
 
 from .component import ComponentRepository
 from .container import ContainerRepository

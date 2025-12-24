@@ -7,7 +7,7 @@ PipelineRouteResponseUseCase.
 See: docs/architecture/proposals/pipeline_router_design.md
 """
 
-from julee.shared.entities.pipeline_route import PipelineRoute
+from julee.core.entities.pipeline_route import PipelineRoute
 
 # Polling routes configuration
 #

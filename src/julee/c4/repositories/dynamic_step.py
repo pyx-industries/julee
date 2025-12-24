@@ -4,8 +4,7 @@ from typing import Protocol, runtime_checkable
 
 from julee.c4.entities.dynamic_step import DynamicStep
 from julee.c4.entities.relationship import ElementType
-
-from .base import BaseRepository
+from julee.core.repositories.base import BaseRepository
 
 
 @runtime_checkable
