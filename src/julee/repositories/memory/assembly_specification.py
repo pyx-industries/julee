@@ -16,10 +16,10 @@ avoided. All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.domain.models.assembly_specification import (
+from julee.ceap.domain.models.assembly_specification import (
     AssemblySpecification,
 )
-from julee.domain.repositories.assembly_specification import (
+from julee.ceap.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
 

@@ -17,7 +17,7 @@ from julee.api.dependencies import (
     get_assembly_specification_repository,
 )
 from julee.api.routers.assembly_specifications import router
-from julee.domain.models import (
+from julee.ceap.domain.models import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )

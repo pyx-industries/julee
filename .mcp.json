@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "hcd": {
+      "command": "hcd-mcp"
+    },
+    "c4": {
+      "command": "c4-mcp"
+    }
+  }
+}

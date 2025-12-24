@@ -1,0 +1,13 @@
+Slug:        {{ ctx.slug }}
+Path:        {{ ctx.path }}
+Import:      {{ ctx.import_path }}
+Viewpoint:   {{ ctx.is_viewpoint }}
+Contrib:     {{ ctx.is_contrib }}
+Structure:
+  models:       {{ ctx.markers.has_domain_models }}
+  repositories: {{ ctx.markers.has_domain_repositories }}
+  services:     {{ ctx.markers.has_domain_services }}
+  use_cases:    {{ ctx.markers.has_domain_use_cases }}
+  tests:        {{ ctx.markers.has_tests }}
+  parsers:      {{ ctx.markers.has_parsers }}
+  serializers:  {{ ctx.markers.has_serializers }}

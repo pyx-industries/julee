@@ -1,0 +1,22 @@
+@startuml
+{% if title %}
+title {{ title }}
+
+{% endif %}
+participant "Application" as App
+participant "{{ uc.class_name }}" as UC
+{% for dep_name, dep_type in uc.dependencies.items() %}
+participant "{{ dep_type.__name__ }}" as {{ dep_name | make_alias }}
+{% endfor %}
+
+App -> UC : {{ uc.entry_point_method }}({{ uc.request_type | type_name }})
+activate UC
+{% for call in uc.repository_calls %}
+UC -> {{ call.repo_attr | make_alias }} : {{ call.method_name }}({{ call.arg_type }})
+activate {{ call.repo_attr | make_alias }}
+UC <-- {{ call.repo_attr | make_alias }} : {{ call.return_type if call.return_type else "" }}
+deactivate {{ call.repo_attr | make_alias }}
+{% endfor %}
+UC --> App : {{ uc.response_type | type_name }}
+deactivate UC
+@enduml

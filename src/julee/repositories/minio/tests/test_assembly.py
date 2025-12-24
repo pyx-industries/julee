@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.domain.models.assembly import Assembly, AssemblyStatus
+from julee.ceap.domain.models.assembly import Assembly, AssemblyStatus
 from julee.repositories.minio.assembly import MinioAssemblyRepository
 
 from .fake_client import FakeMinioClient

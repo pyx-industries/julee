@@ -19,8 +19,8 @@ from typing import Any
 
 from anthropic import AsyncAnthropic
 
-from julee.domain.models.document import Document
-from julee.domain.models.knowledge_service_config import (
+from julee.ceap.domain.models.document import Document
+from julee.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
 

@@ -14,8 +14,8 @@ All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.domain.models.assembly import Assembly
-from julee.domain.repositories.assembly import AssemblyRepository
+from julee.ceap.domain.models.assembly import Assembly
+from julee.ceap.domain.repositories.assembly import AssemblyRepository
 
 from .base import MemoryRepositoryMixin
 

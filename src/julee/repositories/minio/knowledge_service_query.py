@@ -16,10 +16,10 @@ Each query is stored as a separate object with the query ID as the key.
 import logging
 import uuid
 
-from julee.domain.models.assembly_specification import (
+from julee.ceap.domain.models.knowledge_service_query import (
     KnowledgeServiceQuery,
 )
-from julee.domain.repositories.knowledge_service_query import (
+from julee.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 

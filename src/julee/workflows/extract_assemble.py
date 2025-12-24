@@ -12,8 +12,9 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.domain.models.assembly import Assembly
-from julee.domain.use_cases import ExtractAssembleDataUseCase
+from julee.ceap.domain.models.assembly import Assembly
+from julee.ceap.domain.use_cases import ExtractAssembleDataUseCase
+from julee.ceap.domain.use_cases.requests import ExtractAssembleDataRequest
 from julee.repositories.temporal.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,
@@ -139,11 +140,12 @@ class ExtractAssembleWorkflow:
             # Execute the assembly process with workflow durability
             # All repository calls inside the use case will be executed as
             # Temporal activities with automatic retry and state persistence
-            assembly = await use_case.assemble_data(
+            request = ExtractAssembleDataRequest(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
                 workflow_id=workflow.info().workflow_id,
             )
+            assembly = await use_case.assemble_data(request)
 
             # Store the assembly ID for queries
             self.assembly_id = assembly.assembly_id

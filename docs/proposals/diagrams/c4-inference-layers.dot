@@ -1,0 +1,197 @@
+// C4 Inference from Clean Architecture - Dependency Diagram
+// Traces from documentation down to code
+
+digraph C4InferenceLayers {
+    rankdir=TB
+    splines=polyline
+    nodesep=0.6
+    ranksep=0.8
+
+    // Graph styling
+    graph [
+        fontname="Helvetica"
+        fontsize=12
+        bgcolor="white"
+        pad=0.5
+    ]
+    node [
+        fontname="Helvetica"
+        fontsize=11
+        shape=box
+        style="filled,rounded"
+    ]
+    edge [
+        fontname="Helvetica"
+        fontsize=9
+        color="#666666"
+    ]
+
+    // === DOCUMENTATION LAYER ===
+    subgraph cluster_docs {
+        label="Documentation Layer"
+        style="filled,rounded"
+        fillcolor="#e8f4f8"
+        color="#4a90a4"
+
+        subgraph cluster_hcd {
+            label="HCD Documentation"
+            style="filled,rounded"
+            fillcolor="#d4edda"
+            color="#28a745"
+
+            personas [label="Personas\n(define-persona::)" fillcolor="#c3e6cb"]
+            journeys [label="Journeys\n(define-journey::)" fillcolor="#c3e6cb"]
+            stories [label="Stories\n(define-story::)" fillcolor="#c3e6cb"]
+            apps [label="Applications\n(define-app::)" fillcolor="#c3e6cb"]
+            accelerators [label="Accelerators\n(define-accelerator::)" fillcolor="#c3e6cb"]
+        }
+
+        subgraph cluster_c4 {
+            label="C4 Documentation"
+            style="filled,rounded"
+            fillcolor="#cce5ff"
+            color="#007bff"
+
+            systems [label="Software Systems\n(define-software-system::)" fillcolor="#b8daff"]
+            containers [label="Containers\n(define-container::)" fillcolor="#b8daff"]
+            components [label="Components\n(define-component::)" fillcolor="#b8daff"]
+            relationships [label="Relationships\n(define-relationship::)" fillcolor="#b8daff"]
+        }
+    }
+
+    // === UNIFIED MODEL LAYER ===
+    subgraph cluster_unified {
+        label="Unified Domain Model"
+        style="filled,rounded"
+        fillcolor="#fff3cd"
+        color="#ffc107"
+
+        person_model [label="Person\n(Persona = Actor)" fillcolor="#ffeeba"]
+        container_model [label="Container\n(App | Accelerator)" fillcolor="#ffeeba"]
+        component_model [label="Component\n(UseCase | Entity | Protocol)" fillcolor="#ffeeba"]
+        relationship_model [label="Relationship\n(uses | calls | stores)" fillcolor="#ffeeba"]
+        external_model [label="External System\n(Integration)" fillcolor="#ffeeba"]
+    }
+
+    // === INFERENCE ENGINE ===
+    subgraph cluster_inference {
+        label="Inference Engine"
+        style="filled,rounded"
+        fillcolor="#f5f5f5"
+        color="#6c757d"
+
+        rst_parser [label="RST Parser\n(docutils)" fillcolor="#e9ecef"]
+        ast_parser [label="AST Parser\n(Python AST)" fillcolor="#e9ecef"]
+        decorator_reader [label="Decorator Reader\n(@repository_impl)" fillcolor="#e9ecef"]
+        di_analyzer [label="DI Container Analyzer\n(Container class)" fillcolor="#e9ecef"]
+        settings_reader [label="Settings Reader\n(Pydantic)" fillcolor="#e9ecef"]
+    }
+
+    // === CODE LAYER ===
+    subgraph cluster_code {
+        label="Code Layer"
+        style="filled,rounded"
+        fillcolor="#f8d7da"
+        color="#dc3545"
+
+        subgraph cluster_domain {
+            label="Domain (Abstract)"
+            style="filled,rounded"
+            fillcolor="#fadbd8"
+            color="#c0392b"
+
+            entities [label="Entities\n(domain/models/)" fillcolor="#f5b7b1"]
+            protocols [label="Protocols\n(domain/repositories/\ndomain/services/)" fillcolor="#f5b7b1"]
+            usecases [label="Use Cases\n(use_cases/)" fillcolor="#f5b7b1"]
+        }
+
+        subgraph cluster_infra {
+            label="Infrastructure (Concrete)"
+            style="filled,rounded"
+            fillcolor="#e8daef"
+            color="#8e44ad"
+
+            repo_impls [label="Repository Implementations\n@repository_impl\n(repositories/minio.py)" fillcolor="#d7bde2"]
+            service_impls [label="Service Implementations\n@service_impl\n(services/anthropic.py)" fillcolor="#d7bde2"]
+            pipelines [label="Pipelines\n(worker/pipelines/)" fillcolor="#d7bde2"]
+        }
+
+        subgraph cluster_app {
+            label="Application (Wiring)"
+            style="filled,rounded"
+            fillcolor="#d5f5e3"
+            color="#27ae60"
+
+            settings [label="Settings\n(settings.py)" fillcolor="#abebc6"]
+            di_container [label="DI Container\n(container.py)" fillcolor="#abebc6"]
+            routes [label="API Routes\n(Depends())" fillcolor="#abebc6"]
+        }
+
+        subgraph cluster_external {
+            label="External Systems"
+            style="filled,rounded"
+            fillcolor="#fdebd0"
+            color="#e67e22"
+
+            minio [label="MinIO\n(S3)" fillcolor="#fad7a0"]
+            temporal [label="Temporal\n(Workflows)" fillcolor="#fad7a0"]
+            anthropic [label="Anthropic\n(Claude API)" fillcolor="#fad7a0"]
+            postgres [label="PostgreSQL\n(Database)" fillcolor="#fad7a0"]
+        }
+    }
+
+    // === EDGES: Documentation → Unified Model ===
+    personas -> person_model [label="unifies"]
+    apps -> container_model [label="unifies"]
+    accelerators -> container_model [label="unifies"]
+    stories -> relationship_model [label="implies\npersona→app"]
+    journeys -> relationship_model [label="implies\ndependencies"]
+
+    systems -> container_model [label="contains"]
+    containers -> container_model [label="unifies"]
+    components -> component_model [label="unifies"]
+    relationships -> relationship_model [label="unifies"]
+
+    // === EDGES: Unified Model → Inference Engine ===
+    person_model -> rst_parser [dir=back label="reads"]
+    container_model -> rst_parser [dir=back label="reads"]
+    container_model -> ast_parser [dir=back label="discovers"]
+    component_model -> ast_parser [dir=back label="discovers"]
+    relationship_model -> decorator_reader [dir=back label="extracts"]
+    external_model -> settings_reader [dir=back label="finds"]
+
+    // === EDGES: Inference Engine → Code ===
+    rst_parser -> stories [dir=back style=dashed]
+    rst_parser -> personas [dir=back style=dashed]
+
+    ast_parser -> entities [dir=back label="parses"]
+    ast_parser -> usecases [dir=back label="parses"]
+    ast_parser -> protocols [dir=back label="parses"]
+    ast_parser -> pipelines [dir=back label="parses"]
+
+    decorator_reader -> repo_impls [dir=back label="reads\nexternal_system"]
+    decorator_reader -> service_impls [dir=back label="reads\nexternal_system"]
+
+    di_analyzer -> di_container [dir=back label="traces\nwiring"]
+    di_analyzer -> settings [dir=back label="reads\nconfig"]
+
+    settings_reader -> settings [dir=back label="schema"]
+
+    // === EDGES: Code internal relationships ===
+    usecases -> protocols [label="depends on" style=dashed color="#999999"]
+    repo_impls -> protocols [label="implements" style=dashed color="#999999"]
+    service_impls -> protocols [label="implements" style=dashed color="#999999"]
+
+    di_container -> repo_impls [label="instantiates" color="#27ae60"]
+    di_container -> service_impls [label="instantiates" color="#27ae60"]
+    di_container -> settings [label="reads" color="#27ae60"]
+
+    routes -> usecases [label="Depends()" color="#27ae60"]
+    pipelines -> usecases [label="executes" color="#27ae60"]
+
+    // === EDGES: Implementations → External Systems ===
+    repo_impls -> minio [label="S3 protocol" color="#e67e22"]
+    repo_impls -> postgres [label="SQLAlchemy" color="#e67e22"]
+    service_impls -> anthropic [label="Claude API" color="#e67e22"]
+    pipelines -> temporal [label="Temporal SDK" color="#e67e22"]
+}

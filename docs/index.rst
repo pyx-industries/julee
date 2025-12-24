@@ -61,21 +61,28 @@ Documentation Contents
    :caption: Architecture
 
    architecture/framework
+   architecture/c4/index
    architecture/solutions/index
    architecture/clean_architecture/index
    architecture/applications/index
 
 .. toctree::
    :maxdepth: 2
+   :caption: Users
+
+   users/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Domain
+
+   domain/index
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
-   autoapi/index
-   autoapi/julee/api/index
-   autoapi/julee/domain/index
-   autoapi/julee/repositories/index
-   autoapi/julee/services/index
-   autoapi/julee/workflows/index
-   autoapi/julee/util/index
+   api/index
 
 .. toctree::
    :maxdepth: 1

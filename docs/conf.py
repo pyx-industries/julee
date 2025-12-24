@@ -7,7 +7,9 @@ import os
 import sys
 
 # Add the project root to the path so Sphinx can find the modules
-sys.path.insert(0, os.path.abspath('..'))
+project_root = os.path.abspath('..')
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, 'src'))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -23,43 +25,33 @@ release = '0.1.0'
 extensions = [
     # Core Sphinx extensions
     'sphinx.ext.autodoc',           # Auto-generate docs from docstrings
+    'sphinx.ext.autosummary',       # Auto-generate API stub pages
     'sphinx.ext.napoleon',          # Support for Google/NumPy style docstrings
     'sphinx.ext.viewcode',          # Add links to source code
     'sphinx.ext.coverage',          # Check documentation coverage
 
     # Third-party extensions
     'sphinx_autodoc_typehints',     # Better type hints rendering
-    'autoapi.extension',            # Automatic API documentation
     'sphinxcontrib.mermaid',        # Mermaid diagram support
     'sphinxcontrib.plantuml',       # PlantUML diagram support
+
+    # Julee documentation extensions (self-documenting)
+    'apps.sphinx.hcd',              # Human-Centered Design directives
+    'apps.sphinx.c4',               # C4 model architecture directives
 ]
 
-# AutoAPI configuration
-autoapi_type = 'python'
-autoapi_dirs = [
-    '../src/julee/api',
-    '../src/julee/domain',
-    '../src/julee/repositories',
-    '../src/julee/services',
-    '../src/julee/workflows',
-    '../src/julee/util',
+# Mock imports for heavy dependencies that may not be available during doc build
+autodoc_mock_imports = [
+    'temporalio',
+    'minio',
+    'anthropic',
+    'mcp',
 ]
-autoapi_options = [
-    'members',
-    'undoc-members',
-    'show-inheritance',
-    'show-module-summary',
-    'imported-members',
-]
-autoapi_ignore = [
-    '*migrations*',
-    '*tests*',
-    '*test_*',
-    '*/conftest.py',
-]
-autoapi_keep_files = True
-autoapi_add_toctree_entry = True
-autoapi_member_order = 'groupwise'
+
+# Autosummary configuration
+autosummary_generate = True
+autosummary_generate_overwrite = True
+autosummary_imported_members = False
 
 # Napoleon settings (for Google/NumPy style docstrings)
 napoleon_google_docstring = True
@@ -83,14 +75,29 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'special-members': '__init__',
     'undoc-members': True,
-    'exclude-members': '__weakref__'
+    'exclude-members': '__weakref__',
+    'show-inheritance': True,
 }
 autodoc_typehints = 'description'
 autodoc_typehints_description_target = 'documented'
+autodoc_class_signature = 'separated'
 
 # PlantUML configuration
 # Requires plantuml to be installed (apt install plantuml on Debian/Ubuntu)
 plantuml_output_format = 'svg'
+
+# sphinx_hcd configuration (Human-Centered Design documentation)
+# Julee uses its own HCD extension for self-documentation
+sphinx_hcd = {
+    'docs_structure': {
+        'applications': 'domain/applications',
+        'personas': 'users/personas',
+        'journeys': 'users/journeys',
+        'epics': 'users/epics',
+        'accelerators': 'domain/accelerators',
+        'stories': 'users/stories',
+    },
+}
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
@@ -99,6 +106,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 suppress_warnings = [
     'ref.python',  # Suppress "more than one target found for cross-reference" warnings
     'docutils',    # Suppress docutils formatting warnings from AutoAPI-generated code examples
+    'autodoc.duplicate_object',  # Suppress duplicate object warnings from __init__.py re-exports
 ]
 
 # -- Options for HTML output -------------------------------------------------

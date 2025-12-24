@@ -1,0 +1,38 @@
+======================================================================
+DOCTRINE VERIFICATION REPORT
+======================================================================
+
+{% if all_passed %}
+All {{ total_tests }} doctrine rules verified successfully.
+{% else %}
+{{ passed_count }} of {{ total_tests }} rules passed. {{ failed_count }} violations found.
+{% endif %}
+
+{% for area, categories in results.items() %}
+----------------------------------------------------------------------
+{{ area | upper }}
+----------------------------------------------------------------------
+
+{% for category in categories %}
+  {{ category.name }}{% if category.description %}: {{ category.description }}{% endif %}
+
+{% for rule in category.rules %}
+{% if rule.passed %}
+    [PASS] {{ rule.statement }}
+{% else %}
+    [FAIL] {{ rule.statement }}
+{% if rule.failure_message %}
+           {{ rule.failure_message }}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% endfor %}
+{% endfor %}
+----------------------------------------------------------------------
+{% if all_passed %}
+DOCTRINE COMPLIANT
+{% else %}
+DOCTRINE VIOLATIONS DETECTED
+{% endif %}
+----------------------------------------------------------------------

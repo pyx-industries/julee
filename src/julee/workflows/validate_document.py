@@ -12,8 +12,11 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.domain.models.policy import DocumentPolicyValidation
-from julee.domain.use_cases import ValidateDocumentUseCase
+from julee.ceap.domain.models.document_policy_validation import (
+    DocumentPolicyValidation,
+)
+from julee.ceap.domain.use_cases import ValidateDocumentUseCase
+from julee.ceap.domain.use_cases.requests import ValidateDocumentRequest
 from julee.repositories.temporal.proxies import (
     WorkflowDocumentRepositoryProxy,
     WorkflowKnowledgeServiceConfigRepositoryProxy,
@@ -153,10 +156,11 @@ class ValidateDocumentWorkflow:
             # Execute the validation process with workflow durability
             # All repository calls inside the use case will be executed as
             # Temporal activities with automatic retry and state persistence
-            validation = await use_case.validate_document(
+            request = ValidateDocumentRequest(
                 document_id=document_id,
                 policy_id=policy_id,
             )
+            validation = await use_case.validate_document(request)
 
             # Store the validation ID for queries
             self.validation_id = validation.validation_id

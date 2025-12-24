@@ -10,7 +10,8 @@ mechanisms and are created via factory functions.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.polling_config import PollingConfig, PollingResult
+from ..models.polling_config import PollingResult
+from ..use_cases.requests import PollEndpointRequest
 
 
 @runtime_checkable
@@ -23,12 +24,12 @@ class PollerService(Protocol):
     handle the specifics of different polling mechanisms.
     """
 
-    async def poll_endpoint(self, config: PollingConfig) -> PollingResult:
+    async def poll_endpoint(self, request: PollEndpointRequest) -> PollingResult:
         """
         Poll an endpoint according to the provided configuration.
 
         Args:
-            config: PollingConfig containing endpoint details and parameters
+            request: PollEndpointRequest containing endpoint details and parameters
 
         Returns:
             PollingResult with success status, content, and metadata

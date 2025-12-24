@@ -1,0 +1,37 @@
+Name:         {{ artifact.artifact.name }}
+Context:      {{ artifact.bounded_context }}
+File:         {{ artifact.artifact.file }}
+{% if artifact.artifact.docstring %}
+Description:  {{ artifact.artifact.docstring }}
+{% endif %}
+{% if artifact.artifact.bases %}
+Bases:        {{ artifact.artifact.bases | join(', ') }}
+{% endif %}
+{% if request %}
+
+Request:      {{ request.artifact.name }}
+{% if request.artifact.docstring %}
+              {{ request.artifact.docstring }}
+{% endif %}
+{% if request.artifact.fields %}
+  Fields:
+{% for field in request.artifact.fields %}
+    {{ field.name }}: {{ field.type_annotation }}{% if field.default %} = {{ field.default }}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if response %}
+
+Response:     {{ response.artifact.name }}
+{% if response.artifact.docstring %}
+              {{ response.artifact.docstring }}
+{% endif %}
+{% if response.artifact.fields %}
+  Fields:
+{% for field in response.artifact.fields %}
+    {{ field.name }}: {{ field.type_annotation }}{% if field.default %} = {{ field.default }}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% endif %}

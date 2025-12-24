@@ -37,6 +37,8 @@ dependencies = [
     "minio>=7.0.0",
     # AI/ML Services
     "anthropic>=0.66.0",
+    # MCP Server Framework
+    "mcp>=1.0.0",
     # Utilities
     "click>=0.8.0",
     "Jinja2>=3.0.0",
@@ -93,15 +95,22 @@ Repository = "https://github.com/pyx-industries/julee"
 Documentation = "https://github.com/pyx-industries/julee#readme"
 Issues = "https://github.com/pyx-industries/julee/issues"
 
+[project.scripts]
+julee-admin = "apps.admin.cli:main"
+julee-mcp = "apps.mcp.server:main"
+hcd-mcp = "apps.mcp.hcd.server:main"
+c4-mcp = "apps.mcp.c4.server:main"
+
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["julee*"]
+where = ["src", "."]
+include = ["julee*", "apps*"]
 
 [tool.setuptools.package-data]
-julee = ["fixtures/*.yaml"]
+julee = ["ceap/fixtures/*.yaml"]
+apps = ["admin/templates/*.j2"]
 
 [tool.pytest.ini_options]
-testpaths = ["src/julee"]
+testpaths = ["src/julee", "apps"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -112,6 +121,7 @@ addopts = [
     "-n", "auto",
     "--dist", "loadgroup",
     "--cov=src/julee",
+    "--cov=apps",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
@@ -125,7 +135,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/julee"]
+source = ["src/julee", "apps"]
 omit = [
     "*/tests/*",
     "*/test_*.py",
@@ -179,7 +189,7 @@ ignore = [
 "tests/**/*.py" = ["B"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["julee"]
+known-first-party = ["julee", "apps"]
 
 [tool.mypy]
 python_version = "3.10"

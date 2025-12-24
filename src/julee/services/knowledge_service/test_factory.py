@@ -10,11 +10,11 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.domain.models.custom_fields.content_stream import (
+from julee.ceap.domain.models.content_stream import (
     ContentStream,
 )
-from julee.domain.models.document import Document, DocumentStatus
-from julee.domain.models.knowledge_service_config import (
+from julee.ceap.domain.models.document import Document, DocumentStatus
+from julee.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )

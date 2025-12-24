@@ -57,11 +57,11 @@ Decision
 
 Create a Sphinx extension package ``julee.docs.sphinx_hcd`` that:
 
-1. **Extracts documentation from code artefacts**:
-   - User stories from Gherkin feature files (acceptance tests)
-   - Application metadata from YAML manifests
-   - Accelerator structure from bounded context directories
-   - Integration dependencies from manifest files
+1. **Supports both document-first and code-first entities**:
+   - Document-first: Personas, journeys, epics, stories via ``define-*`` directives
+   - Code-first: Applications from YAML manifests, accelerators from directory
+     structure, integrations from manifest files
+   - Stories can optionally link to Gherkin feature files for testability
 
 2. **Cross-references automatically**:
    - Stories to personas, apps, epics, and journeys
@@ -87,7 +87,7 @@ Documentation is organised by HCD concepts rather than code structure:
 - **Personas**: Who uses the system
 - **Journeys**: Paths through the system to achieve goals
 - **Epics**: Capabilities delivered by groups of stories
-- **Stories**: Individual user needs (from Gherkin features)
+- **Stories**: Individual user needs
 - **Applications**: Entry points that expose features
 - **Accelerators**: Bounded contexts that implement capabilities
 
@@ -98,20 +98,122 @@ This organisation serves multiple audiences:
 - Engineers trace stories to accelerators and code
 
 
+Story, Feature, Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A capability is viewed from three perspectives:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Concept
+     - Perspective
+     - Question Answered
+   * - **Story**
+     - Need
+     - What does the user want to accomplish?
+   * - **Feature**
+     - Access
+     - How does the user access this capability?
+   * - **Pipeline**
+     - Execution
+     - How is this capability implemented?
+
+All three ultimately implement a **UseCase** operating on **Entities**.
+
+An **Epic** collects stories that together deliver a **Feature**. The sum of an
+Epic's stories equals the Feature's scope.
+
+
+Story Lifecycle
+~~~~~~~~~~~~~~~
+
+Stories progress through maturity states:
+
+1. **Referenced** — Named in a journey or epic via ``step-story::``. The need
+   is identified but not yet elaborated.
+
+2. **Defined** — Documented with ``define-story::`` directive. The story has
+   acceptance criteria and belongs to an application.
+
+3. **Testable** — Linked to a ``.feature`` file. Acceptance tests exist.
+
+4. **Implemented** — A pipeline satisfies the story. The capability is live.
+
+This lifecycle supports design-first workflows: journeys can reference stories
+that don't exist yet. Implementation follows design.
+
+::
+
+    .. define-story:: upload-scheme-documentation
+       :app: staff-portal
+       :persona: Knowledge Curator
+       :feature-file: tests/e2e/staff-portal/features/upload.feature
+
+       As a Knowledge Curator
+       I want to upload scheme documentation
+       So that I can build the vocabulary knowledge base
+
+The ``:feature-file:`` option is optional. When present, story content can be
+extracted from the Gherkin file. When absent, the story is document-first.
+
+
+Document-First vs Code-First
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Entities fall into two categories based on their source of truth:
+
+**Document-first** (defined in RST, may link to code):
+
+- Personas — who uses the system
+- Journeys — paths to achieve goals
+- Epics — capability groupings
+- Stories — user needs (optionally linked to Gherkin)
+
+**Code-first** (discovered from artefacts, elaborated in RST):
+
+- Applications — from ``app.yaml`` manifests
+- Accelerators — from bounded context directories
+- Integrations — from manifest files
+
+Document-first entities use ``define-*`` directives. Code-first entities are
+discovered automatically; RST provides additional context and cross-references.
+
+
 Why Literate Documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By deriving documentation from artefacts that affect build and test outcomes,
 documentation stays current:
 
-- Stories come from ``.feature`` files that drive acceptance tests
 - App metadata comes from ``app.yaml`` that configures applications
-- use custom HCD directives for capturing structured data re: document-first entities,
-  (i.e. entities that are not directly expressed or discoverable from the code).
-- Cross-references are computed, not written manually or maintained.
+- Accelerators discovered from bounded context directory structure
+- Stories optionally link to ``.feature`` files that drive acceptance tests
+- Document-first entities use custom HCD directives for structured capture
+- Cross-references are computed, not written manually
 
 Refactoring becomes safe: rename a feature file and documentation updates
 automatically. Delete an accelerator and warnings appear during doc build.
+
+
+Validation
+~~~~~~~~~~
+
+The extension validates documentation completeness at build time:
+
+**Warnings** (non-fatal):
+
+- Story referenced in journey/epic but not defined
+- Defined story without ``:feature-file:`` link (testability gap)
+- Application without associated stories
+- Accelerator without documentation
+
+**Errors** (fatal):
+
+- Story references unknown persona
+- Story references unknown application
+- Circular journey dependencies
 
 
 Alternatives Considered
@@ -145,11 +247,13 @@ Consequences
 Positive
 ~~~~~~~~
 
-1. **Single source of truth**: Documentation derives from test files and manifests
-2. **Refactoring safety**: Rename or restructure; docs update automatically
-3. **Build-time validation**: Missing documentation produces warnings
-4. **Shared vocabulary**: Business and engineering speak the same HCD language
-5. **Clean Architecture alignment**: Accelerators map to bounded contexts
+1. **Single source of truth**: Each entity has one authoritative definition
+2. **Design-first workflow**: Journeys can reference stories before implementation
+3. **Refactoring safety**: Rename or restructure; docs update automatically
+4. **Build-time validation**: Missing documentation produces warnings
+5. **Shared vocabulary**: Business and engineering speak the same HCD language
+6. **Clean Architecture alignment**: Accelerators map to bounded contexts
+7. **Gradual testability**: Stories can exist without Gherkin, then gain tests later
 
 
 Negative
@@ -158,6 +262,8 @@ Negative
 1. **Upfront structure**: Solutions must adopt standard directory layout or
    configure overrides
 2. **Learning curve**: Teams must understand the directive vocabulary
+3. **Incomplete validation**: Some cross-references only validated when both
+   entities are defined
 
 
 Neutral
