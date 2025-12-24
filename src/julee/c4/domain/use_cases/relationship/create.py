@@ -1,6 +1,5 @@
 """Create relationship use case with co-located request/response."""
 
-
 from pydantic import BaseModel, Field
 
 from ...models.relationship import ElementType, Relationship

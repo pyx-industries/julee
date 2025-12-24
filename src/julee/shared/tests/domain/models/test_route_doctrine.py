@@ -10,7 +10,6 @@ used to generate PlantUML visualizations.
 See: docs/architecture/proposals/pipeline_router_design.md
 """
 
-
 from pydantic import BaseModel
 
 # =============================================================================

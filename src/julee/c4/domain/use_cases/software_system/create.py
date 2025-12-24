@@ -3,7 +3,6 @@
 Use case for creating a new software system.
 """
 
-
 from pydantic import BaseModel, Field, field_validator
 
 from ...models.software_system import SoftwareSystem, SystemType

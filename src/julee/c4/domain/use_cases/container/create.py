@@ -1,6 +1,5 @@
 """Create container use case with co-located request/response."""
 
-
 from pydantic import BaseModel, Field, field_validator
 
 from ...models.container import Container, ContainerType
