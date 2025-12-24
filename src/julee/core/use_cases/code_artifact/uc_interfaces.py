@@ -6,7 +6,7 @@ in the code_artifact module.
 
 from pydantic import BaseModel, Field
 
-from julee.core.entities import ClassInfo, PipelineInfo
+from julee.core.entities import ClassInfo, Pipeline
 
 
 class CodeArtifactWithContext(BaseModel):
@@ -36,4 +36,4 @@ class ListCodeArtifactsResponse(BaseModel):
 class ListPipelinesResponse(BaseModel):
     """Response from listing pipelines."""
 
-    pipelines: list[PipelineInfo]
+    pipelines: list[Pipeline]

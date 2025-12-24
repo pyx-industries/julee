@@ -20,14 +20,7 @@ from julee.core.doctrine_constants import (
 )
 from julee.core.entities import BoundedContext, StructuralMarkers
 
-# Legacy paths for migration support
-_LEGACY_MODELS_PATH = ("domain", "models")
-_LEGACY_USE_CASES_PATH = ("domain", "use_cases")
-_LEGACY_REPOSITORIES_PATH = ("domain", "repositories")
-_LEGACY_SERVICES_PATH = ("domain", "services")
-
-# Re-export for backwards compatibility with existing imports
-__all__ = ["RESERVED_WORDS", "VIEWPOINT_SLUGS", "FilesystemBoundedContextRepository"]
+__all__ = ["FilesystemBoundedContextRepository"]
 
 
 # =============================================================================
@@ -85,34 +78,13 @@ class FilesystemBoundedContextRepository:
         """Check if path contains a subdirectory."""
         return path.joinpath(*parts).is_dir()
 
-    def _has_subdir_or_legacy(
-        self, path: Path, parts: tuple[str, ...], legacy_parts: tuple[str, ...] | None
-    ) -> bool:
-        """Check if path contains a subdirectory (new or legacy location)."""
-        if path.joinpath(*parts).is_dir():
-            return True
-        if legacy_parts and path.joinpath(*legacy_parts).is_dir():
-            return True
-        return False
-
     def _detect_markers(self, path: Path) -> StructuralMarkers:
-        """Detect structural markers in a directory.
-
-        Checks both new flattened structure and legacy domain/ structure.
-        """
+        """Detect structural markers in a directory."""
         return StructuralMarkers(
-            has_domain_models=self._has_subdir_or_legacy(
-                path, ENTITIES_PATH, _LEGACY_MODELS_PATH
-            ),
-            has_domain_repositories=self._has_subdir_or_legacy(
-                path, REPOSITORIES_PATH, _LEGACY_REPOSITORIES_PATH
-            ),
-            has_domain_services=self._has_subdir_or_legacy(
-                path, SERVICES_PATH, _LEGACY_SERVICES_PATH
-            ),
-            has_domain_use_cases=self._has_subdir_or_legacy(
-                path, USE_CASES_PATH, _LEGACY_USE_CASES_PATH
-            ),
+            has_domain_models=self._has_subdir(path, ENTITIES_PATH),
+            has_domain_repositories=self._has_subdir(path, REPOSITORIES_PATH),
+            has_domain_services=self._has_subdir(path, SERVICES_PATH),
+            has_domain_use_cases=self._has_subdir(path, USE_CASES_PATH),
             has_tests=self._has_subdir(path, ("tests",)),
             has_parsers=self._has_subdir(path, ("parsers",)),
             has_serializers=self._has_subdir(path, ("serializers",)),

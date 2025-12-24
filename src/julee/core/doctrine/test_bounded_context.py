@@ -86,13 +86,13 @@ class TestReservedWords:
             ), f"'{ctx.slug}' MUST NOT use reserved word"
 
     def test_RESERVED_WORDS_MUST_include_structural_directories(self):
-        """RESERVED_WORDS MUST include: core, contrib, applications, docs, deployment."""
-        required = {"core", "contrib", "applications", "docs", "deployment"}
+        """RESERVED_WORDS MUST include: contrib, docs, deployment."""
+        required = {"contrib", "docs", "deployment"}
         assert required.issubset(RESERVED_WORDS)
 
     def test_RESERVED_WORDS_MUST_include_common_directories(self):
-        """RESERVED_WORDS MUST include: shared, util, utils, common, tests."""
-        required = {"shared", "util", "utils", "common", "tests"}
+        """RESERVED_WORDS MUST include: core, util, utils, common, tests."""
+        required = {"core", "util", "utils", "common", "tests"}
         assert required.issubset(RESERVED_WORDS)
 
 

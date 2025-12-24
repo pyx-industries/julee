@@ -5,12 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
+from julee.core.doctrine_constants import RESERVED_WORDS, VIEWPOINT_SLUGS
 from julee.core.infrastructure.repositories.introspection import (
     FilesystemBoundedContextRepository,
-)
-from julee.core.infrastructure.repositories.introspection.bounded_context import (
-    RESERVED_WORDS,
-    VIEWPOINT_SLUGS,
 )
 
 
@@ -21,10 +18,10 @@ def create_bounded_context(base_path: Path, name: str, layers: list[str] | None 
     (ctx_path / "__init__.py").touch()
 
     if layers is None:
-        layers = ["models", "use_cases"]
+        layers = ["entities", "use_cases"]
 
     for layer in layers:
-        layer_path = ctx_path / "domain" / layer
+        layer_path = ctx_path / layer
         layer_path.mkdir(parents=True)
         (layer_path / "__init__.py").touch()
 
@@ -42,10 +39,10 @@ class TestDiscoveryBasics:
     """Basic discovery tests."""
 
     @pytest.mark.asyncio
-    async def test_discovers_bounded_context_with_models(self, tmp_path: Path):
-        """Should discover context with domain/models."""
+    async def test_discovers_bounded_context_with_entities(self, tmp_path: Path):
+        """Should discover context with entities/."""
         search_root = create_search_root(tmp_path)
-        create_bounded_context(search_root, "billing", layers=["models"])
+        create_bounded_context(search_root, "billing", layers=["entities"])
 
         repo = FilesystemBoundedContextRepository(tmp_path)
         contexts = await repo.list_all()
@@ -56,7 +53,7 @@ class TestDiscoveryBasics:
 
     @pytest.mark.asyncio
     async def test_discovers_bounded_context_with_use_cases(self, tmp_path: Path):
-        """Should discover context with domain/use_cases."""
+        """Should discover context with use_cases/."""
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing", layers=["use_cases"])
 
@@ -111,7 +108,7 @@ class TestExclusions:
         create_bounded_context(search_root, "billing")
 
         # Create reserved word directories with BC structure
-        for reserved in ["shared", "core", "contrib", "utils"]:
+        for reserved in ["core", "contrib", "utils"]:
             create_bounded_context(search_root, reserved)
 
         repo = FilesystemBoundedContextRepository(tmp_path)
@@ -199,7 +196,7 @@ class TestMarkerDetection:
         create_bounded_context(
             search_root,
             "complete",
-            layers=["models", "repositories", "services", "use_cases"],
+            layers=["entities", "repositories", "services", "use_cases"],
         )
 
         repo = FilesystemBoundedContextRepository(tmp_path)
@@ -394,12 +391,12 @@ class TestReservedWordsConfiguration:
 
     def test_reserved_words_includes_structural(self):
         """Reserved words should include structural directories."""
-        for word in ["core", "contrib", "applications", "docs", "deployment"]:
+        for word in ["contrib", "docs", "deployment"]:
             assert word in RESERVED_WORDS, f"{word} should be reserved"
 
     def test_reserved_words_includes_common(self):
         """Reserved words should include common directories."""
-        for word in ["shared", "util", "utils", "common", "tests"]:
+        for word in ["core", "util", "utils", "common", "tests"]:
             assert word in RESERVED_WORDS, f"{word} should be reserved"
 
     def test_viewpoint_slugs_are_correct(self):

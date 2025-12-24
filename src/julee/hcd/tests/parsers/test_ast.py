@@ -174,11 +174,11 @@ class TestParseBoundedContext:
 
     def test_parse_full_context(self, tmp_path: Path) -> None:
         """Test parsing a complete bounded context structure."""
-        # Create ADR 001-compliant structure
+        # Create flattened structure
         context_dir = tmp_path / "vocabulary"
-        (context_dir / "domain" / "models").mkdir(parents=True)
-        (context_dir / "domain" / "repositories").mkdir(parents=True)
-        (context_dir / "domain" / "services").mkdir(parents=True)
+        (context_dir / "entities").mkdir(parents=True)
+        (context_dir / "repositories").mkdir(parents=True)
+        (context_dir / "services").mkdir(parents=True)
         (context_dir / "use_cases").mkdir(parents=True)
         (context_dir / "infrastructure").mkdir(parents=True)
 
@@ -186,7 +186,7 @@ class TestParseBoundedContext:
         (context_dir / "__init__.py").write_text('"""Vocabulary management."""')
 
         # Entity
-        (context_dir / "domain" / "models" / "vocabulary.py").write_text(
+        (context_dir / "entities" / "vocabulary.py").write_text(
             '''
 class Vocabulary:
     """A vocabulary catalog."""
@@ -204,7 +204,7 @@ class CreateVocabulary:
         )
 
         # Repository protocol
-        (context_dir / "domain" / "repositories" / "vocabulary.py").write_text(
+        (context_dir / "repositories" / "vocabulary.py").write_text(
             '''
 class VocabularyRepository:
     """Repository for vocabularies."""
@@ -254,8 +254,8 @@ class TestScanBoundedContexts:
             context_dir = tmp_path / name
             context_dir.mkdir()
             (context_dir / "__init__.py").write_text(f'"""{name.title()} module."""')
-            (context_dir / "domain" / "models").mkdir(parents=True)
-            (context_dir / "domain" / "models" / "entity.py").write_text(
+            (context_dir / "entities").mkdir(parents=True)
+            (context_dir / "entities" / "entity.py").write_text(
                 f"class {name.title()}Entity: pass"
             )
 

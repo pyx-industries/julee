@@ -81,7 +81,3 @@ class PipelineRouter(BaseModel):
         )
 
         return "\n".join(lines)
-
-
-# Backwards-compatible alias
-MultiplexRouter = PipelineRouter

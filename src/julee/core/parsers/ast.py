@@ -19,8 +19,8 @@ if TYPE_CHECKING:
         ClassInfo,
         FieldInfo,
         MethodInfo,
-        PipelineInfo,
     )
+    from julee.core.entities.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -272,38 +272,20 @@ def parse_bounded_context(context_dir: Path) -> "BoundedContextInfo | None":
 def _resolve_layer_path(
     context_dir: Path,
     path_tuple: tuple[str, ...],
-    legacy_path: tuple[str, ...] | None = None,
 ) -> Path:
-    """Resolve layer path, checking legacy structure first during migration.
-
-    During migration, we check legacy paths first since that's where the code
-    currently lives. Once migration is complete, legacy paths can be removed.
+    """Resolve layer path within a bounded context.
 
     Args:
         context_dir: Base bounded context directory
-        path_tuple: New flattened path as tuple (e.g., ("entities",))
-        legacy_path: Legacy path to check first (e.g., ("domain", "models"))
+        path_tuple: Path as tuple (e.g., ("entities",))
 
     Returns:
         Path to the layer directory (may not exist)
     """
-    # Check legacy path first during migration (where code currently is)
-    if legacy_path:
-        legacy = context_dir
-        for part in legacy_path:
-            legacy = legacy / part
-        if legacy.exists():
-            return legacy
-
-    # Try new flattened path
-    new_path = context_dir
+    result = context_dir
     for part in path_tuple:
-        new_path = new_path / part
-    if new_path.exists():
-        return new_path
-
-    # Return new path even if doesn't exist (for future creation)
-    return new_path
+        result = result / part
+    return result
 
 
 @functools.lru_cache(maxsize=64)
@@ -328,19 +310,11 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     init_file = context_dir / "__init__.py"
     objective, full_docstring = parse_module_docstring(init_file)
 
-    # Resolve paths with fallback to legacy structure during migration
-    use_cases_dir = _resolve_layer_path(
-        context_dir, USE_CASES_PATH, legacy_path=("domain", "use_cases")
-    )
-    entities_dir = _resolve_layer_path(
-        context_dir, ENTITIES_PATH, legacy_path=("domain", "models")
-    )
-    repositories_dir = _resolve_layer_path(
-        context_dir, REPOSITORIES_PATH, legacy_path=("domain", "repositories")
-    )
-    services_dir = _resolve_layer_path(
-        context_dir, SERVICES_PATH, legacy_path=("domain", "services")
-    )
+    # Resolve paths
+    use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
+    entities_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
+    repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
+    services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
 
     # Parse all classes from use_cases directory
     all_classes = parse_python_classes(use_cases_dir)
@@ -372,23 +346,15 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 def _has_bounded_context_structure(context_dir: Path) -> bool:
     """Check if directory has bounded context structure.
 
-    Supports both flattened structure (entities/, use_cases/) and
-    legacy structure (domain/models/, domain/use_cases/).
+    A bounded context has entities/ or use_cases/ directories.
     """
     from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
-    # Check new flattened structure
     for path_tuple in [ENTITIES_PATH, USE_CASES_PATH]:
         path = context_dir
         for part in path_tuple:
             path = path / part
         if path.exists():
-            return True
-
-    # Check legacy structure
-    domain_dir = context_dir / "domain"
-    if domain_dir.exists():
-        if (domain_dir / "models").exists() or (domain_dir / "use_cases").exists():
             return True
 
     return False
@@ -400,13 +366,11 @@ def scan_bounded_contexts(
 ) -> list["BoundedContextInfo"]:
     """Scan a source directory for all bounded contexts.
 
-    Includes directories with either:
-    - Flattened structure: entities/ or use_cases/ directories
-    - Legacy structure: domain/models/ or domain/use_cases/ directories
+    Includes directories with entities/ or use_cases/ subdirectories.
 
     Args:
         src_dir: Root source directory (e.g., project/src/)
-        exclude: List of directory names to exclude (e.g., ["shared"])
+        exclude: List of directory names to exclude (e.g., ["core"])
 
     Returns:
         List of BoundedContextInfo objects for all discovered contexts
@@ -425,7 +389,7 @@ def scan_bounded_contexts(
         if context_dir.name in exclude:
             continue
 
-        # Check for bounded context structure (flattened or legacy)
+        # Check for bounded context structure
         if not _has_bounded_context_structure(context_dir):
             continue
 
@@ -597,7 +561,7 @@ def _parse_pipeline_class(
     file_path: str,
     bounded_context: str = "",
 ):
-    """Parse a class AST node into PipelineInfo if it's a pipeline.
+    """Parse a class AST node into Pipeline if it's a pipeline.
 
     A class is considered a pipeline if it:
     1. Has name ending with 'Pipeline', OR
@@ -609,10 +573,11 @@ def _parse_pipeline_class(
         bounded_context: Name of the bounded context
 
     Returns:
-        PipelineInfo if class is a pipeline, None otherwise
+        Pipeline if class is a pipeline, None otherwise
     """
     from julee.core.doctrine_constants import PIPELINE_SUFFIX
-    from julee.core.entities.code_info import MethodInfo, PipelineInfo
+    from julee.core.entities.code_info import MethodInfo
+    from julee.core.entities.pipeline import Pipeline
 
     # Check if this is a pipeline class
     is_pipeline_by_name = class_node.name.endswith(PIPELINE_SUFFIX)
@@ -670,7 +635,7 @@ def _parse_pipeline_class(
                 )
             )
 
-    return PipelineInfo(
+    return Pipeline(
         name=class_node.name,
         docstring=first_line,
         file=file_path,
@@ -692,7 +657,7 @@ def _parse_pipeline_class(
 def parse_pipelines_from_file(
     file_path: Path,
     bounded_context: str = "",
-) -> list[PipelineInfo]:
+) -> list[Pipeline]:
     """Extract pipeline information from a Python file.
 
     Args:
@@ -700,7 +665,7 @@ def parse_pipelines_from_file(
         bounded_context: Name of the bounded context
 
     Returns:
-        List of PipelineInfo objects
+        List of Pipeline objects
     """
     if not file_path.exists():
         return []
@@ -723,7 +688,7 @@ def parse_pipelines_from_file(
     return sorted(pipelines, key=lambda p: p.name)
 
 
-def parse_pipelines_from_bounded_context(context_dir: Path) -> list[PipelineInfo]:
+def parse_pipelines_from_bounded_context(context_dir: Path) -> list[Pipeline]:
     """Extract pipelines from a bounded context.
 
     Looks for pipelines at:
@@ -734,7 +699,7 @@ def parse_pipelines_from_bounded_context(context_dir: Path) -> list[PipelineInfo
         context_dir: Path to the bounded context directory
 
     Returns:
-        List of PipelineInfo objects
+        List of Pipeline objects
     """
     from julee.core.doctrine_constants import PIPELINE_LOCATION
 

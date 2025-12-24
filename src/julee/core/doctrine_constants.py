@@ -191,9 +191,6 @@ Contains: Entity classes, value objects, domain events
 Can import: Nothing (except standard library, pydantic)
 """
 
-# Alias for backward compatibility during migration
-LAYER_MODELS: Final[str] = LAYER_ENTITIES
-
 LAYER_USE_CASES: Final[str] = "use_cases"
 """Middle layer: application business rules.
 
@@ -243,10 +240,9 @@ Can import: Everything
 LAYER_KEYWORDS: Final[dict[str, str]] = {
     # Innermost
     "entities": LAYER_ENTITIES,
-    "models": LAYER_ENTITIES,  # legacy alias
     # Middle
     "use_cases": LAYER_USE_CASES,
-    "usecases": LAYER_USE_CASES,  # alias
+    "usecases": LAYER_USE_CASES,  # alternative spelling
     "repositories": LAYER_REPOSITORIES,
     "services": LAYER_SERVICES,
     # Outer
@@ -317,10 +313,6 @@ SERVICES_PATH: Final[tuple[str, ...]] = ("services",)
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 """Path to infrastructure directory: {bc}/infrastructure/"""
 
-# Legacy aliases for backward compatibility during migration
-DOMAIN_DIR: Final[str] = "domain"
-MODELS_PATH: Final[tuple[str, ...]] = ENTITIES_PATH
-
 
 # =============================================================================
 # BOUNDED CONTEXT DISCOVERY
@@ -350,7 +342,6 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
     {
         "contrib",  # Plugin/contributed modules
-        "applications",  # Legacy - may be removed
         "docs",  # Documentation
         "deployment",  # Deployment configuration
     }
@@ -363,9 +354,8 @@ These directories have special meaning in the project layout.
 RESERVED_COMMON: Final[frozenset[str]] = frozenset(
     {
         "core",  # Foundational accelerator (cross-cutting concerns)
-        "shared",  # Legacy alias for core
         "util",  # Utilities
-        "utils",  # Utilities (alias)
+        "utils",  # Utilities (alternative spelling)
         "common",  # Common code
         "tests",  # Test directories
     }
@@ -417,9 +407,6 @@ Special handling required for:
 - Service protocol method matching (core services need core requests)
 - Import analysis (core is allowed as an import source)
 """
-
-# Legacy alias for backward compatibility during migration
-SHARED_CONTEXT_SLUG: Final[str] = CORE_CONTEXT_SLUG
 
 
 # =============================================================================

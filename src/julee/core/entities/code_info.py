@@ -56,8 +56,7 @@ class ClassInfo(BaseModel):
         return v.strip()
 
 
-# PipelineInfo moved to pipeline.py - import here for backwards compatibility
-from julee.core.entities.pipeline import Pipeline as PipelineInfo  # noqa: E402
+from julee.core.entities.pipeline import Pipeline  # noqa: E402
 
 
 class BoundedContextInfo(BaseModel):
@@ -80,7 +79,7 @@ class BoundedContextInfo(BaseModel):
     responses: list[ClassInfo] = Field(default_factory=list)
     repository_protocols: list[ClassInfo] = Field(default_factory=list)
     service_protocols: list[ClassInfo] = Field(default_factory=list)
-    pipelines: list[PipelineInfo] = Field(default_factory=list)
+    pipelines: list[Pipeline] = Field(default_factory=list)
     has_infrastructure: bool = False
     code_dir: str = ""
     objective: str | None = None

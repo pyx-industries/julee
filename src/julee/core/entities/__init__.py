@@ -13,7 +13,6 @@ from julee.core.entities.code_info import (
     ClassInfo,
     FieldInfo,
     MethodInfo,
-    PipelineInfo,  # Backwards compatibility alias for Pipeline
 )
 from julee.core.entities.dependency_rule import DependencyRule
 from julee.core.entities.entity import Entity
@@ -37,9 +36,6 @@ from julee.core.entities.response import Response
 from julee.core.entities.service_protocol import ServiceProtocol
 from julee.core.entities.use_case import UseCase
 
-# Backwards compatibility aliases
-MultiplexRouter = PipelineRouter
-
 __all__ = [
     # Core models
     "BoundedContext",
@@ -54,7 +50,6 @@ __all__ = [
     "DependencyRule",
     "Entity",
     "Pipeline",
-    "PipelineInfo",  # Backwards compatibility alias
     "RepositoryProtocol",
     "Request",
     "Response",
@@ -63,7 +58,6 @@ __all__ = [
     # Routing models
     "Condition",
     "FieldCondition",
-    "MultiplexRouter",
     "Operator",
     "PipelineCondition",
     "PipelineDispatchItem",

@@ -30,13 +30,9 @@ class TestClassifyImportLayer:
     """Unit tests for classify_import_layer function."""
 
     def test_entities_layer_identified(self):
-        """Import paths containing 'entities' or 'models' classify as entities layer."""
-        # New flattened path
+        """Import paths containing 'entities' classify as entities layer."""
         assert classify_import_layer("julee.hcd.entities") == "entities"
         assert classify_import_layer("julee.hcd.entities.story") == "entities"
-        # Legacy path (models maps to entities layer)
-        assert classify_import_layer("julee.hcd.domain.models") == "entities"
-        assert classify_import_layer("julee.hcd.domain.models.story") == "entities"
 
     def test_use_cases_layer_identified(self):
         """Import paths containing 'use_cases' classify as use_cases layer."""
