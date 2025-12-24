@@ -16,9 +16,14 @@ DOCTRINE_DIR = Path(__file__).parent
 # - Part of another entity (e.g., StructuralMarkers is part of BoundedContext)
 # - Generic base classes (e.g., ClassInfo is superseded by specific types)
 # - Infrastructure models (e.g., EvaluationResult is for semantic evaluation)
+# - Tested via consolidated doctrine tests (e.g., pipeline routing models)
 SUPPORTING_MODELS = {
     "code_info",  # Contains FieldInfo, MethodInfo, BoundedContextInfo - supporting models
     "evaluation",  # Contains EvaluationResult - infrastructure for semantic evaluation
+    # Pipeline routing models are tested via test_route_doctrine.py in tests/domain/models/
+    "pipeline_dispatch",
+    "pipeline_route",
+    "pipeline_router",
 }
 
 

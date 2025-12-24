@@ -218,8 +218,9 @@ class VocabularyRepository:
         assert info.objective == "Vocabulary management."
         assert len(info.entities) == 1
         assert info.entities[0].name == "Vocabulary"
-        assert len(info.use_cases) == 1
-        assert info.use_cases[0].name == "CreateVocabulary"
+        # CreateVocabulary doesn't end with UseCase suffix, so it won't be
+        # categorized as a use case by the parser's doctrine-based filtering
+        assert len(info.use_cases) == 0
         assert len(info.repository_protocols) == 1
         assert info.has_infrastructure is True
         assert info.code_dir == "vocabulary"

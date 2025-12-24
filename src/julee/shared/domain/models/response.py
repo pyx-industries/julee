@@ -4,11 +4,12 @@ from julee.shared.domain.models.code_info import ClassInfo
 
 
 class Response(ClassInfo):
-    """The output boundary - data crossing out from the application.
+    """The output boundary - data crossing out from the use case to the application.
 
-    Responses carry the results of use case execution back across the
-    boundary to the outside world. They present domain results in a form
-    that delivery mechanisms can consume without knowing domain internals.
+    Responses are canonical models that carry the results of use case execution
+    back across the boundary to the application layer. The application then
+    serializes the Response for external consumption (JSON, terminal output,
+    message payloads).
 
     The use case builds a Response containing exactly what the caller needs
     to know - no more, no less. A web controller serializes it to JSON. A

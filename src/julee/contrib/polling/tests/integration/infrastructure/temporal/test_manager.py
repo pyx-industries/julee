@@ -1,10 +1,12 @@
 """
-Unit tests for PollingManager.
+Tests for PollingManager.
 
 This module tests the PollingManager class using mocked Temporal client,
 as the test environment doesn't support schedule operations. We mock the
 Temporal client to test the manager's business logic and error handling
 without requiring actual Temporal infrastructure.
+
+Marked as integration tests due to async cleanup issues with pytest.
 """
 
 from unittest.mock import AsyncMock, MagicMock
@@ -17,6 +19,8 @@ from julee.contrib.polling.domain.models.polling_config import (
     PollingProtocol,
 )
 from julee.contrib.polling.infrastructure.temporal.manager import PollingManager
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture

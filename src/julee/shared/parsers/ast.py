@@ -279,15 +279,17 @@ def parse_bounded_context(context_dir: Path) -> "BoundedContextInfo | None":
     if not use_cases_dir.exists():
         use_cases_dir = context_dir / "domain" / "use_cases"
 
-    # Parse requests and responses from dedicated files
-    requests = parse_python_classes_from_file(use_cases_dir / "requests.py")
-    responses = parse_python_classes_from_file(use_cases_dir / "responses.py")
+    # Parse all classes from use_cases directory
+    all_classes = parse_python_classes(use_cases_dir)
 
-    # Parse use cases, excluding requests.py and responses.py
-    use_cases = parse_python_classes(
-        use_cases_dir,
-        exclude_files=["requests.py", "responses.py"],
-    )
+    # Filter classes into categories based on naming conventions:
+    # - *Request classes are requests
+    # - *Response classes are responses
+    # - *UseCase classes are use cases
+    # - Other classes (like *Item) are auxiliary
+    requests = [c for c in all_classes if c.name.endswith("Request")]
+    responses = [c for c in all_classes if c.name.endswith("Response")]
+    use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
 
     return BoundedContextInfo(
         slug=context_dir.name,

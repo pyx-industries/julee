@@ -57,9 +57,14 @@ class DoctrineCollector:
         and organize them by area and category.
         """
         for item in items:
-            # Only process doctrine tests (both patterns)
-            filename = Path(item.fspath).name
-            if "_doctrine" not in filename and "doctrine_" not in filename:
+            # Only process doctrine tests
+            # - Files in the doctrine/ directory (new pattern: test_*.py)
+            # - Files with _doctrine or doctrine_ in name (legacy pattern)
+            filepath = Path(item.fspath)
+            filename = filepath.name
+            in_doctrine_dir = filepath.parent.name == "doctrine"
+            has_doctrine_in_name = "_doctrine" in filename or "doctrine_" in filename
+            if not in_doctrine_dir and not has_doctrine_in_name:
                 continue
 
             # Get class info
@@ -80,7 +85,10 @@ class DoctrineCollector:
                 if "compliance" in filename:
                     area_name = readable_name
                 else:
-                    area_name = filename.replace("test_", "").replace("_doctrine.py", "")
+                    # Handle both patterns:
+                    # - Legacy: test_*_doctrine.py
+                    # - New: test_*.py (in doctrine/ directory)
+                    area_name = filename.replace("test_", "").replace("_doctrine.py", "").replace(".py", "")
                     area_name = area_name.replace("_", " ").title()
 
                 # Get or create area

@@ -1,9 +1,12 @@
 """
-Unit tests for polling worker pipelines.
+Integration tests for polling worker pipelines.
 
 This module tests the NewDataDetectionPipeline workflow using Temporal's test
 environment. Tests verify the doctrine-compliant pipeline that delegates to
 NewDataDetectionUseCase.
+
+These tests require Temporal infrastructure (via WorkflowEnvironment) and are
+marked as integration tests.
 """
 
 import hashlib
@@ -23,6 +26,8 @@ from julee.contrib.polling.domain.models.polling_config import (
     PollingResult,
 )
 from julee.contrib.polling.domain.use_cases import NewDataDetectionRequest
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture

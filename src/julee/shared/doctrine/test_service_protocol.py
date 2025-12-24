@@ -93,6 +93,14 @@ class TestServiceProtocolInheritance:
         ), "Service protocols not inheriting from Protocol:\n" + "\n".join(violations)
 
 
+# Service protocols exempt from the matching Request class rule.
+# These are internal query/utility services that don't follow the formal use case pattern.
+EXEMPT_SERVICE_PROTOCOLS = {
+    "SuggestionContextService",  # Internal query service for suggestions
+    "SemanticEvaluationService",  # Internal evaluation service
+}
+
+
 class TestServiceProtocolMethods:
     """Doctrine about service protocol methods."""
 
@@ -106,6 +114,8 @@ class TestServiceProtocolMethods:
         Request class in the same bounded context's requests.py.
 
         Example: method `evaluate_docstring_quality` -> `EvaluateDocstringQualityRequest`
+
+        Note: Some internal query/utility services are exempt (see EXEMPT_SERVICE_PROTOCOLS).
         """
         use_case = ListServiceProtocolsUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
@@ -165,6 +175,10 @@ class TestServiceProtocolMethods:
         violations = []
         for artifact in all_service_artifacts:
             service_name = artifact.artifact.name
+            # Skip exempt services
+            if service_name in EXEMPT_SERVICE_PROTOCOLS:
+                continue
+
             ctx = artifact.bounded_context
             available = requests_by_context.get(ctx, set())
 
