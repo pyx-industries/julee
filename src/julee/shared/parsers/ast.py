@@ -75,7 +75,7 @@ def _extract_class_methods(class_node: ast.ClassDef) -> list[MethodInfo]:
     """
     methods = []
     for node in class_node.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             # Skip private/dunder methods
             if node.name.startswith("_"):
                 continue

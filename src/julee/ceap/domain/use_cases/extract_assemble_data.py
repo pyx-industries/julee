@@ -130,6 +130,21 @@ class ExtractAssembleDataUseCase:
             KnowledgeServiceConfigRepository,  # type: ignore[type-abstract]
         )
 
+    async def execute(
+        self,
+        request: ExtractAssembleDataRequest,
+    ) -> Assembly:
+        """Execute the use case.
+
+        Args:
+            request: Request containing document_id, assembly_specification_id,
+                and workflow_id
+
+        Returns:
+            New Assembly with the assembled document iteration
+        """
+        return await self.assemble_data(request)
+
     async def assemble_data(
         self,
         request: ExtractAssembleDataRequest,

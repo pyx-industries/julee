@@ -131,6 +131,19 @@ class ValidateDocumentUseCase:
         )
         self.now_fn = now_fn
 
+    async def execute(
+        self, request: ValidateDocumentRequest
+    ) -> DocumentPolicyValidation:
+        """Execute the use case.
+
+        Args:
+            request: Request containing document_id and policy_id
+
+        Returns:
+            DocumentPolicyValidation with validation results
+        """
+        return await self.validate_document(request)
+
     async def validate_document(
         self, request: ValidateDocumentRequest
     ) -> DocumentPolicyValidation:

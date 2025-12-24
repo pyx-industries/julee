@@ -49,6 +49,9 @@ class TestEntityCompliance:
         use_case = ListEntitiesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
+        # Canary: ensure we're actually scanning entities
+        assert len(response.artifacts) > 0, "No entities found - detector may be broken"
+
         violations = []
         for artifact in response.artifacts:
             name = artifact.artifact.name
@@ -135,6 +138,11 @@ class TestUseCaseCompliance:
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
+        # Canary: ensure we're actually scanning use cases
+        assert (
+            len(response.artifacts) > 0
+        ), "No use cases found - detector may be broken"
+
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("UseCase"):
@@ -193,6 +201,72 @@ class TestUseCaseCompliance:
             violations
         )
 
+    @pytest.mark.asyncio
+    async def test_all_use_cases_MUST_have_execute_method(self, repo):
+        """All use cases MUST have an execute() method.
+
+        The execute() method is the single entry point for use case invocation.
+        It accepts a Request and returns a Response.
+        """
+        use_case = ListUseCasesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        violations = []
+        for artifact in response.artifacts:
+            method_names = [m.name for m in artifact.artifact.methods]
+            if "execute" not in method_names:
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}: missing execute() method"
+                )
+
+        assert not violations, "Use cases missing execute() method:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_all_use_cases_SHOULD_have_matching_response(self, repo):
+        """All use cases SHOULD have a matching {Prefix}Response class.
+
+        Use cases that return data should have a corresponding Response class
+        in the same bounded context.
+        """
+        uc_use_case = ListUseCasesUseCase(repo)
+        uc_response = await uc_use_case.execute(ListCodeArtifactsRequest())
+
+        resp_use_case = ListResponsesUseCase(repo)
+        resp_response = await resp_use_case.execute(ListCodeArtifactsRequest())
+
+        # Build set of available responses per context
+        responses_by_context: dict[str, set[str]] = {}
+        for artifact in resp_response.artifacts:
+            ctx = artifact.bounded_context
+            if ctx not in responses_by_context:
+                responses_by_context[ctx] = set()
+            responses_by_context[ctx].add(artifact.artifact.name)
+
+        missing = []
+        for artifact in uc_response.artifacts:
+            name = artifact.artifact.name
+            ctx = artifact.bounded_context
+            if name.endswith("UseCase"):
+                prefix = name[:-7]  # Strip "UseCase"
+                expected_response = f"{prefix}Response"
+                available = responses_by_context.get(ctx, set())
+                if expected_response not in available:
+                    missing.append(f"{ctx}.{name}: missing {expected_response}")
+
+        # This is a SHOULD rule - log but don't fail
+        # Uncomment the assertion below to enforce strictly
+        # assert not missing, "Use cases missing matching responses:\n" + "\n".join(missing)
+        if missing:
+            import warnings
+
+            warnings.warn(
+                "Use cases missing matching Response classes (SHOULD have):\n"
+                + "\n".join(missing),
+                stacklevel=2,
+            )
+
 
 # =============================================================================
 # REQUEST COMPLIANCE
@@ -218,6 +292,9 @@ class TestRequestCompliance:
         """
         use_case = ListRequestsUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
+
+        # Canary: ensure we're actually scanning requests
+        assert len(response.artifacts) > 0, "No requests found - detector may be broken"
 
         violations = []
         for artifact in response.artifacts:
@@ -297,6 +374,11 @@ class TestResponseCompliance:
         use_case = ListResponsesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
+        # Canary: ensure we're actually scanning responses
+        assert (
+            len(response.artifacts) > 0
+        ), "No responses found - detector may be broken"
+
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("Response"):
@@ -355,6 +437,11 @@ class TestRepositoryProtocolCompliance:
         """All repository protocol names MUST end with 'Repository'."""
         use_case = ListRepositoryProtocolsUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
+
+        # Canary: ensure we're actually scanning repository protocols
+        assert (
+            len(response.artifacts) > 0
+        ), "No repository protocols found - detector may be broken"
 
         violations = []
         for artifact in response.artifacts:
@@ -424,6 +511,11 @@ class TestServiceProtocolCompliance:
         """All service protocol names MUST end with 'Service'."""
         use_case = ListServiceProtocolsUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
+
+        # Canary: ensure we're actually scanning service protocols
+        assert (
+            len(response.artifacts) > 0
+        ), "No service protocols found - detector may be broken"
 
         violations = []
         for artifact in response.artifacts:

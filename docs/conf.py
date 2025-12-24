@@ -106,6 +106,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 suppress_warnings = [
     'ref.python',  # Suppress "more than one target found for cross-reference" warnings
     'docutils',    # Suppress docutils formatting warnings from AutoAPI-generated code examples
+    'autodoc.duplicate_object',  # Suppress duplicate object warnings from __init__.py re-exports
 ]
 
 # -- Options for HTML output -------------------------------------------------

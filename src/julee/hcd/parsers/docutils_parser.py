@@ -121,7 +121,7 @@ def _extract_title_from_doctree(doctree: nodes.document) -> str:
     Returns:
         Title text if found, empty string otherwise
     """
-    for node in doctree.traverse(nodes.title):
+    for node in doctree.findall(nodes.title):
         return node.astext()
     return ""
 
