@@ -6,7 +6,7 @@ metadata while maintaining type safety.
 
 from pydantic import BaseModel, Field
 
-from julee.shared.domain.models import BoundedContext, ClassInfo
+from julee.shared.domain.models import BoundedContext, ClassInfo, PipelineInfo
 
 
 class ListBoundedContextsResponse(BaseModel):
@@ -38,3 +38,9 @@ class GetCodeArtifactResponse(BaseModel):
     """Response from getting a single code artifact."""
 
     artifact: CodeArtifactWithContext | None
+
+
+class ListPipelinesResponse(BaseModel):
+    """Response from listing pipelines."""
+
+    pipelines: list[PipelineInfo]

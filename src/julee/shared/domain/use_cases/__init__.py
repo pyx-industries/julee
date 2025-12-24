@@ -9,6 +9,7 @@ from julee.shared.domain.use_cases.bounded_context import (
 )
 from julee.shared.domain.use_cases.code_artifact import (
     ListEntitiesUseCase,
+    ListPipelinesUseCase,
     ListRepositoryProtocolsUseCase,
     ListRequestsUseCase,
     ListResponsesUseCase,
@@ -27,6 +28,7 @@ from julee.shared.domain.use_cases.responses import (
     GetCodeArtifactResponse,
     ListBoundedContextsResponse,
     ListCodeArtifactsResponse,
+    ListPipelinesResponse,
 )
 
 __all__ = [
@@ -39,6 +41,7 @@ __all__ = [
     "ListBoundedContextsResponse",
     # Code artifact use cases
     "ListEntitiesUseCase",
+    "ListPipelinesUseCase",
     "ListRepositoryProtocolsUseCase",
     "ListRequestsUseCase",
     "ListResponsesUseCase",
@@ -46,6 +49,7 @@ __all__ = [
     "ListUseCasesUseCase",
     "ListCodeArtifactsRequest",
     "ListCodeArtifactsResponse",
+    "ListPipelinesResponse",
     "CodeArtifactWithContext",
     "GetCodeArtifactRequest",
     "GetCodeArtifactResponse",

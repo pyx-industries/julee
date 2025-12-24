@@ -408,3 +408,55 @@ Special handling required for:
 - Service protocol method matching (shared services need shared requests)
 - Import analysis (shared is allowed as an import source)
 """
+
+
+# =============================================================================
+# PIPELINE PATTERN
+# =============================================================================
+# A Pipeline is a UseCase that has been appropriately treated (with decorators
+# and proxies) to run as a Temporal workflow.
+#
+# See: docs/architecture/solutions/pipelines.rst
+#
+# Key invariants:
+# - A Pipeline MUST wrap a corresponding UseCase
+# - A Pipeline MUST NOT contain business logic directly
+# - A Pipeline lives in apps/worker/pipelines.py
+# - A Pipeline is decorated with @workflow.defn
+
+PIPELINE_SUFFIX: Final[str] = "Pipeline"
+"""Suffix for pipeline classes.
+
+Pipelines wrap use cases with Temporal workflow treatment for durable execution.
+The pipeline delegates to the use case - it does NOT contain business logic.
+
+Example: ExtractAssemblePipeline wraps ExtractAssembleDataUseCase
+
+Naming convention:
+- {Prefix}Pipeline MUST have a corresponding {Prefix}UseCase or {Prefix}DataUseCase
+- Pipeline lives at: {bc}/apps/worker/pipelines.py
+- UseCase lives at: {bc}/domain/use_cases/ or {bc}/use_cases/
+"""
+
+PIPELINE_LOCATION: Final[str] = "apps/worker/pipelines.py"
+"""Canonical location for pipeline definitions within a bounded context.
+
+Pipelines are application-layer artifacts (apps/) that provide durable
+execution of domain use cases via Temporal workflows.
+"""
+
+PIPELINE_DECORATOR: Final[str] = "@workflow.defn"
+"""Required decorator for pipeline classes.
+
+All pipelines MUST be decorated with Temporal's @workflow.defn to enable
+workflow registration and execution.
+"""
+
+PIPELINE_RUN_DECORATOR: Final[str] = "@workflow.run"
+"""Required decorator for the pipeline's run method.
+
+The run method is the entry point for workflow execution. It MUST:
+1. Create the wrapped UseCase with workflow-safe proxies
+2. Delegate to the UseCase's execute() method
+3. Return the UseCase's response
+"""

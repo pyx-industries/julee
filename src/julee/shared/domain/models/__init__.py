@@ -10,6 +10,7 @@ from julee.shared.domain.models.code_info import (
     ClassInfo,
     FieldInfo,
     MethodInfo,
+    PipelineInfo,
 )
 from julee.shared.domain.models.evaluation import EvaluationResult
 
@@ -20,5 +21,6 @@ __all__ = [
     "EvaluationResult",
     "FieldInfo",
     "MethodInfo",
+    "PipelineInfo",
     "StructuralMarkers",
 ]

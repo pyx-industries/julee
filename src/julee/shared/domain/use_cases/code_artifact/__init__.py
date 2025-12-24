@@ -1,11 +1,14 @@
 """Code artifact use cases.
 
 Use cases for introspecting code artifacts (entities, use cases, protocols,
-requests, responses) within bounded contexts.
+requests, responses, pipelines) within bounded contexts.
 """
 
 from julee.shared.domain.use_cases.code_artifact.list_entities import (
     ListEntitiesUseCase,
+)
+from julee.shared.domain.use_cases.code_artifact.list_pipelines import (
+    ListPipelinesUseCase,
 )
 from julee.shared.domain.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsUseCase,
@@ -25,6 +28,7 @@ from julee.shared.domain.use_cases.code_artifact.list_use_cases import (
 
 __all__ = [
     "ListEntitiesUseCase",
+    "ListPipelinesUseCase",
     "ListRepositoryProtocolsUseCase",
     "ListRequestsUseCase",
     "ListResponsesUseCase",
