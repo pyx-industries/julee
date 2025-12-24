@@ -2,8 +2,7 @@
 
 from julee.c4.entities.deployment_node import DeploymentNode, NodeType
 from julee.c4.repositories.deployment_node import DeploymentNodeRepository
-
-from .base import MemoryRepositoryMixin
+from julee.shared.repositories.memory.base import MemoryRepositoryMixin
 
 
 class MemoryDeploymentNodeRepository(

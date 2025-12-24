@@ -22,16 +22,6 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
-from julee.ceap.repositories.assembly_specification import (
-    AssemblySpecificationRepository,
-)
-from julee.ceap.repositories.document import DocumentRepository
-from julee.ceap.repositories.knowledge_service_config import (
-    KnowledgeServiceConfigRepository,
-)
-from julee.ceap.repositories.knowledge_service_query import (
-    KnowledgeServiceQueryRepository,
-)
 from julee.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
@@ -42,6 +32,16 @@ from julee.ceap.entities.knowledge_service_config import (
     ServiceApi,
 )
 from julee.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.ceap.repositories.assembly_specification import (
+    AssemblySpecificationRepository,
+)
+from julee.ceap.repositories.document import DocumentRepository
+from julee.ceap.repositories.knowledge_service_config import (
+    KnowledgeServiceConfigRepository,
+)
+from julee.ceap.repositories.knowledge_service_query import (
+    KnowledgeServiceQueryRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -139,8 +139,8 @@ class InitializeSystemDataUseCase:
             Path to the fixture file
         """
         current_file = Path(__file__)
-        julee_dir = current_file.parent.parent.parent
-        return julee_dir / "fixtures" / filename
+        ceap_dir = current_file.parent.parent
+        return ceap_dir / "fixtures" / filename
 
     async def _ensure_knowledge_service_configs_exist(self) -> None:
         """
@@ -842,8 +842,8 @@ class InitializeSystemDataUseCase:
                 )
         else:
             current_file = Path(__file__)
-            julee_dir = current_file.parent.parent.parent
-            fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
+            ceap_dir = current_file.parent.parent
+            fixture_path = ceap_dir / "fixtures" / doc_data["original_filename"]
 
             open_mode = "r" if is_text else "rb"
             encoding = "utf-8" if is_text else None

@@ -5,8 +5,7 @@ import logging
 from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.repositories.integration import IntegrationRepository
 from julee.hcd.utils import normalize_name
-
-from .base import MemoryRepositoryMixin
+from julee.shared.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

@@ -16,9 +16,9 @@ import io
 import logging
 from typing import Any
 
-from julee.ceap.repositories.document import DocumentRepository
 from julee.ceap.entities.content_stream import ContentStream
 from julee.ceap.entities.document import Document
+from julee.ceap.repositories.document import DocumentRepository
 
 from .base import MemoryRepositoryMixin
 

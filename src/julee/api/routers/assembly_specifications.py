@@ -22,10 +22,10 @@ from julee.api.dependencies import (
     get_assembly_specification_repository,
 )
 from julee.api.requests import CreateAssemblySpecificationRequest
+from julee.ceap.entities import AssemblySpecification
 from julee.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-from julee.ceap.entities import AssemblySpecification
 
 logger = logging.getLogger(__name__)
 

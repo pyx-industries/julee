@@ -17,13 +17,6 @@ from datetime import datetime
 import multihash
 from pydantic import BaseModel, Field
 
-from julee.ceap.repositories import (
-    DocumentPolicyValidationRepository,
-    DocumentRepository,
-    KnowledgeServiceConfigRepository,
-    KnowledgeServiceQueryRepository,
-    PolicyRepository,
-)
 from julee.ceap.entities import (
     ContentStream,
     Document,
@@ -34,6 +27,13 @@ from julee.ceap.entities import (
 )
 from julee.ceap.entities.document_policy_validation import (
     DocumentPolicyValidationStatus,
+)
+from julee.ceap.repositories import (
+    DocumentPolicyValidationRepository,
+    DocumentRepository,
+    KnowledgeServiceConfigRepository,
+    KnowledgeServiceQueryRepository,
+    PolicyRepository,
 )
 from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol

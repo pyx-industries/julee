@@ -4,8 +4,7 @@ import logging
 
 from julee.hcd.entities.contrib import ContribModule
 from julee.hcd.repositories.contrib import ContribRepository
-
-from .base import MemoryRepositoryMixin
+from julee.shared.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

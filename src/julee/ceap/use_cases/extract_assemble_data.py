@@ -19,13 +19,6 @@ import jsonschema
 import multihash
 from pydantic import BaseModel, Field
 
-from julee.ceap.repositories import (
-    AssemblyRepository,
-    AssemblySpecificationRepository,
-    DocumentRepository,
-    KnowledgeServiceConfigRepository,
-    KnowledgeServiceQueryRepository,
-)
 from julee.ceap.entities import (
     Assembly,
     AssemblySpecification,
@@ -33,6 +26,13 @@ from julee.ceap.entities import (
     Document,
     DocumentStatus,
     KnowledgeServiceQuery,
+)
+from julee.ceap.repositories import (
+    AssemblyRepository,
+    AssemblySpecificationRepository,
+    DocumentRepository,
+    KnowledgeServiceConfigRepository,
+    KnowledgeServiceQueryRepository,
 )
 from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types

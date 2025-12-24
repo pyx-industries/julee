@@ -1,9 +1,18 @@
-"""Shared repository implementations.
+"""Shared repository protocols.
 
-Provides base classes and mixins for repository implementations.
+Defines the generic repository interface following clean architecture patterns.
 """
 
-from .file.base import FileRepositoryMixin
-from .memory.base import MemoryRepositoryMixin
+from julee.shared.domain.repositories.base import BaseRepository
+from julee.shared.domain.repositories.bounded_context import BoundedContextRepository
+from julee.shared.domain.repositories.pipeline_route import (
+    PipelineRouteRepository,
+    RouteRepository,
+)
 
-__all__ = ["MemoryRepositoryMixin", "FileRepositoryMixin"]
+__all__ = [
+    "BaseRepository",
+    "BoundedContextRepository",
+    "PipelineRouteRepository",
+    "RouteRepository",
+]

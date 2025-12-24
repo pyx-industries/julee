@@ -5,8 +5,7 @@ import logging
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.repositories.app import AppRepository
 from julee.hcd.utils import normalize_name
-
-from .base import MemoryRepositoryMixin
+from julee.shared.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

@@ -15,11 +15,11 @@ All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.repositories.document_policy_validation import (
-    DocumentPolicyValidationRepository,
-)
 from julee.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
+)
+from julee.ceap.repositories.document_policy_validation import (
+    DocumentPolicyValidationRepository,
 )
 
 from .base import MemoryRepositoryMixin

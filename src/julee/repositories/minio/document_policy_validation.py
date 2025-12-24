@@ -15,11 +15,11 @@ status, scores, transformation results, and metadata.
 
 import logging
 
-from julee.ceap.repositories.document_policy_validation import (
-    DocumentPolicyValidationRepository,
-)
 from julee.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
+)
+from julee.ceap.repositories.document_policy_validation import (
+    DocumentPolicyValidationRepository,
 )
 
 from .client import MinioClient, MinioRepositoryMixin

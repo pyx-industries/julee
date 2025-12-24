@@ -16,11 +16,11 @@ Each query is stored as a separate object with the query ID as the key.
 import logging
 import uuid
 
-from julee.ceap.repositories.knowledge_service_query import (
-    KnowledgeServiceQueryRepository,
-)
 from julee.ceap.entities.knowledge_service_query import (
     KnowledgeServiceQuery,
+)
+from julee.ceap.repositories.knowledge_service_query import (
+    KnowledgeServiceQueryRepository,
 )
 
 from .client import MinioClient, MinioRepositoryMixin

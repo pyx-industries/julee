@@ -2,8 +2,7 @@
 
 from julee.c4.entities.container import Container, ContainerType
 from julee.c4.repositories.container import ContainerRepository
-
-from .base import MemoryRepositoryMixin
+from julee.shared.repositories.memory.base import MemoryRepositoryMixin
 
 
 class MemoryContainerRepository(MemoryRepositoryMixin[Container], ContainerRepository):
