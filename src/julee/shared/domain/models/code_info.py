@@ -26,7 +26,9 @@ class MethodInfo(BaseModel):
 
     name: str
     is_async: bool = False
-    parameters: list[str] = Field(default_factory=list)  # parameter names excluding self
+    parameters: list[str] = Field(
+        default_factory=list
+    )  # parameter names excluding self
     return_type: str = ""
     docstring: str = ""
 

@@ -32,8 +32,7 @@ class ListCodeArtifactsRequest(BaseModel):
     """
 
     bounded_context: str | None = Field(
-        default=None,
-        description="Filter to artifacts in this bounded context only"
+        default=None, description="Filter to artifacts in this bounded context only"
     )
 
 
@@ -42,8 +41,7 @@ class GetCodeArtifactRequest(BaseModel):
 
     name: str = Field(description="The class name")
     bounded_context: str | None = Field(
-        default=None,
-        description="Bounded context to search in (optional)"
+        default=None, description="Bounded context to search in (optional)"
     )
 
 
@@ -75,12 +73,10 @@ class EvaluateSingleResponsibilityRequest(BaseModel):
     class_name: str = Field(description="Name of the class")
     class_docstring: str = Field(default="", description="Class docstring")
     method_names: list[str] = Field(
-        default_factory=list,
-        description="Names of public methods in the class"
+        default_factory=list, description="Names of public methods in the class"
     )
     field_names: list[str] = Field(
-        default_factory=list,
-        description="Names of fields/attributes in the class"
+        default_factory=list, description="Names of fields/attributes in the class"
     )
 
 
@@ -94,8 +90,7 @@ class EvaluateNamingQualityRequest(BaseModel):
     name: str = Field(description="The identifier name to evaluate")
     kind: str = Field(description="What it is: 'class', 'method', 'variable', 'field'")
     context: str = Field(
-        default="",
-        description="Surrounding context (class name, module, etc.)"
+        default="", description="Surrounding context (class name, module, etc.)"
     )
 
 

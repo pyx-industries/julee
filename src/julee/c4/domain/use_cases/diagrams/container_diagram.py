@@ -6,7 +6,6 @@ A Container diagram shows the containers (applications, data stores, etc.)
 that make up a software system, plus the relationships between them.
 """
 
-from ...models.container import Container
 from ...models.diagrams import ContainerDiagram
 from ...models.relationship import ElementType, Relationship
 from ...models.software_system import SoftwareSystem

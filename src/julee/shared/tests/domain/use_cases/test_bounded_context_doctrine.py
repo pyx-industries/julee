@@ -24,7 +24,7 @@ def create_bounded_context(base_path: Path, name: str, layers: list[str] | None 
     ctx_path = base_path / name
     ctx_path.mkdir(parents=True)
     (ctx_path / "__init__.py").touch()
-    for layer in (layers or ["models", "use_cases"]):
+    for layer in layers or ["models", "use_cases"]:
         layer_path = ctx_path / "domain" / layer
         layer_path.mkdir(parents=True)
     return ctx_path
@@ -46,7 +46,9 @@ class TestBoundedContextStructure:
     """Doctrine about bounded context structure."""
 
     @pytest.mark.asyncio
-    async def test_bounded_context_MUST_have_domain_models_or_use_cases(self, tmp_path: Path):
+    async def test_bounded_context_MUST_have_domain_models_or_use_cases(
+        self, tmp_path: Path
+    ):
         """A bounded context MUST have domain/models or domain/use_cases."""
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid", layers=["models"])
@@ -56,8 +58,9 @@ class TestBoundedContextStructure:
         response = await use_case.execute(ListBoundedContextsRequest())
 
         for ctx in response.bounded_contexts:
-            assert ctx.markers.has_clean_architecture_layers, \
-                f"'{ctx.slug}' MUST have domain/models or domain/use_cases"
+            assert (
+                ctx.markers.has_clean_architecture_layers
+            ), f"'{ctx.slug}' MUST have domain/models or domain/use_cases"
 
     @pytest.mark.asyncio
     async def test_bounded_context_MUST_be_python_package(self, tmp_path: Path):
@@ -93,8 +96,9 @@ class TestReservedWords:
         response = await use_case.execute(ListBoundedContextsRequest())
 
         for ctx in response.bounded_contexts:
-            assert ctx.slug not in RESERVED_WORDS, \
-                f"'{ctx.slug}' MUST NOT use reserved word"
+            assert (
+                ctx.slug not in RESERVED_WORDS
+            ), f"'{ctx.slug}' MUST NOT use reserved word"
 
     def test_RESERVED_WORDS_MUST_include_structural_directories(self):
         """RESERVED_WORDS MUST include: core, contrib, applications, docs, deployment."""
@@ -126,10 +130,12 @@ class TestImportPaths:
         response = await use_case.execute(ListBoundedContextsRequest())
 
         for ctx in response.bounded_contexts:
-            assert "/" not in ctx.import_path, \
-                f"'{ctx.slug}' import path MUST NOT contain /"
-            assert "\\" not in ctx.import_path, \
-                f"'{ctx.slug}' import path MUST NOT contain \\"
+            assert (
+                "/" not in ctx.import_path
+            ), f"'{ctx.slug}' import path MUST NOT contain /"
+            assert (
+                "\\" not in ctx.import_path
+            ), f"'{ctx.slug}' import path MUST NOT contain \\"
 
 
 # =============================================================================
@@ -156,8 +162,9 @@ class TestViewpoints:
 
         for ctx in response.bounded_contexts:
             if ctx.slug in VIEWPOINT_SLUGS:
-                assert ctx.is_viewpoint is True, \
-                    f"'{ctx.slug}' MUST have is_viewpoint=True"
+                assert (
+                    ctx.is_viewpoint is True
+                ), f"'{ctx.slug}' MUST have is_viewpoint=True"
 
 
 # =============================================================================
@@ -183,8 +190,7 @@ class TestContrib:
 
         for ctx in response.bounded_contexts:
             if "contrib" in str(ctx.path):
-                assert ctx.is_contrib is True, \
-                    f"'{ctx.slug}' MUST have is_contrib=True"
+                assert ctx.is_contrib is True, f"'{ctx.slug}' MUST have is_contrib=True"
 
     @pytest.mark.asyncio
     async def test_top_level_module_MUST_have_is_contrib_false(self, tmp_path: Path):
@@ -198,5 +204,6 @@ class TestContrib:
 
         for ctx in response.bounded_contexts:
             if "contrib" not in str(ctx.path):
-                assert ctx.is_contrib is False, \
-                    f"'{ctx.slug}' MUST have is_contrib=False"
+                assert (
+                    ctx.is_contrib is False
+                ), f"'{ctx.slug}' MUST have is_contrib=False"

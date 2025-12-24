@@ -6,7 +6,6 @@ A Component diagram shows the components that make up a container,
 plus the relationships between them.
 """
 
-from ...models.component import Component
 from ...models.container import Container
 from ...models.diagrams import ComponentDiagram
 from ...models.relationship import ElementType, Relationship

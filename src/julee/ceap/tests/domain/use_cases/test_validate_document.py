@@ -20,11 +20,11 @@ from julee.ceap.domain.models import (
     KnowledgeServiceConfig,
     KnowledgeServiceQuery,
 )
-from julee.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.ceap.domain.models.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
+from julee.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.ceap.domain.models.policy import Policy, PolicyStatus
 from julee.ceap.domain.use_cases import ValidateDocumentUseCase
 from julee.ceap.domain.use_cases.requests import ValidateDocumentRequest

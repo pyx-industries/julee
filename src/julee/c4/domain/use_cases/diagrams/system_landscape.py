@@ -8,7 +8,6 @@ within an enterprise or organization, plus their relationships.
 
 from ...models.diagrams import SystemLandscapeDiagram
 from ...models.relationship import ElementType, Relationship
-from ...models.software_system import SoftwareSystem
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
 from ..requests import GetSystemLandscapeDiagramRequest

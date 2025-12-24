@@ -6,7 +6,6 @@ import pytest
 
 from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
 
-
 # Mark all tests as integration tests
 pytestmark = pytest.mark.integration
 
@@ -109,9 +108,9 @@ class TestJuleeCodebaseDiscovery:
 
         for ctx in contexts:
             # Should start with julee
-            assert ctx.import_path.startswith("julee."), (
-                f"{ctx.slug} import_path should start with 'julee.': {ctx.import_path}"
-            )
+            assert ctx.import_path.startswith(
+                "julee."
+            ), f"{ctx.slug} import_path should start with 'julee.': {ctx.import_path}"
             # Should not contain path separators
             assert "/" not in ctx.import_path
             assert "\\" not in ctx.import_path

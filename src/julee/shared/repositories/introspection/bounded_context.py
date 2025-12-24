@@ -10,7 +10,6 @@ from pathlib import Path
 
 from julee.shared.domain.models import BoundedContext, StructuralMarkers
 
-
 # =============================================================================
 # Directory Structure Configuration
 # =============================================================================
@@ -28,21 +27,25 @@ USE_CASES_DIR = ("domain", "use_cases")
 # Directory names with special structural meaning that cannot be bounded
 # context names.
 
-RESERVED_STRUCTURAL = frozenset({
-    "core",       # The idioms accelerator
-    "contrib",    # Batteries-included modules
-    "applications",
-    "docs",
-    "deployment",
-})
+RESERVED_STRUCTURAL = frozenset(
+    {
+        "core",  # The idioms accelerator
+        "contrib",  # Batteries-included modules
+        "applications",
+        "docs",
+        "deployment",
+    }
+)
 
-RESERVED_COMMON = frozenset({
-    "shared",     # The foundational accelerator (current name for core)
-    "util",
-    "utils",
-    "common",
-    "tests",
-})
+RESERVED_COMMON = frozenset(
+    {
+        "shared",  # The foundational accelerator (current name for core)
+        "util",
+        "utils",
+        "common",
+        "tests",
+    }
+)
 
 RESERVED_WORDS = RESERVED_STRUCTURAL | RESERVED_COMMON
 
@@ -51,10 +54,12 @@ RESERVED_WORDS = RESERVED_STRUCTURAL | RESERVED_COMMON
 # Viewpoint Bounded Contexts
 # =============================================================================
 
-VIEWPOINT_SLUGS = frozenset({
-    "hcd",
-    "c4",
-})
+VIEWPOINT_SLUGS = frozenset(
+    {
+        "hcd",
+        "c4",
+    }
+)
 
 
 # =============================================================================
@@ -67,6 +72,7 @@ SEARCH_ROOT = "src/julee"
 # =============================================================================
 # Gitignore Handling
 # =============================================================================
+
 
 def _is_gitignored(path: Path, project_root: Path) -> bool:
     """Check if a path is ignored by git.
@@ -91,6 +97,7 @@ def _is_gitignored(path: Path, project_root: Path) -> bool:
 # =============================================================================
 # Repository Implementation
 # =============================================================================
+
 
 class FilesystemBoundedContextRepository:
     """Repository that discovers bounded contexts by scanning filesystem.

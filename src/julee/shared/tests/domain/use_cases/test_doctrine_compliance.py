@@ -53,11 +53,15 @@ class TestEntityCompliance:
         for artifact in response.artifacts:
             name = artifact.artifact.name
             if not name[0].isupper():
-                violations.append(f"{artifact.bounded_context}.{name}: MUST start with uppercase")
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: MUST start with uppercase"
+                )
             if "_" in name:
-                violations.append(f"{artifact.bounded_context}.{name}: MUST NOT contain underscores")
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: MUST NOT contain underscores"
+                )
 
-        assert not violations, f"Entity naming violations:\n" + "\n".join(violations)
+        assert not violations, "Entity naming violations:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_entities_MUST_NOT_have_reserved_suffixes(self, repo):
@@ -69,13 +73,19 @@ class TestEntityCompliance:
         for artifact in response.artifacts:
             name = artifact.artifact.name
             if name.endswith("UseCase"):
-                violations.append(f"{artifact.bounded_context}.{name}: MUST NOT end with 'UseCase'")
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'UseCase'"
+                )
             if name.endswith("Request"):
-                violations.append(f"{artifact.bounded_context}.{name}: MUST NOT end with 'Request'")
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'Request'"
+                )
             if name.endswith("Response"):
-                violations.append(f"{artifact.bounded_context}.{name}: MUST NOT end with 'Response'")
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'Response'"
+                )
 
-        assert not violations, f"Entity suffix violations:\n" + "\n".join(violations)
+        assert not violations, "Entity suffix violations:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_entities_MUST_have_docstring(self, repo):
@@ -86,9 +96,11 @@ class TestEntityCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Entities missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Entities missing docstrings:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_entity_fields_MUST_have_type_annotations(self, repo):
@@ -104,7 +116,9 @@ class TestEntityCompliance:
                         f"{artifact.bounded_context}.{artifact.artifact.name}.{field.name}"
                     )
 
-        assert not violations, f"Entity fields missing type annotations:\n" + "\n".join(violations)
+        assert not violations, "Entity fields missing type annotations:\n" + "\n".join(
+            violations
+        )
 
 
 # =============================================================================
@@ -124,9 +138,13 @@ class TestUseCaseCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("UseCase"):
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Use cases not ending with 'UseCase':\n" + "\n".join(violations)
+        assert not violations, "Use cases not ending with 'UseCase':\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_have_docstring(self, repo):
@@ -137,9 +155,11 @@ class TestUseCaseCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Use cases missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Use cases missing docstrings:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_have_matching_request(self, repo):
@@ -167,11 +187,11 @@ class TestUseCaseCompliance:
                 expected_request = f"{prefix}Request"
                 available = requests_by_context.get(ctx, set())
                 if expected_request not in available:
-                    violations.append(
-                        f"{ctx}.{name}: missing {expected_request}"
-                    )
+                    violations.append(f"{ctx}.{name}: missing {expected_request}")
 
-        assert not violations, f"Use cases missing matching requests:\n" + "\n".join(violations)
+        assert not violations, "Use cases missing matching requests:\n" + "\n".join(
+            violations
+        )
 
 
 # =============================================================================
@@ -205,9 +225,10 @@ class TestRequestCompliance:
             if not (name.endswith("Request") or name.endswith("Item")):
                 violations.append(f"{artifact.bounded_context}.{name}")
 
-        assert not violations, (
-            f"Classes in requests.py must end with 'Request' or 'Item':\n"
-            + "\n".join(violations)
+        assert (
+            not violations
+        ), "Classes in requests.py must end with 'Request' or 'Item':\n" + "\n".join(
+            violations
         )
 
     @pytest.mark.asyncio
@@ -219,9 +240,11 @@ class TestRequestCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Requests missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Requests missing docstrings:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_requests_MUST_inherit_from_BaseModel(self, repo):
@@ -237,7 +260,9 @@ class TestRequestCompliance:
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Requests not inheriting from BaseModel:\n" + "\n".join(violations)
+        assert not violations, "Requests not inheriting from BaseModel:\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_request_fields_MUST_have_type_annotations(self, repo):
@@ -253,7 +278,9 @@ class TestRequestCompliance:
                         f"{artifact.bounded_context}.{artifact.artifact.name}.{field.name}"
                     )
 
-        assert not violations, f"Request fields missing type annotations:\n" + "\n".join(violations)
+        assert not violations, "Request fields missing type annotations:\n" + "\n".join(
+            violations
+        )
 
 
 # =============================================================================
@@ -273,9 +300,13 @@ class TestResponseCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("Response"):
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Responses not ending with 'Response':\n" + "\n".join(violations)
+        assert not violations, "Responses not ending with 'Response':\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_responses_MUST_have_docstring(self, repo):
@@ -286,9 +317,11 @@ class TestResponseCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Responses missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Responses missing docstrings:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_responses_MUST_inherit_from_BaseModel(self, repo):
@@ -304,7 +337,9 @@ class TestResponseCompliance:
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Responses not inheriting from BaseModel:\n" + "\n".join(violations)
+        assert not violations, "Responses not inheriting from BaseModel:\n" + "\n".join(
+            violations
+        )
 
 
 # =============================================================================
@@ -324,9 +359,15 @@ class TestRepositoryProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("Repository"):
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Repository protocols not ending with 'Repository':\n" + "\n".join(violations)
+        assert (
+            not violations
+        ), "Repository protocols not ending with 'Repository':\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_repository_protocols_MUST_have_docstring(self, repo):
@@ -337,9 +378,13 @@ class TestRepositoryProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Repository protocols missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Repository protocols missing docstrings:\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_repository_protocols_MUST_inherit_from_Protocol(self, repo):
@@ -350,14 +395,20 @@ class TestRepositoryProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             # Explicit check for Protocol or Protocol[T] generic
-            has_protocol = any(base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases)
+            has_protocol = any(
+                base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases
+            )
             if not has_protocol:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name} "
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Repository protocols not inheriting from Protocol:\n" + "\n".join(violations)
+        assert (
+            not violations
+        ), "Repository protocols not inheriting from Protocol:\n" + "\n".join(
+            violations
+        )
 
 
 # =============================================================================
@@ -377,9 +428,13 @@ class TestServiceProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.name.endswith("Service"):
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Service protocols not ending with 'Service':\n" + "\n".join(violations)
+        assert (
+            not violations
+        ), "Service protocols not ending with 'Service':\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_service_protocols_MUST_have_docstring(self, repo):
@@ -390,9 +445,13 @@ class TestServiceProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             if not artifact.artifact.docstring:
-                violations.append(f"{artifact.bounded_context}.{artifact.artifact.name}")
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
 
-        assert not violations, f"Service protocols missing docstrings:\n" + "\n".join(violations)
+        assert not violations, "Service protocols missing docstrings:\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_service_protocols_MUST_inherit_from_Protocol(self, repo):
@@ -403,14 +462,18 @@ class TestServiceProtocolCompliance:
         violations = []
         for artifact in response.artifacts:
             # Explicit check for Protocol or Protocol[T] generic
-            has_protocol = any(base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases)
+            has_protocol = any(
+                base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases
+            )
             if not has_protocol:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name} "
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Service protocols not inheriting from Protocol:\n" + "\n".join(violations)
+        assert (
+            not violations
+        ), "Service protocols not inheriting from Protocol:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_service_protocol_methods_MUST_have_matching_request(self, repo):
@@ -432,8 +495,12 @@ class TestServiceProtocolCompliance:
         req_response = await req_use_case.execute(ListCodeArtifactsRequest())
 
         # Also check shared bounded context (which is reserved but still has services)
-        shared_services_dir = Path(PROJECT_ROOT) / "src" / "julee" / "shared" / "domain" / "services"
-        shared_requests_dir = Path(PROJECT_ROOT) / "src" / "julee" / "shared" / "domain" / "use_cases"
+        shared_services_dir = (
+            Path(PROJECT_ROOT) / "src" / "julee" / "shared" / "domain" / "services"
+        )
+        shared_requests_dir = (
+            Path(PROJECT_ROOT) / "src" / "julee" / "shared" / "domain" / "use_cases"
+        )
 
         # Create artifact-like structures for shared services
         class ArtifactLike:
@@ -441,15 +508,27 @@ class TestServiceProtocolCompliance:
                 self.artifact = artifact
                 self.bounded_context = bounded_context
 
-        shared_services = parse_python_classes(shared_services_dir) if shared_services_dir.exists() else []
-        shared_requests = parse_python_classes(shared_requests_dir, exclude_files=["responses.py"]) if shared_requests_dir.exists() else []
+        shared_services = (
+            parse_python_classes(shared_services_dir)
+            if shared_services_dir.exists()
+            else []
+        )
+        shared_requests = (
+            parse_python_classes(shared_requests_dir, exclude_files=["responses.py"])
+            if shared_requests_dir.exists()
+            else []
+        )
 
         # Add shared artifacts to the response
         all_service_artifacts = list(response.artifacts) + [
-            ArtifactLike(svc, "shared") for svc in shared_services if svc.name.endswith("Service")
+            ArtifactLike(svc, "shared")
+            for svc in shared_services
+            if svc.name.endswith("Service")
         ]
         all_request_artifacts = list(req_response.artifacts) + [
-            ArtifactLike(req, "shared") for req in shared_requests if req.name.endswith("Request")
+            ArtifactLike(req, "shared")
+            for req in shared_requests
+            if req.name.endswith("Request")
         ]
 
         # Build set of available requests per context
@@ -477,9 +556,10 @@ class TestServiceProtocolCompliance:
                         f"{ctx}.{service_name}.{method.name}(): missing {expected_request}"
                     )
 
-        assert not violations, (
-            f"Service protocol methods missing matching Request classes:\n"
-            + "\n".join(violations)
+        assert (
+            not violations
+        ), "Service protocol methods missing matching Request classes:\n" + "\n".join(
+            violations
         )
 
 
@@ -520,8 +600,12 @@ class TestDependencyRuleCompliance:
 
         violations = []
         forbidden_layers = {
-            "use_cases", "repositories", "services",
-            "infrastructure", "apps", "deployment"
+            "use_cases",
+            "repositories",
+            "services",
+            "infrastructure",
+            "apps",
+            "deployment",
         }
 
         for ctx in contexts:
@@ -542,9 +626,9 @@ class TestDependencyRuleCompliance:
                             f"imports from {layer} ({imp.module})"
                         )
 
-        assert not violations, (
-            f"Entity files importing from outer layers:\n" + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "Entity files importing from outer layers:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_NOT_import_from_infrastructure(self, repo):
@@ -580,9 +664,9 @@ class TestDependencyRuleCompliance:
                             f"imports from {layer} ({imp.module})"
                         )
 
-        assert not violations, (
-            f"Use case files importing from outer layers:\n" + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "Use case files importing from outer layers:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_repository_protocols_MUST_NOT_import_from_infrastructure(
@@ -620,10 +704,9 @@ class TestDependencyRuleCompliance:
                             f"imports from {layer} ({imp.module})"
                         )
 
-        assert not violations, (
-            f"Repository protocols importing from outer layers:\n"
-            + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "Repository protocols importing from outer layers:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_service_protocols_MUST_NOT_import_from_infrastructure(
@@ -661,7 +744,6 @@ class TestDependencyRuleCompliance:
                             f"imports from {layer} ({imp.module})"
                         )
 
-        assert not violations, (
-            f"Service protocols importing from outer layers:\n"
-            + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "Service protocols importing from outer layers:\n" + "\n".join(violations)

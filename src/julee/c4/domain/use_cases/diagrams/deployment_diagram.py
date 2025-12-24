@@ -7,9 +7,7 @@ nodes in a specific environment.
 """
 
 from ...models.container import Container
-from ...models.deployment_node import DeploymentNode
 from ...models.diagrams import DeploymentDiagram
-from ...models.relationship import Relationship
 from ...repositories.container import ContainerRepository
 from ...repositories.deployment_node import DeploymentNodeRepository
 from ...repositories.relationship import RelationshipRepository

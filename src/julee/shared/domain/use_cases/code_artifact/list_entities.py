@@ -5,7 +5,6 @@ Use case for listing domain entities across bounded contexts.
 
 from pathlib import Path
 
-from julee.shared.domain.models import BoundedContext
 from julee.shared.domain.repositories import BoundedContextRepository
 from julee.shared.domain.use_cases.requests import ListCodeArtifactsRequest
 from julee.shared.domain.use_cases.responses import (

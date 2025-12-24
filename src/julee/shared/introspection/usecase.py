@@ -292,9 +292,7 @@ def _get_entity_type_from_repo(dep_name: str, dep_type: type) -> str:
     return "Entity"
 
 
-def _infer_method_types(
-    method_name: str, entity_type: str
-) -> tuple[str, str]:
+def _infer_method_types(method_name: str, entity_type: str) -> tuple[str, str]:
     """Infer argument and return types for common repository methods.
 
     Returns:
@@ -356,9 +354,8 @@ def _ensure_all_deps_have_calls(
     deps_with_calls = {call.repo_attr for call in calls}
     result = list(calls)
 
-    for dep_name, dep_type in dependencies.items():
+    for dep_name, _dep_type in dependencies.items():
         if dep_name not in deps_with_calls:
-            entity_type = _get_entity_type_from_repo(dep_name, dep_type)
             # Add a generic call for this dependency
             result.append(
                 RepositoryCall(
@@ -388,9 +385,7 @@ def introspect_use_case(use_case_class: type) -> UseCaseMetadata:
 
     # Filter calls to only include those to known dependencies
     dep_names = set(dependencies.keys())
-    filtered_calls = [
-        call for call in all_calls if call.repo_attr in dep_names
-    ]
+    filtered_calls = [call for call in all_calls if call.repo_attr in dep_names]
 
     # Enrich calls with type information
     enriched_calls = _enrich_calls_with_types(filtered_calls, dependencies)

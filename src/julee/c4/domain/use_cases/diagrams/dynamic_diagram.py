@@ -9,7 +9,6 @@ accomplish a specific use case or scenario.
 from ...models.component import Component
 from ...models.container import Container
 from ...models.diagrams import DynamicDiagram
-from ...models.dynamic_step import DynamicStep
 from ...models.relationship import ElementType
 from ...models.software_system import SoftwareSystem
 from ...repositories.component import ComponentRepository

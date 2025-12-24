@@ -10,6 +10,14 @@ from pydantic import BaseModel
 from ..models.component import Component
 from ..models.container import Container
 from ..models.deployment_node import DeploymentNode
+from ..models.diagrams import (
+    ComponentDiagram,
+    ContainerDiagram,
+    DeploymentDiagram,
+    DynamicDiagram,
+    SystemContextDiagram,
+    SystemLandscapeDiagram,
+)
 from ..models.dynamic_step import DynamicStep
 from ..models.relationship import Relationship
 from ..models.software_system import SoftwareSystem
@@ -246,15 +254,6 @@ class DiagramResponse(BaseModel):
 # -----------------------------------------------------------------------------
 # Diagram Data Responses (domain model wrappers)
 # -----------------------------------------------------------------------------
-
-from ..models.diagrams import (
-    ComponentDiagram,
-    ContainerDiagram,
-    DeploymentDiagram,
-    DynamicDiagram,
-    SystemContextDiagram,
-    SystemLandscapeDiagram,
-)
 
 
 class GetSystemLandscapeDiagramResponse(BaseModel):

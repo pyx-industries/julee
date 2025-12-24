@@ -10,28 +10,27 @@ Re-exports commonly used models for convenient importing:
 """
 
 # Document models
-from .document import Document, DocumentStatus
-
 # Assembly models
 from .assembly import Assembly, AssemblyStatus
 from .assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from .knowledge_service_query import KnowledgeServiceQuery
 
 # Custom field types
 from .content_stream import ContentStream
-
-# Configuration models
-from .knowledge_service_config import KnowledgeServiceConfig
-
-# Policy models
-from .policy import Policy, PolicyStatus
+from .document import Document, DocumentStatus
 from .document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
+
+# Configuration models
+from .knowledge_service_config import KnowledgeServiceConfig
+from .knowledge_service_query import KnowledgeServiceQuery
+
+# Policy models
+from .policy import Policy, PolicyStatus
 
 __all__ = [
     # Document models

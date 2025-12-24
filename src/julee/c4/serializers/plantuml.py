@@ -387,9 +387,7 @@ class PlantUMLSerializer:
         lines.append(self._footer())
         return "\n".join(lines)
 
-    def serialize_dynamic_diagram(
-        self, data: DynamicDiagram, title: str = ""
-    ) -> str:
+    def serialize_dynamic_diagram(self, data: DynamicDiagram, title: str = "") -> str:
         """Serialize dynamic diagram to PlantUML.
 
         Args:

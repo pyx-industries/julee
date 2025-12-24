@@ -127,9 +127,7 @@ class Invoice:
 
         imports = extract_imports(ctx / "domain" / "models" / "invoice.py")
         violations = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "use_cases"
+            imp for imp in imports if classify_import_layer(imp.module) == "use_cases"
         ]
         assert len(violations) > 0, "Test fixture should have violations"
 
@@ -181,9 +179,7 @@ class Invoice:
 
         imports = extract_imports(ctx / "domain" / "models" / "invoice.py")
         violations = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "services"
+            imp for imp in imports if classify_import_layer(imp.module) == "services"
         ]
         assert len(violations) > 0, "Test fixture should have violations"
 
@@ -235,9 +231,7 @@ class Invoice:
 
         imports = extract_imports(ctx / "domain" / "models" / "invoice.py")
         violations = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "apps"
+            imp for imp in imports if classify_import_layer(imp.module) == "apps"
         ]
         assert len(violations) > 0, "Test fixture should have violations"
 
@@ -262,9 +256,7 @@ class Invoice:
 
         imports = extract_imports(ctx / "domain" / "models" / "invoice.py")
         model_imports = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "models"
+            imp for imp in imports if classify_import_layer(imp.module) == "models"
         ]
         # This is allowed - entities can import other entities
         assert len(model_imports) == 1
@@ -339,9 +331,7 @@ class CreateInvoiceUseCase:
 
         imports = extract_imports(ctx / "domain" / "use_cases" / "create_invoice.py")
         violations = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "apps"
+            imp for imp in imports if classify_import_layer(imp.module) == "apps"
         ]
         assert len(violations) > 0, "Test fixture should have violations"
 
@@ -366,9 +356,7 @@ class CreateInvoiceUseCase:
 
         imports = extract_imports(ctx / "domain" / "use_cases" / "create_invoice.py")
         model_imports = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "models"
+            imp for imp in imports if classify_import_layer(imp.module) == "models"
         ]
         # This is allowed - use cases can import entities
         assert len(model_imports) == 1
@@ -422,9 +410,7 @@ class CreateInvoiceUseCase:
 
         imports = extract_imports(ctx / "domain" / "use_cases" / "create_invoice.py")
         service_imports = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "services"
+            imp for imp in imports if classify_import_layer(imp.module) == "services"
         ]
         # This is allowed - use cases use service protocols
         assert len(service_imports) == 1
@@ -490,9 +476,7 @@ class InvoiceRepository(Protocol):
 
         imports = extract_imports(ctx / "domain" / "repositories" / "invoice.py")
         model_imports = [
-            imp
-            for imp in imports
-            if classify_import_layer(imp.module) == "models"
+            imp for imp in imports if classify_import_layer(imp.module) == "models"
         ]
         # This is allowed - protocols reference entities
         assert len(model_imports) == 1

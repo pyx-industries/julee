@@ -54,27 +54,22 @@ class BoundedContext(BaseModel):
     """
 
     # Identity
-    slug: str = Field(
-        description="Directory name / import path segment"
-    )
-    path: str = Field(
-        description="Filesystem path relative to project root"
-    )
+    slug: str = Field(description="Directory name / import path segment")
+    path: str = Field(description="Filesystem path relative to project root")
 
     # Classification
     is_contrib: bool = Field(
         default=False,
-        description="True if this is a contrib (batteries-included) module"
+        description="True if this is a contrib (batteries-included) module",
     )
     is_viewpoint: bool = Field(
-        default=False,
-        description="True if this is a viewpoint accelerator (hcd, c4)"
+        default=False, description="True if this is a viewpoint accelerator (hcd, c4)"
     )
 
     # Structure
     markers: StructuralMarkers = Field(
         default_factory=StructuralMarkers,
-        description="What structural elements this context contains"
+        description="What structural elements this context contains",
     )
 
     @field_validator("slug", mode="before")

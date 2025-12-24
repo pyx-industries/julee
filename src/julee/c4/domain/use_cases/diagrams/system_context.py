@@ -6,8 +6,8 @@ A System Context diagram shows the software system in scope and its
 relationships with users (persons) and other software systems.
 """
 
-from ...models.diagrams import PersonInfo, SystemContextDiagram
-from ...models.relationship import ElementType, Relationship
+from ...models.diagrams import SystemContextDiagram
+from ...models.relationship import ElementType
 from ...models.software_system import SoftwareSystem
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
