@@ -14,9 +14,13 @@ while PROJECT_ROOT.parent != PROJECT_ROOT:
     PROJECT_ROOT = PROJECT_ROOT.parent
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def repo() -> FilesystemBoundedContextRepository:
-    """Repository pointing at real codebase."""
+    """Repository pointing at real codebase.
+
+    Session-scoped to avoid re-discovering bounded contexts for each test.
+    The repository caches its discovery results internally.
+    """
     return FilesystemBoundedContextRepository(PROJECT_ROOT)
 
 

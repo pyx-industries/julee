@@ -8,6 +8,7 @@ to avoid circular imports, since use_cases import from this module.
 """
 
 import ast
+import functools
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -266,7 +267,18 @@ def parse_bounded_context(context_dir: Path) -> "BoundedContextInfo | None":
     Returns:
         BoundedContextInfo if directory exists, None otherwise
     """
+    return _parse_bounded_context_cached(str(context_dir))
+
+
+@functools.lru_cache(maxsize=64)
+def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
+    """Cached implementation of parse_bounded_context.
+
+    Uses string path for hashability with lru_cache.
+    """
     from julee.shared.domain.models.code_info import BoundedContextInfo
+
+    context_dir = Path(context_dir_str)
 
     if not context_dir.exists() or not context_dir.is_dir():
         return None
