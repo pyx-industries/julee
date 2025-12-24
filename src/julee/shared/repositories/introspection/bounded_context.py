@@ -10,7 +10,7 @@ from pathlib import Path
 
 from julee.shared.domain.doctrine_constants import (
     CONTRIB_DIR,
-    MODELS_PATH,
+    ENTITIES_PATH,
     REPOSITORIES_PATH,
     RESERVED_WORDS,
     SEARCH_ROOT,
@@ -19,6 +19,12 @@ from julee.shared.domain.doctrine_constants import (
     VIEWPOINT_SLUGS,
 )
 from julee.shared.domain.models import BoundedContext, StructuralMarkers
+
+# Legacy paths for migration support
+_LEGACY_MODELS_PATH = ("domain", "models")
+_LEGACY_USE_CASES_PATH = ("domain", "use_cases")
+_LEGACY_REPOSITORIES_PATH = ("domain", "repositories")
+_LEGACY_SERVICES_PATH = ("domain", "services")
 
 # Re-export for backwards compatibility with existing imports
 __all__ = ["RESERVED_WORDS", "VIEWPOINT_SLUGS", "FilesystemBoundedContextRepository"]
@@ -58,7 +64,8 @@ class FilesystemBoundedContextRepository:
     """Repository that discovers bounded contexts by scanning filesystem.
 
     Inspects directory structure to find bounded contexts that follow
-    the domain/{models,repositories,services,use_cases} pattern.
+    the {entities,repositories,services,use_cases} pattern (flattened)
+    or the legacy domain/{models,repositories,services,use_cases} pattern.
     """
 
     def __init__(self, project_root: Path) -> None:
@@ -78,13 +85,34 @@ class FilesystemBoundedContextRepository:
         """Check if path contains a subdirectory."""
         return path.joinpath(*parts).is_dir()
 
+    def _has_subdir_or_legacy(
+        self, path: Path, parts: tuple[str, ...], legacy_parts: tuple[str, ...] | None
+    ) -> bool:
+        """Check if path contains a subdirectory (new or legacy location)."""
+        if path.joinpath(*parts).is_dir():
+            return True
+        if legacy_parts and path.joinpath(*legacy_parts).is_dir():
+            return True
+        return False
+
     def _detect_markers(self, path: Path) -> StructuralMarkers:
-        """Detect structural markers in a directory."""
+        """Detect structural markers in a directory.
+
+        Checks both new flattened structure and legacy domain/ structure.
+        """
         return StructuralMarkers(
-            has_domain_models=self._has_subdir(path, MODELS_PATH),
-            has_domain_repositories=self._has_subdir(path, REPOSITORIES_PATH),
-            has_domain_services=self._has_subdir(path, SERVICES_PATH),
-            has_domain_use_cases=self._has_subdir(path, USE_CASES_PATH),
+            has_domain_models=self._has_subdir_or_legacy(
+                path, ENTITIES_PATH, _LEGACY_MODELS_PATH
+            ),
+            has_domain_repositories=self._has_subdir_or_legacy(
+                path, REPOSITORIES_PATH, _LEGACY_REPOSITORIES_PATH
+            ),
+            has_domain_services=self._has_subdir_or_legacy(
+                path, SERVICES_PATH, _LEGACY_SERVICES_PATH
+            ),
+            has_domain_use_cases=self._has_subdir_or_legacy(
+                path, USE_CASES_PATH, _LEGACY_USE_CASES_PATH
+            ),
             has_tests=self._has_subdir(path, ("tests",)),
             has_parsers=self._has_subdir(path, ("parsers",)),
             has_serializers=self._has_subdir(path, ("serializers",)),

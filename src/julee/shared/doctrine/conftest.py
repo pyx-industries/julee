@@ -4,6 +4,10 @@ from pathlib import Path
 
 import pytest
 
+from julee.shared.domain.doctrine_constants import (
+    ENTITIES_PATH,
+    USE_CASES_PATH,
+)
 from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
 
 # Project root - find by looking for pyproject.toml
@@ -33,12 +37,27 @@ def project_root() -> Path:
 def create_bounded_context(
     base_path: Path, name: str, layers: list[str] | None = None
 ) -> Path:
-    """Helper to create a bounded context directory structure."""
+    """Helper to create a bounded context directory structure.
+
+    Creates the flattened structure: {bc}/entities/, {bc}/use_cases/
+    """
     ctx_path = base_path / name
     ctx_path.mkdir(parents=True)
     (ctx_path / "__init__.py").touch()
-    for layer in layers or ["models", "use_cases"]:
-        layer_path = ctx_path / "domain" / layer
+
+    # Default layers: entities and use_cases (flattened, no domain/ nesting)
+    default_layers = [
+        ENTITIES_PATH,  # ("entities",)
+        USE_CASES_PATH,  # ("use_cases",)
+    ]
+    for layer_path_tuple in layers or default_layers:
+        # Handle both old-style string and new-style tuple paths
+        if isinstance(layer_path_tuple, str):
+            layer_path = ctx_path / layer_path_tuple
+        else:
+            layer_path = ctx_path
+            for part in layer_path_tuple:
+                layer_path = layer_path / part
         layer_path.mkdir(parents=True)
     return ctx_path
 

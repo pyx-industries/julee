@@ -272,7 +272,7 @@ class TestScanBoundedContexts:
         visible = tmp_path / "visible"
         visible.mkdir()
         (visible / "__init__.py").write_text("")
-        (visible / "domain").mkdir()  # Required for bounded context
+        (visible / "entities").mkdir()  # Required for bounded context
 
         contexts = scan_bounded_contexts(tmp_path)
         assert len(contexts) == 1
@@ -284,7 +284,7 @@ class TestScanBoundedContexts:
         context_dir = tmp_path / "context"
         context_dir.mkdir()
         (context_dir / "__init__.py").write_text("")
-        (context_dir / "domain").mkdir()  # Required for bounded context
+        (context_dir / "entities").mkdir()  # Required for bounded context
 
         contexts = scan_bounded_contexts(tmp_path)
         assert len(contexts) == 1

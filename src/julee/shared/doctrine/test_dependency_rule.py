@@ -12,7 +12,18 @@ from pathlib import Path
 
 import pytest
 
+from julee.shared.domain.doctrine_constants import (
+    ENTITIES_PATH,
+    REPOSITORIES_PATH,
+    SERVICES_PATH,
+    USE_CASES_PATH,
+)
 from julee.shared.parsers.imports import classify_import_layer, extract_imports
+
+
+def _path_tuple_to_str(path_tuple: tuple[str, ...]) -> str:
+    """Convert path tuple to slash-separated string."""
+    return "/".join(path_tuple)
 
 
 class TestEntityDependencies:
@@ -22,7 +33,7 @@ class TestEntityDependencies:
     async def test_all_entities_MUST_NOT_import_outward(self, repo):
         """All entity files MUST NOT import from outer layers.
 
-        Entities (domain/models/) are innermost and cannot depend on:
+        Entities are innermost and cannot depend on:
         - use_cases/
         - repositories/
         - services/
@@ -44,11 +55,13 @@ class TestEntityDependencies:
         }
 
         for ctx in contexts:
-            models_dir = Path(ctx.path) / "domain" / "models"
-            if not models_dir.exists():
+            entities_dir = Path(ctx.path)
+            for part in ENTITIES_PATH:
+                entities_dir = entities_dir / part
+            if not entities_dir.exists():
                 continue
 
-            for py_file in models_dir.glob("**/*.py"):
+            for py_file in entities_dir.glob("**/*.py"):
                 if py_file.name.startswith("_"):
                     continue
 
@@ -57,7 +70,7 @@ class TestEntityDependencies:
                     layer = classify_import_layer(imp.module)
                     if layer in forbidden_layers:
                         violations.append(
-                            f"{ctx.slug}/domain/models/{py_file.name}: "
+                            f"{ctx.slug}/{_path_tuple_to_str(ENTITIES_PATH)}/{py_file.name}: "
                             f"imports from {layer} ({imp.module})"
                         )
 
@@ -82,7 +95,9 @@ class TestUseCaseDependencies:
         forbidden_layers = {"infrastructure", "apps", "deployment"}
 
         for ctx in contexts:
-            use_cases_dir = Path(ctx.path) / "domain" / "use_cases"
+            use_cases_dir = Path(ctx.path)
+            for part in USE_CASES_PATH:
+                use_cases_dir = use_cases_dir / part
             if not use_cases_dir.exists():
                 continue
 
@@ -95,7 +110,7 @@ class TestUseCaseDependencies:
                     layer = classify_import_layer(imp.module)
                     if layer in forbidden_layers:
                         violations.append(
-                            f"{ctx.slug}/domain/use_cases/{py_file.name}: "
+                            f"{ctx.slug}/{_path_tuple_to_str(USE_CASES_PATH)}/{py_file.name}: "
                             f"imports from {layer} ({imp.module})"
                         )
 
@@ -122,7 +137,9 @@ class TestRepositoryProtocolDependencies:
         forbidden_layers = {"infrastructure", "apps", "deployment"}
 
         for ctx in contexts:
-            repos_dir = Path(ctx.path) / "domain" / "repositories"
+            repos_dir = Path(ctx.path)
+            for part in REPOSITORIES_PATH:
+                repos_dir = repos_dir / part
             if not repos_dir.exists():
                 continue
 
@@ -135,7 +152,7 @@ class TestRepositoryProtocolDependencies:
                     layer = classify_import_layer(imp.module)
                     if layer in forbidden_layers:
                         violations.append(
-                            f"{ctx.slug}/domain/repositories/{py_file.name}: "
+                            f"{ctx.slug}/{_path_tuple_to_str(REPOSITORIES_PATH)}/{py_file.name}: "
                             f"imports from {layer} ({imp.module})"
                         )
 
@@ -162,7 +179,9 @@ class TestServiceProtocolDependencies:
         forbidden_layers = {"infrastructure", "apps", "deployment"}
 
         for ctx in contexts:
-            services_dir = Path(ctx.path) / "domain" / "services"
+            services_dir = Path(ctx.path)
+            for part in SERVICES_PATH:
+                services_dir = services_dir / part
             if not services_dir.exists():
                 continue
 
@@ -175,7 +194,7 @@ class TestServiceProtocolDependencies:
                     layer = classify_import_layer(imp.module)
                     if layer in forbidden_layers:
                         violations.append(
-                            f"{ctx.slug}/domain/services/{py_file.name}: "
+                            f"{ctx.slug}/{_path_tuple_to_str(SERVICES_PATH)}/{py_file.name}: "
                             f"imports from {layer} ({imp.module})"
                         )
 

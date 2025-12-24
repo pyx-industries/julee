@@ -184,12 +184,15 @@ Rationale: Protocol enables dependency inversion without ABC inheritance.
 # Clean Architecture defines a layer hierarchy. Dependencies must point
 # inward (toward the center).
 
-LAYER_MODELS: Final[str] = "models"
-"""Innermost layer: domain entities/models.
+LAYER_ENTITIES: Final[str] = "entities"
+"""Innermost layer: domain entities.
 
 Contains: Entity classes, value objects, domain events
 Can import: Nothing (except standard library, pydantic)
 """
+
+# Alias for backward compatibility during migration
+LAYER_MODELS: Final[str] = LAYER_ENTITIES
 
 LAYER_USE_CASES: Final[str] = "use_cases"
 """Middle layer: application business rules.
@@ -239,8 +242,8 @@ Can import: Everything
 # Maps directory/module names to canonical layer names
 LAYER_KEYWORDS: Final[dict[str, str]] = {
     # Innermost
-    "models": LAYER_MODELS,
-    "entities": LAYER_MODELS,  # alias
+    "entities": LAYER_ENTITIES,
+    "models": LAYER_ENTITIES,  # legacy alias
     # Middle
     "use_cases": LAYER_USE_CASES,
     "usecases": LAYER_USE_CASES,  # alias
@@ -254,7 +257,7 @@ LAYER_KEYWORDS: Final[dict[str, str]] = {
 
 # Dependency rule: what each layer is forbidden from importing
 LAYER_FORBIDDEN_IMPORTS: Final[dict[str, frozenset[str]]] = {
-    LAYER_MODELS: frozenset(
+    LAYER_ENTITIES: frozenset(
         {
             LAYER_USE_CASES,
             LAYER_REPOSITORIES,
@@ -296,21 +299,27 @@ LAYER_FORBIDDEN_IMPORTS: Final[dict[str, frozenset[str]]] = {
 # DIRECTORY STRUCTURE
 # =============================================================================
 # Filesystem layout patterns for bounded contexts.
+# Structure is flat: {bc}/entities/, {bc}/use_cases/, etc.
+# No nested domain/ directory.
 
+ENTITIES_PATH: Final[tuple[str, ...]] = ("entities",)
+"""Path to entities directory: {bc}/entities/"""
+
+USE_CASES_PATH: Final[tuple[str, ...]] = ("use_cases",)
+"""Path to use cases directory: {bc}/use_cases/"""
+
+REPOSITORIES_PATH: Final[tuple[str, ...]] = ("repositories",)
+"""Path to repository protocols directory: {bc}/repositories/"""
+
+SERVICES_PATH: Final[tuple[str, ...]] = ("services",)
+"""Path to service protocols directory: {bc}/services/"""
+
+INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
+"""Path to infrastructure directory: {bc}/infrastructure/"""
+
+# Legacy aliases for backward compatibility during migration
 DOMAIN_DIR: Final[str] = "domain"
-"""Parent directory for domain layers within a bounded context."""
-
-MODELS_PATH: Final[tuple[str, ...]] = (DOMAIN_DIR, "models")
-"""Path to models directory: {bc}/domain/models/"""
-
-USE_CASES_PATH: Final[tuple[str, ...]] = (DOMAIN_DIR, "use_cases")
-"""Path to use cases directory: {bc}/domain/use_cases/"""
-
-REPOSITORIES_PATH: Final[tuple[str, ...]] = (DOMAIN_DIR, "repositories")
-"""Path to repository protocols directory: {bc}/domain/repositories/"""
-
-SERVICES_PATH: Final[tuple[str, ...]] = (DOMAIN_DIR, "services")
-"""Path to service protocols directory: {bc}/domain/services/"""
+MODELS_PATH: Final[tuple[str, ...]] = ENTITIES_PATH
 
 
 # =============================================================================
@@ -340,7 +349,6 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 
 RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
     {
-        "core",  # Reserved for future idioms accelerator
         "contrib",  # Plugin/contributed modules
         "applications",  # Legacy - may be removed
         "docs",  # Documentation
@@ -354,7 +362,8 @@ These directories have special meaning in the project layout.
 
 RESERVED_COMMON: Final[frozenset[str]] = frozenset(
     {
-        "shared",  # Foundational accelerator (cross-cutting concerns)
+        "core",  # Foundational accelerator (cross-cutting concerns)
+        "shared",  # Legacy alias for core
         "util",  # Utilities
         "utils",  # Utilities (alias)
         "common",  # Common code
@@ -397,17 +406,20 @@ Contexts matching these slugs are marked is_viewpoint=True.
 # =============================================================================
 # Bounded contexts with special handling requirements.
 
-SHARED_CONTEXT_SLUG: Final[str] = "shared"
-"""The shared/foundational bounded context.
+CORE_CONTEXT_SLUG: Final[str] = "core"
+"""The core/foundational bounded context.
 
-The 'shared' context contains cross-cutting concerns used by all other
+The 'core' context contains cross-cutting concerns used by all other
 contexts. It is a reserved word (not discovered as a normal bounded
 context) but still contains domain code that must comply with doctrine.
 
 Special handling required for:
-- Service protocol method matching (shared services need shared requests)
-- Import analysis (shared is allowed as an import source)
+- Service protocol method matching (core services need core requests)
+- Import analysis (core is allowed as an import source)
 """
+
+# Legacy alias for backward compatibility during migration
+SHARED_CONTEXT_SLUG: Final[str] = CORE_CONTEXT_SLUG
 
 
 # =============================================================================
@@ -435,7 +447,7 @@ Example: ExtractAssemblePipeline wraps ExtractAssembleDataUseCase
 Naming convention:
 - {Prefix}Pipeline MUST have a corresponding {Prefix}UseCase or {Prefix}DataUseCase
 - Pipeline lives at: {bc}/apps/worker/pipelines.py
-- UseCase lives at: {bc}/domain/use_cases/ or {bc}/use_cases/
+- UseCase lives at: {bc}/use_cases/
 """
 
 PIPELINE_LOCATION: Final[str] = "apps/worker/pipelines.py"

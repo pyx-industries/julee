@@ -251,15 +251,14 @@ def parse_module_docstring(module_path: Path) -> tuple[str | None, str | None]:
 def parse_bounded_context(context_dir: Path) -> "BoundedContextInfo | None":
     """Introspect a bounded context directory for Clean Architecture structure.
 
-    Expected directory structure:
+    Expected directory structure (flattened):
     - context_dir/
       - __init__.py (module docstring becomes objective)
-      - domain/
-        - models/ (entities)
-        - repositories/ (repository protocols)
-        - services/ (service protocols)
-        - use_cases/ (use case classes, requests.py, responses.py)
-      - infrastructure/ (optional)
+      - entities/ (domain entities)
+      - use_cases/ (use case classes with co-located Request/Response)
+      - repositories/ (repository protocol definitions)
+      - services/ (service protocol definitions)
+      - infrastructure/ (optional, contains implementations)
 
     Args:
         context_dir: Path to the bounded context directory
@@ -270,12 +269,55 @@ def parse_bounded_context(context_dir: Path) -> "BoundedContextInfo | None":
     return _parse_bounded_context_cached(str(context_dir))
 
 
+def _resolve_layer_path(
+    context_dir: Path,
+    path_tuple: tuple[str, ...],
+    legacy_path: tuple[str, ...] | None = None,
+) -> Path:
+    """Resolve layer path, checking legacy structure first during migration.
+
+    During migration, we check legacy paths first since that's where the code
+    currently lives. Once migration is complete, legacy paths can be removed.
+
+    Args:
+        context_dir: Base bounded context directory
+        path_tuple: New flattened path as tuple (e.g., ("entities",))
+        legacy_path: Legacy path to check first (e.g., ("domain", "models"))
+
+    Returns:
+        Path to the layer directory (may not exist)
+    """
+    # Check legacy path first during migration (where code currently is)
+    if legacy_path:
+        legacy = context_dir
+        for part in legacy_path:
+            legacy = legacy / part
+        if legacy.exists():
+            return legacy
+
+    # Try new flattened path
+    new_path = context_dir
+    for part in path_tuple:
+        new_path = new_path / part
+    if new_path.exists():
+        return new_path
+
+    # Return new path even if doesn't exist (for future creation)
+    return new_path
+
+
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     """Cached implementation of parse_bounded_context.
 
     Uses string path for hashability with lru_cache.
     """
+    from julee.shared.domain.doctrine_constants import (
+        ENTITIES_PATH,
+        REPOSITORIES_PATH,
+        SERVICES_PATH,
+        USE_CASES_PATH,
+    )
     from julee.shared.domain.models.code_info import BoundedContextInfo
 
     context_dir = Path(context_dir_str)
@@ -286,10 +328,19 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     init_file = context_dir / "__init__.py"
     objective, full_docstring = parse_module_docstring(init_file)
 
-    # Check both use_cases/ and domain/use_cases/ locations
-    use_cases_dir = context_dir / "use_cases"
-    if not use_cases_dir.exists():
-        use_cases_dir = context_dir / "domain" / "use_cases"
+    # Resolve paths with fallback to legacy structure during migration
+    use_cases_dir = _resolve_layer_path(
+        context_dir, USE_CASES_PATH, legacy_path=("domain", "use_cases")
+    )
+    entities_dir = _resolve_layer_path(
+        context_dir, ENTITIES_PATH, legacy_path=("domain", "models")
+    )
+    repositories_dir = _resolve_layer_path(
+        context_dir, REPOSITORIES_PATH, legacy_path=("domain", "repositories")
+    )
+    services_dir = _resolve_layer_path(
+        context_dir, SERVICES_PATH, legacy_path=("domain", "services")
+    )
 
     # Parse all classes from use_cases directory
     all_classes = parse_python_classes(use_cases_dir)
@@ -305,19 +356,42 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     return BoundedContextInfo(
         slug=context_dir.name,
-        entities=parse_python_classes(context_dir / "domain" / "models"),
+        entities=parse_python_classes(entities_dir),
         use_cases=use_cases,
         requests=requests,
         responses=responses,
-        repository_protocols=parse_python_classes(
-            context_dir / "domain" / "repositories"
-        ),
-        service_protocols=parse_python_classes(context_dir / "domain" / "services"),
+        repository_protocols=parse_python_classes(repositories_dir),
+        service_protocols=parse_python_classes(services_dir),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,
         docstring=full_docstring,
     )
+
+
+def _has_bounded_context_structure(context_dir: Path) -> bool:
+    """Check if directory has bounded context structure.
+
+    Supports both flattened structure (entities/, use_cases/) and
+    legacy structure (domain/models/, domain/use_cases/).
+    """
+    from julee.shared.domain.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
+
+    # Check new flattened structure
+    for path_tuple in [ENTITIES_PATH, USE_CASES_PATH]:
+        path = context_dir
+        for part in path_tuple:
+            path = path / part
+        if path.exists():
+            return True
+
+    # Check legacy structure
+    domain_dir = context_dir / "domain"
+    if domain_dir.exists():
+        if (domain_dir / "models").exists() or (domain_dir / "use_cases").exists():
+            return True
+
+    return False
 
 
 def scan_bounded_contexts(
@@ -326,8 +400,9 @@ def scan_bounded_contexts(
 ) -> list["BoundedContextInfo"]:
     """Scan a source directory for all bounded contexts.
 
-    Only includes directories that have the structure of a bounded context
-    (i.e., contain a domain/ subdirectory with models or repositories).
+    Includes directories with either:
+    - Flattened structure: entities/ or use_cases/ directories
+    - Legacy structure: domain/models/ or domain/use_cases/ directories
 
     Args:
         src_dir: Root source directory (e.g., project/src/)
@@ -350,9 +425,8 @@ def scan_bounded_contexts(
         if context_dir.name in exclude:
             continue
 
-        # Only consider directories with domain/ structure as bounded contexts
-        domain_dir = context_dir / "domain"
-        if not domain_dir.exists():
+        # Check for bounded context structure (flattened or legacy)
+        if not _has_bounded_context_structure(context_dir):
             continue
 
         context_info = parse_bounded_context(context_dir)

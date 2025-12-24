@@ -29,10 +29,14 @@ def write_python_file(path: Path, content: str) -> Path:
 class TestClassifyImportLayer:
     """Unit tests for classify_import_layer function."""
 
-    def test_models_layer_identified(self):
-        """Import paths containing 'models' classify as models layer."""
-        assert classify_import_layer("julee.hcd.domain.models") == "models"
-        assert classify_import_layer("julee.hcd.domain.models.story") == "models"
+    def test_entities_layer_identified(self):
+        """Import paths containing 'entities' or 'models' classify as entities layer."""
+        # New flattened path
+        assert classify_import_layer("julee.hcd.entities") == "entities"
+        assert classify_import_layer("julee.hcd.entities.story") == "entities"
+        # Legacy path (models maps to entities layer)
+        assert classify_import_layer("julee.hcd.domain.models") == "entities"
+        assert classify_import_layer("julee.hcd.domain.models.story") == "entities"
 
     def test_use_cases_layer_identified(self):
         """Import paths containing 'use_cases' classify as use_cases layer."""
@@ -176,12 +180,12 @@ class Invoice:
         assert len(violations) == 1
 
     @pytest.mark.asyncio
-    async def test_detects_models_import(self, tmp_path: Path):
-        """Detector finds imports from models layer."""
+    async def test_detects_entities_import(self, tmp_path: Path):
+        """Detector finds imports from entities layer."""
         py_file = write_python_file(
             tmp_path / "test_file.py",
             '''"""Test file."""
-from julee.billing.domain.models.line_item import LineItem
+from julee.billing.entities.line_item import LineItem
 
 class Invoice:
     items: list[LineItem]
@@ -189,7 +193,7 @@ class Invoice:
         )
 
         imports = extract_imports(py_file)
-        model_imports = [
-            imp for imp in imports if classify_import_layer(imp.module) == "models"
+        entity_imports = [
+            imp for imp in imports if classify_import_layer(imp.module) == "entities"
         ]
-        assert len(model_imports) == 1
+        assert len(entity_imports) == 1

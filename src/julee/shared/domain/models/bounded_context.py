@@ -19,7 +19,8 @@ class StructuralMarkers(BaseModel):
     """Structural markers indicating what a bounded context contains.
 
     These markers reflect the Clean Architecture layers present in a
-    bounded context following the {bc}/domain/{layer}/ pattern.
+    bounded context. Supports both flattened structure ({bc}/entities/)
+    and legacy structure ({bc}/domain/models/).
     """
 
     # Core Clean Architecture layers

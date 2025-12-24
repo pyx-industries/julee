@@ -9,7 +9,11 @@ from pathlib import Path
 import pytest
 
 from julee.shared.doctrine.conftest import create_bounded_context, create_solution
-from julee.shared.domain.doctrine_constants import RESERVED_WORDS, VIEWPOINT_SLUGS
+from julee.shared.domain.doctrine_constants import (
+    ENTITIES_PATH,
+    RESERVED_WORDS,
+    VIEWPOINT_SLUGS,
+)
 from julee.shared.domain.use_cases import (
     ListBoundedContextsRequest,
     ListBoundedContextsUseCase,
@@ -25,12 +29,12 @@ class TestBoundedContextStructure:
     """Doctrine about bounded context structure."""
 
     @pytest.mark.asyncio
-    async def test_bounded_context_MUST_have_domain_models_or_use_cases(
+    async def test_bounded_context_MUST_have_entities_or_use_cases(
         self, tmp_path: Path
     ):
-        """A bounded context MUST have domain/models or domain/use_cases."""
+        """A bounded context MUST have entities/ or use_cases/."""
         root = create_solution(tmp_path)
-        create_bounded_context(root, "valid", layers=["models"])
+        create_bounded_context(root, "valid", layers=[ENTITIES_PATH])
 
         repo = FilesystemBoundedContextRepository(tmp_path)
         use_case = ListBoundedContextsUseCase(repo)
@@ -39,7 +43,7 @@ class TestBoundedContextStructure:
         for ctx in response.bounded_contexts:
             assert (
                 ctx.markers.has_clean_architecture_layers
-            ), f"'{ctx.slug}' MUST have domain/models or domain/use_cases"
+            ), f"'{ctx.slug}' MUST have entities/ or use_cases/"
 
     @pytest.mark.asyncio
     async def test_bounded_context_MUST_be_python_package(self, tmp_path: Path):
