@@ -81,10 +81,10 @@ def use_case(
 @pytest.fixture
 def fixture_configs() -> list[dict]:
     """Load actual configurations from YAML fixture file."""
-    # Get the fixture file path
+    # Get the fixture file path - tests/use_cases -> tests -> ceap -> fixtures
     current_file = Path(__file__)
-    julee_dir = current_file.parent.parent.parent.parent
-    fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
+    ceap_dir = current_file.parent.parent.parent
+    fixture_path = ceap_dir / "fixtures" / "knowledge_service_configs.yaml"
 
     assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
@@ -313,10 +313,10 @@ class TestYamlFixtureIntegration:
 
     def test_fixture_file_exists_and_is_valid(self) -> None:
         """Test that the fixture file exists and contains valid data."""
-        # Get the fixture file path
+        # Get the fixture file path - tests/use_cases -> tests -> ceap -> fixtures
         current_file = Path(__file__)
-        julee_dir = current_file.parent.parent.parent.parent
-        fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
+        ceap_dir = current_file.parent.parent.parent
+        fixture_path = ceap_dir / "fixtures" / "knowledge_service_configs.yaml"
 
         # Verify file exists
         assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
