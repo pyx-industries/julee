@@ -6,8 +6,10 @@ relationships, deployment nodes, and dynamic steps.
 """
 
 __all__ = [
-    "domain",
+    "entities",
+    "use_cases",
     "repositories",
+    "infrastructure",
     "parsers",
     "serializers",
 ]
