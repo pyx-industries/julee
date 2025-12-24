@@ -236,8 +236,58 @@ class DeleteDynamicStepResponse(BaseModel):
 
 
 class DiagramResponse(BaseModel):
-    """Response from generating a diagram."""
+    """Response from generating a serialized diagram (PlantUML, Structurizr, etc.)."""
 
     content: str
     format: str
     title: str = ""
+
+
+# -----------------------------------------------------------------------------
+# Diagram Data Responses (domain model wrappers)
+# -----------------------------------------------------------------------------
+
+from ..models.diagrams import (
+    ComponentDiagram,
+    ContainerDiagram,
+    DeploymentDiagram,
+    DynamicDiagram,
+    SystemContextDiagram,
+    SystemLandscapeDiagram,
+)
+
+
+class GetSystemLandscapeDiagramResponse(BaseModel):
+    """Response from computing a system landscape diagram."""
+
+    diagram: SystemLandscapeDiagram
+
+
+class GetSystemContextDiagramResponse(BaseModel):
+    """Response from computing a system context diagram."""
+
+    diagram: SystemContextDiagram | None
+
+
+class GetContainerDiagramResponse(BaseModel):
+    """Response from computing a container diagram."""
+
+    diagram: ContainerDiagram | None
+
+
+class GetComponentDiagramResponse(BaseModel):
+    """Response from computing a component diagram."""
+
+    diagram: ComponentDiagram | None
+
+
+class GetDeploymentDiagramResponse(BaseModel):
+    """Response from computing a deployment diagram."""
+
+    diagram: DeploymentDiagram
+
+
+class GetDynamicDiagramResponse(BaseModel):
+    """Response from computing a dynamic diagram."""
+
+    diagram: DynamicDiagram | None

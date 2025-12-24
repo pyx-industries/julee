@@ -9,7 +9,10 @@ from ..responses import ListRelationshipsResponse
 
 
 class ListRelationshipsUseCase:
-    """Use case for listing all relationships."""
+    """Use case for listing all relationships.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.relationship.list:ListRelationshipsUseCase
+    """
 
     def __init__(self, relationship_repo: RelationshipRepository) -> None:
         """Initialize with repository dependency.

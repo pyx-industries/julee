@@ -9,7 +9,10 @@ from ..responses import ListContainersResponse
 
 
 class ListContainersUseCase:
-    """Use case for listing all containers."""
+    """Use case for listing all containers.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.container.list:ListContainersUseCase
+    """
 
     def __init__(self, container_repo: ContainerRepository) -> None:
         """Initialize with repository dependency.

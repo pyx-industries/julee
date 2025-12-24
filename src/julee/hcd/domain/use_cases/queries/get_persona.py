@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 class GetPersonaUseCase:
     """Use case for getting a persona by name.
 
+    .. usecase-documentation:: julee.hcd.domain.use_cases.queries.get_persona:GetPersonaUseCase
+
     Searches both defined and derived personas, returning merged results.
     """
 

@@ -20,25 +20,30 @@ import these and add their own accelerators.
 Key Principles
 --------------
 
-1. **Accelerators scream**: Bounded contexts live at the top level of a
+1. **Core idioms are the foundation**: Everything hangs on the Clean
+   Architecture patterns defined in ``core/``—immutable entities, abstract
+   repositories, use case classes, layered infrastructure. Viewpoints are
+   ontologically bound to these idioms; contrib and solutions depend on them.
+
+2. **Accelerators scream**: Bounded contexts live at the top level of a
    codebase, not nested under a parent directory. When you open a solution,
    you immediately see what domains it contains.
 
-2. **Reserved words have structural meaning**: Certain directory names
+3. **Reserved words have structural meaning**: Certain directory names
    (``core/``, ``contrib/``, ``applications/``, ``docs/``, ``deployment/``)
    are reserved and cannot be used as accelerator names.
 
-3. **Dependencies point parentward**: Within an accelerator, inner layers
+4. **Dependencies point parentward**: Within an accelerator, inner layers
    (entities) know nothing of outer layers (infrastructure). Imports trend
    toward ``../`` (parent), not ``./subdir/`` (child).
 
-4. **Convention over configuration**: Following the idioms gives you sensible
+5. **Convention over configuration**: Following the idioms gives you sensible
    defaults. A naive implementation should work out of the box.
 
-5. **Viewpoints are universal**: HCD and C4 viewpoints can be applied to any
+6. **Viewpoints are universal**: HCD and C4 viewpoints can be applied to any
    solution that follows the core idioms. They are lenses, not dependencies.
 
-6. **Contrib is opt-in**: Contrib modules (CEAP, polling, etc.) are
+7. **Contrib is opt-in**: Contrib modules (CEAP, polling, etc.) are
    batteries-included utilities that solutions explicitly choose to use.
 
 Documents in This Proposal
@@ -47,11 +52,15 @@ Documents in This Proposal
 .. toctree::
    :maxdepth: 1
 
-   reserved_words
+   core_idioms
    accelerator_idioms
    application_idioms
+   reserved_words
    dependency_layers
    self_hosting
+
+The reading order matters: **core_idioms** defines the foundation that
+everything else builds on. Start there.
 
 Top-Level Structure
 -------------------

@@ -38,6 +38,7 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol
 
 from .decorators import try_use_case_step
+from .requests import ValidateDocumentRequest
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ class ValidateDocumentUseCase:
         self.now_fn = now_fn
 
     async def validate_document(
-        self, document_id: str, policy_id: str
+        self, request: ValidateDocumentRequest
     ) -> DocumentPolicyValidation:
         """
         Validate a document against a policy and return the validation result.
@@ -148,8 +149,7 @@ class ValidateDocumentUseCase:
         8. Determines pass/fail and updates validation record
 
         Args:
-            document_id: ID of the document to validate
-            policy_id: ID of the policy to validate against
+            request: Request containing document_id and policy_id
 
         Returns:
             DocumentPolicyValidation with validation results
@@ -159,6 +159,9 @@ class ValidateDocumentUseCase:
             RuntimeError: If validation processing fails
 
         """
+        document_id = request.document_id
+        policy_id = request.policy_id
+
         logger.debug(
             "Starting document validation use case",
             extra={

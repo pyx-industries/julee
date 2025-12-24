@@ -9,7 +9,10 @@ from ..responses import DeleteContainerResponse
 
 
 class DeleteContainerUseCase:
-    """Use case for deleting a container."""
+    """Use case for deleting a container.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.container.delete:DeleteContainerUseCase
+    """
 
     def __init__(self, container_repo: ContainerRepository) -> None:
         """Initialize with repository dependency.

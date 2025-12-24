@@ -10,7 +10,7 @@ import io
 
 import pytest
 
-from julee.ceap.domain.models.custom_fields.content_stream import (
+from julee.ceap.domain.models.content_stream import (
     ContentStream,
 )
 from julee.ceap.domain.models.document import Document, DocumentStatus

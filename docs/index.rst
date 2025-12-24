@@ -82,18 +82,7 @@ Documentation Contents
    :maxdepth: 2
    :caption: API Reference
 
-   autoapi/index
-   autoapi/julee/ceap/domain/index
-   autoapi/julee/hcd/index
-   autoapi/julee/c4/index
-   autoapi/julee/shared/index
-   autoapi/julee/repositories/index
-   autoapi/julee/services/index
-   autoapi/julee/workflows/index
-   autoapi/julee/util/index
-   autoapi/apps/api/index
-   autoapi/apps/mcp/index
-   autoapi/apps/sphinx/index
+   api/index
 
 .. toctree::
    :maxdepth: 1

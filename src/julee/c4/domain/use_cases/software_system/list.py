@@ -9,7 +9,10 @@ from ..responses import ListSoftwareSystemsResponse
 
 
 class ListSoftwareSystemsUseCase:
-    """Use case for listing all software systems."""
+    """Use case for listing all software systems.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.software_system.list:ListSoftwareSystemsUseCase
+    """
 
     def __init__(self, software_system_repo: SoftwareSystemRepository) -> None:
         """Initialize with repository dependency.

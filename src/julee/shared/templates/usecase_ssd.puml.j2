@@ -9,14 +9,14 @@ participant "{{ uc.class_name }}" as UC
 participant "{{ dep_type.__name__ }}" as {{ dep_name | make_alias }}
 {% endfor %}
 
-App -> UC : execute({{ uc.request_type.__name__ if uc.request_type else "request" }})
+App -> UC : {{ uc.entry_point_method }}({{ uc.request_type | type_name }})
 activate UC
 {% for call in uc.repository_calls %}
-UC -> {{ call.repo_attr | make_alias }} : {{ call.method_name }}()
+UC -> {{ call.repo_attr | make_alias }} : {{ call.method_name }}({{ call.arg_type }})
 activate {{ call.repo_attr | make_alias }}
-UC <-- {{ call.repo_attr | make_alias }}
+UC <-- {{ call.repo_attr | make_alias }} : {{ call.return_type if call.return_type else "" }}
 deactivate {{ call.repo_attr | make_alias }}
 {% endfor %}
-UC --> App : {{ uc.response_type.__name__ if uc.response_type else "response" }}
+UC --> App : {{ uc.response_type | type_name }}
 deactivate UC
 @enduml

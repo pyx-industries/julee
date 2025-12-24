@@ -7,7 +7,7 @@ most responses wrap domain models rather than duplicating their structure.
 
 from pydantic import BaseModel
 
-from ..models.accelerator import Accelerator
+from ..models.accelerator import Accelerator, AcceleratorValidationIssue
 from ..models.app import App
 from ..models.epic import Epic
 from ..models.integration import Integration
@@ -281,14 +281,6 @@ class DeletePersonaResponse(BaseModel):
 # =============================================================================
 # Validation Responses
 # =============================================================================
-
-
-class AcceleratorValidationIssue(BaseModel):
-    """A single validation issue for an accelerator."""
-
-    slug: str
-    issue_type: str  # "undocumented", "no_code", "mismatch"
-    message: str
 
 
 class ValidateAcceleratorsResponse(BaseModel):

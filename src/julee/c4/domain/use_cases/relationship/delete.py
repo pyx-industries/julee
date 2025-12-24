@@ -9,7 +9,10 @@ from ..responses import DeleteRelationshipResponse
 
 
 class DeleteRelationshipUseCase:
-    """Use case for deleting a relationship."""
+    """Use case for deleting a relationship.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.relationship.delete:DeleteRelationshipUseCase
+    """
 
     def __init__(self, relationship_repo: RelationshipRepository) -> None:
         """Initialize with repository dependency.

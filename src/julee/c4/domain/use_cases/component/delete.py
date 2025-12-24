@@ -9,7 +9,10 @@ from ..responses import DeleteComponentResponse
 
 
 class DeleteComponentUseCase:
-    """Use case for deleting a component."""
+    """Use case for deleting a component.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.component.delete:DeleteComponentUseCase
+    """
 
     def __init__(self, component_repo: ComponentRepository) -> None:
         """Initialize with repository dependency.

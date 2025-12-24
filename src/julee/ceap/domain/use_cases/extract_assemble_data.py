@@ -37,6 +37,7 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
+from .requests import ExtractAssembleDataRequest
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +132,7 @@ class ExtractAssembleDataUseCase:
 
     async def assemble_data(
         self,
-        document_id: str,
-        assembly_specification_id: str,
-        workflow_id: str,
+        request: ExtractAssembleDataRequest,
     ) -> Assembly:
         """
         Assemble a document according to its specification and create a new
@@ -152,9 +151,8 @@ class ExtractAssembleDataUseCase:
         8. Adds the iteration to the assembly and returns it
 
         Args:
-            document_id: ID of the document to assemble
-            assembly_specification_id: ID of the specification to use
-            workflow_id: Temporal workflow ID that creates this assembly
+            request: Request containing document_id, assembly_specification_id,
+                and workflow_id
 
         Returns:
             New Assembly with the assembled document iteration
@@ -164,6 +162,10 @@ class ExtractAssembleDataUseCase:
             RuntimeError: If assembly processing fails
 
         """
+        document_id = request.document_id
+        assembly_specification_id = request.assembly_specification_id
+        workflow_id = request.workflow_id
+
         logger.debug(
             "Starting data assembly use case",
             extra={

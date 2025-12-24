@@ -18,10 +18,18 @@ from apps.sphinx.hcd.context import (
 )
 
 
+class MockSphinxEnv:
+    """Mock Sphinx environment for testing."""
+
+    def __init__(self):
+        self.hcd_storage = {}
+
+
 class MockSphinxApp:
     """Mock Sphinx app for testing."""
 
-    pass
+    def __init__(self):
+        self.env = MockSphinxEnv()
 
 
 class TestHCDContextCreation:

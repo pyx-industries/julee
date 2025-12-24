@@ -27,6 +27,7 @@ from julee.ceap.domain.models.document_policy_validation import (
 )
 from julee.ceap.domain.models.policy import Policy, PolicyStatus
 from julee.ceap.domain.use_cases import ValidateDocumentUseCase
+from julee.ceap.domain.use_cases.requests import ValidateDocumentRequest
 from julee.repositories.memory import (
     MemoryDocumentPolicyValidationRepository,
     MemoryDocumentRepository,
@@ -144,7 +145,7 @@ class TestValidateDocumentUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Document not found"):
             await use_case.validate_document(
-                document_id=document_id, policy_id=policy_id
+                ValidateDocumentRequest(document_id=document_id, policy_id=policy_id)
             )
 
     @pytest.mark.asyncio
@@ -176,7 +177,7 @@ class TestValidateDocumentUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Policy not found"):
             await use_case.validate_document(
-                document_id=document_id, policy_id=policy_id
+                ValidateDocumentRequest(document_id=document_id, policy_id=policy_id)
             )
 
     @pytest.mark.asyncio
@@ -199,7 +200,7 @@ class TestValidateDocumentUseCase:
         # Act & Assert
         with pytest.raises(RuntimeError, match="ID generation failed"):
             await use_case.validate_document(
-                document_id=document_id, policy_id=policy_id
+                ValidateDocumentRequest(document_id=document_id, policy_id=policy_id)
             )
 
     @pytest.mark.asyncio
@@ -240,7 +241,7 @@ class TestValidateDocumentUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Validation query not found"):
             await use_case.validate_document(
-                document_id="doc-123", policy_id="policy-123"
+                ValidateDocumentRequest(document_id="doc-123", policy_id="policy-123")
             )
 
     @pytest.mark.asyncio
@@ -331,7 +332,7 @@ class TestValidateDocumentUseCase:
             match="Failed to parse numeric score from response",
         ):
             await configured_use_case.validate_document(
-                document_id="doc-123", policy_id="policy-123"
+                ValidateDocumentRequest(document_id="doc-123", policy_id="policy-123")
             )
 
     @pytest.mark.asyncio
@@ -444,7 +445,7 @@ class TestValidateDocumentUseCase:
 
         # Act
         result = await configured_use_case.validate_document(
-            document_id="doc-123", policy_id="policy-123"
+            ValidateDocumentRequest(document_id="doc-123", policy_id="policy-123")
         )
 
         # Assert
@@ -550,7 +551,7 @@ class TestValidateDocumentUseCase:
 
         # Act
         await configured_use_case.validate_document(
-            document_id="doc-456", policy_id="policy-456"
+            ValidateDocumentRequest(document_id="doc-456", policy_id="policy-456")
         )
 
     @pytest.mark.asyncio
@@ -676,7 +677,9 @@ class TestValidateDocumentUseCase:
 
         # Act
         result = await configured_use_case.validate_document(
-            document_id="doc-transform-1", policy_id="policy-transform-1"
+            ValidateDocumentRequest(
+                document_id="doc-transform-1", policy_id="policy-transform-1"
+            )
         )
 
         # Assert
@@ -827,7 +830,9 @@ class TestValidateDocumentUseCase:
 
         # Act
         result = await configured_use_case.validate_document(
-            document_id="doc-transform-2", policy_id="policy-transform-2"
+            ValidateDocumentRequest(
+                document_id="doc-transform-2", policy_id="policy-transform-2"
+            )
         )
 
         # Assert
@@ -938,7 +943,9 @@ class TestValidateDocumentUseCase:
 
         # Act
         result = await configured_use_case.validate_document(
-            document_id="doc-no-transform", policy_id="policy-no-transform"
+            ValidateDocumentRequest(
+                document_id="doc-no-transform", policy_id="policy-no-transform"
+            )
         )
 
         # Assert
@@ -1062,8 +1069,10 @@ class TestValidateDocumentUseCase:
             match="Transformation result must be valid JSON",
         ):
             await configured_use_case.validate_document(
-                document_id="doc-invalid-json",
-                policy_id="policy-invalid-json",
+                ValidateDocumentRequest(
+                    document_id="doc-invalid-json",
+                    policy_id="policy-invalid-json",
+                )
             )
 
     @pytest.mark.asyncio
@@ -1132,8 +1141,10 @@ class TestValidateDocumentUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Transformation query not found"):
             await use_case.validate_document(
-                document_id="doc-missing-query",
-                policy_id="policy-missing-query",
+                ValidateDocumentRequest(
+                    document_id="doc-missing-query",
+                    policy_id="policy-missing-query",
+                )
             )
 
     @pytest.mark.asyncio
@@ -1225,5 +1236,5 @@ class TestValidateDocumentUseCase:
             match="must be between 0 and 100",
         ):
             await configured_use_case.validate_document(
-                document_id="doc-789", policy_id="policy-789"
+                ValidateDocumentRequest(document_id="doc-789", policy_id="policy-789")
             )

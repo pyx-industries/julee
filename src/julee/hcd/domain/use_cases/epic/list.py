@@ -9,7 +9,10 @@ from ..responses import ListEpicsResponse
 
 
 class ListEpicsUseCase:
-    """Use case for listing all epics."""
+    """Use case for listing all epics.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.epic.list:ListEpicsUseCase
+    """
 
     def __init__(self, epic_repo: EpicRepository) -> None:
         """Initialize with repository dependency.

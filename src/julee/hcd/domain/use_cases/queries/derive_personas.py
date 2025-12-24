@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 class DerivePersonasUseCase:
     """Use case for deriving and merging personas.
 
+    .. usecase-documentation:: julee.hcd.domain.use_cases.queries.derive_personas:DerivePersonasUseCase
+
     Combines defined personas (from PersonaRepository) with derived
     personas (from stories). Defined personas are authoritative and
     get enriched with app_slugs/epic_slugs from their stories.

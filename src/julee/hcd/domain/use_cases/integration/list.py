@@ -9,7 +9,10 @@ from ..responses import ListIntegrationsResponse
 
 
 class ListIntegrationsUseCase:
-    """Use case for listing all integrations."""
+    """Use case for listing all integrations.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.integration.list:ListIntegrationsUseCase
+    """
 
     def __init__(self, integration_repo: IntegrationRepository) -> None:
         """Initialize with repository dependency.

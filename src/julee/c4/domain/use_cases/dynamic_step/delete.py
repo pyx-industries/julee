@@ -9,7 +9,10 @@ from ..responses import DeleteDynamicStepResponse
 
 
 class DeleteDynamicStepUseCase:
-    """Use case for deleting a dynamic step."""
+    """Use case for deleting a dynamic step.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.dynamic_step.delete:DeleteDynamicStepUseCase
+    """
 
     def __init__(self, dynamic_step_repo: DynamicStepRepository) -> None:
         """Initialize with repository dependency.

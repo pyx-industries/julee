@@ -23,6 +23,14 @@ from julee.c4.domain.use_cases.diagrams import (
     GetSystemContextDiagramUseCase,
     GetSystemLandscapeDiagramUseCase,
 )
+from julee.c4.domain.use_cases.requests import (
+    GetComponentDiagramRequest,
+    GetContainerDiagramRequest,
+    GetDeploymentDiagramRequest,
+    GetDynamicDiagramRequest,
+    GetSystemContextDiagramRequest,
+    GetSystemLandscapeDiagramRequest,
+)
 from julee.c4.repositories.memory.component import (
     MemoryComponentRepository,
 )
@@ -128,22 +136,24 @@ class TestGetSystemContextDiagramUseCase:
         self, use_case: GetSystemContextDiagramUseCase
     ) -> None:
         """Test getting system context diagram."""
-        result = await use_case.execute("banking-system")
+        request = GetSystemContextDiagramRequest(system_slug="banking-system")
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert result.system.slug == "banking-system"
-        assert len(result.external_systems) == 2
-        assert len(result.person_slugs) == 1
-        assert "customer" in result.person_slugs
-        assert len(result.relationships) == 3
+        assert response.diagram is not None
+        assert response.diagram.system.slug == "banking-system"
+        assert len(response.diagram.external_systems) == 2
+        assert len(response.diagram.person_slugs) == 1
+        assert "customer" in response.diagram.person_slugs
+        assert len(response.diagram.relationships) == 3
 
     @pytest.mark.asyncio
     async def test_get_system_context_nonexistent(
         self, use_case: GetSystemContextDiagramUseCase
     ) -> None:
         """Test getting diagram for nonexistent system returns None."""
-        result = await use_case.execute("nonexistent")
-        assert result is None
+        request = GetSystemContextDiagramRequest(system_slug="nonexistent")
+        response = await use_case.execute(request)
+        assert response.diagram is None
 
 
 class TestGetContainerDiagramUseCase:
@@ -267,23 +277,25 @@ class TestGetContainerDiagramUseCase:
         self, use_case: GetContainerDiagramUseCase
     ) -> None:
         """Test getting container diagram."""
-        result = await use_case.execute("banking-system")
+        request = GetContainerDiagramRequest(system_slug="banking-system")
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert result.system.slug == "banking-system"
-        assert len(result.containers) == 3
-        assert len(result.external_systems) == 1
-        assert result.external_systems[0].slug == "email-system"
-        assert len(result.person_slugs) == 1
-        assert "customer" in result.person_slugs
+        assert response.diagram is not None
+        assert response.diagram.system.slug == "banking-system"
+        assert len(response.diagram.containers) == 3
+        assert len(response.diagram.external_systems) == 1
+        assert response.diagram.external_systems[0].slug == "email-system"
+        assert len(response.diagram.person_slugs) == 1
+        assert "customer" in response.diagram.person_slugs
 
     @pytest.mark.asyncio
     async def test_get_container_diagram_nonexistent(
         self, use_case: GetContainerDiagramUseCase
     ) -> None:
         """Test getting diagram for nonexistent system returns None."""
-        result = await use_case.execute("nonexistent")
-        assert result is None
+        request = GetContainerDiagramRequest(system_slug="nonexistent")
+        response = await use_case.execute(request)
+        assert response.diagram is None
 
 
 class TestGetComponentDiagramUseCase:
@@ -395,20 +407,22 @@ class TestGetComponentDiagramUseCase:
         self, use_case: GetComponentDiagramUseCase
     ) -> None:
         """Test getting component diagram."""
-        result = await use_case.execute("api-app")
+        request = GetComponentDiagramRequest(container_slug="api-app")
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert result.container.slug == "api-app"
-        assert len(result.components) == 3
-        assert len(result.relationships) == 2
+        assert response.diagram is not None
+        assert response.diagram.container.slug == "api-app"
+        assert len(response.diagram.components) == 3
+        assert len(response.diagram.relationships) == 2
 
     @pytest.mark.asyncio
     async def test_get_component_diagram_nonexistent(
         self, use_case: GetComponentDiagramUseCase
     ) -> None:
         """Test getting diagram for nonexistent container returns None."""
-        result = await use_case.execute("nonexistent")
-        assert result is None
+        request = GetComponentDiagramRequest(container_slug="nonexistent")
+        response = await use_case.execute(request)
+        assert response.diagram is None
 
 
 class TestGetSystemLandscapeDiagramUseCase:
@@ -484,13 +498,14 @@ class TestGetSystemLandscapeDiagramUseCase:
         self, use_case: GetSystemLandscapeDiagramUseCase
     ) -> None:
         """Test getting system landscape diagram."""
-        result = await use_case.execute()
+        request = GetSystemLandscapeDiagramRequest()
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert len(result.systems) == 3
-        assert len(result.person_slugs) == 1
-        assert "customer" in result.person_slugs
-        assert len(result.relationships) == 2
+        assert response.diagram is not None
+        assert len(response.diagram.systems) == 3
+        assert len(response.diagram.person_slugs) == 1
+        assert "customer" in response.diagram.person_slugs
+        assert len(response.diagram.relationships) == 2
 
 
 class TestGetDeploymentDiagramUseCase:
@@ -589,23 +604,25 @@ class TestGetDeploymentDiagramUseCase:
         self, use_case: GetDeploymentDiagramUseCase
     ) -> None:
         """Test getting deployment diagram."""
-        result = await use_case.execute("production")
+        request = GetDeploymentDiagramRequest(environment="production")
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert result.environment == "production"
-        assert len(result.nodes) == 2
-        assert len(result.containers) == 2
+        assert response.diagram is not None
+        assert response.diagram.environment == "production"
+        assert len(response.diagram.nodes) == 2
+        assert len(response.diagram.containers) == 2
 
     @pytest.mark.asyncio
     async def test_get_deployment_diagram_empty_env(
         self, use_case: GetDeploymentDiagramUseCase
     ) -> None:
         """Test getting diagram for environment with no nodes."""
-        result = await use_case.execute("development")
+        request = GetDeploymentDiagramRequest(environment="development")
+        response = await use_case.execute(request)
 
         # Returns data but with empty nodes
-        assert result is not None
-        assert len(result.nodes) == 0
+        assert response.diagram is not None
+        assert len(response.diagram.nodes) == 0
 
 
 class TestGetDynamicDiagramUseCase:
@@ -711,21 +728,23 @@ class TestGetDynamicDiagramUseCase:
         self, use_case: GetDynamicDiagramUseCase
     ) -> None:
         """Test getting dynamic diagram."""
-        result = await use_case.execute("user-login")
+        request = GetDynamicDiagramRequest(sequence_name="user-login")
+        response = await use_case.execute(request)
 
-        assert result is not None
-        assert result.sequence_name == "user-login"
-        assert len(result.steps) == 3
+        assert response.diagram is not None
+        assert response.diagram.sequence_name == "user-login"
+        assert len(response.diagram.steps) == 3
         # Steps should be in order
-        assert [s.step_number for s in result.steps] == [1, 2, 3]
-        assert len(result.containers) == 3
-        assert len(result.person_slugs) == 1
-        assert "customer" in result.person_slugs
+        assert [s.step_number for s in response.diagram.steps] == [1, 2, 3]
+        assert len(response.diagram.containers) == 3
+        assert len(response.diagram.person_slugs) == 1
+        assert "customer" in response.diagram.person_slugs
 
     @pytest.mark.asyncio
     async def test_get_dynamic_diagram_nonexistent(
         self, use_case: GetDynamicDiagramUseCase
     ) -> None:
         """Test getting diagram for nonexistent sequence returns None."""
-        result = await use_case.execute("nonexistent-sequence")
-        assert result is None
+        request = GetDynamicDiagramRequest(sequence_name="nonexistent-sequence")
+        response = await use_case.execute(request)
+        assert response.diagram is None

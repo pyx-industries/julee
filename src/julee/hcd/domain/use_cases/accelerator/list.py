@@ -9,7 +9,10 @@ from ..responses import ListAcceleratorsResponse
 
 
 class ListAcceleratorsUseCase:
-    """Use case for listing all accelerators."""
+    """Use case for listing all accelerators.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.accelerator.list:ListAcceleratorsUseCase
+    """
 
     def __init__(self, accelerator_repo: AcceleratorRepository) -> None:
         """Initialize with repository dependency.

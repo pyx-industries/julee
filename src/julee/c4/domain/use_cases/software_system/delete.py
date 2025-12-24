@@ -9,7 +9,10 @@ from ..responses import DeleteSoftwareSystemResponse
 
 
 class DeleteSoftwareSystemUseCase:
-    """Use case for deleting a software system."""
+    """Use case for deleting a software system.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.software_system.delete:DeleteSoftwareSystemUseCase
+    """
 
     def __init__(self, software_system_repo: SoftwareSystemRepository) -> None:
         """Initialize with repository dependency.

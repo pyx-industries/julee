@@ -9,7 +9,10 @@ from ..responses import DeletePersonaResponse
 
 
 class DeletePersonaUseCase:
-    """Use case for deleting a persona."""
+    """Use case for deleting a persona.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.persona.delete:DeletePersonaUseCase
+    """
 
     def __init__(self, persona_repo: PersonaRepository) -> None:
         """Initialize with repository dependency.

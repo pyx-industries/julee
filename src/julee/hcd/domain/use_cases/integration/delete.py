@@ -9,7 +9,10 @@ from ..responses import DeleteIntegrationResponse
 
 
 class DeleteIntegrationUseCase:
-    """Use case for deleting an integration."""
+    """Use case for deleting an integration.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.integration.delete:DeleteIntegrationUseCase
+    """
 
     def __init__(self, integration_repo: IntegrationRepository) -> None:
         """Initialize with repository dependency.

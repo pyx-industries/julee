@@ -9,7 +9,10 @@ from ..responses import ListAppsResponse
 
 
 class ListAppsUseCase:
-    """Use case for listing all apps."""
+    """Use case for listing all apps.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.app.list:ListAppsUseCase
+    """
 
     def __init__(self, app_repo: AppRepository) -> None:
         """Initialize with repository dependency.

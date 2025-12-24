@@ -9,7 +9,10 @@ from ..responses import UpdateRelationshipResponse
 
 
 class UpdateRelationshipUseCase:
-    """Use case for updating a relationship."""
+    """Use case for updating a relationship.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.relationship.update:UpdateRelationshipUseCase
+    """
 
     def __init__(self, relationship_repo: RelationshipRepository) -> None:
         """Initialize with repository dependency.

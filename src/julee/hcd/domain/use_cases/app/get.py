@@ -9,7 +9,10 @@ from ..responses import GetAppResponse
 
 
 class GetAppUseCase:
-    """Use case for getting an app by slug."""
+    """Use case for getting an app by slug.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.app.get:GetAppUseCase
+    """
 
     def __init__(self, app_repo: AppRepository) -> None:
         """Initialize with repository dependency.

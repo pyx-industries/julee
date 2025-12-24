@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.ceap.domain.models.assembly_specification import (
+from julee.ceap.domain.models.knowledge_service_query import (
     KnowledgeServiceQuery,
 )
 from julee.repositories.minio.knowledge_service_query import (

@@ -1,0 +1,16 @@
+Name:         {{ artifact.artifact.name }}
+Context:      {{ artifact.bounded_context }}
+File:         {{ artifact.artifact.file }}
+{% if artifact.artifact.docstring %}
+Description:  {{ artifact.artifact.docstring }}
+{% endif %}
+{% if artifact.artifact.bases %}
+Bases:        {{ artifact.artifact.bases | join(', ') }}
+{% endif %}
+{% if artifact.artifact.fields %}
+Fields:
+{% for field in artifact.artifact.fields %}
+  {{ field.name }}: {{ field.type_annotation }}{% if field.default %} = {{ field.default }}{% endif %}
+
+{% endfor %}
+{% endif %}

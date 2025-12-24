@@ -26,6 +26,7 @@ from julee.ceap.domain.models import (
 )
 from julee.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.ceap.domain.use_cases import ExtractAssembleDataUseCase
+from julee.ceap.domain.use_cases.requests import ExtractAssembleDataRequest
 from julee.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
@@ -178,9 +179,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Assembly specification not found"):
             await use_case.assemble_data(
-                document_id=document_id,
-                assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id=document_id,
+                    assembly_specification_id=assembly_specification_id,
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -209,9 +212,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Document not found"):
             await use_case.assemble_data(
-                document_id=document_id,
-                assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id=document_id,
+                    assembly_specification_id=assembly_specification_id,
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -234,9 +239,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(RuntimeError, match="ID generation failed"):
             await use_case.assemble_data(
-                document_id=document_id,
-                assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id=document_id,
+                    assembly_specification_id=assembly_specification_id,
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -327,9 +334,11 @@ class TestExtractAssembleDataUseCase:
         # Act - use configured_use_case which already has the configured
         # memory service
         result = await configured_use_case.assemble_data(
-            document_id="doc-123",
-            assembly_specification_id="spec-123",
-            workflow_id="test-workflow-success",
+            ExtractAssembleDataRequest(
+                document_id="doc-123",
+                assembly_specification_id="spec-123",
+                workflow_id="test-workflow-success",
+            )
         )
 
         # Assert
@@ -365,9 +374,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Assembly specification not found"):
             await use_case.assemble_data(
-                document_id="doc-123",
-                assembly_specification_id="nonexistent-spec",
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id="doc-123",
+                    assembly_specification_id="nonexistent-spec",
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -393,9 +404,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Document not found"):
             await use_case.assemble_data(
-                document_id="nonexistent-doc",
-                assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id="nonexistent-doc",
+                    assembly_specification_id="spec-123",
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -440,9 +453,11 @@ class TestExtractAssembleDataUseCase:
         # Act & Assert
         with pytest.raises(ValueError, match="Knowledge service query not found"):
             await use_case.assemble_data(
-                document_id="doc-123",
-                assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id="doc-123",
+                    assembly_specification_id="spec-123",
+                    workflow_id="test-workflow-123",
+                )
             )
 
     @pytest.mark.asyncio
@@ -544,7 +559,9 @@ class TestExtractAssembleDataUseCase:
             match="Assembled data does not conform to JSON schema",
         ):
             await test_use_case.assemble_data(
-                document_id="doc-123",
-                assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
+                ExtractAssembleDataRequest(
+                    document_id="doc-123",
+                    assembly_specification_id="spec-123",
+                    workflow_id="test-workflow-123",
+                )
             )

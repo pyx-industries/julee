@@ -17,7 +17,7 @@ from julee.hcd.domain.use_cases.integration import (
 from julee.hcd.domain.use_cases.requests import (
     CreateIntegrationRequest,
     DeleteIntegrationRequest,
-    ExternalDependencyInput,
+    ExternalDependencyItem,
     GetIntegrationRequest,
     ListIntegrationsRequest,
     UpdateIntegrationRequest,
@@ -54,7 +54,7 @@ class TestCreateIntegrationUseCase:
             description="Integration with Salesforce CRM",
             direction="inbound",
             depends_on=[
-                ExternalDependencyInput(
+                ExternalDependencyItem(
                     name="Salesforce API",
                     url="https://salesforce.com/api",
                     description="External CRM system",
@@ -303,7 +303,7 @@ class TestUpdateIntegrationUseCase:
         request = UpdateIntegrationRequest(
             slug="update-integration",
             depends_on=[
-                ExternalDependencyInput(
+                ExternalDependencyItem(
                     name="New Dependency",
                     url="https://new.com",
                     description="New external system",

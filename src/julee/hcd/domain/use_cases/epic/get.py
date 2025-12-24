@@ -9,7 +9,10 @@ from ..responses import GetEpicResponse
 
 
 class GetEpicUseCase:
-    """Use case for getting an epic by slug."""
+    """Use case for getting an epic by slug.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.epic.get:GetEpicUseCase
+    """
 
     def __init__(self, epic_repo: EpicRepository) -> None:
         """Initialize with repository dependency.

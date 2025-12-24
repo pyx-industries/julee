@@ -6,28 +6,21 @@ A Deployment diagram shows how containers are deployed to infrastructure
 nodes in a specific environment.
 """
 
-from dataclasses import dataclass, field
-
 from ...models.container import Container
 from ...models.deployment_node import DeploymentNode
+from ...models.diagrams import DeploymentDiagram
 from ...models.relationship import Relationship
 from ...repositories.container import ContainerRepository
 from ...repositories.deployment_node import DeploymentNodeRepository
 from ...repositories.relationship import RelationshipRepository
-
-
-@dataclass
-class DeploymentDiagramData:
-    """Data for rendering a deployment diagram."""
-
-    environment: str
-    nodes: list[DeploymentNode] = field(default_factory=list)
-    containers: list[Container] = field(default_factory=list)
-    relationships: list[Relationship] = field(default_factory=list)
+from ..requests import GetDeploymentDiagramRequest
+from ..responses import GetDeploymentDiagramResponse
 
 
 class GetDeploymentDiagramUseCase:
     """Use case for computing a deployment diagram.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.diagrams.deployment_diagram:GetDeploymentDiagramUseCase
 
     The diagram shows:
     - Infrastructure nodes in the environment
@@ -52,16 +45,18 @@ class GetDeploymentDiagramUseCase:
         self.container_repo = container_repo
         self.relationship_repo = relationship_repo
 
-    async def execute(self, environment: str) -> DeploymentDiagramData:
+    async def execute(
+        self, request: GetDeploymentDiagramRequest
+    ) -> GetDeploymentDiagramResponse:
         """Compute the deployment diagram data.
 
         Args:
-            environment: Name of the deployment environment to show
+            request: Request containing environment name
 
         Returns:
-            Diagram data containing nodes, containers, and relationships
+            Response containing diagram with nodes, containers, and relationships
         """
-        nodes = await self.deployment_node_repo.get_by_environment(environment)
+        nodes = await self.deployment_node_repo.get_by_environment(request.environment)
 
         container_slugs: set[str] = set()
         for node in nodes:
@@ -83,9 +78,10 @@ class GetDeploymentDiagramUseCase:
             or rel.destination_slug in container_slugs
         ]
 
-        return DeploymentDiagramData(
-            environment=environment,
+        diagram = DeploymentDiagram(
+            environment=request.environment,
             nodes=nodes,
             containers=containers,
             relationships=relevant_relationships,
         )
+        return GetDeploymentDiagramResponse(diagram=diagram)

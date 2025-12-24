@@ -3,20 +3,15 @@
 Use case for getting a defined persona by slug.
 """
 
-from pydantic import BaseModel
-
 from ...repositories.persona import PersonaRepository
+from ..requests import GetPersonaBySlugRequest
 from ..responses import GetPersonaResponse
-
-
-class GetPersonaBySlugRequest(BaseModel):
-    """Request for getting a persona by slug."""
-
-    slug: str
 
 
 class GetPersonaBySlugUseCase:
     """Use case for getting a defined persona by slug.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.persona.get:GetPersonaBySlugUseCase
 
     This retrieves a persona from the PersonaRepository directly.
     For getting personas (defined or derived) by name, use

@@ -6,25 +6,19 @@ A System Landscape diagram shows all software systems and persons
 within an enterprise or organization, plus their relationships.
 """
 
-from dataclasses import dataclass, field
-
+from ...models.diagrams import SystemLandscapeDiagram
 from ...models.relationship import ElementType, Relationship
 from ...models.software_system import SoftwareSystem
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
-
-
-@dataclass
-class SystemLandscapeDiagramData:
-    """Data for rendering a system landscape diagram."""
-
-    systems: list[SoftwareSystem] = field(default_factory=list)
-    person_slugs: list[str] = field(default_factory=list)
-    relationships: list[Relationship] = field(default_factory=list)
+from ..requests import GetSystemLandscapeDiagramRequest
+from ..responses import GetSystemLandscapeDiagramResponse
 
 
 class GetSystemLandscapeDiagramUseCase:
     """Use case for computing a system landscape diagram.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.diagrams.system_landscape:GetSystemLandscapeDiagramUseCase
 
     The diagram shows:
     - All software systems in the model
@@ -46,11 +40,16 @@ class GetSystemLandscapeDiagramUseCase:
         self.software_system_repo = software_system_repo
         self.relationship_repo = relationship_repo
 
-    async def execute(self) -> SystemLandscapeDiagramData:
+    async def execute(
+        self, request: GetSystemLandscapeDiagramRequest
+    ) -> GetSystemLandscapeDiagramResponse:
         """Compute the system landscape diagram data.
 
+        Args:
+            request: Request object (currently has no required parameters)
+
         Returns:
-            Diagram data containing all systems, persons, and their relationships
+            Response containing diagram with all systems, persons, and relationships
         """
         systems = await self.software_system_repo.list_all()
 
@@ -75,8 +74,9 @@ class GetSystemLandscapeDiagramUseCase:
             if rel not in all_relationships:
                 all_relationships.append(rel)
 
-        return SystemLandscapeDiagramData(
+        diagram = SystemLandscapeDiagram(
             systems=systems,
             person_slugs=list(person_slugs),
             relationships=all_relationships,
         )
+        return GetSystemLandscapeDiagramResponse(diagram=diagram)

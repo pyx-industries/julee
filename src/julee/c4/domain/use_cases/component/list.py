@@ -9,7 +9,10 @@ from ..responses import ListComponentsResponse
 
 
 class ListComponentsUseCase:
-    """Use case for listing all components."""
+    """Use case for listing all components.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.component.list:ListComponentsUseCase
+    """
 
     def __init__(self, component_repo: ComponentRepository) -> None:
         """Initialize with repository dependency.

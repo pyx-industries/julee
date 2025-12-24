@@ -19,3 +19,23 @@ C4 Accelerator
    - Model deployment infrastructure
    - Generate PlantUML and Structurizr diagrams
    - Document dynamic interaction flows
+
+Domain Entities
+---------------
+
+.. accelerator-entity-list:: c4
+
+Entity Diagram
+~~~~~~~~~~~~~~
+
+.. entity-diagram:: c4
+
+Use Cases
+---------
+
+.. accelerator-usecase-list:: c4
+
+Code Reference
+--------------
+
+.. list-accelerator-code:: c4

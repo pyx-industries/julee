@@ -18,7 +18,7 @@ from ..context import (
     get_delete_app_use_case,
     get_get_app_use_case,
     get_list_apps_use_case,
-    get_suggestion_context,
+    get_suggestion_context_service,
     get_update_app_use_case,
 )
 
@@ -56,7 +56,7 @@ async def create_app(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_app_suggestions(response.app, ctx)
 
     # Add suggestion to create stories
@@ -99,7 +99,7 @@ async def get_app(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_app_suggestions(response.app, ctx)
 
     return {
@@ -131,7 +131,7 @@ async def list_apps(
 
     # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
 
     # Check for apps without stories
     apps_without_stories = []
@@ -222,7 +222,7 @@ async def update_app(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = (
         await compute_app_suggestions(response.app, ctx) if response.app else []
     )

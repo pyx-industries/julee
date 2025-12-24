@@ -9,7 +9,10 @@ from ..responses import UpdateComponentResponse
 
 
 class UpdateComponentUseCase:
-    """Use case for updating a component."""
+    """Use case for updating a component.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.component.update:UpdateComponentUseCase
+    """
 
     def __init__(self, component_repo: ComponentRepository) -> None:
         """Initialize with repository dependency.

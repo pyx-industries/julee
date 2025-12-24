@@ -9,7 +9,10 @@ from ..responses import UpdateStoryResponse
 
 
 class UpdateStoryUseCase:
-    """Use case for updating a story."""
+    """Use case for updating a story.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.story.update:UpdateStoryUseCase
+    """
 
     def __init__(self, story_repo: StoryRepository) -> None:
         """Initialize with repository dependency.

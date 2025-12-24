@@ -20,6 +20,8 @@ from ..responses import (
 class ValidateAcceleratorsUseCase:
     """Use case for validating accelerators against discovered code.
 
+    .. usecase-documentation:: julee.hcd.domain.use_cases.queries.validate_accelerators:ValidateAcceleratorsUseCase
+
     Cross-references documented accelerators with discovered bounded contexts
     to ensure documentation stays in sync with the codebase.
     """

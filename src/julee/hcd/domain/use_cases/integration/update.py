@@ -9,7 +9,10 @@ from ..responses import UpdateIntegrationResponse
 
 
 class UpdateIntegrationUseCase:
-    """Use case for updating an integration."""
+    """Use case for updating an integration.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.integration.update:UpdateIntegrationUseCase
+    """
 
     def __init__(self, integration_repo: IntegrationRepository) -> None:
         """Initialize with repository dependency.

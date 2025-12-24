@@ -6,10 +6,9 @@ A Dynamic diagram shows how elements collaborate at runtime to
 accomplish a specific use case or scenario.
 """
 
-from dataclasses import dataclass, field
-
 from ...models.component import Component
 from ...models.container import Container
+from ...models.diagrams import DynamicDiagram
 from ...models.dynamic_step import DynamicStep
 from ...models.relationship import ElementType
 from ...models.software_system import SoftwareSystem
@@ -17,22 +16,14 @@ from ...repositories.component import ComponentRepository
 from ...repositories.container import ContainerRepository
 from ...repositories.dynamic_step import DynamicStepRepository
 from ...repositories.software_system import SoftwareSystemRepository
-
-
-@dataclass
-class DynamicDiagramData:
-    """Data for rendering a dynamic diagram."""
-
-    sequence_name: str
-    steps: list[DynamicStep] = field(default_factory=list)
-    systems: list[SoftwareSystem] = field(default_factory=list)
-    containers: list[Container] = field(default_factory=list)
-    components: list[Component] = field(default_factory=list)
-    person_slugs: list[str] = field(default_factory=list)
+from ..requests import GetDynamicDiagramRequest
+from ..responses import GetDynamicDiagramResponse
 
 
 class GetDynamicDiagramUseCase:
     """Use case for computing a dynamic diagram.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.diagrams.dynamic_diagram:GetDynamicDiagramUseCase
 
     The diagram shows:
     - A numbered sequence of interactions
@@ -60,19 +51,21 @@ class GetDynamicDiagramUseCase:
         self.container_repo = container_repo
         self.component_repo = component_repo
 
-    async def execute(self, sequence_name: str) -> DynamicDiagramData | None:
+    async def execute(
+        self, request: GetDynamicDiagramRequest
+    ) -> GetDynamicDiagramResponse:
         """Compute the dynamic diagram data.
 
         Args:
-            sequence_name: Name of the dynamic sequence to show
+            request: Request containing sequence_name
 
         Returns:
-            Diagram data containing steps and participating elements,
-            or None if no steps exist for the sequence
+            Response containing diagram with steps and participating elements,
+            or diagram=None if no steps exist for the sequence
         """
-        steps = await self.dynamic_step_repo.get_by_sequence(sequence_name)
+        steps = await self.dynamic_step_repo.get_by_sequence(request.sequence_name)
         if not steps:
-            return None
+            return GetDynamicDiagramResponse(diagram=None)
 
         system_slugs: set[str] = set()
         container_slugs: set[str] = set()
@@ -111,11 +104,12 @@ class GetDynamicDiagramUseCase:
             if component:
                 components.append(component)
 
-        return DynamicDiagramData(
-            sequence_name=sequence_name,
+        diagram = DynamicDiagram(
+            sequence_name=request.sequence_name,
             steps=steps,
             systems=systems,
             containers=containers,
             components=components,
             person_slugs=list(person_slugs),
         )
+        return GetDynamicDiagramResponse(diagram=diagram)

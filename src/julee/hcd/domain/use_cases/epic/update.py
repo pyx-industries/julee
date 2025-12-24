@@ -9,7 +9,10 @@ from ..responses import UpdateEpicResponse
 
 
 class UpdateEpicUseCase:
-    """Use case for updating an epic."""
+    """Use case for updating an epic.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.epic.update:UpdateEpicUseCase
+    """
 
     def __init__(self, epic_repo: EpicRepository) -> None:
         """Initialize with repository dependency.

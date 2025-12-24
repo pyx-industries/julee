@@ -21,7 +21,7 @@ from ..context import (
     get_delete_accelerator_use_case,
     get_get_accelerator_use_case,
     get_list_accelerators_use_case,
-    get_suggestion_context,
+    get_suggestion_context_service,
     get_update_accelerator_use_case,
 )
 
@@ -73,7 +73,7 @@ async def create_accelerator(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_accelerator_suggestions(response.accelerator, ctx)
 
     return {
@@ -104,7 +104,7 @@ async def get_accelerator(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_accelerator_suggestions(response.accelerator, ctx)
 
     return {
@@ -247,7 +247,7 @@ async def update_accelerator(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = (
         await compute_accelerator_suggestions(response.accelerator, ctx)
         if response.accelerator

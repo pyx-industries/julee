@@ -42,6 +42,8 @@ from julee.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 
+from .requests import InitializeSystemDataRequest
+
 logger = logging.getLogger(__name__)
 
 
@@ -81,12 +83,16 @@ class InitializeSystemDataUseCase:
         self.assembly_spec_repo = assembly_specification_repository
         self.logger = logging.getLogger("InitializeSystemDataUseCase")
 
-    async def execute(self) -> None:
+    async def execute(self, request: InitializeSystemDataRequest | None = None) -> None:
         """
         Execute system data initialization.
 
         This method orchestrates the creation of all required system data.
         It's idempotent and can be safely called multiple times.
+
+        Args:
+            request: Request object (currently unused, accepts None for
+                backward compatibility)
 
         Raises:
             Exception: If any critical system data cannot be initialized

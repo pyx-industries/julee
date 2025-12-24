@@ -9,7 +9,10 @@ from ..responses import CreateJourneyResponse
 
 
 class CreateJourneyUseCase:
-    """Use case for creating a journey."""
+    """Use case for creating a journey.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.journey.create:CreateJourneyUseCase
+    """
 
     def __init__(self, journey_repo: JourneyRepository) -> None:
         """Initialize with repository dependency.

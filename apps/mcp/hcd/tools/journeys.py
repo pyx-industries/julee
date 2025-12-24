@@ -21,7 +21,7 @@ from ..context import (
     get_delete_journey_use_case,
     get_get_journey_use_case,
     get_list_journeys_use_case,
-    get_suggestion_context,
+    get_suggestion_context_service,
     get_update_journey_use_case,
 )
 
@@ -75,7 +75,7 @@ async def create_journey(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_journey_suggestions(response.journey, ctx)
 
     return {
@@ -106,7 +106,7 @@ async def get_journey(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = await compute_journey_suggestions(response.journey, ctx)
 
     return {
@@ -244,7 +244,7 @@ async def update_journey(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context()
+    ctx = get_suggestion_context_service()
     suggestions = (
         await compute_journey_suggestions(response.journey, ctx)
         if response.journey

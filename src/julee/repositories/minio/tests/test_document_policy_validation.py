@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.ceap.domain.models.policy import (
+from julee.ceap.domain.models.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )

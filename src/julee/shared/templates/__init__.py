@@ -21,8 +21,23 @@ def _make_alias(name: str) -> str:
     return name.replace("_repo", "").replace("_service", "").replace("_", "")
 
 
+def _type_name(typ: type | None) -> str:
+    """Get a display name for a type."""
+    if typ is None:
+        return "request"
+
+    name = getattr(typ, "__name__", str(typ))
+
+    # For basic types, just show the name
+    if name in ("str", "int", "bool", "float", "None", "NoneType"):
+        return name
+
+    return name
+
+
 # Register custom filters
 _env.filters["make_alias"] = _make_alias
+_env.filters["type_name"] = _type_name
 
 
 def render_ssd(metadata: UseCaseMetadata, title: str = "") -> str:

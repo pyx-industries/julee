@@ -9,7 +9,10 @@ from ..responses import CreateSoftwareSystemResponse
 
 
 class CreateSoftwareSystemUseCase:
-    """Use case for creating a software system."""
+    """Use case for creating a software system.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.software_system.create:CreateSoftwareSystemUseCase
+    """
 
     def __init__(self, software_system_repo: SoftwareSystemRepository) -> None:
         """Initialize with repository dependency.

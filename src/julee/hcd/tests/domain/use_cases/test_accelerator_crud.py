@@ -17,7 +17,7 @@ from julee.hcd.domain.use_cases.requests import (
     CreateAcceleratorRequest,
     DeleteAcceleratorRequest,
     GetAcceleratorRequest,
-    IntegrationReferenceInput,
+    IntegrationReferenceItem,
     ListAcceleratorsRequest,
     UpdateAcceleratorRequest,
 )
@@ -53,14 +53,14 @@ class TestCreateAcceleratorUseCase:
             acceptance="All data sources integrated",
             objective="Centralize data storage",
             sources_from=[
-                IntegrationReferenceInput(
+                IntegrationReferenceItem(
                     slug="salesforce-api",
                     description="Customer data",
                 ),
             ],
             feeds_into=["analytics-engine"],
             publishes_to=[
-                IntegrationReferenceInput(
+                IntegrationReferenceItem(
                     slug="reporting-db",
                     description="Aggregated metrics",
                 ),
@@ -267,7 +267,7 @@ class TestUpdateAcceleratorUseCase:
         request = UpdateAcceleratorRequest(
             slug="update-accelerator",
             sources_from=[
-                IntegrationReferenceInput(
+                IntegrationReferenceItem(
                     slug="new-source",
                     description="New data source",
                 ),

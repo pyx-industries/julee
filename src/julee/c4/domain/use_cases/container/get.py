@@ -9,7 +9,10 @@ from ..responses import GetContainerResponse
 
 
 class GetContainerUseCase:
-    """Use case for getting a container by slug."""
+    """Use case for getting a container by slug.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.container.get:GetContainerUseCase
+    """
 
     def __init__(self, container_repo: ContainerRepository) -> None:
         """Initialize with repository dependency.

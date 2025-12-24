@@ -138,9 +138,9 @@ class ContainerDiagramDirective(DiagramDirective):
                             person_slugs.append(el_slug)
 
         # Build diagram data
-        from julee.c4.domain.use_cases.diagrams.container_diagram import ContainerDiagramData
+        from julee.c4.domain.models.diagrams import ContainerDiagram
 
-        data = ContainerDiagramData(
+        data = ContainerDiagram(
             system=system,
             containers=containers,
             external_systems=external_systems,
@@ -225,9 +225,9 @@ class ComponentDiagramDirective(DiagramDirective):
                             person_slugs.append(el_slug)
 
         # Build diagram data
-        from julee.c4.domain.use_cases.diagrams.component_diagram import ComponentDiagramData
+        from julee.c4.domain.models.diagrams import ComponentDiagram
 
-        data = ComponentDiagramData(
+        data = ComponentDiagram(
             system=system,
             container=container,
             components=components,
@@ -293,11 +293,9 @@ class SystemLandscapeDiagramDirective(DiagramDirective):
                     person_slugs.append(rel.destination_slug)
 
         # Build diagram data
-        from julee.c4.domain.use_cases.diagrams.system_landscape import (
-            SystemLandscapeDiagramData,
-        )
+        from julee.c4.domain.models.diagrams import SystemLandscapeDiagram
 
-        data = SystemLandscapeDiagramData(
+        data = SystemLandscapeDiagram(
             systems=systems,
             person_slugs=person_slugs,
             relationships=relationships,
@@ -364,11 +362,9 @@ class DeploymentDiagramDirective(DiagramDirective):
         ]
 
         # Build diagram data
-        from julee.c4.domain.use_cases.diagrams.deployment_diagram import (
-            DeploymentDiagramData,
-        )
+        from julee.c4.domain.models.diagrams import DeploymentDiagram
 
-        data = DeploymentDiagramData(
+        data = DeploymentDiagram(
             environment=environment,
             nodes=nodes_in_env,
             containers=containers,
@@ -452,9 +448,9 @@ class DynamicDiagramDirective(DiagramDirective):
         ]
 
         # Build diagram data
-        from julee.c4.domain.use_cases.diagrams.dynamic_diagram import DynamicDiagramData
+        from julee.c4.domain.models.diagrams import DynamicDiagram
 
-        data = DynamicDiagramData(
+        data = DynamicDiagram(
             sequence_name=sequence_name,
             steps=steps,
             systems=systems,
@@ -533,10 +529,7 @@ def build_system_context_diagram(system_slug: str, title: str, docname: str, app
     Returns:
         List of docutils nodes
     """
-    from julee.c4.domain.use_cases.diagrams.system_context import (
-        PersonInfo,
-        SystemContextDiagramData,
-    )
+    from julee.c4.domain.models.diagrams import PersonInfo, SystemContextDiagram
     from julee.c4.serializers.plantuml import PlantUMLSerializer
 
     storage = _get_c4_storage(app)
@@ -593,7 +586,7 @@ def build_system_context_diagram(system_slug: str, title: str, docname: str, app
         # Log unexpected errors
         pass
 
-    data = SystemContextDiagramData(
+    data = SystemContextDiagram(
         system=system,
         external_systems=external_systems,
         person_slugs=person_slugs,

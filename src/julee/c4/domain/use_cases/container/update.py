@@ -9,7 +9,10 @@ from ..responses import UpdateContainerResponse
 
 
 class UpdateContainerUseCase:
-    """Use case for updating a container."""
+    """Use case for updating a container.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.container.update:UpdateContainerUseCase
+    """
 
     def __init__(self, container_repo: ContainerRepository) -> None:
         """Initialize with repository dependency.

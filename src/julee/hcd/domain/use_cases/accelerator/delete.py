@@ -9,7 +9,10 @@ from ..responses import DeleteAcceleratorResponse
 
 
 class DeleteAcceleratorUseCase:
-    """Use case for deleting an accelerator."""
+    """Use case for deleting an accelerator.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.accelerator.delete:DeleteAcceleratorUseCase
+    """
 
     def __init__(self, accelerator_repo: AcceleratorRepository) -> None:
         """Initialize with repository dependency.

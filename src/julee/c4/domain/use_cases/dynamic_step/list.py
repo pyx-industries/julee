@@ -9,7 +9,10 @@ from ..responses import ListDynamicStepsResponse
 
 
 class ListDynamicStepsUseCase:
-    """Use case for listing all dynamic steps."""
+    """Use case for listing all dynamic steps.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.dynamic_step.list:ListDynamicStepsUseCase
+    """
 
     def __init__(self, dynamic_step_repo: DynamicStepRepository) -> None:
         """Initialize with repository dependency.

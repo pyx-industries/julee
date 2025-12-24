@@ -9,7 +9,10 @@ from ..responses import GetComponentResponse
 
 
 class GetComponentUseCase:
-    """Use case for getting a component by slug."""
+    """Use case for getting a component by slug.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.component.get:GetComponentUseCase
+    """
 
     def __init__(self, component_repo: ComponentRepository) -> None:
         """Initialize with repository dependency.

@@ -9,7 +9,10 @@ from ..responses import DeleteDeploymentNodeResponse
 
 
 class DeleteDeploymentNodeUseCase:
-    """Use case for deleting a deployment node."""
+    """Use case for deleting a deployment node.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.deployment_node.delete:DeleteDeploymentNodeUseCase
+    """
 
     def __init__(self, deployment_node_repo: DeploymentNodeRepository) -> None:
         """Initialize with repository dependency.

@@ -9,7 +9,10 @@ from ..responses import ListDeploymentNodesResponse
 
 
 class ListDeploymentNodesUseCase:
-    """Use case for listing all deployment nodes."""
+    """Use case for listing all deployment nodes.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.deployment_node.list:ListDeploymentNodesUseCase
+    """
 
     def __init__(self, deployment_node_repo: DeploymentNodeRepository) -> None:
         """Initialize with repository dependency.

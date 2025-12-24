@@ -6,36 +6,19 @@ A System Context diagram shows the software system in scope and its
 relationships with users (persons) and other software systems.
 """
 
-from dataclasses import dataclass, field
-
+from ...models.diagrams import PersonInfo, SystemContextDiagram
 from ...models.relationship import ElementType, Relationship
 from ...models.software_system import SoftwareSystem
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
-
-
-@dataclass
-class PersonInfo:
-    """Minimal person info for diagrams."""
-
-    slug: str
-    name: str
-    description: str = ""
-
-
-@dataclass
-class SystemContextDiagramData:
-    """Data for rendering a system context diagram."""
-
-    system: SoftwareSystem
-    external_systems: list[SoftwareSystem] = field(default_factory=list)
-    person_slugs: list[str] = field(default_factory=list)
-    persons: list[PersonInfo] = field(default_factory=list)
-    relationships: list[Relationship] = field(default_factory=list)
+from ..requests import GetSystemContextDiagramRequest
+from ..responses import GetSystemContextDiagramResponse
 
 
 class GetSystemContextDiagramUseCase:
     """Use case for computing a system context diagram.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.diagrams.system_context:GetSystemContextDiagramUseCase
 
     The diagram shows:
     - The system in scope (center)
@@ -58,22 +41,23 @@ class GetSystemContextDiagramUseCase:
         self.software_system_repo = software_system_repo
         self.relationship_repo = relationship_repo
 
-    async def execute(self, system_slug: str) -> SystemContextDiagramData | None:
+    async def execute(
+        self, request: GetSystemContextDiagramRequest
+    ) -> GetSystemContextDiagramResponse:
         """Compute the system context diagram data.
 
         Args:
-            system_slug: Slug of the software system to show context for
+            request: Request containing system_slug
 
         Returns:
-            Diagram data containing the system, related systems, persons,
-            and relationships, or None if the system doesn't exist
+            Response containing diagram data, or diagram=None if system doesn't exist
         """
-        system = await self.software_system_repo.get(system_slug)
+        system = await self.software_system_repo.get(request.system_slug)
         if not system:
-            return None
+            return GetSystemContextDiagramResponse(diagram=None)
 
         relationships = await self.relationship_repo.get_for_element(
-            ElementType.SOFTWARE_SYSTEM, system_slug
+            ElementType.SOFTWARE_SYSTEM, request.system_slug
         )
 
         external_system_slugs: set[str] = set()
@@ -81,13 +65,13 @@ class GetSystemContextDiagramUseCase:
 
         for rel in relationships:
             if rel.source_type == ElementType.SOFTWARE_SYSTEM:
-                if rel.source_slug != system_slug:
+                if rel.source_slug != request.system_slug:
                     external_system_slugs.add(rel.source_slug)
             elif rel.source_type == ElementType.PERSON:
                 person_slugs.add(rel.source_slug)
 
             if rel.destination_type == ElementType.SOFTWARE_SYSTEM:
-                if rel.destination_slug != system_slug:
+                if rel.destination_slug != request.system_slug:
                     external_system_slugs.add(rel.destination_slug)
             elif rel.destination_type == ElementType.PERSON:
                 person_slugs.add(rel.destination_slug)
@@ -98,9 +82,10 @@ class GetSystemContextDiagramUseCase:
             if ext_system:
                 external_systems.append(ext_system)
 
-        return SystemContextDiagramData(
+        diagram = SystemContextDiagram(
             system=system,
             external_systems=external_systems,
             person_slugs=list(person_slugs),
             relationships=relationships,
         )
+        return GetSystemContextDiagramResponse(diagram=diagram)

@@ -9,7 +9,10 @@ from ..responses import GetRelationshipResponse
 
 
 class GetRelationshipUseCase:
-    """Use case for getting a relationship by slug."""
+    """Use case for getting a relationship by slug.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.relationship.get:GetRelationshipUseCase
+    """
 
     def __init__(self, relationship_repo: RelationshipRepository) -> None:
         """Initialize with repository dependency.

@@ -9,7 +9,10 @@ from ..responses import UpdatePersonaResponse
 
 
 class UpdatePersonaUseCase:
-    """Use case for updating a persona."""
+    """Use case for updating a persona.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.persona.update:UpdatePersonaUseCase
+    """
 
     def __init__(self, persona_repo: PersonaRepository) -> None:
         """Initialize with repository dependency.

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from julee.hcd.domain.use_cases.suggestions import SuggestionContext
+    from julee.hcd.domain.services import SuggestionContextService
 
 from julee.hcd.domain.use_cases import (
     # Accelerator use-cases
@@ -367,20 +367,19 @@ def get_get_persona_use_case() -> GetPersonaUseCase:
 # =============================================================================
 
 
-def get_suggestion_context() -> "SuggestionContext":
-    """Get SuggestionContext with all repository dependencies.
+def get_suggestion_context_service() -> "SuggestionContextService":
+    """Get SuggestionContextService with all repository dependencies.
 
     This provides the cross-entity visibility needed to compute
     contextual suggestions based on domain relationships.
     """
-    from julee.hcd.domain.use_cases.suggestions import SuggestionContext
+    from julee.hcd.services.memory import MemorySuggestionContextService
 
-    return SuggestionContext(
+    return MemorySuggestionContextService(
         story_repo=get_story_repository(),
         epic_repo=get_epic_repository(),
         journey_repo=get_journey_repository(),
         accelerator_repo=get_accelerator_repository(),
         integration_repo=get_integration_repository(),
         app_repo=get_app_repository(),
-        persona_repo=get_persona_repository(),
     )

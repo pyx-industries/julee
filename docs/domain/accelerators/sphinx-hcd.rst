@@ -21,20 +21,20 @@ HCD Accelerator
    - Validate documentation coverage at build time
    - RST repository backend for lossless round-trip editing
 
-Use Case Diagrams
------------------
+Domain Entities
+---------------
 
-Create Accelerator
-~~~~~~~~~~~~~~~~~~
+.. accelerator-entity-list:: hcd
 
-.. usecase-ssd:: julee.hcd.domain.use_cases:CreateAcceleratorUseCase
-   :title: Create Accelerator Flow
+Entity Diagram
+~~~~~~~~~~~~~~
 
-Create Story
-~~~~~~~~~~~~
+.. entity-diagram:: hcd
 
-.. usecase-ssd:: julee.hcd.domain.use_cases:CreateStoryUseCase
-   :title: Create Story Flow
+Use Cases
+---------
+
+.. accelerator-usecase-list:: hcd
 
 Code Reference
 --------------

@@ -9,7 +9,10 @@ from ..responses import UpdateAppResponse
 
 
 class UpdateAppUseCase:
-    """Use case for updating an app."""
+    """Use case for updating an app.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.app.update:UpdateAppUseCase
+    """
 
     def __init__(self, app_repo: AppRepository) -> None:
         """Initialize with repository dependency.

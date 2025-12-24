@@ -9,7 +9,10 @@ from ..responses import DeleteJourneyResponse
 
 
 class DeleteJourneyUseCase:
-    """Use case for deleting a journey."""
+    """Use case for deleting a journey.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.journey.delete:DeleteJourneyUseCase
+    """
 
     def __init__(self, journey_repo: JourneyRepository) -> None:
         """Initialize with repository dependency.

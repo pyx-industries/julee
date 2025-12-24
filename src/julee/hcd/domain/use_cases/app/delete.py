@@ -9,7 +9,10 @@ from ..responses import DeleteAppResponse
 
 
 class DeleteAppUseCase:
-    """Use case for deleting an app."""
+    """Use case for deleting an app.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.app.delete:DeleteAppUseCase
+    """
 
     def __init__(self, app_repo: AppRepository) -> None:
         """Initialize with repository dependency.

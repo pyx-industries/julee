@@ -6,33 +6,23 @@ A Component diagram shows the components that make up a container,
 plus the relationships between them.
 """
 
-from dataclasses import dataclass, field
-
 from ...models.component import Component
 from ...models.container import Container
+from ...models.diagrams import ComponentDiagram
 from ...models.relationship import ElementType, Relationship
 from ...models.software_system import SoftwareSystem
 from ...repositories.component import ComponentRepository
 from ...repositories.container import ContainerRepository
 from ...repositories.relationship import RelationshipRepository
 from ...repositories.software_system import SoftwareSystemRepository
-
-
-@dataclass
-class ComponentDiagramData:
-    """Data for rendering a component diagram."""
-
-    system: SoftwareSystem
-    container: Container
-    components: list[Component] = field(default_factory=list)
-    external_containers: list[Container] = field(default_factory=list)
-    external_systems: list[SoftwareSystem] = field(default_factory=list)
-    person_slugs: list[str] = field(default_factory=list)
-    relationships: list[Relationship] = field(default_factory=list)
+from ..requests import GetComponentDiagramRequest
+from ..responses import GetComponentDiagramResponse
 
 
 class GetComponentDiagramUseCase:
     """Use case for computing a component diagram.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.diagrams.component_diagram:GetComponentDiagramUseCase
 
     The diagram shows:
     - The container boundary
@@ -63,25 +53,26 @@ class GetComponentDiagramUseCase:
         self.component_repo = component_repo
         self.relationship_repo = relationship_repo
 
-    async def execute(self, container_slug: str) -> ComponentDiagramData | None:
+    async def execute(
+        self, request: GetComponentDiagramRequest
+    ) -> GetComponentDiagramResponse:
         """Compute the component diagram data.
 
         Args:
-            container_slug: Slug of the container to show components for
+            request: Request containing container_slug
 
         Returns:
-            Diagram data containing the container, components, external elements,
-            and relationships, or None if the container doesn't exist
+            Response containing diagram data, or diagram=None if container doesn't exist
         """
-        container = await self.container_repo.get(container_slug)
+        container = await self.container_repo.get(request.container_slug)
         if not container:
-            return None
+            return GetComponentDiagramResponse(diagram=None)
 
         system = await self.software_system_repo.get(container.system_slug)
         if not system:
-            return None
+            return GetComponentDiagramResponse(diagram=None)
 
-        components = await self.component_repo.get_by_container(container_slug)
+        components = await self.component_repo.get_by_container(request.container_slug)
 
         all_relationships: list[Relationship] = []
         external_container_slugs: set[str] = set()
@@ -97,7 +88,7 @@ class GetComponentDiagramUseCase:
                     all_relationships.append(rel)
 
                 if rel.source_type == ElementType.CONTAINER:
-                    if rel.source_slug != container_slug:
+                    if rel.source_slug != request.container_slug:
                         external_container_slugs.add(rel.source_slug)
                 elif rel.source_type == ElementType.SOFTWARE_SYSTEM:
                     external_system_slugs.add(rel.source_slug)
@@ -105,7 +96,7 @@ class GetComponentDiagramUseCase:
                     person_slugs.add(rel.source_slug)
 
                 if rel.destination_type == ElementType.CONTAINER:
-                    if rel.destination_slug != container_slug:
+                    if rel.destination_slug != request.container_slug:
                         external_container_slugs.add(rel.destination_slug)
                 elif rel.destination_type == ElementType.SOFTWARE_SYSTEM:
                     external_system_slugs.add(rel.destination_slug)
@@ -124,7 +115,7 @@ class GetComponentDiagramUseCase:
             if ext_system:
                 external_systems.append(ext_system)
 
-        return ComponentDiagramData(
+        diagram = ComponentDiagram(
             system=system,
             container=container,
             components=components,
@@ -133,3 +124,4 @@ class GetComponentDiagramUseCase:
             person_slugs=list(person_slugs),
             relationships=all_relationships,
         )
+        return GetComponentDiagramResponse(diagram=diagram)

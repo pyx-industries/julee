@@ -9,7 +9,10 @@ from ..responses import ListStoriesResponse
 
 
 class ListStoriesUseCase:
-    """Use case for listing all stories."""
+    """Use case for listing all stories.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.story.list:ListStoriesUseCase
+    """
 
     def __init__(self, story_repo: StoryRepository) -> None:
         """Initialize with repository dependency.

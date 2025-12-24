@@ -9,7 +9,10 @@ from ..responses import CreateComponentResponse
 
 
 class CreateComponentUseCase:
-    """Use case for creating a component."""
+    """Use case for creating a component.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.component.create:CreateComponentUseCase
+    """
 
     def __init__(self, component_repo: ComponentRepository) -> None:
         """Initialize with repository dependency.

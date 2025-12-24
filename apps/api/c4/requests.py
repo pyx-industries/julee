@@ -414,8 +414,8 @@ class DeleteRelationshipRequest(BaseModel):
 # =============================================================================
 
 
-class ContainerInstanceInput(BaseModel):
-    """Input model for container instance."""
+class ContainerInstanceItem(BaseModel):
+    """Nested item representing a container instance."""
 
     container_slug: str = Field(description="Slug of deployed container")
     instance_id: str = Field(default="", description="Instance identifier")
@@ -442,7 +442,7 @@ class CreateDeploymentNodeRequest(BaseModel):
     technology: str = Field(default="", description="Infrastructure technology")
     description: str = Field(default="", description="Human-readable description")
     parent_slug: str | None = Field(default=None, description="Parent node for nesting")
-    container_instances: list[ContainerInstanceInput] = Field(
+    container_instances: list[ContainerInstanceItem] = Field(
         default_factory=list, description="Containers deployed to this node"
     )
     properties: dict[str, str] = Field(
@@ -505,7 +505,7 @@ class UpdateDeploymentNodeRequest(BaseModel):
     technology: str | None = None
     description: str | None = None
     parent_slug: str | None = None
-    container_instances: list[ContainerInstanceInput] | None = None
+    container_instances: list[ContainerInstanceItem] | None = None
     properties: dict[str, str] | None = None
     tags: list[str] | None = None
 

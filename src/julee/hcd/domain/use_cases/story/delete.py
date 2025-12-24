@@ -9,7 +9,10 @@ from ..responses import DeleteStoryResponse
 
 
 class DeleteStoryUseCase:
-    """Use case for deleting a story."""
+    """Use case for deleting a story.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.story.delete:DeleteStoryUseCase
+    """
 
     def __init__(self, story_repo: StoryRepository) -> None:
         """Initialize with repository dependency.

@@ -204,8 +204,8 @@ class DeleteEpicRequest(BaseModel):
 # =============================================================================
 
 
-class JourneyStepInput(BaseModel):
-    """Input model for journey step."""
+class JourneyStepItem(BaseModel):
+    """Nested item representing a journey step."""
 
     step_type: str = Field(description="Type of step: story, epic, or phase")
     ref: str = Field(description="Reference identifier")
@@ -240,7 +240,7 @@ class CreateJourneyRequest(BaseModel):
     depends_on: list[str] = Field(
         default_factory=list, description="Journey slugs that must be completed first"
     )
-    steps: list[JourneyStepInput] = Field(
+    steps: list[JourneyStepItem] = Field(
         default_factory=list, description="Sequence of journey steps"
     )
     preconditions: list[str] = Field(
@@ -293,7 +293,7 @@ class UpdateJourneyRequest(BaseModel):
     outcome: str | None = None
     goal: str | None = None
     depends_on: list[str] | None = None
-    steps: list[JourneyStepInput] | None = None
+    steps: list[JourneyStepItem] | None = None
     preconditions: list[str] | None = None
     postconditions: list[str] | None = None
 
@@ -330,8 +330,8 @@ class DeleteJourneyRequest(BaseModel):
 # =============================================================================
 
 
-class IntegrationReferenceInput(BaseModel):
-    """Input model for integration reference."""
+class IntegrationReferenceItem(BaseModel):
+    """Nested item representing an integration reference."""
 
     slug: str = Field(description="Integration slug")
     description: str = Field(default="", description="What is sourced/published")
@@ -355,13 +355,13 @@ class CreateAcceleratorRequest(BaseModel):
         default=None, description="Acceptance criteria description"
     )
     objective: str = Field(default="", description="Business objective/description")
-    sources_from: list[IntegrationReferenceInput] = Field(
+    sources_from: list[IntegrationReferenceItem] = Field(
         default_factory=list, description="Integrations this accelerator reads from"
     )
     feeds_into: list[str] = Field(
         default_factory=list, description="Other accelerators this one feeds data into"
     )
-    publishes_to: list[IntegrationReferenceInput] = Field(
+    publishes_to: list[IntegrationReferenceItem] = Field(
         default_factory=list, description="Integrations this accelerator writes to"
     )
     depends_on: list[str] = Field(
@@ -409,9 +409,9 @@ class UpdateAcceleratorRequest(BaseModel):
     milestone: str | None = None
     acceptance: str | None = None
     objective: str | None = None
-    sources_from: list[IntegrationReferenceInput] | None = None
+    sources_from: list[IntegrationReferenceItem] | None = None
     feeds_into: list[str] | None = None
-    publishes_to: list[IntegrationReferenceInput] | None = None
+    publishes_to: list[IntegrationReferenceItem] | None = None
     depends_on: list[str] | None = None
 
     def apply_to(self, existing: Accelerator) -> Accelerator:
@@ -447,8 +447,8 @@ class DeleteAcceleratorRequest(BaseModel):
 # =============================================================================
 
 
-class ExternalDependencyInput(BaseModel):
-    """Input model for external dependency."""
+class ExternalDependencyItem(BaseModel):
+    """Nested item representing an external dependency."""
 
     name: str = Field(description="Display name of the external system")
     url: str | None = Field(
@@ -479,7 +479,7 @@ class CreateIntegrationRequest(BaseModel):
         default="bidirectional",
         description="Data flow direction: inbound, outbound, bidirectional",
     )
-    depends_on: list[ExternalDependencyInput] = Field(
+    depends_on: list[ExternalDependencyItem] = Field(
         default_factory=list, description="List of external dependencies"
     )
 
@@ -530,7 +530,7 @@ class UpdateIntegrationRequest(BaseModel):
     name: str | None = None
     description: str | None = None
     direction: str | None = None
-    depends_on: list[ExternalDependencyInput] | None = None
+    depends_on: list[ExternalDependencyItem] | None = None
 
     def apply_to(self, existing: Integration) -> Integration:
         """Apply non-None fields to existing integration."""
@@ -661,6 +661,12 @@ class GetPersonaRequest(BaseModel):
     name: str
 
 
+class GetPersonaBySlugRequest(BaseModel):
+    """Request for getting a persona by slug."""
+
+    slug: str
+
+
 # =============================================================================
 # Persona DTOs
 # =============================================================================
@@ -761,3 +767,122 @@ class ValidateAcceleratorsRequest(BaseModel):
     """
 
     pass
+
+
+# =============================================================================
+# SuggestionContextService DTOs
+# =============================================================================
+
+
+class GetAllStoriesRequest(BaseModel):
+    """Request for getting all stories via SuggestionContextService."""
+
+    pass
+
+
+class GetAllEpicsRequest(BaseModel):
+    """Request for getting all epics via SuggestionContextService."""
+
+    pass
+
+
+class GetAllJourneysRequest(BaseModel):
+    """Request for getting all journeys via SuggestionContextService."""
+
+    pass
+
+
+class GetAllAcceleratorsRequest(BaseModel):
+    """Request for getting all accelerators via SuggestionContextService."""
+
+    pass
+
+
+class GetAllIntegrationsRequest(BaseModel):
+    """Request for getting all integrations via SuggestionContextService."""
+
+    pass
+
+
+class GetAllAppsRequest(BaseModel):
+    """Request for getting all apps via SuggestionContextService."""
+
+    pass
+
+
+class GetStorySlugsRequest(BaseModel):
+    """Request for getting all story slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetStoryTitlesNormalizedRequest(BaseModel):
+    """Request for getting normalized story titles mapping via SuggestionContextService."""
+
+    pass
+
+
+class GetEpicSlugsRequest(BaseModel):
+    """Request for getting all epic slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetJourneySlugsRequest(BaseModel):
+    """Request for getting all journey slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetAcceleratorSlugsRequest(BaseModel):
+    """Request for getting all accelerator slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetIntegrationSlugsRequest(BaseModel):
+    """Request for getting all integration slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetAppSlugsRequest(BaseModel):
+    """Request for getting all app slugs via SuggestionContextService."""
+
+    pass
+
+
+class GetPersonasRequest(BaseModel):
+    """Request for getting all unique personas via SuggestionContextService."""
+
+    pass
+
+
+class GetEpicsContainingStoryRequest(BaseModel):
+    """Request for finding epics that contain a story reference."""
+
+    story_title: str = Field(description="Story feature title to search for")
+
+
+class GetJourneysForPersonaRequest(BaseModel):
+    """Request for finding journeys for a specific persona."""
+
+    persona: str = Field(description="Persona name to search for")
+
+
+class GetStoriesForAppRequest(BaseModel):
+    """Request for finding stories belonging to an app."""
+
+    app_slug: str = Field(description="Application slug")
+
+
+class GetAcceleratorsUsingIntegrationRequest(BaseModel):
+    """Request for finding accelerators that use an integration."""
+
+    integration_slug: str = Field(description="Integration slug to search for")
+
+
+class GetAppsUsingAcceleratorRequest(BaseModel):
+    """Request for finding apps that use an accelerator."""
+
+    accelerator_slug: str = Field(description="Accelerator slug to search for")

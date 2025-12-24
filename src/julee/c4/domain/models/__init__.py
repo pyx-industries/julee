@@ -7,16 +7,34 @@ Core C4 abstractions:
 - Relationship: Connection between elements
 - DeploymentNode: Infrastructure for deployment diagrams
 - DynamicStep: Numbered interaction for dynamic diagrams
+
+Diagram models:
+- SystemLandscapeDiagram: All systems at enterprise level
+- SystemContextDiagram: Single system with context
+- ContainerDiagram: Containers within a system
+- ComponentDiagram: Components within a container
+- DeploymentDiagram: Infrastructure deployment
+- DynamicDiagram: Runtime interaction sequence
 """
 
 from .component import Component
 from .container import Container, ContainerType
 from .deployment_node import ContainerInstance, DeploymentNode, NodeType
+from .diagrams import (
+    ComponentDiagram,
+    ContainerDiagram,
+    DeploymentDiagram,
+    DynamicDiagram,
+    PersonInfo,
+    SystemContextDiagram,
+    SystemLandscapeDiagram,
+)
 from .dynamic_step import DynamicStep
 from .relationship import ElementType, Relationship
 from .software_system import SoftwareSystem, SystemType
 
 __all__ = [
+    # Core elements
     "SoftwareSystem",
     "SystemType",
     "Container",
@@ -28,4 +46,12 @@ __all__ = [
     "NodeType",
     "ContainerInstance",
     "DynamicStep",
+    # Diagram models
+    "PersonInfo",
+    "SystemLandscapeDiagram",
+    "SystemContextDiagram",
+    "ContainerDiagram",
+    "ComponentDiagram",
+    "DeploymentDiagram",
+    "DynamicDiagram",
 ]

@@ -9,7 +9,10 @@ from ..responses import UpdateSoftwareSystemResponse
 
 
 class UpdateSoftwareSystemUseCase:
-    """Use case for updating a software system."""
+    """Use case for updating a software system.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.software_system.update:UpdateSoftwareSystemUseCase
+    """
 
     def __init__(self, software_system_repo: SoftwareSystemRepository) -> None:
         """Initialize with repository dependency.

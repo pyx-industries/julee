@@ -9,7 +9,10 @@ from ..responses import DeleteEpicResponse
 
 
 class DeleteEpicUseCase:
-    """Use case for deleting an epic."""
+    """Use case for deleting an epic.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.epic.delete:DeleteEpicUseCase
+    """
 
     def __init__(self, epic_repo: EpicRepository) -> None:
         """Initialize with repository dependency.

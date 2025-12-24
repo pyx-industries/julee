@@ -9,7 +9,10 @@ from ..responses import CreateAcceleratorResponse
 
 
 class CreateAcceleratorUseCase:
-    """Use case for creating an accelerator."""
+    """Use case for creating an accelerator.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.accelerator.create:CreateAcceleratorUseCase
+    """
 
     def __init__(self, accelerator_repo: AcceleratorRepository) -> None:
         """Initialize with repository dependency.

@@ -25,13 +25,13 @@ release = '0.1.0'
 extensions = [
     # Core Sphinx extensions
     'sphinx.ext.autodoc',           # Auto-generate docs from docstrings
+    'sphinx.ext.autosummary',       # Auto-generate API stub pages
     'sphinx.ext.napoleon',          # Support for Google/NumPy style docstrings
     'sphinx.ext.viewcode',          # Add links to source code
     'sphinx.ext.coverage',          # Check documentation coverage
 
     # Third-party extensions
     'sphinx_autodoc_typehints',     # Better type hints rendering
-    'autoapi.extension',            # Automatic API documentation
     'sphinxcontrib.mermaid',        # Mermaid diagram support
     'sphinxcontrib.plantuml',       # PlantUML diagram support
 
@@ -40,37 +40,18 @@ extensions = [
     'apps.sphinx.c4',               # C4 model architecture directives
 ]
 
-# AutoAPI configuration
-autoapi_type = 'python'
-autoapi_dirs = [
-    '../src/julee/ceap/domain',
-    '../src/julee/hcd',
-    '../src/julee/c4',
-    '../src/julee/shared',
-    '../src/julee/repositories',
-    '../src/julee/services',
-    '../src/julee/workflows',
-    '../src/julee/util',
-    '../apps/api',
-    '../apps/mcp',
-    '../apps/sphinx',
+# Mock imports for heavy dependencies that may not be available during doc build
+autodoc_mock_imports = [
+    'temporalio',
+    'minio',
+    'anthropic',
+    'mcp',
 ]
-autoapi_options = [
-    'members',
-    'undoc-members',
-    'show-inheritance',
-    'show-module-summary',
-]
-autoapi_ignore = [
-    '*migrations*',
-    '*tests*',
-    '*test_*',
-    '*/conftest.py',
-]
-autoapi_keep_files = True
-autoapi_add_toctree_entry = True
-autoapi_member_order = 'groupwise'
-autoapi_python_class_content = 'init'  # Document __init__ signature only, not class body
+
+# Autosummary configuration
+autosummary_generate = True
+autosummary_generate_overwrite = True
+autosummary_imported_members = False
 
 # Napoleon settings (for Google/NumPy style docstrings)
 napoleon_google_docstring = True
@@ -94,10 +75,12 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'special-members': '__init__',
     'undoc-members': True,
-    'exclude-members': '__weakref__'
+    'exclude-members': '__weakref__',
+    'show-inheritance': True,
 }
 autodoc_typehints = 'description'
 autodoc_typehints_description_target = 'documented'
+autodoc_class_signature = 'separated'
 
 # PlantUML configuration
 # Requires plantuml to be installed (apt install plantuml on Debian/Ubuntu)

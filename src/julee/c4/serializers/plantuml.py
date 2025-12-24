@@ -5,13 +5,15 @@ Generates C4-PlantUML syntax from diagram data.
 Reference: https://github.com/plantuml-stdlib/C4-PlantUML
 """
 
+from ..domain.models.diagrams import (
+    ComponentDiagram,
+    ContainerDiagram,
+    DeploymentDiagram,
+    DynamicDiagram,
+    SystemContextDiagram,
+    SystemLandscapeDiagram,
+)
 from ..domain.models.relationship import ElementType
-from ..domain.use_cases.diagrams.component_diagram import ComponentDiagramData
-from ..domain.use_cases.diagrams.container_diagram import ContainerDiagramData
-from ..domain.use_cases.diagrams.deployment_diagram import DeploymentDiagramData
-from ..domain.use_cases.diagrams.dynamic_diagram import DynamicDiagramData
-from ..domain.use_cases.diagrams.system_context import SystemContextDiagramData
-from ..domain.use_cases.diagrams.system_landscape import SystemLandscapeDiagramData
 
 
 class PlantUMLSerializer:
@@ -68,7 +70,7 @@ class PlantUMLSerializer:
         return mapping.get(element_type, "System")
 
     def serialize_system_context(
-        self, data: SystemContextDiagramData, title: str = ""
+        self, data: SystemContextDiagram, title: str = ""
     ) -> str:
         """Serialize system context diagram to PlantUML.
 
@@ -131,7 +133,7 @@ class PlantUMLSerializer:
         return "\n".join(lines)
 
     def serialize_container_diagram(
-        self, data: ContainerDiagramData, title: str = ""
+        self, data: ContainerDiagram, title: str = ""
     ) -> str:
         """Serialize container diagram to PlantUML.
 
@@ -199,7 +201,7 @@ class PlantUMLSerializer:
         return "\n".join(lines)
 
     def serialize_component_diagram(
-        self, data: ComponentDiagramData, title: str = ""
+        self, data: ComponentDiagram, title: str = ""
     ) -> str:
         """Serialize component diagram to PlantUML.
 
@@ -267,7 +269,7 @@ class PlantUMLSerializer:
         return "\n".join(lines)
 
     def serialize_system_landscape(
-        self, data: SystemLandscapeDiagramData, title: str = ""
+        self, data: SystemLandscapeDiagram, title: str = ""
     ) -> str:
         """Serialize system landscape diagram to PlantUML.
 
@@ -319,7 +321,7 @@ class PlantUMLSerializer:
         return "\n".join(lines)
 
     def serialize_deployment_diagram(
-        self, data: DeploymentDiagramData, title: str = ""
+        self, data: DeploymentDiagram, title: str = ""
     ) -> str:
         """Serialize deployment diagram to PlantUML.
 
@@ -386,7 +388,7 @@ class PlantUMLSerializer:
         return "\n".join(lines)
 
     def serialize_dynamic_diagram(
-        self, data: DynamicDiagramData, title: str = ""
+        self, data: DynamicDiagram, title: str = ""
     ) -> str:
         """Serialize dynamic diagram to PlantUML.
 

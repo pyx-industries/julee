@@ -1,0 +1,20 @@
+DOCTRINE VERIFICATION
+
+{% for area, categories in results.items() %}
+{{ area }}:
+{% for category in categories %}
+{% for rule in category.rules %}
+{% if rule.passed %}
+  [PASS] {{ rule.statement }}
+{% else %}
+  [FAIL] {{ rule.statement }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% endfor %}
+{% if all_passed %}
+All {{ total_tests }} rules passed.
+{% else %}
+{{ failed_count }} of {{ total_tests }} rules FAILED.
+{% endif %}

@@ -9,7 +9,10 @@ from ..responses import GetDeploymentNodeResponse
 
 
 class GetDeploymentNodeUseCase:
-    """Use case for getting a deployment node by slug."""
+    """Use case for getting a deployment node by slug.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.deployment_node.get:GetDeploymentNodeUseCase
+    """
 
     def __init__(self, deployment_node_repo: DeploymentNodeRepository) -> None:
         """Initialize with repository dependency.

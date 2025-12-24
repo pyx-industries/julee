@@ -9,7 +9,10 @@ from ..responses import UpdateJourneyResponse
 
 
 class UpdateJourneyUseCase:
-    """Use case for updating a journey."""
+    """Use case for updating a journey.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.journey.update:UpdateJourneyUseCase
+    """
 
     def __init__(self, journey_repo: JourneyRepository) -> None:
         """Initialize with repository dependency.

@@ -204,8 +204,8 @@ class DeleteEpicRequest(BaseModel):
 # =============================================================================
 
 
-class JourneyStepInput(BaseModel):
-    """Input model for journey step."""
+class JourneyStepItem(BaseModel):
+    """Nested item representing a journey step."""
 
     step_type: str = Field(description="Type of step: story, epic, or phase")
     ref: str = Field(description="Reference identifier")
@@ -242,7 +242,7 @@ class CreateJourneyRequest(BaseModel):
     depends_on: list[str] = Field(
         default_factory=list, description="Journey slugs that must be completed first"
     )
-    steps: list[JourneyStepInput] = Field(
+    steps: list[JourneyStepItem] = Field(
         default_factory=list, description="Sequence of journey steps"
     )
     preconditions: list[str] = Field(
@@ -295,7 +295,7 @@ class UpdateJourneyRequest(BaseModel):
     outcome: str | None = None
     goal: str | None = None
     depends_on: list[str] | None = None
-    steps: list[JourneyStepInput] | None = None
+    steps: list[JourneyStepItem] | None = None
     preconditions: list[str] | None = None
     postconditions: list[str] | None = None
 
@@ -332,8 +332,8 @@ class DeleteJourneyRequest(BaseModel):
 # =============================================================================
 
 
-class IntegrationReferenceInput(BaseModel):
-    """Input model for integration reference."""
+class IntegrationReferenceItem(BaseModel):
+    """Nested item representing an integration reference."""
 
     slug: str = Field(description="Integration slug")
     description: str = Field(default="", description="What is sourced/published")
@@ -357,13 +357,13 @@ class CreateAcceleratorRequest(BaseModel):
         default=None, description="Acceptance criteria description"
     )
     objective: str = Field(default="", description="Business objective/description")
-    sources_from: list[IntegrationReferenceInput] = Field(
+    sources_from: list[IntegrationReferenceItem] = Field(
         default_factory=list, description="Integrations this accelerator reads from"
     )
     feeds_into: list[str] = Field(
         default_factory=list, description="Other accelerators this one feeds data into"
     )
-    publishes_to: list[IntegrationReferenceInput] = Field(
+    publishes_to: list[IntegrationReferenceItem] = Field(
         default_factory=list, description="Integrations this accelerator writes to"
     )
     depends_on: list[str] = Field(
@@ -411,9 +411,9 @@ class UpdateAcceleratorRequest(BaseModel):
     milestone: str | None = None
     acceptance: str | None = None
     objective: str | None = None
-    sources_from: list[IntegrationReferenceInput] | None = None
+    sources_from: list[IntegrationReferenceItem] | None = None
     feeds_into: list[str] | None = None
-    publishes_to: list[IntegrationReferenceInput] | None = None
+    publishes_to: list[IntegrationReferenceItem] | None = None
     depends_on: list[str] | None = None
 
     def apply_to(self, existing: Accelerator) -> Accelerator:
@@ -449,8 +449,8 @@ class DeleteAcceleratorRequest(BaseModel):
 # =============================================================================
 
 
-class ExternalDependencyInput(BaseModel):
-    """Input model for external dependency."""
+class ExternalDependencyItem(BaseModel):
+    """Nested item representing an external dependency."""
 
     name: str = Field(description="Display name of the external system")
     url: str | None = Field(
@@ -481,7 +481,7 @@ class CreateIntegrationRequest(BaseModel):
         default="bidirectional",
         description="Data flow direction: inbound, outbound, bidirectional",
     )
-    depends_on: list[ExternalDependencyInput] = Field(
+    depends_on: list[ExternalDependencyItem] = Field(
         default_factory=list, description="List of external dependencies"
     )
 
@@ -532,7 +532,7 @@ class UpdateIntegrationRequest(BaseModel):
     name: str | None = None
     description: str | None = None
     direction: str | None = None
-    depends_on: list[ExternalDependencyInput] | None = None
+    depends_on: list[ExternalDependencyItem] | None = None
 
     def apply_to(self, existing: Integration) -> Integration:
         """Apply non-None fields to existing integration."""

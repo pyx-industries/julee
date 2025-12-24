@@ -9,7 +9,10 @@ from ..responses import UpdateDeploymentNodeResponse
 
 
 class UpdateDeploymentNodeUseCase:
-    """Use case for updating a deployment node."""
+    """Use case for updating a deployment node.
+
+    .. usecase-documentation:: julee.c4.domain.use_cases.deployment_node.update:UpdateDeploymentNodeUseCase
+    """
 
     def __init__(self, deployment_node_repo: DeploymentNodeRepository) -> None:
         """Initialize with repository dependency.

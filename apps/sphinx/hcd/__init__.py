@@ -226,9 +226,13 @@ def setup(app):
     app.add_node(AcceleratorUseCaseListPlaceholder)
 
     # Register shared directives
-    from apps.sphinx.shared.directives import UseCaseSSDDirective
+    from apps.sphinx.shared.directives import (
+        UseCaseDocumentationDirective,
+        UseCaseSSDDirective,
+    )
 
     app.add_directive("usecase-ssd", UseCaseSSDDirective)
+    app.add_directive("usecase-documentation", UseCaseDocumentationDirective)
 
     logger.info("Loaded apps.sphinx.hcd extensions")
 

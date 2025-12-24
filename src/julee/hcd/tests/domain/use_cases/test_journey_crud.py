@@ -14,7 +14,7 @@ from julee.hcd.domain.use_cases.requests import (
     CreateJourneyRequest,
     DeleteJourneyRequest,
     GetJourneyRequest,
-    JourneyStepInput,
+    JourneyStepItem,
     ListJourneysRequest,
     UpdateJourneyRequest,
 )
@@ -49,12 +49,12 @@ class TestCreateJourneyUseCase:
             goal="Complete onboarding process",
             depends_on=["hr-approval"],
             steps=[
-                JourneyStepInput(
+                JourneyStepItem(
                     step_type="story",
                     ref="receive-welcome-email",
                     description="Get welcome email",
                 ),
-                JourneyStepInput(
+                JourneyStepItem(
                     step_type="story",
                     ref="complete-training",
                     description="Finish training modules",
@@ -271,12 +271,12 @@ class TestUpdateJourneyUseCase:
         request = UpdateJourneyRequest(
             slug="update-journey",
             steps=[
-                JourneyStepInput(
+                JourneyStepItem(
                     step_type="story",
                     ref="new-step-1",
                     description="First new step",
                 ),
-                JourneyStepInput(
+                JourneyStepItem(
                     step_type="story",
                     ref="new-step-2",
                     description="Second new step",

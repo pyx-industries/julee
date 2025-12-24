@@ -9,7 +9,10 @@ from ..responses import CreatePersonaResponse
 
 
 class CreatePersonaUseCase:
-    """Use case for creating a persona."""
+    """Use case for creating a persona.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.persona.create:CreatePersonaUseCase
+    """
 
     def __init__(self, persona_repo: PersonaRepository) -> None:
         """Initialize with repository dependency.

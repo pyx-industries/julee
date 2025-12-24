@@ -71,11 +71,17 @@ class AcceleratorUseCaseListDirective(HCDDirective):
 
         .. accelerator-usecase-list:: ceap
 
-    Generates a bullet list of use case classes, each linking to its AutoAPI docs.
+    Generates a list of use case classes with:
+    - Link to AutoAPI documentation
+    - Docstring description
+
+    For sequence diagrams, use the ``usecase-documentation`` directive
+    in a dedicated documentation page.
     """
 
     required_arguments = 1
     has_content = False
+    option_spec = {}
 
     def run(self):
         accelerator_slug = self.arguments[0].lower()
@@ -478,7 +484,7 @@ def build_accelerator_usecase_list(
     app,
     hcd_context,
 ) -> list[nodes.Node]:
-    """Build a bullet list of use cases with AutoAPI links.
+    """Build a list of use cases with AutoAPI links.
 
     Args:
         accelerator_slug: The accelerator identifier
@@ -502,52 +508,50 @@ def build_accelerator_usecase_list(
         para += nodes.emphasis(text=f"No use cases found for '{accelerator_slug}'")
         return [para]
 
-    bullet_list = nodes.bullet_list()
+    result_nodes = []
 
     for use_case in sorted(code_info.use_cases, key=lambda u: u.name):
-        item = nodes.list_item()
-        para = nodes.paragraph()
+        # Create a container for this use case
+        container = nodes.container()
+        container["classes"].append("usecase-item")
 
-        # Build AutoAPI link path based on file location
-        # Use cases are in domain/use_cases/, file name maps to module
-        module_name = use_case.file.replace(".py", "")
+        # Build AutoAPI link path
+        # file can be "create.py" or "diagrams/container_diagram.py"
+        module_path = use_case.file.replace(".py", "")  # "create" or "diagrams/container_diagram"
+        # Convert path separators to dots for the anchor
+        module_dotted = module_path.replace("/", ".").replace("\\", ".")
 
-        # Try nested structure first (for use cases organized in subdirs)
-        nested_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/{module_name}/{module_name}/index"
-        flat_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/{module_name}/index"
+        # Build paths - autoapi uses directory structure
+        flat_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/{module_path}/index"
 
-        if (docs_dir / f"{nested_path}.rst").exists():
-            # Nested structure
-            href = f"{prefix}{nested_path}.html#julee.{accelerator_slug}.domain.use_cases.{module_name}.{module_name}.{use_case.name}"
-            ref = nodes.reference("", "", refuri=href)
-            ref += nodes.literal(text=use_case.name)
-            para += ref
-        elif (docs_dir / f"{flat_path}.rst").exists():
-            # Flat structure
-            href = f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.use_cases.{module_name}.{use_case.name}"
-            ref = nodes.reference("", "", refuri=href)
-            ref += nodes.literal(text=use_case.name)
-            para += ref
+        # Determine href
+        href = None
+        if (docs_dir / f"{flat_path}.rst").exists():
+            href = f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.use_cases.{module_dotted}.{use_case.name}"
         else:
-            # Fallback: try the use_cases index page
             fallback_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/index"
             if (docs_dir / f"{fallback_path}.rst").exists():
                 href = f"{prefix}{fallback_path}.html"
-                ref = nodes.reference("", "", refuri=href)
-                ref += nodes.literal(text=use_case.name)
-                para += ref
-            else:
-                para += nodes.literal(text=use_case.name)
+
+        # Add linked title
+        title_para = nodes.paragraph()
+        if href:
+            ref = nodes.reference("", "", refuri=href)
+            ref += nodes.strong(text=use_case.name)
+            title_para += ref
+        else:
+            title_para += nodes.strong(text=use_case.name)
+        container += title_para
 
         # Add docstring if available
         if use_case.docstring:
-            para += nodes.Text(" — ")
-            para += nodes.Text(use_case.docstring)
+            desc_para = nodes.paragraph()
+            desc_para += nodes.Text(use_case.docstring)
+            container += desc_para
 
-        item += para
-        bullet_list += item
+        result_nodes.append(container)
 
-    return [bullet_list]
+    return result_nodes
 
 
 def build_entity_diagram(

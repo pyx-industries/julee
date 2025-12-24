@@ -9,7 +9,10 @@ from ..responses import CreateAppResponse
 
 
 class CreateAppUseCase:
-    """Use case for creating an app."""
+    """Use case for creating an app.
+
+    .. usecase-documentation:: julee.hcd.domain.use_cases.app.create:CreateAppUseCase
+    """
 
     def __init__(self, app_repo: AppRepository) -> None:
         """Initialize with repository dependency.

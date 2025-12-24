@@ -7,6 +7,18 @@ Accelerators are defined via RST directives and may have associated code.
 from pydantic import BaseModel, Field, field_validator
 
 
+class AcceleratorValidationIssue(BaseModel):
+    """A validation issue found for an accelerator.
+
+    Value object representing a single issue discovered during
+    accelerator validation (comparing documentation to code structure).
+    """
+
+    slug: str
+    issue_type: str  # "undocumented", "no_code", "mismatch"
+    message: str
+
+
 class IntegrationReference(BaseModel):
     """Reference to an integration with optional description.
 
