@@ -5,7 +5,7 @@ Generates C4-PlantUML syntax from diagram data.
 Reference: https://github.com/plantuml-stdlib/C4-PlantUML
 """
 
-from ..domain.models.diagrams import (
+from julee.c4.entities.diagrams import (
     ComponentDiagram,
     ContainerDiagram,
     DeploymentDiagram,
@@ -13,7 +13,7 @@ from ..domain.models.diagrams import (
     SystemContextDiagram,
     SystemLandscapeDiagram,
 )
-from ..domain.models.relationship import ElementType
+from julee.c4.entities.relationship import ElementType
 
 
 class PlantUMLSerializer:

@@ -6,7 +6,7 @@ Provides the define-deployment-node directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.domain.models.deployment_node import (
+from julee.c4.entities.deployment_node import (
     ContainerInstance,
     DeploymentNode,
     NodeType,

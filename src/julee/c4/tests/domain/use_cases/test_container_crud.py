@@ -2,11 +2,14 @@
 
 import pytest
 
-from julee.c4.domain.models.container import (
+from julee.c4.entities.container import (
     Container,
     ContainerType,
 )
-from julee.c4.domain.use_cases.container import (
+from julee.c4.infrastructure.repositories.memory.container import (
+    MemoryContainerRepository,
+)
+from julee.c4.use_cases.container import (
     CreateContainerRequest,
     CreateContainerUseCase,
     DeleteContainerRequest,
@@ -17,9 +20,6 @@ from julee.c4.domain.use_cases.container import (
     ListContainersUseCase,
     UpdateContainerRequest,
     UpdateContainerUseCase,
-)
-from julee.c4.repositories.memory.container import (
-    MemoryContainerRepository,
 )
 
 

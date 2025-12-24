@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.c4.domain.models.deployment_node import (
+from julee.c4.entities.deployment_node import (
     ContainerInstance,
     DeploymentNode,
     NodeType,

@@ -7,7 +7,7 @@ from julee.hcd.entities.code_info import (
     BoundedContextInfo,
     ClassInfo,
 )
-from julee.hcd.repositories.memory.code_info import (
+from julee.hcd.infrastructure.repositories.memory.code_info import (
     MemoryCodeInfoRepository,
 )
 

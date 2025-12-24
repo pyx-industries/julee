@@ -17,7 +17,7 @@ from apps.api.ceap.dependencies import (
     get_knowledge_service_query_repository,
 )
 from apps.api.ceap.routers.knowledge_service_queries import router
-from julee.ceap.domain.models import KnowledgeServiceQuery
+from julee.ceap.entities import KnowledgeServiceQuery
 from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
 )

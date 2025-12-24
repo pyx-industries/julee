@@ -6,7 +6,7 @@ Provides the define-component directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.domain.models.component import Component
+from julee.c4.entities.component import Component
 from .base import C4Directive
 
 

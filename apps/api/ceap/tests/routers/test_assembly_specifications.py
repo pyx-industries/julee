@@ -17,7 +17,7 @@ from apps.api.ceap.dependencies import (
     get_assembly_specification_repository,
 )
 from apps.api.ceap.routers.assembly_specifications import router
-from julee.ceap.domain.models import (
+from julee.ceap.entities import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )

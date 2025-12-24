@@ -2,9 +2,9 @@
 
 import pytest
 
-from julee.c4.domain.models.dynamic_step import DynamicStep
-from julee.c4.domain.models.relationship import ElementType
-from julee.c4.repositories.memory.dynamic_step import (
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import ElementType
+from julee.c4.infrastructure.repositories.memory.dynamic_step import (
     MemoryDynamicStepRepository,
 )
 

@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from julee.hcd.entities.epic import Epic
-from julee.hcd.domain.repositories.epic import EpicRepository
+from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin

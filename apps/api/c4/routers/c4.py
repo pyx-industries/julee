@@ -6,7 +6,7 @@ relationships, deployment nodes, dynamic steps, and diagram generation.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.c4.domain.use_cases import (
+from julee.c4.use_cases import (
     CreateComponentUseCase,
     CreateContainerUseCase,
     CreateDeploymentNodeUseCase,

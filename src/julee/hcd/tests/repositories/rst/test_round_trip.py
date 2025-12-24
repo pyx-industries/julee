@@ -20,11 +20,7 @@ from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.entities.persona import Persona
 from julee.hcd.entities.story import Story
-from julee.hcd.parsers.docutils_parser import (
-    find_entity_by_type,
-    parse_rst_content,
-)
-from julee.hcd.repositories.rst import (
+from julee.hcd.infrastructure.repositories.rst import (
     RstAcceleratorRepository,
     RstAppRepository,
     RstEpicRepository,
@@ -32,6 +28,10 @@ from julee.hcd.repositories.rst import (
     RstJourneyRepository,
     RstPersonaRepository,
     RstStoryRepository,
+)
+from julee.hcd.parsers.docutils_parser import (
+    find_entity_by_type,
+    parse_rst_content,
 )
 from julee.hcd.templates import render_entity
 

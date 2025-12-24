@@ -10,7 +10,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.hcd.entities.app import App, AppInterface, AppType
-from julee.hcd.domain.use_cases import (
+from julee.hcd.use_cases.resolve_app_references import (
     get_epics_for_app,
     get_journeys_for_app,
     get_personas_for_app,
@@ -337,7 +337,7 @@ def build_app_index(docname: str, hcd_context):
 def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
     """Build list of apps for a persona."""
     from ..config import get_config
-    from julee.hcd.domain.use_cases import derive_personas, get_apps_for_persona
+    from julee.hcd.use_cases.derive_personas import derive_personas, get_apps_for_persona
 
     config = get_config()
     prefix = path_to_root(docname)

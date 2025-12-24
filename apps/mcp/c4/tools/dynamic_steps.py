@@ -1,7 +1,7 @@
 """MCP tools for DynamicStep CRUD operations."""
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.c4.domain.use_cases.dynamic_step import (
+from julee.c4.use_cases.dynamic_step import (
     CreateDynamicStepRequest,
     DeleteDynamicStepRequest,
     GetDynamicStepRequest,

@@ -13,20 +13,20 @@ from unittest.mock import AsyncMock
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.domain.models import (
+from julee.ceap.entities import (
     ContentStream,
     Document,
     DocumentStatus,
     KnowledgeServiceConfig,
     KnowledgeServiceQuery,
 )
-from julee.ceap.domain.models.document_policy_validation import (
+from julee.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
-from julee.ceap.domain.models.knowledge_service_config import ServiceApi
-from julee.ceap.domain.models.policy import Policy, PolicyStatus
-from julee.ceap.domain.use_cases import (
+from julee.ceap.entities.knowledge_service_config import ServiceApi
+from julee.ceap.entities.policy import Policy, PolicyStatus
+from julee.ceap.use_cases import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )

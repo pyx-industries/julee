@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.c4.domain.models.software_system import (
+from julee.c4.entities.software_system import (
     SoftwareSystem,
     SystemType,
 )

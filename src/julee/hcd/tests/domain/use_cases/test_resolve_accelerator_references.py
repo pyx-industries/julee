@@ -1,6 +1,15 @@
 """Tests for resolve_accelerator_references use case."""
 
-from julee.hcd.domain.use_cases.resolve_accelerator_references import (
+from julee.hcd.entities.accelerator import (
+    Accelerator,
+    IntegrationReference,
+)
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.code_info import BoundedContextInfo, ClassInfo
+from julee.hcd.entities.integration import Direction, Integration
+from julee.hcd.entities.journey import Journey, JourneyStep
+from julee.hcd.entities.story import Story
+from julee.hcd.use_cases.resolve_accelerator_references import (
     get_accelerator_cross_references,
     get_apps_for_accelerator,
     get_code_info_for_accelerator,
@@ -11,15 +20,6 @@ from julee.hcd.domain.use_cases.resolve_accelerator_references import (
     get_source_integrations,
     get_stories_for_accelerator,
 )
-from julee.hcd.entities.accelerator import (
-    Accelerator,
-    IntegrationReference,
-)
-from julee.hcd.entities.app import App, AppType
-from julee.hcd.entities.code_info import BoundedContextInfo, ClassInfo
-from julee.hcd.entities.integration import Direction, Integration
-from julee.hcd.entities.journey import Journey, JourneyStep
-from julee.hcd.entities.story import Story
 
 
 def create_accelerator(

@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from julee.hcd.entities.epic import Epic
-from julee.hcd.repositories.memory.epic import MemoryEpicRepository
+from julee.hcd.infrastructure.repositories.memory.epic import MemoryEpicRepository
 
 
 def create_epic(

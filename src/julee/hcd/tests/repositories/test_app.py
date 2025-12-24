@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from julee.hcd.entities.app import App, AppType
-from julee.hcd.repositories.memory.app import MemoryAppRepository
+from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
 
 
 def create_app(

@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.c4.domain.models.component import Component
+from julee.c4.entities.component import Component
 
 
 class TestComponentCreation:

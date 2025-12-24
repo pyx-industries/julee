@@ -2,7 +2,15 @@
 
 import pytest
 
-from julee.hcd.domain.use_cases.integration import (
+from julee.hcd.entities.integration import (
+    Direction,
+    ExternalDependency,
+    Integration,
+)
+from julee.hcd.infrastructure.repositories.memory.integration import (
+    MemoryIntegrationRepository,
+)
+from julee.hcd.use_cases.integration import (
     CreateIntegrationRequest,
     CreateIntegrationUseCase,
     DeleteIntegrationRequest,
@@ -14,14 +22,6 @@ from julee.hcd.domain.use_cases.integration import (
     ListIntegrationsUseCase,
     UpdateIntegrationRequest,
     UpdateIntegrationUseCase,
-)
-from julee.hcd.entities.integration import (
-    Direction,
-    ExternalDependency,
-    Integration,
-)
-from julee.hcd.repositories.memory.integration import (
-    MemoryIntegrationRepository,
 )
 
 

@@ -15,7 +15,7 @@ from julee.api.requests import (
     CreateAssemblySpecificationRequest,
     CreateKnowledgeServiceQueryRequest,
 )
-from julee.ceap.domain.models import (
+from julee.ceap.entities import (
     AssemblySpecification,
     AssemblySpecificationStatus,
     KnowledgeServiceQuery,

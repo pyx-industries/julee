@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from julee.ceap.domain.models import (
+from julee.ceap.entities import (
     Assembly,
     AssemblySpecification,
     AssemblySpecificationStatus,
@@ -24,8 +24,8 @@ from julee.ceap.domain.models import (
     KnowledgeServiceConfig,
     KnowledgeServiceQuery,
 )
-from julee.ceap.domain.models.knowledge_service_config import ServiceApi
-from julee.ceap.domain.use_cases import (
+from julee.ceap.entities.knowledge_service_config import ServiceApi
+from julee.ceap.use_cases import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
 )

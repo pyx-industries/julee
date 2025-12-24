@@ -7,7 +7,7 @@ Responses include contextual suggestions based on domain semantics.
 from typing import Any
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.hcd.domain.use_cases.accelerator import (
+from julee.hcd.use_cases.accelerator import (
     CreateAcceleratorRequest,
     DeleteAcceleratorRequest,
     GetAcceleratorRequest,
@@ -15,7 +15,7 @@ from julee.hcd.domain.use_cases.accelerator import (
     ListAcceleratorsRequest,
     UpdateAcceleratorRequest,
 )
-from julee.hcd.domain.use_cases.suggestions import compute_accelerator_suggestions
+from julee.hcd.use_cases.suggestions import compute_accelerator_suggestions
 from ..context import (
     get_create_accelerator_use_case,
     get_delete_accelerator_use_case,

@@ -7,12 +7,12 @@ most responses wrap domain models rather than duplicating their structure.
 
 from pydantic import BaseModel
 
-from julee.c4.domain.models.component import Component
-from julee.c4.domain.models.container import Container
-from julee.c4.domain.models.deployment_node import DeploymentNode
-from julee.c4.domain.models.dynamic_step import DynamicStep
-from julee.c4.domain.models.relationship import Relationship
-from julee.c4.domain.models.software_system import SoftwareSystem
+from julee.c4.entities.component import Component
+from julee.c4.entities.container import Container
+from julee.c4.entities.deployment_node import DeploymentNode
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import Relationship
+from julee.c4.entities.software_system import SoftwareSystem
 
 # =============================================================================
 # SoftwareSystem Responses

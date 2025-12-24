@@ -10,10 +10,10 @@ import io
 
 import pytest
 
-from julee.ceap.domain.models.content_stream import (
+from julee.ceap.entities.content_stream import (
     ContentStream,
 )
-from julee.ceap.domain.models.document import Document, DocumentStatus
+from julee.ceap.entities.document import Document, DocumentStatus
 from julee.repositories.memory.document import (
     MemoryDocumentRepository,
 )

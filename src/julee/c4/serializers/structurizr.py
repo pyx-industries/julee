@@ -5,7 +5,7 @@ Generates Structurizr DSL from diagram data.
 Reference: https://structurizr.com/dsl
 """
 
-from ..domain.models.diagrams import (
+from julee.c4.entities.diagrams import (
     ComponentDiagram,
     ContainerDiagram,
     DeploymentDiagram,

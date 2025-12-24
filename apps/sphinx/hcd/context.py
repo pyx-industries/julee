@@ -8,7 +8,7 @@ with a unified, type-safe interface.
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from julee.hcd.repositories.memory import (
+from julee.hcd.infrastructure.repositories.memory import (
     MemoryAcceleratorRepository,
     MemoryAppRepository,
     MemoryCodeInfoRepository,
@@ -225,7 +225,7 @@ def _create_rst_context(config) -> HCDContext:
     Returns:
         HCDContext with RST repositories
     """
-    from julee.hcd.repositories.rst import (
+    from julee.hcd.infrastructure.repositories.rst import (
         RstAcceleratorRepository,
         RstAppRepository,
         RstEpicRepository,

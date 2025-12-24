@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.c4.domain.models.container import Container, ContainerType
+from julee.c4.entities.container import Container, ContainerType
 
 
 class TestContainerCreation:

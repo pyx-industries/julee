@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.domain.models.assembly import Assembly, AssemblyStatus
+from julee.ceap.entities.assembly import Assembly, AssemblyStatus
 
 from .factories import AssemblyFactory
 

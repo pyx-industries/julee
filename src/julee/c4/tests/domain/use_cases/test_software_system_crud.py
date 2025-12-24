@@ -2,11 +2,14 @@
 
 import pytest
 
-from julee.c4.domain.models.software_system import (
+from julee.c4.entities.software_system import (
     SoftwareSystem,
     SystemType,
 )
-from julee.c4.domain.use_cases.software_system import (
+from julee.c4.infrastructure.repositories.memory.software_system import (
+    MemorySoftwareSystemRepository,
+)
+from julee.c4.use_cases.software_system import (
     CreateSoftwareSystemRequest,
     CreateSoftwareSystemUseCase,
     DeleteSoftwareSystemRequest,
@@ -17,9 +20,6 @@ from julee.c4.domain.use_cases.software_system import (
     ListSoftwareSystemsUseCase,
     UpdateSoftwareSystemRequest,
     UpdateSoftwareSystemUseCase,
-)
-from julee.c4.repositories.memory.software_system import (
-    MemorySoftwareSystemRepository,
 )
 
 

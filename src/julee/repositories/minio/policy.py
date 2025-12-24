@@ -14,8 +14,8 @@ and transformation queries.
 
 import logging
 
-from julee.ceap.domain.models.policy import Policy
-from julee.ceap.domain.repositories.policy import PolicyRepository
+from julee.ceap.repositories.policy import PolicyRepository
+from julee.ceap.entities.policy import Policy
 
 from .client import MinioClient, MinioRepositoryMixin
 

@@ -6,7 +6,7 @@ from apps.mcp.shared import (
     not_found_error,
     paginate_results,
 )
-from julee.c4.domain.use_cases.software_system import (
+from julee.c4.use_cases.software_system import (
     CreateSoftwareSystemRequest,
     DeleteSoftwareSystemRequest,
     GetSoftwareSystemRequest,

@@ -6,7 +6,7 @@ Provides the define-relationship directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.domain.models.relationship import ElementType, Relationship
+from julee.c4.entities.relationship import ElementType, Relationship
 from .base import C4Directive
 
 

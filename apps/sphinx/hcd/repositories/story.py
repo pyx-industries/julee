@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from julee.hcd.entities.story import Story
-from julee.hcd.domain.repositories.story import StoryRepository
+from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin

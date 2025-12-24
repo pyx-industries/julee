@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from julee.hcd.entities.journey import Journey, JourneyStep
-from julee.hcd.repositories.memory.journey import MemoryJourneyRepository
+from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
 
 
 def create_journey(

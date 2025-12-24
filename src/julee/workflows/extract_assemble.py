@@ -12,8 +12,8 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.ceap.domain.models.assembly import Assembly
-from julee.ceap.domain.use_cases import (
+from julee.ceap.entities.assembly import Assembly
+from julee.ceap.use_cases import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
 )

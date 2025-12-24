@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
-from julee.ceap.domain.models import (
+from julee.ceap.entities import (
     AssemblySpecification,
     AssemblySpecificationStatus,
     KnowledgeServiceQuery,

@@ -2,8 +2,8 @@
 
 import pytest
 
-from julee.c4.domain.models.component import Component
-from julee.c4.repositories.memory.component import (
+from julee.c4.entities.component import Component
+from julee.c4.infrastructure.repositories.memory.component import (
     MemoryComponentRepository,
 )
 

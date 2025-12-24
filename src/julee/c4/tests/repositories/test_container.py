@@ -2,8 +2,8 @@
 
 import pytest
 
-from julee.c4.domain.models.container import Container, ContainerType
-from julee.c4.repositories.memory.container import (
+from julee.c4.entities.container import Container, ContainerType
+from julee.c4.infrastructure.repositories.memory.container import (
     MemoryContainerRepository,
 )
 

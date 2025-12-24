@@ -15,11 +15,11 @@ schema and query mappings.
 
 import logging
 
-from julee.ceap.domain.models.assembly_specification import (
-    AssemblySpecification,
-)
-from julee.ceap.domain.repositories.assembly_specification import (
+from julee.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
+)
+from julee.ceap.entities.assembly_specification import (
+    AssemblySpecification,
 )
 
 from .client import MinioClient, MinioRepositoryMixin

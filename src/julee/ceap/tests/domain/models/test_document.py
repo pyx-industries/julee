@@ -24,7 +24,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from julee.ceap.domain.models.document import Document
+from julee.ceap.entities.document import Document
 
 from .factories import ContentStreamFactory, DocumentFactory
 

@@ -1,16 +1,16 @@
 """Tests for resolve_app_references use case."""
 
-from julee.hcd.domain.use_cases.resolve_app_references import (
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.journey import Journey, JourneyStep
+from julee.hcd.entities.story import Story
+from julee.hcd.use_cases.resolve_app_references import (
     get_app_cross_references,
     get_epics_for_app,
     get_journeys_for_app,
     get_personas_for_app,
     get_stories_for_app,
 )
-from julee.hcd.entities.app import App, AppType
-from julee.hcd.entities.epic import Epic
-from julee.hcd.entities.journey import Journey, JourneyStep
-from julee.hcd.entities.story import Story
 
 
 def create_app(slug: str, name: str = "") -> App:

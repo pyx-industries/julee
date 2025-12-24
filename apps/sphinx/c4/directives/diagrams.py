@@ -138,7 +138,7 @@ class ContainerDiagramDirective(DiagramDirective):
                             person_slugs.append(el_slug)
 
         # Build diagram data
-        from julee.c4.domain.models.diagrams import ContainerDiagram
+        from julee.c4.entities.diagrams import ContainerDiagram
 
         data = ContainerDiagram(
             system=system,
@@ -225,7 +225,7 @@ class ComponentDiagramDirective(DiagramDirective):
                             person_slugs.append(el_slug)
 
         # Build diagram data
-        from julee.c4.domain.models.diagrams import ComponentDiagram
+        from julee.c4.entities.diagrams import ComponentDiagram
 
         data = ComponentDiagram(
             system=system,
@@ -293,7 +293,7 @@ class SystemLandscapeDiagramDirective(DiagramDirective):
                     person_slugs.append(rel.destination_slug)
 
         # Build diagram data
-        from julee.c4.domain.models.diagrams import SystemLandscapeDiagram
+        from julee.c4.entities.diagrams import SystemLandscapeDiagram
 
         data = SystemLandscapeDiagram(
             systems=systems,
@@ -362,7 +362,7 @@ class DeploymentDiagramDirective(DiagramDirective):
         ]
 
         # Build diagram data
-        from julee.c4.domain.models.diagrams import DeploymentDiagram
+        from julee.c4.entities.diagrams import DeploymentDiagram
 
         data = DeploymentDiagram(
             environment=environment,
@@ -448,7 +448,7 @@ class DynamicDiagramDirective(DiagramDirective):
         ]
 
         # Build diagram data
-        from julee.c4.domain.models.diagrams import DynamicDiagram
+        from julee.c4.entities.diagrams import DynamicDiagram
 
         data = DynamicDiagram(
             sequence_name=sequence_name,
@@ -529,7 +529,7 @@ def build_system_context_diagram(system_slug: str, title: str, docname: str, app
     Returns:
         List of docutils nodes
     """
-    from julee.c4.domain.models.diagrams import PersonInfo, SystemContextDiagram
+    from julee.c4.entities.diagrams import PersonInfo, SystemContextDiagram
     from julee.c4.serializers.plantuml import PlantUMLSerializer
 
     storage = _get_c4_storage(app)

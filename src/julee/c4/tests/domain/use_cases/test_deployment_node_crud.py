@@ -2,11 +2,14 @@
 
 import pytest
 
-from julee.c4.domain.models.deployment_node import (
+from julee.c4.entities.deployment_node import (
     DeploymentNode,
     NodeType,
 )
-from julee.c4.domain.use_cases.deployment_node import (
+from julee.c4.infrastructure.repositories.memory.deployment_node import (
+    MemoryDeploymentNodeRepository,
+)
+from julee.c4.use_cases.deployment_node import (
     CreateDeploymentNodeRequest,
     CreateDeploymentNodeUseCase,
     DeleteDeploymentNodeRequest,
@@ -17,9 +20,6 @@ from julee.c4.domain.use_cases.deployment_node import (
     ListDeploymentNodesUseCase,
     UpdateDeploymentNodeRequest,
     UpdateDeploymentNodeUseCase,
-)
-from julee.c4.repositories.memory.deployment_node import (
-    MemoryDeploymentNodeRepository,
 )
 
 

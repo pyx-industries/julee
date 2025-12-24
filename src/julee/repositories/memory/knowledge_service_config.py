@@ -16,11 +16,11 @@ interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.knowledge_service_config import (
-    KnowledgeServiceConfig,
-)
-from julee.ceap.domain.repositories.knowledge_service_config import (
+from julee.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
+)
+from julee.ceap.entities.knowledge_service_config import (
+    KnowledgeServiceConfig,
 )
 
 from .base import MemoryRepositoryMixin

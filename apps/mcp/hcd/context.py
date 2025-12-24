@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from julee.hcd.domain.services import SuggestionContextService
+    from julee.hcd.services import SuggestionContextService
 
-from julee.hcd.domain.use_cases import (
+from julee.hcd.use_cases import (
     # Accelerator use-cases
     CreateAcceleratorUseCase,
     # App use-cases
@@ -57,7 +57,7 @@ from julee.hcd.domain.use_cases import (
     UpdatePersonaUseCase,
     UpdateStoryUseCase,
 )
-from julee.hcd.repositories.file import (
+from julee.hcd.infrastructure.repositories.file import (
     FileAcceleratorRepository,
     FileAppRepository,
     FileEpicRepository,
@@ -65,7 +65,7 @@ from julee.hcd.repositories.file import (
     FileJourneyRepository,
     FileStoryRepository,
 )
-from julee.hcd.repositories.memory import MemoryPersonaRepository
+from julee.hcd.infrastructure.repositories.memory import MemoryPersonaRepository
 
 
 def get_docs_root() -> Path:
@@ -373,7 +373,7 @@ def get_suggestion_context_service() -> "SuggestionContextService":
     This provides the cross-entity visibility needed to compute
     contextual suggestions based on domain relationships.
     """
-    from julee.hcd.services.memory import MemorySuggestionContextService
+    from julee.hcd.infrastructure.services.memory import MemorySuggestionContextService
 
     return MemorySuggestionContextService(
         story_repo=get_story_repository(),

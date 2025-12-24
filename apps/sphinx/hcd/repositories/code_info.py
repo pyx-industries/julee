@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from julee.hcd.entities.code_info import BoundedContextInfo
-from julee.hcd.domain.repositories.code_info import CodeInfoRepository
+from julee.hcd.repositories.code_info import CodeInfoRepository
 
 from .base import SphinxEnvRepositoryMixin
 

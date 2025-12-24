@@ -3,7 +3,7 @@
 from typing import Any
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.c4.domain.use_cases.deployment_node import (
+from julee.c4.use_cases.deployment_node import (
     ContainerInstanceItem,
     CreateDeploymentNodeRequest,
     DeleteDeploymentNodeRequest,

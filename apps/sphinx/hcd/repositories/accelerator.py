@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from julee.hcd.entities.accelerator import Accelerator
-from julee.hcd.domain.repositories.accelerator import AcceleratorRepository
+from julee.hcd.repositories.accelerator import AcceleratorRepository
 
 from .base import SphinxEnvRepositoryMixin
 

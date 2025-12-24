@@ -2,18 +2,18 @@
 
 from pathlib import Path
 
-from julee.c4.domain.models.component import Component
-from julee.c4.domain.models.container import Container, ContainerType
-from julee.c4.domain.models.deployment_node import (
+from julee.c4.entities.component import Component
+from julee.c4.entities.container import Container, ContainerType
+from julee.c4.entities.deployment_node import (
     DeploymentNode,
     NodeType,
 )
-from julee.c4.domain.models.dynamic_step import DynamicStep
-from julee.c4.domain.models.relationship import (
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import (
     ElementType,
     Relationship,
 )
-from julee.c4.domain.models.software_system import (
+from julee.c4.entities.software_system import (
     SoftwareSystem,
     SystemType,
 )

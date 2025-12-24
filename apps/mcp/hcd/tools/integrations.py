@@ -7,7 +7,7 @@ Responses include contextual suggestions based on domain semantics.
 from typing import Any
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.hcd.domain.use_cases.integration import (
+from julee.hcd.use_cases.integration import (
     CreateIntegrationRequest,
     DeleteIntegrationRequest,
     ExternalDependencyItem,
@@ -15,7 +15,7 @@ from julee.hcd.domain.use_cases.integration import (
     ListIntegrationsRequest,
     UpdateIntegrationRequest,
 )
-from julee.hcd.domain.use_cases.suggestions import compute_integration_suggestions
+from julee.hcd.use_cases.suggestions import compute_integration_suggestions
 from ..context import (
     get_create_integration_use_case,
     get_delete_integration_use_case,

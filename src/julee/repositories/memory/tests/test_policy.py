@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.ceap.domain.models.policy import Policy, PolicyStatus
+from julee.ceap.entities.policy import Policy, PolicyStatus
 from julee.repositories.memory.policy import MemoryPolicyRepository
 
 pytestmark = pytest.mark.unit

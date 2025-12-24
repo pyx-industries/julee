@@ -8,7 +8,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.hcd.domain.use_cases import (
+from julee.hcd.use_cases import (
     # Accelerator use-cases
     CreateAcceleratorUseCase,
     # App use-cases
@@ -49,7 +49,7 @@ from julee.hcd.domain.use_cases import (
     UpdateJourneyUseCase,
     UpdateStoryUseCase,
 )
-from julee.hcd.repositories.file import (
+from julee.hcd.infrastructure.repositories.file import (
     FileAcceleratorRepository,
     FileAppRepository,
     FileEpicRepository,

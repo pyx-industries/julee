@@ -2,20 +2,38 @@
 
 import pytest
 
-from julee.c4.domain.models.component import Component
-from julee.c4.domain.models.container import Container, ContainerType
-from julee.c4.domain.models.deployment_node import (
+from julee.c4.entities.component import Component
+from julee.c4.entities.container import Container, ContainerType
+from julee.c4.entities.deployment_node import (
     ContainerInstance,
     DeploymentNode,
     NodeType,
 )
-from julee.c4.domain.models.dynamic_step import DynamicStep
-from julee.c4.domain.models.relationship import ElementType, Relationship
-from julee.c4.domain.models.software_system import (
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import ElementType, Relationship
+from julee.c4.entities.software_system import (
     SoftwareSystem,
     SystemType,
 )
-from julee.c4.domain.use_cases.diagrams import (
+from julee.c4.infrastructure.repositories.memory.component import (
+    MemoryComponentRepository,
+)
+from julee.c4.infrastructure.repositories.memory.container import (
+    MemoryContainerRepository,
+)
+from julee.c4.infrastructure.repositories.memory.deployment_node import (
+    MemoryDeploymentNodeRepository,
+)
+from julee.c4.infrastructure.repositories.memory.dynamic_step import (
+    MemoryDynamicStepRepository,
+)
+from julee.c4.infrastructure.repositories.memory.relationship import (
+    MemoryRelationshipRepository,
+)
+from julee.c4.infrastructure.repositories.memory.software_system import (
+    MemorySoftwareSystemRepository,
+)
+from julee.c4.use_cases.diagrams import (
     GetComponentDiagramRequest,
     GetComponentDiagramUseCase,
     GetContainerDiagramRequest,
@@ -28,24 +46,6 @@ from julee.c4.domain.use_cases.diagrams import (
     GetSystemContextDiagramUseCase,
     GetSystemLandscapeDiagramRequest,
     GetSystemLandscapeDiagramUseCase,
-)
-from julee.c4.repositories.memory.component import (
-    MemoryComponentRepository,
-)
-from julee.c4.repositories.memory.container import (
-    MemoryContainerRepository,
-)
-from julee.c4.repositories.memory.deployment_node import (
-    MemoryDeploymentNodeRepository,
-)
-from julee.c4.repositories.memory.dynamic_step import (
-    MemoryDynamicStepRepository,
-)
-from julee.c4.repositories.memory.relationship import (
-    MemoryRelationshipRepository,
-)
-from julee.c4.repositories.memory.software_system import (
-    MemorySoftwareSystemRepository,
 )
 
 

@@ -2,8 +2,8 @@
 
 import pytest
 
-from julee.c4.domain.models.relationship import ElementType, Relationship
-from julee.c4.repositories.memory.relationship import (
+from julee.c4.entities.relationship import ElementType, Relationship
+from julee.c4.infrastructure.repositories.memory.relationship import (
     MemoryRelationshipRepository,
 )
 

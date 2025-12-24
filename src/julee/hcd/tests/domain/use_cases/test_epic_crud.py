@@ -2,7 +2,9 @@
 
 import pytest
 
-from julee.hcd.domain.use_cases.epic import (
+from julee.hcd.entities.epic import Epic
+from julee.hcd.infrastructure.repositories.memory.epic import MemoryEpicRepository
+from julee.hcd.use_cases.epic import (
     CreateEpicRequest,
     CreateEpicUseCase,
     DeleteEpicRequest,
@@ -14,8 +16,6 @@ from julee.hcd.domain.use_cases.epic import (
     UpdateEpicRequest,
     UpdateEpicUseCase,
 )
-from julee.hcd.entities.epic import Epic
-from julee.hcd.repositories.memory.epic import MemoryEpicRepository
 
 
 class TestCreateEpicUseCase:

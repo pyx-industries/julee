@@ -15,7 +15,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.hcd.entities.persona import Persona
-from julee.hcd.domain.use_cases import (
+from julee.hcd.use_cases.derive_personas import (
     derive_personas,
     derive_personas_by_app_type,
     get_epics_for_persona,

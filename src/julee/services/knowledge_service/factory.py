@@ -8,8 +8,8 @@ KnowledgeService instances based on the service API configuration.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.document import Document
-from julee.ceap.domain.models.knowledge_service_config import (
+from julee.ceap.entities.document import Document
+from julee.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
@@ -85,7 +85,7 @@ def knowledge_service_factory(
 
     Example:
         >>> from julee.domain import KnowledgeServiceConfig
-        >>> from julee.ceap.domain.models.knowledge_service_config import (
+        >>> from julee.ceap.entities.knowledge_service_config import (
         ...     ServiceApi
         ... )
         >>> config = KnowledgeServiceConfig(

@@ -7,7 +7,7 @@ from julee.hcd.entities.accelerator import (
     Accelerator,
     IntegrationReference,
 )
-from julee.hcd.repositories.memory.accelerator import (
+from julee.hcd.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
 

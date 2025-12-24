@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from julee.hcd.entities.story import Story
-from julee.hcd.repositories.memory.story import MemoryStoryRepository
+from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
 
 
 def create_story(

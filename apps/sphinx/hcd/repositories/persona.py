@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from julee.hcd.entities.persona import Persona
-from julee.hcd.domain.repositories.persona import PersonaRepository
+from julee.hcd.repositories.persona import PersonaRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin

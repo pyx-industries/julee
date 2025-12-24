@@ -8,7 +8,7 @@ from julee.hcd.entities.integration import (
     ExternalDependency,
     Integration,
 )
-from julee.hcd.repositories.memory.integration import (
+from julee.hcd.infrastructure.repositories.memory.integration import (
     MemoryIntegrationRepository,
 )
 

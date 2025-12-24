@@ -3,12 +3,12 @@
 Serializes C4 domain objects to RST directive format.
 """
 
-from ..domain.models.component import Component
-from ..domain.models.container import Container
-from ..domain.models.deployment_node import DeploymentNode
-from ..domain.models.dynamic_step import DynamicStep
-from ..domain.models.relationship import Relationship
-from ..domain.models.software_system import SoftwareSystem
+from julee.c4.entities.component import Component
+from julee.c4.entities.container import Container
+from julee.c4.entities.deployment_node import DeploymentNode
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import Relationship
+from julee.c4.entities.software_system import SoftwareSystem
 
 
 def serialize_software_system(system: SoftwareSystem) -> str:

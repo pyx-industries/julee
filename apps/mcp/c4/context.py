@@ -7,28 +7,28 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.c4.domain.use_cases.component import (
+from julee.c4.use_cases.component import (
     CreateComponentUseCase,
     DeleteComponentUseCase,
     GetComponentUseCase,
     ListComponentsUseCase,
     UpdateComponentUseCase,
 )
-from julee.c4.domain.use_cases.container import (
+from julee.c4.use_cases.container import (
     CreateContainerUseCase,
     DeleteContainerUseCase,
     GetContainerUseCase,
     ListContainersUseCase,
     UpdateContainerUseCase,
 )
-from julee.c4.domain.use_cases.deployment_node import (
+from julee.c4.use_cases.deployment_node import (
     CreateDeploymentNodeUseCase,
     DeleteDeploymentNodeUseCase,
     GetDeploymentNodeUseCase,
     ListDeploymentNodesUseCase,
     UpdateDeploymentNodeUseCase,
 )
-from julee.c4.domain.use_cases.diagrams import (
+from julee.c4.use_cases.diagrams import (
     GetComponentDiagramUseCase,
     GetContainerDiagramUseCase,
     GetDeploymentDiagramUseCase,
@@ -36,28 +36,28 @@ from julee.c4.domain.use_cases.diagrams import (
     GetSystemContextDiagramUseCase,
     GetSystemLandscapeDiagramUseCase,
 )
-from julee.c4.domain.use_cases.dynamic_step import (
+from julee.c4.use_cases.dynamic_step import (
     CreateDynamicStepUseCase,
     DeleteDynamicStepUseCase,
     GetDynamicStepUseCase,
     ListDynamicStepsUseCase,
     UpdateDynamicStepUseCase,
 )
-from julee.c4.domain.use_cases.relationship import (
+from julee.c4.use_cases.relationship import (
     CreateRelationshipUseCase,
     DeleteRelationshipUseCase,
     GetRelationshipUseCase,
     ListRelationshipsUseCase,
     UpdateRelationshipUseCase,
 )
-from julee.c4.domain.use_cases.software_system import (
+from julee.c4.use_cases.software_system import (
     CreateSoftwareSystemUseCase,
     DeleteSoftwareSystemUseCase,
     GetSoftwareSystemUseCase,
     ListSoftwareSystemsUseCase,
     UpdateSoftwareSystemUseCase,
 )
-from julee.c4.repositories.file import (
+from julee.c4.infrastructure.repositories.file import (
     FileComponentRepository,
     FileContainerRepository,
     FileDeploymentNodeRepository,

@@ -6,7 +6,7 @@ Provides the define-software-system directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.domain.models.software_system import SoftwareSystem, SystemType
+from julee.c4.entities.software_system import SoftwareSystem, SystemType
 from .base import C4Directive
 
 

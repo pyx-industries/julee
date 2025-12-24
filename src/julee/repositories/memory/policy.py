@@ -14,8 +14,8 @@ All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.policy import Policy
-from julee.ceap.domain.repositories.policy import PolicyRepository
+from julee.ceap.repositories.policy import PolicyRepository
+from julee.ceap.entities.policy import Policy
 
 from .base import MemoryRepositoryMixin
 

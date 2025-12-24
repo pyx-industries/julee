@@ -16,11 +16,11 @@ avoided. All operations are still async to maintain interface compatibility.
 import logging
 from typing import Any
 
-from julee.ceap.domain.models.assembly_specification import (
-    AssemblySpecification,
-)
-from julee.ceap.domain.repositories.assembly_specification import (
+from julee.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
+)
+from julee.ceap.entities.assembly_specification import (
+    AssemblySpecification,
 )
 
 from .base import MemoryRepositoryMixin

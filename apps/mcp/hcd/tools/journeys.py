@@ -7,7 +7,7 @@ Responses include contextual suggestions based on domain semantics.
 from typing import Any
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.hcd.domain.use_cases.journey import (
+from julee.hcd.use_cases.journey import (
     CreateJourneyRequest,
     DeleteJourneyRequest,
     GetJourneyRequest,
@@ -15,7 +15,7 @@ from julee.hcd.domain.use_cases.journey import (
     ListJourneysRequest,
     UpdateJourneyRequest,
 )
-from julee.hcd.domain.use_cases.suggestions import compute_journey_suggestions
+from julee.hcd.use_cases.suggestions import compute_journey_suggestions
 from ..context import (
     get_create_journey_use_case,
     get_delete_journey_use_case,

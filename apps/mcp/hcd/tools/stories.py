@@ -10,14 +10,14 @@ from apps.mcp.shared import (
     not_found_error,
     paginate_results,
 )
-from julee.hcd.domain.use_cases.story import (
+from julee.hcd.use_cases.story import (
     CreateStoryRequest,
     DeleteStoryRequest,
     GetStoryRequest,
     ListStoriesRequest,
     UpdateStoryRequest,
 )
-from julee.hcd.domain.use_cases.suggestions import compute_story_suggestions
+from julee.hcd.use_cases.suggestions import compute_story_suggestions
 from ..context import (
     get_create_story_use_case,
     get_delete_story_use_case,

@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.c4.domain.models.dynamic_step import DynamicStep
-from julee.c4.domain.models.relationship import ElementType
+from julee.c4.entities.dynamic_step import DynamicStep
+from julee.c4.entities.relationship import ElementType
 
 
 class TestDynamicStepCreation:

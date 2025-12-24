@@ -5,14 +5,14 @@ Responses include contextual suggestions based on domain semantics.
 """
 
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
-from julee.hcd.domain.use_cases.epic import (
+from julee.hcd.use_cases.epic import (
     CreateEpicRequest,
     DeleteEpicRequest,
     GetEpicRequest,
     ListEpicsRequest,
     UpdateEpicRequest,
 )
-from julee.hcd.domain.use_cases.suggestions import compute_epic_suggestions
+from julee.hcd.use_cases.suggestions import compute_epic_suggestions
 from ..context import (
     get_create_epic_use_case,
     get_delete_epic_use_case,
