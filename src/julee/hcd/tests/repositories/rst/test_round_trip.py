@@ -10,16 +10,16 @@ from pathlib import Path
 
 import pytest
 
-from julee.hcd.domain.models.accelerator import (
+from julee.hcd.entities.accelerator import (
     Accelerator,
     IntegrationReference,
 )
-from julee.hcd.domain.models.app import App, AppType
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.integration import Direction, Integration
-from julee.hcd.domain.models.journey import Journey, JourneyStep
-from julee.hcd.domain.models.persona import Persona
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import Direction, Integration
+from julee.hcd.entities.journey import Journey, JourneyStep
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 from julee.hcd.parsers.docutils_parser import (
     find_entity_by_type,
     parse_rst_content,

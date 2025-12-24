@@ -7,13 +7,13 @@ most responses wrap domain models rather than duplicating their structure.
 
 from pydantic import BaseModel
 
-from julee.hcd.domain.models.accelerator import Accelerator, AcceleratorValidationIssue
-from julee.hcd.domain.models.app import App
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.integration import Integration
-from julee.hcd.domain.models.journey import Journey
-from julee.hcd.domain.models.persona import Persona
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.accelerator import Accelerator, AcceleratorValidationIssue
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import Integration
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 
 # =============================================================================
 # Story Responses

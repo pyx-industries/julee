@@ -9,7 +9,7 @@ Provides directives for rendering application information:
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.hcd.domain.models.app import App, AppInterface, AppType
+from julee.hcd.entities.app import App, AppInterface, AppType
 from julee.hcd.domain.use_cases import (
     get_epics_for_app,
     get_journeys_for_app,

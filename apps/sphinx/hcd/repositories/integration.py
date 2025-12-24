@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from julee.hcd.domain.models.integration import Direction, Integration
+from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.domain.repositories.integration import IntegrationRepository
 from julee.hcd.utils import normalize_name
 

@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.accelerator import Accelerator
+from julee.hcd.entities.accelerator import Accelerator
+
 from ...repositories.accelerator import AcceleratorRepository
 
 

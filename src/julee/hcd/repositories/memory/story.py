@@ -2,9 +2,9 @@
 
 import logging
 
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.story import Story
 from ...domain.repositories.story import StoryRepository
 from .base import MemoryRepositoryMixin
 

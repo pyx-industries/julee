@@ -3,9 +3,9 @@
 Serializes Epic, Journey, and Accelerator domain objects to RST directive format.
 """
 
-from ..domain.models.accelerator import Accelerator
-from ..domain.models.epic import Epic
-from ..domain.models.journey import Journey, StepType
+from ..entities.accelerator import Accelerator
+from ..entities.epic import Epic
+from ..entities.journey import Journey, StepType
 
 
 def serialize_epic(epic: Epic) -> str:

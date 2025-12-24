@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from ...models.app import App, AppType
+from julee.hcd.entities.app import App, AppType
+
 from ...repositories.app import AppRepository
 
 

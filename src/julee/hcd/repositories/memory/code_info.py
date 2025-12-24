@@ -2,7 +2,8 @@
 
 import logging
 
-from ...domain.models.code_info import BoundedContextInfo
+from julee.hcd.entities.code_info import BoundedContextInfo
+
 from ...domain.repositories.code_info import CodeInfoRepository
 from .base import MemoryRepositoryMixin
 

@@ -9,9 +9,9 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..domain.models.accelerator import Accelerator, IntegrationReference
-from ..domain.models.epic import Epic
-from ..domain.models.journey import Journey, JourneyStep, StepType
+from ..entities.accelerator import Accelerator, IntegrationReference
+from ..entities.epic import Epic
+from ..entities.journey import Journey, JourneyStep, StepType
 
 logger = logging.getLogger(__name__)
 

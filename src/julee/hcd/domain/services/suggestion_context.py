@@ -5,12 +5,13 @@ Defines the interface for cross-entity queries used in suggestion computation.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.accelerator import Accelerator
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.integration import Integration
-from ..models.journey import Journey
-from ..models.story import Story
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import Integration
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.story import Story
+
 from ..use_cases.requests import (
     GetAcceleratorSlugsRequest,
     GetAcceleratorsUsingIntegrationRequest,

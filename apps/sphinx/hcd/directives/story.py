@@ -13,7 +13,7 @@ from collections import defaultdict
 
 from docutils import nodes
 
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.story import Story
 from julee.hcd.domain.use_cases import (
     get_epics_for_story,
     get_journeys_for_story,

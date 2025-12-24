@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.persona import Persona
+from julee.hcd.entities.persona import Persona
 
 
 class TestPersonaCreation:

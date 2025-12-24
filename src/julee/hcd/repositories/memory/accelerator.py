@@ -2,7 +2,8 @@
 
 import logging
 
-from ...domain.models.accelerator import Accelerator
+from julee.hcd.entities.accelerator import Accelerator
+
 from ...domain.repositories.accelerator import AcceleratorRepository
 from .base import MemoryRepositoryMixin
 

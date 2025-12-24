@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from ...models.journey import Journey, JourneyStep, StepType
+from julee.hcd.entities.journey import Journey, JourneyStep, StepType
+
 from ...repositories.journey import JourneyRepository
 
 

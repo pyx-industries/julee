@@ -4,15 +4,15 @@ Computes contextual suggestions for entities based on domain semantics
 and cross-entity validation rules.
 """
 
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import Integration
+from julee.hcd.entities.journey import Journey, StepType
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
 
-from ..models.accelerator import Accelerator
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.integration import Integration
-from ..models.journey import Journey, StepType
-from ..models.persona import Persona
-from ..models.story import Story
 from ..services.suggestion_context import SuggestionContextService
 
 __all__ = ["SuggestionContextService"]

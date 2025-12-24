@@ -3,7 +3,7 @@
 import pytest
 import pytest_asyncio
 
-from julee.hcd.domain.models.epic import Epic
+from julee.hcd.entities.epic import Epic
 from julee.hcd.repositories.memory.epic import MemoryEpicRepository
 
 

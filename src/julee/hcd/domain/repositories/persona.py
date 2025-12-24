@@ -5,7 +5,8 @@ Defines the interface for persona data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.persona import Persona
+from julee.hcd.entities.persona import Persona
+
 from .base import BaseRepository
 
 

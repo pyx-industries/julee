@@ -5,7 +5,8 @@ Defines the interface for app data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.app import App, AppType
+from julee.hcd.entities.app import App, AppType
+
 from .base import BaseRepository
 
 

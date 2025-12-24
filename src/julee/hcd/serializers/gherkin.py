@@ -3,7 +3,7 @@
 Serializes Story domain objects to Gherkin .feature file format.
 """
 
-from ..domain.models.story import Story
+from ..entities.story import Story
 
 
 def serialize_story(story: Story) -> str:

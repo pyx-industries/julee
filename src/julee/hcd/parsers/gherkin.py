@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..domain.models.story import Story
+from ..entities.story import Story
 
 logger = logging.getLogger(__name__)
 

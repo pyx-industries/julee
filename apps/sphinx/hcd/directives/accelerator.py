@@ -14,7 +14,7 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.hcd.domain.models.accelerator import Accelerator, IntegrationReference
+from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.domain.use_cases import (
     get_apps_for_accelerator,
     get_fed_by_accelerators,

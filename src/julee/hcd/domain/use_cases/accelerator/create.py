@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from ...models.accelerator import Accelerator, IntegrationReference
+from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+
 from ...repositories.accelerator import AcceleratorRepository
 
 

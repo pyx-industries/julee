@@ -2,15 +2,15 @@
 
 import pytest
 
-from julee.hcd.domain.models.app import App, AppType
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.story import Story
 from julee.hcd.domain.use_cases.derive_personas import (
     derive_personas,
     derive_personas_by_app_type,
     get_apps_for_persona,
     get_epics_for_persona,
 )
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.story import Story
 
 
 def create_story(

@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.accelerator import (
+from julee.hcd.entities.accelerator import (
     Accelerator,
     IntegrationReference,
 )

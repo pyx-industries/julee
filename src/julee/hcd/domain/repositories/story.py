@@ -5,7 +5,8 @@ Defines the interface for story data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.story import Story
+from julee.hcd.entities.story import Story
+
 from .base import BaseRepository
 
 

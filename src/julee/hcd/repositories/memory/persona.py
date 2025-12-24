@@ -2,9 +2,9 @@
 
 import logging
 
+from julee.hcd.entities.persona import Persona
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.persona import Persona
 from ...domain.repositories.persona import PersonaRepository
 from .base import MemoryRepositoryMixin
 

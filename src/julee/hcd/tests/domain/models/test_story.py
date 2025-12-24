@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.story import Story
 
 
 class TestStoryCreation:

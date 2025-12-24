@@ -36,7 +36,7 @@ from .repositories import (
 if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
 
-    from julee.hcd.domain.models import (
+    from julee.hcd.entities import (
         Accelerator,
         App,
         BoundedContextInfo,

@@ -3,13 +3,13 @@
 Finds stories, personas, journeys, and epics related to an app.
 """
 
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
 
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.journey import Journey
-from ..models.persona import Persona
-from ..models.story import Story
 from .derive_personas import derive_personas
 
 

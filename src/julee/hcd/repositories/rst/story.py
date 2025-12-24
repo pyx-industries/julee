@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.story import Story
 from ...domain.repositories.story import StoryRepository
 from ...parsers.docutils_parser import ParsedDocument
 from .base import RstRepositoryMixin

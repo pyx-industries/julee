@@ -3,11 +3,10 @@
 Finds epics and journeys that reference a specific story.
 """
 
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
-
-from ..models.epic import Epic
-from ..models.journey import Journey
-from ..models.story import Story
 
 
 def get_epics_for_story(

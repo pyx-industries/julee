@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.integration import Integration
+from julee.hcd.entities.integration import Integration
+
 from ...repositories.integration import IntegrationRepository
 
 

@@ -2,7 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.models.story import Story
 from julee.hcd.domain.use_cases.story import (
     CreateStoryRequest,
     CreateStoryUseCase,
@@ -15,6 +14,7 @@ from julee.hcd.domain.use_cases.story import (
     UpdateStoryRequest,
     UpdateStoryUseCase,
 )
+from julee.hcd.entities.story import Story
 from julee.hcd.repositories.memory.story import MemoryStoryRepository
 
 

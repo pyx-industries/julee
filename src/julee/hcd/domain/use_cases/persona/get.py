@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.persona import Persona
+from julee.hcd.entities.persona import Persona
+
 from ...repositories.persona import PersonaRepository
 
 

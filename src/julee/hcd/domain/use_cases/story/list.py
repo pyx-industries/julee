@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.story import Story
+from julee.hcd.entities.story import Story
+
 from ...repositories.story import StoryRepository
 
 

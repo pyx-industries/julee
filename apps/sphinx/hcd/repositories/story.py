@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.story import Story
 from julee.hcd.domain.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
 

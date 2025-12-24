@@ -2,9 +2,9 @@
 
 import logging
 
+from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.integration import Direction, Integration
 from ...domain.repositories.integration import IntegrationRepository
 from .base import MemoryRepositoryMixin
 

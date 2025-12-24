@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.epic import Epic
+from julee.hcd.entities.epic import Epic
 
 
 class TestEpicCreation:

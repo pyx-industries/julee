@@ -16,9 +16,9 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
+from julee.hcd.entities.persona import Persona
 from julee.hcd.utils import normalize_name
 
-from ...models.persona import Persona
 from ...repositories.epic import EpicRepository
 from ...repositories.story import StoryRepository
 

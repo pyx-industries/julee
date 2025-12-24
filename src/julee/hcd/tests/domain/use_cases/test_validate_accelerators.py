@@ -2,12 +2,12 @@
 
 import pytest
 
-from julee.hcd.domain.models.accelerator import Accelerator
-from julee.hcd.domain.models.code_info import BoundedContextInfo, ClassInfo
 from julee.hcd.domain.use_cases.queries import (
     ValidateAcceleratorsRequest,
     ValidateAcceleratorsUseCase,
 )
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.code_info import BoundedContextInfo, ClassInfo
 from julee.hcd.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )

@@ -2,7 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.models.app import App, AppType
 from julee.hcd.domain.use_cases.app import (
     CreateAppRequest,
     CreateAppUseCase,
@@ -15,6 +14,7 @@ from julee.hcd.domain.use_cases.app import (
     UpdateAppRequest,
     UpdateAppUseCase,
 )
+from julee.hcd.entities.app import App, AppType
 from julee.hcd.repositories.memory.app import MemoryAppRepository
 
 

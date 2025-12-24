@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.integration import Direction, Integration
 from ...domain.repositories.integration import IntegrationRepository
 from ...parsers.docutils_parser import ParsedDocument
 from .base import RstRepositoryMixin

@@ -3,14 +3,13 @@
 Finds apps, stories, journeys, and integrations related to an accelerator.
 """
 
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.app import App
+from julee.hcd.entities.code_info import BoundedContextInfo
+from julee.hcd.entities.integration import Integration
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
-
-from ..models.accelerator import Accelerator
-from ..models.app import App
-from ..models.code_info import BoundedContextInfo
-from ..models.integration import Integration
-from ..models.journey import Journey
-from ..models.story import Story
 
 
 def get_apps_for_accelerator(

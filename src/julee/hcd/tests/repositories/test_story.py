@@ -3,7 +3,7 @@
 import pytest
 import pytest_asyncio
 
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.story import Story
 from julee.hcd.repositories.memory.story import MemoryStoryRepository
 
 

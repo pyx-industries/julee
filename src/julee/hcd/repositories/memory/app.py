@@ -2,9 +2,9 @@
 
 import logging
 
+from julee.hcd.entities.app import App, AppType
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.app import App, AppType
 from ...domain.repositories.app import AppRepository
 from .base import MemoryRepositoryMixin
 

@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.entities.journey import Journey, StepType
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.journey import Journey, StepType
 from ...domain.repositories.journey import JourneyRepository
 from ...parsers.rst import scan_journey_directory
 from ...serializers.rst import serialize_journey

@@ -10,7 +10,8 @@ with discovered bounded contexts (from src/ directory scanning) to identify:
 
 from pydantic import BaseModel
 
-from ...models.accelerator import AcceleratorValidationIssue
+from julee.hcd.entities.accelerator import AcceleratorValidationIssue
+
 from ...repositories.accelerator import AcceleratorRepository
 from ...repositories.code_info import CodeInfoRepository
 

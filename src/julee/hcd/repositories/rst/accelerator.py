@@ -3,7 +3,8 @@
 import logging
 from pathlib import Path
 
-from ...domain.models.accelerator import Accelerator, IntegrationReference
+from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+
 from ...domain.repositories.accelerator import AcceleratorRepository
 from ...parsers.docutils_parser import ParsedDocument, parse_comma_list
 from .base import RstRepositoryMixin

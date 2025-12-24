@@ -3,7 +3,7 @@
 import pytest
 import pytest_asyncio
 
-from julee.hcd.domain.models.journey import Journey, JourneyStep
+from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.repositories.memory.journey import MemoryJourneyRepository
 
 

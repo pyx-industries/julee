@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.journey import (
+from julee.hcd.entities.journey import (
     Journey,
     JourneyStep,
     StepType,

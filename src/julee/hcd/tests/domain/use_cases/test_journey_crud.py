@@ -2,7 +2,6 @@
 
 import pytest
 
-from julee.hcd.domain.models.journey import Journey, JourneyStep, StepType
 from julee.hcd.domain.use_cases.journey import (
     CreateJourneyRequest,
     CreateJourneyUseCase,
@@ -16,6 +15,7 @@ from julee.hcd.domain.use_cases.journey import (
     UpdateJourneyRequest,
     UpdateJourneyUseCase,
 )
+from julee.hcd.entities.journey import Journey, JourneyStep, StepType
 from julee.hcd.repositories.memory.journey import MemoryJourneyRepository
 
 

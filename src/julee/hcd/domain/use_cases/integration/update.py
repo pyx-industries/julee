@@ -4,7 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ...models.integration import Direction, Integration
+from julee.hcd.entities.integration import Direction, Integration
+
 from ...repositories.integration import IntegrationRepository
 from .create import ExternalDependencyItem
 

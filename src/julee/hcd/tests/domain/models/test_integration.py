@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.integration import (
+from julee.hcd.entities.integration import (
     Direction,
     ExternalDependency,
     Integration,

@@ -3,7 +3,7 @@
 import pytest
 import pytest_asyncio
 
-from julee.hcd.domain.models.app import App, AppType
+from julee.hcd.entities.app import App, AppType
 from julee.hcd.repositories.memory.app import MemoryAppRepository
 
 

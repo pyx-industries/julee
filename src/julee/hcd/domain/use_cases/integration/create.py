@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from ...models.integration import Direction, ExternalDependency, Integration
+from julee.hcd.entities.integration import Direction, ExternalDependency, Integration
+
 from ...repositories.integration import IntegrationRepository
 
 

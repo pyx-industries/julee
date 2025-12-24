@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from julee.hcd.domain.models.contrib import ContribModule
+from julee.hcd.entities.contrib import ContribModule
 from julee.hcd.domain.repositories.contrib import ContribRepository
 
 from .base import SphinxEnvRepositoryMixin

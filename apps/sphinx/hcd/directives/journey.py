@@ -17,7 +17,7 @@ Provides directives:
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.hcd.domain.models.journey import Journey, JourneyStep
+from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.utils import (
     normalize_name,
     parse_csv_option,

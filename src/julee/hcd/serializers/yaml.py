@@ -5,8 +5,8 @@ Serializes App and Integration domain objects to YAML manifest format.
 
 import yaml
 
-from ..domain.models.app import App
-from ..domain.models.integration import Integration
+from ..entities.app import App
+from ..entities.integration import Integration
 
 
 def serialize_app(app: App) -> str:

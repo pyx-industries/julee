@@ -5,7 +5,8 @@ Defines the interface for accelerator data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.accelerator import Accelerator
+from julee.hcd.entities.accelerator import Accelerator
+
 from .base import BaseRepository
 
 

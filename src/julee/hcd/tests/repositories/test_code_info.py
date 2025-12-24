@@ -3,7 +3,7 @@
 import pytest
 import pytest_asyncio
 
-from julee.hcd.domain.models.code_info import (
+from julee.hcd.entities.code_info import (
     BoundedContextInfo,
     ClassInfo,
 )

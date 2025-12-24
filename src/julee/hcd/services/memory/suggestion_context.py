@@ -1,11 +1,5 @@
 """Memory implementation of SuggestionContextService."""
 
-from julee.hcd.domain.models.accelerator import Accelerator
-from julee.hcd.domain.models.app import App
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.integration import Integration
-from julee.hcd.domain.models.journey import Journey
-from julee.hcd.domain.models.story import Story
 from julee.hcd.domain.repositories.accelerator import AcceleratorRepository
 from julee.hcd.domain.repositories.app import AppRepository
 from julee.hcd.domain.repositories.epic import EpicRepository
@@ -13,6 +7,12 @@ from julee.hcd.domain.repositories.integration import IntegrationRepository
 from julee.hcd.domain.repositories.journey import JourneyRepository
 from julee.hcd.domain.repositories.story import StoryRepository
 from julee.hcd.domain.services.suggestion_context import SuggestionContextService
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import Integration
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
 
 

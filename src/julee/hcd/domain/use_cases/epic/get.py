@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.epic import Epic
+from julee.hcd.entities.epic import Epic
+
 from ...repositories.epic import EpicRepository
 
 

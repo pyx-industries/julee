@@ -7,12 +7,11 @@ it with epic participation data.
 
 from collections import defaultdict
 
+from julee.hcd.entities.app import App
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 from julee.hcd.utils import normalize_name
-
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.persona import Persona
-from ..models.story import Story
 
 
 def derive_personas(

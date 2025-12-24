@@ -9,17 +9,17 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from julee.hcd.domain.models.accelerator import Accelerator, IntegrationReference
-from julee.hcd.domain.models.app import App, AppType
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.integration import (
+from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.integration import (
     Direction,
     ExternalDependency,
     Integration,
 )
-from julee.hcd.domain.models.journey import Journey, JourneyStep
-from julee.hcd.domain.models.persona import Persona
-from julee.hcd.domain.models.story import Story
+from julee.hcd.entities.journey import Journey, JourneyStep
+from julee.hcd.entities.persona import Persona
+from julee.hcd.entities.story import Story
 
 # =============================================================================
 # Story DTOs
@@ -213,7 +213,7 @@ class JourneyStepItem(BaseModel):
 
     def to_domain_model(self) -> JourneyStep:
         """Convert to JourneyStep."""
-        from julee.hcd.domain.models.journey import StepType
+        from julee.hcd.entities.journey import StepType
 
         return JourneyStep(
             step_type=StepType.from_string(self.step_type),

@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.app import App, AppType
+from julee.hcd.entities.app import App, AppType
 
 
 class TestAppType:

@@ -5,7 +5,8 @@ Defines the interface for epic data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.epic import Epic
+from julee.hcd.entities.epic import Epic
+
 from .base import BaseRepository
 
 

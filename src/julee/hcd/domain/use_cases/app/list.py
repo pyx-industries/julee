@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from ...models.app import App
+from julee.hcd.entities.app import App
+
 from ...repositories.app import AppRepository
 
 

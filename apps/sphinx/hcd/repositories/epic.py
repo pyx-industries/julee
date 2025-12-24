@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from julee.hcd.domain.models.epic import Epic
+from julee.hcd.entities.epic import Epic
 from julee.hcd.domain.repositories.epic import EpicRepository
 from julee.hcd.utils import normalize_name
 

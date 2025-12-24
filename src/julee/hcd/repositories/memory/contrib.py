@@ -2,7 +2,8 @@
 
 import logging
 
-from ...domain.models.contrib import ContribModule
+from julee.hcd.entities.contrib import ContribModule
+
 from ...domain.repositories.contrib import ContribRepository
 from .base import MemoryRepositoryMixin
 

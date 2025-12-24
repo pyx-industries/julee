@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from julee.hcd.domain.models.app import AppType
-from julee.hcd.domain.models.integration import Direction
+from julee.hcd.entities.app import AppType
+from julee.hcd.entities.integration import Direction
 from julee.hcd.parsers.yaml import (
     parse_app_manifest,
     parse_integration_manifest,

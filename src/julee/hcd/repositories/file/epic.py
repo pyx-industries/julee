@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.entities.epic import Epic
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.epic import Epic
 from ...domain.repositories.epic import EpicRepository
 from ...parsers.rst import scan_epic_directory
 from ...serializers.rst import serialize_epic

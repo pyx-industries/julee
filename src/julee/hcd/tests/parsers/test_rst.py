@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-from julee.hcd.domain.models.accelerator import (
+from julee.hcd.entities.accelerator import (
     Accelerator,
     IntegrationReference,
 )
-from julee.hcd.domain.models.epic import Epic
-from julee.hcd.domain.models.journey import Journey, JourneyStep, StepType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.journey import Journey, JourneyStep, StepType
 from julee.hcd.parsers.rst import (
     parse_accelerator_content,
     parse_accelerator_file,

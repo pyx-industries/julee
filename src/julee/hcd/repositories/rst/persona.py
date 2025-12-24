@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
+from julee.hcd.entities.persona import Persona
 from julee.hcd.utils import normalize_name
 
-from ...domain.models.persona import Persona
 from ...domain.repositories.persona import PersonaRepository
 from ...parsers.docutils_parser import ParsedDocument, parse_multiline_list
 from .base import RstRepositoryMixin

@@ -4,7 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ...models.journey import Journey
+from julee.hcd.entities.journey import Journey
+
 from ...repositories.journey import JourneyRepository
 from .create import JourneyStepItem
 

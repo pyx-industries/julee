@@ -5,7 +5,8 @@ Defines the interface for contrib module data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.contrib import ContribModule
+from julee.hcd.entities.contrib import ContribModule
+
 from .base import BaseRepository
 
 

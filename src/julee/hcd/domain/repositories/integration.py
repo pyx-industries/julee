@@ -5,7 +5,8 @@ Defines the interface for integration data access.
 
 from typing import Protocol, runtime_checkable
 
-from ..models.integration import Direction, Integration
+from julee.hcd.entities.integration import Direction, Integration
+
 from .base import BaseRepository
 
 

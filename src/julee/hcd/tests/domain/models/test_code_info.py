@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from julee.hcd.domain.models.code_info import (
+from julee.hcd.entities.code_info import (
     BoundedContextInfo,
     ClassInfo,
 )
