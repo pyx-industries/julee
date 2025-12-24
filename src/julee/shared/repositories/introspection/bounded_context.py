@@ -8,65 +8,20 @@ the filesystem, not created through this repository.
 import subprocess
 from pathlib import Path
 
+from julee.shared.domain.doctrine_constants import (
+    CONTRIB_DIR,
+    MODELS_PATH,
+    REPOSITORIES_PATH,
+    RESERVED_WORDS,
+    SEARCH_ROOT,
+    SERVICES_PATH,
+    USE_CASES_PATH,
+    VIEWPOINT_SLUGS,
+)
 from julee.shared.domain.models import BoundedContext, StructuralMarkers
 
-# =============================================================================
-# Directory Structure Configuration
-# =============================================================================
-# Bounded contexts follow the {bc}/domain/{layer}/ pattern.
-
-MODELS_DIR = ("domain", "models")
-REPOSITORIES_DIR = ("domain", "repositories")
-SERVICES_DIR = ("domain", "services")
-USE_CASES_DIR = ("domain", "use_cases")
-
-
-# =============================================================================
-# Reserved Words
-# =============================================================================
-# Directory names with special structural meaning that cannot be bounded
-# context names.
-
-RESERVED_STRUCTURAL = frozenset(
-    {
-        "core",  # The idioms accelerator
-        "contrib",  # Batteries-included modules
-        "applications",
-        "docs",
-        "deployment",
-    }
-)
-
-RESERVED_COMMON = frozenset(
-    {
-        "shared",  # The foundational accelerator (current name for core)
-        "util",
-        "utils",
-        "common",
-        "tests",
-    }
-)
-
-RESERVED_WORDS = RESERVED_STRUCTURAL | RESERVED_COMMON
-
-
-# =============================================================================
-# Viewpoint Bounded Contexts
-# =============================================================================
-
-VIEWPOINT_SLUGS = frozenset(
-    {
-        "hcd",
-        "c4",
-    }
-)
-
-
-# =============================================================================
-# Search Configuration
-# =============================================================================
-
-SEARCH_ROOT = "src/julee"
+# Re-export for backwards compatibility with existing imports
+__all__ = ["RESERVED_WORDS", "VIEWPOINT_SLUGS", "FilesystemBoundedContextRepository"]
 
 
 # =============================================================================
@@ -126,10 +81,10 @@ class FilesystemBoundedContextRepository:
     def _detect_markers(self, path: Path) -> StructuralMarkers:
         """Detect structural markers in a directory."""
         return StructuralMarkers(
-            has_domain_models=self._has_subdir(path, MODELS_DIR),
-            has_domain_repositories=self._has_subdir(path, REPOSITORIES_DIR),
-            has_domain_services=self._has_subdir(path, SERVICES_DIR),
-            has_domain_use_cases=self._has_subdir(path, USE_CASES_DIR),
+            has_domain_models=self._has_subdir(path, MODELS_PATH),
+            has_domain_repositories=self._has_subdir(path, REPOSITORIES_PATH),
+            has_domain_services=self._has_subdir(path, SERVICES_PATH),
+            has_domain_use_cases=self._has_subdir(path, USE_CASES_PATH),
             has_tests=self._has_subdir(path, ("tests",)),
             has_parsers=self._has_subdir(path, ("parsers",)),
             has_serializers=self._has_subdir(path, ("serializers",)),
@@ -196,7 +151,7 @@ class FilesystemBoundedContextRepository:
 
         top_level = self._discover_in_directory(search_path)
 
-        contrib_path = search_path / "contrib"
+        contrib_path = search_path / CONTRIB_DIR
         contrib = self._discover_in_directory(contrib_path, is_contrib=True)
 
         return top_level + contrib

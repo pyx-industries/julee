@@ -100,14 +100,28 @@ def extract_all_doctrine(tests_dir: Path) -> dict[str, list[DoctrineCategory]]:
     """
     doctrine = {}
 
-    for test_file in sorted(tests_dir.glob("test_*_doctrine.py")):
-        # Extract area name from filename: test_foo_doctrine.py -> Foo
-        area_name = test_file.stem.replace("test_", "").replace("_doctrine", "")
-        area_name = area_name.replace("_", " ").title()
+    # Match both patterns: test_*_doctrine.py and test_doctrine_*.py
+    doctrine_files = set()
+    doctrine_files.update(tests_dir.glob("test_*_doctrine.py"))
+    doctrine_files.update(tests_dir.glob("test_doctrine_*.py"))
 
+    for test_file in sorted(doctrine_files):
         categories = extract_doctrine_from_file(test_file)
         if categories:
-            doctrine[area_name] = categories
+            # For compliance tests, use category names as areas
+            # For other doctrine tests, use filename-derived area name
+            if "compliance" in test_file.stem:
+                # Use each category as its own area for compliance tests
+                for category in categories:
+                    area_name = category.name
+                    if area_name not in doctrine:
+                        doctrine[area_name] = []
+                    doctrine[area_name].append(category)
+            else:
+                # Extract area name from filename: test_foo_doctrine.py -> Foo
+                area_name = test_file.stem.replace("test_", "").replace("_doctrine", "")
+                area_name = area_name.replace("_", " ").title()
+                doctrine[area_name] = categories
 
     return doctrine
 

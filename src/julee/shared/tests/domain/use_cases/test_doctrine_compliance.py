@@ -10,6 +10,25 @@ from pathlib import Path
 
 import pytest
 
+from julee.shared.domain.doctrine_constants import (
+    ENTITY_FORBIDDEN_SUFFIXES,
+    ITEM_SUFFIX,
+    LAYER_FORBIDDEN_IMPORTS,
+    LAYER_MODELS,
+    LAYER_REPOSITORIES,
+    LAYER_SERVICES,
+    LAYER_USE_CASES,
+    PROTOCOL_BASES,
+    REPOSITORY_SUFFIX,
+    REQUEST_BASE,
+    REQUEST_SUFFIX,
+    RESPONSE_BASE,
+    RESPONSE_SUFFIX,
+    SEARCH_ROOT,
+    SERVICE_SUFFIX,
+    SHARED_CONTEXT_SLUG,
+    USE_CASE_SUFFIX,
+)
 from julee.shared.domain.use_cases import (
     ListCodeArtifactsRequest,
     ListEntitiesUseCase,
@@ -75,18 +94,12 @@ class TestEntityCompliance:
         violations = []
         for artifact in response.artifacts:
             name = artifact.artifact.name
-            if name.endswith("UseCase"):
-                violations.append(
-                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'UseCase'"
-                )
-            if name.endswith("Request"):
-                violations.append(
-                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'Request'"
-                )
-            if name.endswith("Response"):
-                violations.append(
-                    f"{artifact.bounded_context}.{name}: MUST NOT end with 'Response'"
-                )
+            for forbidden_suffix in ENTITY_FORBIDDEN_SUFFIXES:
+                if name.endswith(forbidden_suffix):
+                    violations.append(
+                        f"{artifact.bounded_context}.{name}: "
+                        f"MUST NOT end with '{forbidden_suffix}'"
+                    )
 
         assert not violations, "Entity suffix violations:\n" + "\n".join(violations)
 
@@ -145,12 +158,12 @@ class TestUseCaseCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if not artifact.artifact.name.endswith("UseCase"):
+            if not artifact.artifact.name.endswith(USE_CASE_SUFFIX):
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert not violations, "Use cases not ending with 'UseCase':\n" + "\n".join(
+        assert not violations, f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(
             violations
         )
 
@@ -187,12 +200,13 @@ class TestUseCaseCompliance:
             requests_by_context[ctx].add(artifact.artifact.name)
 
         violations = []
+        suffix_len = len(USE_CASE_SUFFIX)
         for artifact in uc_response.artifacts:
             name = artifact.artifact.name
             ctx = artifact.bounded_context
-            if name.endswith("UseCase"):
-                prefix = name[:-7]  # Strip "UseCase"
-                expected_request = f"{prefix}Request"
+            if name.endswith(USE_CASE_SUFFIX):
+                prefix = name[:-suffix_len]
+                expected_request = f"{prefix}{REQUEST_SUFFIX}"
                 available = requests_by_context.get(ctx, set())
                 if expected_request not in available:
                     violations.append(f"{ctx}.{name}: missing {expected_request}")
@@ -245,12 +259,13 @@ class TestUseCaseCompliance:
             responses_by_context[ctx].add(artifact.artifact.name)
 
         missing = []
+        suffix_len = len(USE_CASE_SUFFIX)
         for artifact in uc_response.artifacts:
             name = artifact.artifact.name
             ctx = artifact.bounded_context
-            if name.endswith("UseCase"):
-                prefix = name[:-7]  # Strip "UseCase"
-                expected_response = f"{prefix}Response"
+            if name.endswith(USE_CASE_SUFFIX):
+                prefix = name[:-suffix_len]
+                expected_response = f"{prefix}{RESPONSE_SUFFIX}"
                 available = responses_by_context.get(ctx, set())
                 if expected_response not in available:
                     missing.append(f"{ctx}.{name}: missing {expected_response}")
@@ -299,12 +314,12 @@ class TestRequestCompliance:
         violations = []
         for artifact in response.artifacts:
             name = artifact.artifact.name
-            if not (name.endswith("Request") or name.endswith("Item")):
+            if not (name.endswith(REQUEST_SUFFIX) or name.endswith(ITEM_SUFFIX)):
                 violations.append(f"{artifact.bounded_context}.{name}")
 
         assert (
             not violations
-        ), "Classes in requests.py must end with 'Request' or 'Item':\n" + "\n".join(
+        ), f"Classes in requests.py must end with '{REQUEST_SUFFIX}' or '{ITEM_SUFFIX}':\n" + "\n".join(
             violations
         )
 
@@ -331,13 +346,13 @@ class TestRequestCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if "BaseModel" not in artifact.artifact.bases:
+            if REQUEST_BASE not in artifact.artifact.bases:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name} "
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, "Requests not inheriting from BaseModel:\n" + "\n".join(
+        assert not violations, f"Requests not inheriting from {REQUEST_BASE}:\n" + "\n".join(
             violations
         )
 
@@ -381,12 +396,12 @@ class TestResponseCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if not artifact.artifact.name.endswith("Response"):
+            if not artifact.artifact.name.endswith(RESPONSE_SUFFIX):
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert not violations, "Responses not ending with 'Response':\n" + "\n".join(
+        assert not violations, f"Responses not ending with '{RESPONSE_SUFFIX}':\n" + "\n".join(
             violations
         )
 
@@ -413,13 +428,13 @@ class TestResponseCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if "BaseModel" not in artifact.artifact.bases:
+            if RESPONSE_BASE not in artifact.artifact.bases:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name} "
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, "Responses not inheriting from BaseModel:\n" + "\n".join(
+        assert not violations, f"Responses not inheriting from {RESPONSE_BASE}:\n" + "\n".join(
             violations
         )
 
@@ -445,14 +460,14 @@ class TestRepositoryProtocolCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if not artifact.artifact.name.endswith("Repository"):
+            if not artifact.artifact.name.endswith(REPOSITORY_SUFFIX):
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
         assert (
             not violations
-        ), "Repository protocols not ending with 'Repository':\n" + "\n".join(
+        ), f"Repository protocols not ending with '{REPOSITORY_SUFFIX}':\n" + "\n".join(
             violations
         )
 
@@ -483,7 +498,7 @@ class TestRepositoryProtocolCompliance:
         for artifact in response.artifacts:
             # Explicit check for Protocol or Protocol[T] generic
             has_protocol = any(
-                base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases
+                base in PROTOCOL_BASES for base in artifact.artifact.bases
             )
             if not has_protocol:
                 violations.append(
@@ -519,14 +534,14 @@ class TestServiceProtocolCompliance:
 
         violations = []
         for artifact in response.artifacts:
-            if not artifact.artifact.name.endswith("Service"):
+            if not artifact.artifact.name.endswith(SERVICE_SUFFIX):
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
         assert (
             not violations
-        ), "Service protocols not ending with 'Service':\n" + "\n".join(violations)
+        ), f"Service protocols not ending with '{SERVICE_SUFFIX}':\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_service_protocols_MUST_have_docstring(self, repo):
@@ -555,7 +570,7 @@ class TestServiceProtocolCompliance:
         for artifact in response.artifacts:
             # Explicit check for Protocol or Protocol[T] generic
             has_protocol = any(
-                base in ("Protocol", "Protocol[T]") for base in artifact.artifact.bases
+                base in PROTOCOL_BASES for base in artifact.artifact.bases
             )
             if not has_protocol:
                 violations.append(

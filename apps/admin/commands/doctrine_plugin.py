@@ -57,18 +57,10 @@ class DoctrineCollector:
         and organize them by area and category.
         """
         for item in items:
-            # Only process doctrine tests
-            if "_doctrine" not in item.fspath.basename:
-                continue
-
-            # Extract area from filename: test_foo_doctrine.py -> Foo
+            # Only process doctrine tests (both patterns)
             filename = Path(item.fspath).name
-            area_name = filename.replace("test_", "").replace("_doctrine.py", "")
-            area_name = area_name.replace("_", " ").title()
-
-            # Get or create area
-            if area_name not in self.results.areas:
-                self.results.areas[area_name] = []
+            if "_doctrine" not in filename and "doctrine_" not in filename:
+                continue
 
             # Get class info
             if hasattr(item, "cls") and item.cls is not None:
@@ -82,6 +74,18 @@ class DoctrineCollector:
                     if char.isupper() and readable_name:
                         readable_name += " "
                     readable_name += char
+
+                # For compliance tests, use category name as area name
+                # For other doctrine tests, use filename-derived area name
+                if "compliance" in filename:
+                    area_name = readable_name
+                else:
+                    area_name = filename.replace("test_", "").replace("_doctrine.py", "")
+                    area_name = area_name.replace("_", " ").title()
+
+                # Get or create area
+                if area_name not in self.results.areas:
+                    self.results.areas[area_name] = []
 
                 # Find or create category
                 category = None

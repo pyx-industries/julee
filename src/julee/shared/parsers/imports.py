@@ -10,6 +10,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from julee.shared.domain.doctrine_constants import LAYER_KEYWORDS
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,30 +26,6 @@ class ImportInfo(BaseModel):
     names: list[str] = Field(default_factory=list)  # e.g., ["CreateStoryUseCase"]
     is_relative: bool = False
     file: str = ""  # source file containing this import
-
-
-# Architecture layer keywords for dependency analysis
-# Layer hierarchy (outer to inner):
-#   deployment -> apps -> infrastructure -> use_cases -> models
-#
-# Protocols (repositories/, services/) are at the same level as use_cases,
-# defining abstractions that use_cases depend on but don't know implementations of.
-_LAYER_KEYWORDS = {
-    # Innermost - domain entities/models
-    "models": "models",
-    "entities": "models",  # alias
-    # Middle-inner - use cases and protocol definitions
-    "use_cases": "use_cases",
-    "usecases": "use_cases",  # alias
-    "repositories": "repositories",  # protocol definitions
-    "services": "services",  # protocol definitions
-    # Middle-outer - infrastructure implementations
-    "infrastructure": "infrastructure",
-    # Outer - application layer (FastAPI, MCP, CLI)
-    "apps": "apps",
-    # Outermost - deployment configuration
-    "deployment": "deployment",
-}
 
 
 def classify_import_layer(import_path: str) -> str | None:
@@ -65,8 +43,8 @@ def classify_import_layer(import_path: str) -> str | None:
     """
     parts = import_path.lower().split(".")
     for part in parts:
-        if part in _LAYER_KEYWORDS:
-            return _LAYER_KEYWORDS[part]
+        if part in LAYER_KEYWORDS:
+            return LAYER_KEYWORDS[part]
     return None
 
 
