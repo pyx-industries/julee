@@ -13,20 +13,13 @@ import pytest
 from julee.shared.domain.doctrine_constants import (
     ENTITY_FORBIDDEN_SUFFIXES,
     ITEM_SUFFIX,
-    LAYER_FORBIDDEN_IMPORTS,
-    LAYER_MODELS,
-    LAYER_REPOSITORIES,
-    LAYER_SERVICES,
-    LAYER_USE_CASES,
     PROTOCOL_BASES,
     REPOSITORY_SUFFIX,
     REQUEST_BASE,
     REQUEST_SUFFIX,
     RESPONSE_BASE,
     RESPONSE_SUFFIX,
-    SEARCH_ROOT,
     SERVICE_SUFFIX,
-    SHARED_CONTEXT_SLUG,
     USE_CASE_SUFFIX,
 )
 from julee.shared.domain.use_cases import (
@@ -163,9 +156,9 @@ class TestUseCaseCompliance:
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert not violations, f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(
-            violations
-        )
+        assert (
+            not violations
+        ), f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_have_docstring(self, repo):
@@ -317,10 +310,9 @@ class TestRequestCompliance:
             if not (name.endswith(REQUEST_SUFFIX) or name.endswith(ITEM_SUFFIX)):
                 violations.append(f"{artifact.bounded_context}.{name}")
 
-        assert (
-            not violations
-        ), f"Classes in requests.py must end with '{REQUEST_SUFFIX}' or '{ITEM_SUFFIX}':\n" + "\n".join(
-            violations
+        assert not violations, (
+            f"Classes in requests.py must end with '{REQUEST_SUFFIX}' or '{ITEM_SUFFIX}':\n"
+            + "\n".join(violations)
         )
 
     @pytest.mark.asyncio
@@ -352,9 +344,9 @@ class TestRequestCompliance:
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Requests not inheriting from {REQUEST_BASE}:\n" + "\n".join(
-            violations
-        )
+        assert (
+            not violations
+        ), f"Requests not inheriting from {REQUEST_BASE}:\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_request_fields_MUST_have_type_annotations(self, repo):
@@ -401,9 +393,9 @@ class TestResponseCompliance:
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert not violations, f"Responses not ending with '{RESPONSE_SUFFIX}':\n" + "\n".join(
-            violations
-        )
+        assert (
+            not violations
+        ), f"Responses not ending with '{RESPONSE_SUFFIX}':\n" + "\n".join(violations)
 
     @pytest.mark.asyncio
     async def test_all_responses_MUST_have_docstring(self, repo):
@@ -434,9 +426,9 @@ class TestResponseCompliance:
                     f"(bases: {artifact.artifact.bases})"
                 )
 
-        assert not violations, f"Responses not inheriting from {RESPONSE_BASE}:\n" + "\n".join(
-            violations
-        )
+        assert (
+            not violations
+        ), f"Responses not inheriting from {RESPONSE_BASE}:\n" + "\n".join(violations)
 
 
 # =============================================================================
@@ -465,10 +457,9 @@ class TestRepositoryProtocolCompliance:
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert (
-            not violations
-        ), f"Repository protocols not ending with '{REPOSITORY_SUFFIX}':\n" + "\n".join(
-            violations
+        assert not violations, (
+            f"Repository protocols not ending with '{REPOSITORY_SUFFIX}':\n"
+            + "\n".join(violations)
         )
 
     @pytest.mark.asyncio
@@ -541,7 +532,9 @@ class TestServiceProtocolCompliance:
 
         assert (
             not violations
-        ), f"Service protocols not ending with '{SERVICE_SUFFIX}':\n" + "\n".join(violations)
+        ), f"Service protocols not ending with '{SERVICE_SUFFIX}':\n" + "\n".join(
+            violations
+        )
 
     @pytest.mark.asyncio
     async def test_all_service_protocols_MUST_have_docstring(self, repo):

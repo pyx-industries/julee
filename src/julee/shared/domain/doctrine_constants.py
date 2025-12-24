@@ -254,29 +254,37 @@ LAYER_KEYWORDS: Final[dict[str, str]] = {
 
 # Dependency rule: what each layer is forbidden from importing
 LAYER_FORBIDDEN_IMPORTS: Final[dict[str, frozenset[str]]] = {
-    LAYER_MODELS: frozenset({
-        LAYER_USE_CASES,
-        LAYER_REPOSITORIES,
-        LAYER_SERVICES,
-        LAYER_INFRASTRUCTURE,
-        LAYER_APPS,
-        LAYER_DEPLOYMENT,
-    }),
-    LAYER_USE_CASES: frozenset({
-        LAYER_INFRASTRUCTURE,
-        LAYER_APPS,
-        LAYER_DEPLOYMENT,
-    }),
-    LAYER_REPOSITORIES: frozenset({
-        LAYER_INFRASTRUCTURE,
-        LAYER_APPS,
-        LAYER_DEPLOYMENT,
-    }),
-    LAYER_SERVICES: frozenset({
-        LAYER_INFRASTRUCTURE,
-        LAYER_APPS,
-        LAYER_DEPLOYMENT,
-    }),
+    LAYER_MODELS: frozenset(
+        {
+            LAYER_USE_CASES,
+            LAYER_REPOSITORIES,
+            LAYER_SERVICES,
+            LAYER_INFRASTRUCTURE,
+            LAYER_APPS,
+            LAYER_DEPLOYMENT,
+        }
+    ),
+    LAYER_USE_CASES: frozenset(
+        {
+            LAYER_INFRASTRUCTURE,
+            LAYER_APPS,
+            LAYER_DEPLOYMENT,
+        }
+    ),
+    LAYER_REPOSITORIES: frozenset(
+        {
+            LAYER_INFRASTRUCTURE,
+            LAYER_APPS,
+            LAYER_DEPLOYMENT,
+        }
+    ),
+    LAYER_SERVICES: frozenset(
+        {
+            LAYER_INFRASTRUCTURE,
+            LAYER_APPS,
+            LAYER_DEPLOYMENT,
+        }
+    ),
     # Infrastructure and apps can import from anywhere inward
     LAYER_INFRASTRUCTURE: frozenset({LAYER_APPS, LAYER_DEPLOYMENT}),
     LAYER_APPS: frozenset({LAYER_DEPLOYMENT}),
@@ -330,25 +338,29 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 # Directory names that cannot be bounded context names because they have
 # special structural meaning.
 
-RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset({
-    "core",  # Reserved for future idioms accelerator
-    "contrib",  # Plugin/contributed modules
-    "applications",  # Legacy - may be removed
-    "docs",  # Documentation
-    "deployment",  # Deployment configuration
-})
+RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
+    {
+        "core",  # Reserved for future idioms accelerator
+        "contrib",  # Plugin/contributed modules
+        "applications",  # Legacy - may be removed
+        "docs",  # Documentation
+        "deployment",  # Deployment configuration
+    }
+)
 """Structural directories that are not bounded contexts.
 
 These directories have special meaning in the project layout.
 """
 
-RESERVED_COMMON: Final[frozenset[str]] = frozenset({
-    "shared",  # Foundational accelerator (cross-cutting concerns)
-    "util",  # Utilities
-    "utils",  # Utilities (alias)
-    "common",  # Common code
-    "tests",  # Test directories
-})
+RESERVED_COMMON: Final[frozenset[str]] = frozenset(
+    {
+        "shared",  # Foundational accelerator (cross-cutting concerns)
+        "util",  # Utilities
+        "utils",  # Utilities (alias)
+        "common",  # Common code
+        "tests",  # Test directories
+    }
+)
 """Common utility directories that are not bounded contexts.
 
 These are typical names for shared/utility code that shouldn't be
@@ -364,10 +376,12 @@ RESERVED_WORDS: Final[frozenset[str]] = RESERVED_STRUCTURAL | RESERVED_COMMON
 # =============================================================================
 # Special bounded contexts that represent architectural viewpoints.
 
-VIEWPOINT_SLUGS: Final[frozenset[str]] = frozenset({
-    "hcd",  # Human-Centered Design viewpoint
-    "c4",  # C4 Architecture viewpoint
-})
+VIEWPOINT_SLUGS: Final[frozenset[str]] = frozenset(
+    {
+        "hcd",  # Human-Centered Design viewpoint
+        "c4",  # C4 Architecture viewpoint
+    }
+)
 """Bounded contexts that are architectural viewpoints.
 
 Viewpoints provide different lenses for viewing the system:
