@@ -9,16 +9,18 @@ from pathlib import Path
 import pytest
 
 from julee.shared.doctrine.conftest import create_bounded_context, create_solution
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     ENTITIES_PATH,
     RESERVED_WORDS,
     VIEWPOINT_SLUGS,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.infrastructure.repositories.introspection import (
+    FilesystemBoundedContextRepository,
+)
+from julee.shared.use_cases import (
     ListBoundedContextsRequest,
     ListBoundedContextsUseCase,
 )
-from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
 
 # =============================================================================
 # DOCTRINE: Bounded Context Structure

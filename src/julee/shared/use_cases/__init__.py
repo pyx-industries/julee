@@ -3,7 +3,7 @@
 These use cases operate on the foundational code concepts.
 """
 
-from julee.shared.domain.use_cases.bounded_context import (
+from julee.shared.use_cases.bounded_context import (
     GetBoundedContextRequest,
     GetBoundedContextResponse,
     GetBoundedContextUseCase,
@@ -11,7 +11,7 @@ from julee.shared.domain.use_cases.bounded_context import (
     ListBoundedContextsResponse,
     ListBoundedContextsUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact import (
+from julee.shared.use_cases.code_artifact import (
     CodeArtifactWithContext,
     ListCodeArtifactsRequest,
     ListCodeArtifactsResponse,
@@ -24,7 +24,7 @@ from julee.shared.domain.use_cases.code_artifact import (
     ListServiceProtocolsUseCase,
     ListUseCasesUseCase,
 )
-from julee.shared.domain.use_cases.pipeline_route_response import (
+from julee.shared.use_cases.pipeline_route_response import (
     PipelineDispatch,
     PipelineRouteResponseRequest,
     PipelineRouteResponseResponse,

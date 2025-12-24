@@ -9,7 +9,7 @@ See: docs/architecture/proposals/pipeline_router_design.md
 import logging
 from collections import defaultdict
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.entities.pipeline_route import PipelineRoute
 
 logger = logging.getLogger(__name__)
 

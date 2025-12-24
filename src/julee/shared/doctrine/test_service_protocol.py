@@ -6,16 +6,16 @@ The assertions enforce them.
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     PROTOCOL_BASES,
     SERVICE_SUFFIX,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.parsers.ast import parse_python_classes
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListRequestsUseCase,
     ListServiceProtocolsUseCase,
 )
-from julee.shared.parsers.ast import parse_python_classes
 
 
 class TestServiceProtocolNaming:

@@ -18,7 +18,7 @@ from apps.admin.dependencies import (
     get_list_service_protocols_use_case,
     get_list_use_cases_use_case,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.use_cases import (
     CodeArtifactWithContext,
     ListCodeArtifactsRequest,
 )

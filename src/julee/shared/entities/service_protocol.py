@@ -1,6 +1,6 @@
 """ServiceProtocol model for Clean Architecture external service abstractions."""
 
-from julee.shared.domain.models.code_info import ClassInfo
+from julee.shared.entities.code_info import ClassInfo
 
 
 class ServiceProtocol(ClassInfo):

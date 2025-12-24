@@ -8,8 +8,7 @@ from julee.hcd.parsers.yaml import scan_integration_manifests
 from julee.hcd.repositories.integration import IntegrationRepository
 from julee.hcd.serializers.yaml import serialize_integration
 from julee.hcd.utils import normalize_name
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

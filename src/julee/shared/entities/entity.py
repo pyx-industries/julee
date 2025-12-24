@@ -1,6 +1,6 @@
 """Entity model for Clean Architecture domain objects."""
 
-from julee.shared.domain.models.code_info import ClassInfo
+from julee.shared.entities.code_info import ClassInfo
 
 
 class Entity(ClassInfo):

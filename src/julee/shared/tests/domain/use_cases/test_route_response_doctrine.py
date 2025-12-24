@@ -54,7 +54,7 @@ class TestPipelineRouteResponseUseCaseStructure:
         """PipelineRouteResponseUseCase MUST accept PipelineRouteRepository as a dependency."""
         import inspect
 
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
 
@@ -66,7 +66,7 @@ class TestPipelineRouteResponseUseCaseStructure:
         """PipelineRouteResponseUseCase MUST accept PipelineRequestTransformer as a dependency."""
         import inspect
 
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
 
@@ -78,7 +78,7 @@ class TestPipelineRouteResponseUseCaseStructure:
         """PipelineRouteResponseUseCase MUST have an execute() method."""
         import inspect
 
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
 
@@ -96,7 +96,7 @@ class TestPipelineRouteResponseRequestDoctrine:
 
     def test_request_MUST_have_response_field(self):
         """PipelineRouteResponseRequest MUST have a response field (serialized)."""
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
         )
 
@@ -108,7 +108,7 @@ class TestPipelineRouteResponseRequestDoctrine:
 
     def test_request_MUST_have_response_type_field(self):
         """PipelineRouteResponseRequest MUST have response_type for route matching."""
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
         )
 
@@ -124,7 +124,7 @@ class TestPipelineRouteResponseResponseDoctrine:
 
     def test_response_MUST_have_dispatches_field(self):
         """PipelineRouteResponseResponse MUST have dispatches list."""
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineDispatch,
             PipelineRouteResponseResponse,
         )
@@ -142,7 +142,7 @@ class TestPipelineDispatchDoctrine:
 
     def test_dispatch_MUST_have_pipeline_field(self):
         """PipelineDispatch MUST specify target pipeline."""
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineDispatch,
         )
 
@@ -151,7 +151,7 @@ class TestPipelineDispatchDoctrine:
 
     def test_dispatch_MUST_have_request_field(self):
         """PipelineDispatch MUST contain serialized request."""
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineDispatch,
         )
 
@@ -170,7 +170,7 @@ class TestPipelineRouteResponseUseCaseBehavior:
     @pytest.fixture
     def mock_route_repository(self):
         """Create mock route repository."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineRoute,
         )
 
@@ -191,7 +191,7 @@ class TestPipelineRouteResponseUseCaseBehavior:
     @pytest.fixture
     def mock_request_transformer(self):
         """Create mock request transformer."""
-        from julee.shared.domain.models.pipeline_route import PipelineRoute
+        from julee.shared.entities.pipeline_route import PipelineRoute
 
         class MockPipelineRequestTransformer:
             def transform(self, route: PipelineRoute, response: BaseModel) -> BaseModel:
@@ -214,11 +214,11 @@ class TestPipelineRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return dispatches for all matching routes."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
             PipelineRouteResponseUseCase,
         )
@@ -252,11 +252,11 @@ class TestPipelineRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return multiple dispatches when multiple routes match."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
             PipelineRouteResponseUseCase,
         )
@@ -304,11 +304,11 @@ class TestPipelineRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return empty dispatches when no routes match."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
             PipelineRouteResponseUseCase,
         )
@@ -342,11 +342,11 @@ class TestPipelineRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST only consider routes matching the response type."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
             PipelineRouteResponseUseCase,
         )
@@ -386,11 +386,11 @@ class TestPipelineRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST include the transformed request in each dispatch."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
-        from julee.shared.domain.use_cases.pipeline_route_response import (
+        from julee.shared.use_cases.pipeline_route_response import (
             PipelineRouteResponseRequest,
             PipelineRouteResponseUseCase,
         )

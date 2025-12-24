@@ -7,8 +7,7 @@ from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.parsers.rst import scan_accelerator_directory
 from julee.hcd.repositories.accelerator import AcceleratorRepository
 from julee.hcd.serializers.rst import serialize_accelerator
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

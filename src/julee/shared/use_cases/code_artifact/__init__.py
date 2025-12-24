@@ -4,28 +4,28 @@ Use cases for introspecting code artifacts (entities, use cases, protocols,
 requests, responses, pipelines) within bounded contexts.
 """
 
-from julee.shared.domain.use_cases.code_artifact.list_entities import (
+from julee.shared.use_cases.code_artifact.list_entities import (
     ListEntitiesUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_pipelines import (
+from julee.shared.use_cases.code_artifact.list_pipelines import (
     ListPipelinesUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_repository_protocols import (
+from julee.shared.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_requests import (
+from julee.shared.use_cases.code_artifact.list_requests import (
     ListRequestsUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_responses import (
+from julee.shared.use_cases.code_artifact.list_responses import (
     ListResponsesUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_service_protocols import (
+from julee.shared.use_cases.code_artifact.list_service_protocols import (
     ListServiceProtocolsUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.list_use_cases import (
+from julee.shared.use_cases.code_artifact.list_use_cases import (
     ListUseCasesUseCase,
 )
-from julee.shared.domain.use_cases.code_artifact.uc_interfaces import (
+from julee.shared.use_cases.code_artifact.uc_interfaces import (
     CodeArtifactWithContext,
     ListCodeArtifactsRequest,
     ListCodeArtifactsResponse,

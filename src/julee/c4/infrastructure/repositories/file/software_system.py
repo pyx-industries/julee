@@ -8,8 +8,7 @@ from julee.c4.parsers.rst import scan_software_system_directory
 from julee.c4.repositories.software_system import SoftwareSystemRepository
 from julee.c4.serializers.rst import serialize_software_system
 from julee.c4.utils import normalize_name
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

@@ -25,7 +25,7 @@ class TestPipelineRequestTransformerDoctrine:
         """PipelineRequestTransformer MUST be defined as a Protocol for structural typing."""
         from typing import Protocol
 
-        from julee.shared.domain.services.pipeline_request_transformer import (
+        from julee.shared.services.pipeline_request_transformer import (
             PipelineRequestTransformer,
         )
 
@@ -38,7 +38,7 @@ class TestPipelineRequestTransformerDoctrine:
         """PipelineRequestTransformer MUST have transform(route, response) method."""
         import inspect
 
-        from julee.shared.domain.services.pipeline_request_transformer import (
+        from julee.shared.services.pipeline_request_transformer import (
             PipelineRequestTransformer,
         )
 
@@ -87,7 +87,7 @@ class TestPipelineRequestTransformerContract:
     @pytest.fixture
     def mock_request_transformer(self, sample_request_class):
         """Create a minimal mock implementation for testing contract."""
-        from julee.shared.domain.models.pipeline_route import PipelineRoute
+        from julee.shared.entities.pipeline_route import PipelineRoute
 
         SampleRequest = sample_request_class
 
@@ -113,7 +113,7 @@ class TestPipelineRequestTransformerContract:
         sample_request_class,
     ):
         """transform() MUST return a request matching the route's request_type."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
@@ -136,7 +136,7 @@ class TestPipelineRequestTransformerContract:
         sample_response_class,
     ):
         """transform() MUST correctly map response fields to request fields."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
@@ -166,7 +166,7 @@ class TestPipelineRequestTransformerContract:
         sample_response_class,
     ):
         """transform() MUST raise error for unknown (response_type, request_type) pair."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )

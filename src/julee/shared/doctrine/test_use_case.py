@@ -8,12 +8,12 @@ import warnings
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     REQUEST_SUFFIX,
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListRequestsUseCase,
     ListResponsesUseCase,

@@ -13,12 +13,12 @@ validation and to_domain_model() conversion. They are NOT top-level requests.
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     ITEM_SUFFIX,
     REQUEST_BASE,
     REQUEST_SUFFIX,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListRequestsUseCase,
 )

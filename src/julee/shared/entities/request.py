@@ -1,6 +1,6 @@
 """Request model for Clean Architecture use case inputs."""
 
-from julee.shared.domain.models.code_info import ClassInfo
+from julee.shared.entities.code_info import ClassInfo
 
 
 class Request(ClassInfo):

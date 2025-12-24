@@ -7,8 +7,7 @@ from julee.c4.entities.relationship import ElementType, Relationship
 from julee.c4.parsers.rst import scan_relationship_directory
 from julee.c4.repositories.relationship import RelationshipRepository
 from julee.c4.serializers.rst import serialize_relationship
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

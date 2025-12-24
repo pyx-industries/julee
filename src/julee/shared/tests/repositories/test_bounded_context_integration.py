@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
+from julee.shared.infrastructure.repositories.introspection import (
+    FilesystemBoundedContextRepository,
+)
 
 # Mark all tests as integration tests
 pytestmark = pytest.mark.integration

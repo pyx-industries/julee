@@ -4,7 +4,7 @@ import logging
 
 from julee.hcd.entities.code_info import BoundedContextInfo
 from julee.hcd.repositories.code_info import CodeInfoRepository
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

@@ -24,14 +24,14 @@ from julee.contrib.polling.domain.use_cases import (
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
-from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
-from julee.shared.domain.use_cases.pipeline_route_response import (
-    PipelineRouteResponseRequest,
-    PipelineRouteResponseUseCase,
-)
+from julee.shared.entities.pipeline_dispatch import PipelineDispatchItem
 from julee.shared.infrastructure.pipeline_routing import (
     RegistryPipelineRequestTransformer,
     pipeline_routing_registry,
+)
+from julee.shared.use_cases.pipeline_route_response import (
+    PipelineRouteResponseRequest,
+    PipelineRouteResponseUseCase,
 )
 
 logger = logging.getLogger(__name__)

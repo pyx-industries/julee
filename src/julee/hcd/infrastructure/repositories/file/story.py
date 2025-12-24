@@ -8,8 +8,7 @@ from julee.hcd.parsers.gherkin import scan_feature_directory
 from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.serializers.gherkin import get_story_filename, serialize_story
 from julee.hcd.utils import normalize_name
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

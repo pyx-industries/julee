@@ -6,11 +6,11 @@ The assertions enforce them.
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     PROTOCOL_BASES,
     REPOSITORY_SUFFIX,
 )
-from julee.shared.domain.use_cases import (
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListRepositoryProtocolsUseCase,
 )

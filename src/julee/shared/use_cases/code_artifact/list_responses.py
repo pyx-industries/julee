@@ -5,8 +5,8 @@ Use case for listing response classes across bounded contexts.
 
 from pathlib import Path
 
-from julee.shared.domain.repositories import BoundedContextRepository
 from julee.shared.parsers.ast import parse_bounded_context
+from julee.shared.repositories import BoundedContextRepository
 
 from .uc_interfaces import (
     CodeArtifactWithContext,

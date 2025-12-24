@@ -8,7 +8,7 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.entities.pipeline_route import PipelineRoute
 
 
 class PipelineRouter(BaseModel):

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from julee.shared.domain.doctrine_constants import LAYER_KEYWORDS
+from julee.shared.doctrine_constants import LAYER_KEYWORDS
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ the filesystem, not created through this repository.
 import subprocess
 from pathlib import Path
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     CONTRIB_DIR,
     ENTITIES_PATH,
     REPOSITORIES_PATH,
@@ -18,7 +18,7 @@ from julee.shared.domain.doctrine_constants import (
     USE_CASES_PATH,
     VIEWPOINT_SLUGS,
 )
-from julee.shared.domain.models import BoundedContext, StructuralMarkers
+from julee.shared.entities import BoundedContext, StructuralMarkers
 
 # Legacy paths for migration support
 _LEGACY_MODELS_PATH = ("domain", "models")

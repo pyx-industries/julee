@@ -57,7 +57,7 @@ class ClassInfo(BaseModel):
 
 
 # PipelineInfo moved to pipeline.py - import here for backwards compatibility
-from julee.shared.domain.models.pipeline import Pipeline as PipelineInfo  # noqa: E402
+from julee.shared.entities.pipeline import Pipeline as PipelineInfo  # noqa: E402
 
 
 class BoundedContextInfo(BaseModel):

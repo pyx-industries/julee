@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from julee.shared.domain.models.code_info import (
+    from julee.shared.entities.code_info import (
         BoundedContextInfo,
         ClassInfo,
         FieldInfo,
@@ -54,7 +54,7 @@ def _extract_class_fields(class_node: ast.ClassDef) -> list["FieldInfo"]:
     - Pydantic Field() defaults
     - Regular default values
     """
-    from julee.shared.domain.models.code_info import FieldInfo
+    from julee.shared.entities.code_info import FieldInfo
 
     fields = []
     for node in class_node.body:
@@ -82,7 +82,7 @@ def _extract_class_methods(class_node: ast.ClassDef) -> list["MethodInfo"]:
     - Async methods
     - Method signatures and docstrings
     """
-    from julee.shared.domain.models.code_info import MethodInfo
+    from julee.shared.entities.code_info import MethodInfo
 
     methods = []
     for node in class_node.body:
@@ -118,7 +118,7 @@ def _extract_class_methods(class_node: ast.ClassDef) -> list["MethodInfo"]:
 
 def _parse_class_node(class_node: ast.ClassDef, file_name: str) -> "ClassInfo":
     """Parse a class AST node into ClassInfo with full details."""
-    from julee.shared.domain.models.code_info import ClassInfo
+    from julee.shared.entities.code_info import ClassInfo
 
     docstring = ast.get_docstring(class_node) or ""
     first_line = docstring.split("\n")[0].strip() if docstring else ""
@@ -312,13 +312,13 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     Uses string path for hashability with lru_cache.
     """
-    from julee.shared.domain.doctrine_constants import (
+    from julee.shared.doctrine_constants import (
         ENTITIES_PATH,
         REPOSITORIES_PATH,
         SERVICES_PATH,
         USE_CASES_PATH,
     )
-    from julee.shared.domain.models.code_info import BoundedContextInfo
+    from julee.shared.entities.code_info import BoundedContextInfo
 
     context_dir = Path(context_dir_str)
 
@@ -375,7 +375,7 @@ def _has_bounded_context_structure(context_dir: Path) -> bool:
     Supports both flattened structure (entities/, use_cases/) and
     legacy structure (domain/models/, domain/use_cases/).
     """
-    from julee.shared.domain.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
+    from julee.shared.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
     # Check new flattened structure
     for path_tuple in [ENTITIES_PATH, USE_CASES_PATH]:
@@ -502,7 +502,7 @@ def _method_delegates_to_use_case(
     Returns:
         Tuple of (delegates, use_case_name)
     """
-    from julee.shared.domain.doctrine_constants import USE_CASE_SUFFIX
+    from julee.shared.doctrine_constants import USE_CASE_SUFFIX
 
     use_case_instantiated: str | None = None
     use_case_called = False
@@ -611,8 +611,8 @@ def _parse_pipeline_class(
     Returns:
         PipelineInfo if class is a pipeline, None otherwise
     """
-    from julee.shared.domain.doctrine_constants import PIPELINE_SUFFIX
-    from julee.shared.domain.models.code_info import MethodInfo, PipelineInfo
+    from julee.shared.doctrine_constants import PIPELINE_SUFFIX
+    from julee.shared.entities.code_info import MethodInfo, PipelineInfo
 
     # Check if this is a pipeline class
     is_pipeline_by_name = class_node.name.endswith(PIPELINE_SUFFIX)
@@ -736,7 +736,7 @@ def parse_pipelines_from_bounded_context(context_dir: Path) -> list[PipelineInfo
     Returns:
         List of PipelineInfo objects
     """
-    from julee.shared.domain.doctrine_constants import PIPELINE_LOCATION
+    from julee.shared.doctrine_constants import PIPELINE_LOCATION
 
     pipelines = []
     bounded_context = context_dir.name

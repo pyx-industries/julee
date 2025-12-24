@@ -2,7 +2,7 @@
 
 from julee.c4.entities.component import Component
 from julee.c4.repositories.component import ComponentRepository
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 
 class MemoryComponentRepository(MemoryRepositoryMixin[Component], ComponentRepository):

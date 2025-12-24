@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from julee.shared.domain.models.code_info import MethodInfo
+from julee.shared.entities.code_info import MethodInfo
 
 
 class Pipeline(BaseModel):
@@ -61,7 +61,7 @@ class Pipeline(BaseModel):
         Example: NewDataDetectionPipeline -> NewDataDetectionUseCase
                  ExtractAssemblePipeline -> ExtractAssembleUseCase or ExtractAssembleDataUseCase
         """
-        from julee.shared.domain.doctrine_constants import (
+        from julee.shared.doctrine_constants import (
             PIPELINE_SUFFIX,
             USE_CASE_SUFFIX,
         )

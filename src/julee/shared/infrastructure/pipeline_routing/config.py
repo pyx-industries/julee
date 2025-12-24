@@ -11,8 +11,8 @@ from collections.abc import Callable
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
-from julee.shared.repositories.memory.pipeline_route import (
+from julee.shared.entities.pipeline_route import PipelineRoute
+from julee.shared.infrastructure.repositories.memory.pipeline_route import (
     InMemoryPipelineRouteRepository,
 )
 

@@ -5,8 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
-from julee.shared.repositories.introspection.bounded_context import (
+from julee.shared.infrastructure.repositories.introspection import (
+    FilesystemBoundedContextRepository,
+)
+from julee.shared.infrastructure.repositories.introspection.bounded_context import (
     RESERVED_WORDS,
     VIEWPOINT_SLUGS,
 )
@@ -177,7 +179,7 @@ class TestExclusions:
             return "ignored_bc" in str(path)
 
         with patch(
-            "julee.shared.repositories.introspection.bounded_context._is_gitignored",
+            "julee.shared.infrastructure.repositories.introspection.bounded_context._is_gitignored",
             mock_gitignore,
         ):
             repo = FilesystemBoundedContextRepository(tmp_path)

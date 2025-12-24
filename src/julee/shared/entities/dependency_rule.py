@@ -36,7 +36,7 @@ class DependencyRule(BaseModel):
     @property
     def is_violation(self) -> bool:
         """Check if this import violates the dependency rule."""
-        from julee.shared.domain.doctrine_constants import LAYER_FORBIDDEN_IMPORTS
+        from julee.shared.doctrine_constants import LAYER_FORBIDDEN_IMPORTS
 
         forbidden = LAYER_FORBIDDEN_IMPORTS.get(self.source_layer, frozenset())
         return self.target_layer in forbidden

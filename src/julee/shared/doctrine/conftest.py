@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     ENTITIES_PATH,
     USE_CASES_PATH,
 )
-from julee.shared.repositories.introspection import FilesystemBoundedContextRepository
+from julee.shared.infrastructure.repositories.introspection import (
+    FilesystemBoundedContextRepository,
+)
 
 # Project root - find by looking for pyproject.toml
 PROJECT_ROOT = Path(__file__).parent

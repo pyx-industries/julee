@@ -15,7 +15,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.entities.pipeline_route import PipelineRoute
 
 
 @runtime_checkable

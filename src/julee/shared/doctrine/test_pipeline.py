@@ -15,11 +15,11 @@ from textwrap import dedent
 
 import pytest
 
-from julee.shared.domain.use_cases import (
+from julee.shared.parsers.ast import parse_pipelines_from_file
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListPipelinesUseCase,
 )
-from julee.shared.parsers.ast import parse_pipelines_from_file
 
 
 def create_pipeline_file(tmp_path: Path, content: str) -> Path:
@@ -343,7 +343,7 @@ class TestPipelineRunNextPattern:
         # This is a structural test - the response type should have dispatches
         content = '''
         from temporalio import workflow
-        from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
+        from julee.shared.entities.pipeline_dispatch import PipelineDispatchItem
 
         @workflow.defn
         class CompliantPipeline:

@@ -8,8 +8,7 @@ from julee.hcd.parsers.rst import scan_epic_directory
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.serializers.rst import serialize_epic
 from julee.hcd.utils import normalize_name
-
-from .base import FileRepositoryMixin
+from julee.shared.infrastructure.repositories.file.base import FileRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

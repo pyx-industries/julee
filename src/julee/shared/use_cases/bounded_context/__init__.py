@@ -1,11 +1,11 @@
 """Bounded context use cases."""
 
-from julee.shared.domain.use_cases.bounded_context.get import (
+from julee.shared.use_cases.bounded_context.get import (
     GetBoundedContextRequest,
     GetBoundedContextResponse,
     GetBoundedContextUseCase,
 )
-from julee.shared.domain.use_cases.bounded_context.list import (
+from julee.shared.use_cases.bounded_context.list import (
     ListBoundedContextsRequest,
     ListBoundedContextsResponse,
     ListBoundedContextsUseCase,

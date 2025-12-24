@@ -5,7 +5,7 @@ import logging
 from julee.hcd.entities.story import Story
 from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

@@ -5,8 +5,8 @@ Use case for listing all bounded contexts discovered in a codebase.
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.bounded_context import BoundedContext
-from julee.shared.domain.repositories import BoundedContextRepository
+from julee.shared.entities.bounded_context import BoundedContext
+from julee.shared.repositories import BoundedContextRepository
 
 
 class ListBoundedContextsRequest(BaseModel):

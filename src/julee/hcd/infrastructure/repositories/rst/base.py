@@ -16,8 +16,7 @@ from julee.hcd.parsers.docutils_parser import (
     parse_rst_file,
 )
 from julee.hcd.templates import render_entity
-
-from ..memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

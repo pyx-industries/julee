@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import (
+from julee.shared.doctrine_constants import (
     ENTITIES_PATH,
     REPOSITORIES_PATH,
     SERVICES_PATH,

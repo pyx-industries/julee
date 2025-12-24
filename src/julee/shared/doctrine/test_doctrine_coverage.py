@@ -8,7 +8,7 @@ doctrine/ test files is maintained. It catches:
 
 from pathlib import Path
 
-MODELS_DIR = Path(__file__).parent.parent / "domain" / "models"
+MODELS_DIR = Path(__file__).parent.parent / "entities"
 DOCTRINE_DIR = Path(__file__).parent
 
 # Supporting models that don't need their own doctrine test files.

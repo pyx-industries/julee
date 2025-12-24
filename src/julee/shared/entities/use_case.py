@@ -1,6 +1,6 @@
 """UseCase model for Clean Architecture application layer."""
 
-from julee.shared.domain.models.code_info import ClassInfo
+from julee.shared.entities.code_info import ClassInfo
 
 
 class UseCase(ClassInfo):

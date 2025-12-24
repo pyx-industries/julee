@@ -12,7 +12,7 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from typing import Protocol, runtime_checkable
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.entities.pipeline_route import PipelineRoute
 
 
 @runtime_checkable

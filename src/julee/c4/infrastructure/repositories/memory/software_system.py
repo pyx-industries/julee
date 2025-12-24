@@ -3,7 +3,7 @@
 from julee.c4.entities.software_system import SoftwareSystem, SystemType
 from julee.c4.repositories.software_system import SoftwareSystemRepository
 from julee.c4.utils import normalize_name
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 
 class MemorySoftwareSystemRepository(

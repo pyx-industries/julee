@@ -2,8 +2,8 @@
 
 import pytest
 
-from julee.shared.domain.models import BoundedContext, StructuralMarkers
-from julee.shared.domain.use_cases import (
+from julee.shared.entities import BoundedContext, StructuralMarkers
+from julee.shared.use_cases import (
     ListBoundedContextsRequest,
     ListBoundedContextsResponse,
     ListBoundedContextsUseCase,

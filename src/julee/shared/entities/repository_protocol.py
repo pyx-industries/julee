@@ -1,6 +1,6 @@
 """RepositoryProtocol model for Clean Architecture persistence abstractions."""
 
-from julee.shared.domain.models.code_info import ClassInfo
+from julee.shared.entities.code_info import ClassInfo
 
 
 class RepositoryProtocol(ClassInfo):

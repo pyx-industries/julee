@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.pipeline_route import PipelineRoute
-from julee.shared.domain.services.pipeline_request_transformer import (
+from julee.shared.entities.pipeline_route import PipelineRoute
+from julee.shared.services.pipeline_request_transformer import (
     PipelineRequestTransformer,
 )
 

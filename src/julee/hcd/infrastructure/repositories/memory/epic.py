@@ -5,7 +5,7 @@ import logging
 from julee.hcd.entities.epic import Epic
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.utils import normalize_name
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

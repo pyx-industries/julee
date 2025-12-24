@@ -6,8 +6,8 @@ The assertions enforce them.
 
 import pytest
 
-from julee.shared.domain.doctrine_constants import ENTITY_FORBIDDEN_SUFFIXES
-from julee.shared.domain.use_cases import (
+from julee.shared.doctrine_constants import ENTITY_FORBIDDEN_SUFFIXES
+from julee.shared.use_cases import (
     ListCodeArtifactsRequest,
     ListEntitiesUseCase,
 )

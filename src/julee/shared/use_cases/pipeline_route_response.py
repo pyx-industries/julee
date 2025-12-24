@@ -12,8 +12,8 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from pydantic import BaseModel, Field
 
-from julee.shared.domain.repositories.pipeline_route import PipelineRouteRepository
-from julee.shared.domain.services.pipeline_request_transformer import (
+from julee.shared.repositories.pipeline_route import PipelineRouteRepository
+from julee.shared.services.pipeline_request_transformer import (
     PipelineRequestTransformer,
 )
 

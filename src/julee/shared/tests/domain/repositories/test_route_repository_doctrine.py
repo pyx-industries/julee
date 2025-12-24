@@ -24,7 +24,7 @@ class TestPipelineRouteRepositoryDoctrine:
         """PipelineRouteRepository MUST be defined as a Protocol for structural typing."""
         from typing import Protocol
 
-        from julee.shared.domain.repositories.pipeline_route import (
+        from julee.shared.repositories.pipeline_route import (
             PipelineRouteRepository,
         )
 
@@ -37,7 +37,7 @@ class TestPipelineRouteRepositoryDoctrine:
         """PipelineRouteRepository MUST have list_all() method returning all routes."""
         import inspect
 
-        from julee.shared.domain.repositories.pipeline_route import (
+        from julee.shared.repositories.pipeline_route import (
             PipelineRouteRepository,
         )
 
@@ -52,7 +52,7 @@ class TestPipelineRouteRepositoryDoctrine:
         """PipelineRouteRepository MUST have list_for_response_type() for filtered queries."""
         import inspect
 
-        from julee.shared.domain.repositories.pipeline_route import (
+        from julee.shared.repositories.pipeline_route import (
             PipelineRouteRepository,
         )
 
@@ -78,7 +78,7 @@ class TestPipelineRouteRepositoryContract:
     @pytest.fixture
     def mock_route_repository(self):
         """Create a minimal mock implementation for testing contract."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineRoute,
         )
 
@@ -101,7 +101,7 @@ class TestPipelineRouteRepositoryContract:
     @pytest.mark.asyncio
     async def test_list_all_MUST_return_all_routes(self, mock_route_repository):
         """list_all() MUST return all configured routes."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
@@ -133,7 +133,7 @@ class TestPipelineRouteRepositoryContract:
         self, mock_route_repository
     ):
         """list_for_response_type() MUST return only routes for the specified type."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )
@@ -170,7 +170,7 @@ class TestPipelineRouteRepositoryContract:
         self, mock_route_repository
     ):
         """list_for_response_type() MUST return empty list for unknown response type."""
-        from julee.shared.domain.models.pipeline_route import (
+        from julee.shared.entities.pipeline_route import (
             PipelineCondition,
             PipelineRoute,
         )

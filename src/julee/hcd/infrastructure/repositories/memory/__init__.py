@@ -4,7 +4,7 @@ In-memory implementations used during Sphinx builds. These repositories
 are populated at builder-inited and queried during doctree processing.
 """
 
-from julee.shared.repositories.memory.base import MemoryRepositoryMixin
+from julee.shared.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 from .accelerator import MemoryAcceleratorRepository
 from .app import MemoryAppRepository
