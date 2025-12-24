@@ -207,7 +207,10 @@ class MemoryRepositoryMixin(Generic[T]):
         now = datetime.now(timezone.utc)
 
         # Set created_at if None (new entity)
-        if hasattr(entity, "created_at") and getattr(entity, "created_at", None) is None:
+        if (
+            hasattr(entity, "created_at")
+            and getattr(entity, "created_at", None) is None
+        ):
             # Pydantic models may need object.__setattr__ for frozen models
             try:
                 entity.created_at = now
@@ -259,6 +262,38 @@ class MemoryRepositoryMixin(Generic[T]):
         ]
 
     # -------------------------------------------------------------------------
+    # Public async query methods (for convenience in repositories)
+    # -------------------------------------------------------------------------
+
+    async def find_by_field(self, field: str, value: Any) -> list[T]:
+        """Find all entities where field equals value.
+
+        Async wrapper around _find_by_field for repository interface compatibility.
+
+        Args:
+            field: Field name to match
+            value: Value to match
+
+        Returns:
+            List of matching entities
+        """
+        return self._find_by_field(field, value)
+
+    async def find_by_field_in(self, field: str, values: list[Any]) -> list[T]:
+        """Find all entities where field is in values.
+
+        Async wrapper around _find_by_field_in for repository interface compatibility.
+
+        Args:
+            field: Field name to match
+            values: List of values to match
+
+        Returns:
+            List of matching entities
+        """
+        return self._find_by_field_in(field, values)
+
+    # -------------------------------------------------------------------------
     # Logging hooks (override in subclass for entity-specific logging)
     # -------------------------------------------------------------------------
 
@@ -274,4 +309,6 @@ class MemoryRepositoryMixin(Generic[T]):
         # Default: add status if present
         if hasattr(entity, "status"):
             status = entity.status
-            log_data["status"] = status.value if hasattr(status, "value") else str(status)
+            log_data["status"] = (
+                status.value if hasattr(status, "value") else str(status)
+            )

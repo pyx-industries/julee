@@ -24,6 +24,38 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
         self.entity_name = "Epic"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Epic | None:
+        """Get an epic by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Epic | None]:
+        """Get multiple epics by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Epic) -> None:
+        """Save an epic."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Epic]:
+        """List all epics."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete an epic by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all epics."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # EpicRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_docname(self, docname: str) -> list[Epic]:
         """Get all epics defined in a specific document."""
         return [epic for epic in self.storage.values() if epic.docname == docname]

@@ -24,6 +24,38 @@ class MemoryAppRepository(MemoryRepositoryMixin[App], AppRepository):
         self.entity_name = "App"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> App | None:
+        """Get an app by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, App | None]:
+        """Get multiple apps by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: App) -> None:
+        """Save an app."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[App]:
+        """List all apps."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete an app by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all apps."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # AppRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_type(self, app_type: AppType) -> list[App]:
         """Get all apps of a specific type."""
         return [app for app in self.storage.values() if app.app_type == app_type]

@@ -25,6 +25,38 @@ class MemoryAcceleratorRepository(
         self.entity_name = "Accelerator"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Accelerator | None:
+        """Get an accelerator by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Accelerator | None]:
+        """Get multiple accelerators by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Accelerator) -> None:
+        """Save an accelerator."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Accelerator]:
+        """List all accelerators."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete an accelerator by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all accelerators."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # AcceleratorRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_status(self, status: str) -> list[Accelerator]:
         """Get all accelerators with a specific status."""
         status_normalized = status.lower().strip()

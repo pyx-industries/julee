@@ -24,6 +24,38 @@ class MemoryJourneyRepository(MemoryRepositoryMixin[Journey], JourneyRepository)
         self.entity_name = "Journey"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Journey | None:
+        """Get a journey by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Journey | None]:
+        """Get multiple journeys by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Journey) -> None:
+        """Save a journey."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Journey]:
+        """List all journeys."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a journey by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all journeys."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # JourneyRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_persona(self, persona: str) -> list[Journey]:
         """Get all journeys for a persona."""
         persona_normalized = normalize_name(persona)

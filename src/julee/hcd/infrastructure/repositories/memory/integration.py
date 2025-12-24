@@ -26,6 +26,38 @@ class MemoryIntegrationRepository(
         self.entity_name = "Integration"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Integration | None:
+        """Get an integration by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Integration | None]:
+        """Get multiple integrations by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Integration) -> None:
+        """Save an integration."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Integration]:
+        """List all integrations."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete an integration by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all integrations."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # IntegrationRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_direction(self, direction: Direction) -> list[Integration]:
         """Get all integrations with a specific direction."""
         return [

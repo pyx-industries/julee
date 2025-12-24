@@ -24,6 +24,38 @@ class MemoryPersonaRepository(MemoryRepositoryMixin[Persona], PersonaRepository)
         self.entity_name = "Persona"
         self.id_field = "slug"
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> Persona | None:
+        """Get a persona by slug."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, Persona | None]:
+        """Get multiple personas by slug."""
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: Persona) -> None:
+        """Save a persona."""
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[Persona]:
+        """List all personas."""
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        """Delete a persona by slug."""
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        """Clear all personas."""
+        self._clear_storage()
+
+    # -------------------------------------------------------------------------
+    # PersonaRepository-specific queries
+    # -------------------------------------------------------------------------
+
     async def get_by_name(self, name: str) -> Persona | None:
         """Get persona by display name (case-insensitive)."""
         name_normalized = normalize_name(name)

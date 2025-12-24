@@ -23,6 +23,25 @@ class SampleMemoryRepository(MemoryRepositoryMixin[SampleEntity]):
         self.entity_name = "SampleEntity"
         self.id_field = "id"
 
+    # BaseRepository methods (delegating to protected helpers)
+    async def get(self, entity_id: str) -> SampleEntity | None:
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, SampleEntity | None]:
+        return self._get_many_entities(entity_ids)
+
+    async def save(self, entity: SampleEntity) -> None:
+        self._save_entity(entity)
+
+    async def list_all(self) -> list[SampleEntity]:
+        return self._list_all_entities()
+
+    async def delete(self, entity_id: str) -> bool:
+        return self._delete_entity(entity_id)
+
+    async def clear(self) -> None:
+        self._clear_storage()
+
     async def find_by_name(self, name: str) -> list[SampleEntity]:
         """Custom query method for testing run_async."""
         return [e for e in self.storage.values() if e.name == name]

@@ -52,6 +52,26 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
         self.storage: dict[str, T] = {}
         self._load_all_files()
 
+    # -------------------------------------------------------------------------
+    # BaseRepository implementation (delegating to protected helpers)
+    # -------------------------------------------------------------------------
+
+    async def get(self, entity_id: str) -> T | None:
+        """Get an entity by ID."""
+        return self._get_entity(entity_id)
+
+    async def get_many(self, entity_ids: list[str]) -> dict[str, T | None]:
+        """Get multiple entities by ID."""
+        return self._get_many_entities(entity_ids)
+
+    async def list_all(self) -> list[T]:
+        """List all entities."""
+        return self._list_all_entities()
+
+    # -------------------------------------------------------------------------
+    # File loading
+    # -------------------------------------------------------------------------
+
     def _load_all_files(self) -> None:
         """Load all RST files from the directory."""
         if not self.base_dir.exists():
@@ -133,8 +153,8 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
         Args:
             entity: Entity to save
         """
-        # Save to memory
-        await super().save(entity)
+        # Save to memory (using protected helper)
+        self._save_entity(entity)
 
         # Write to RST file
         self._write_file(entity)
@@ -161,7 +181,8 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
         Returns:
             True if deleted, False if not found
         """
-        result = await super().delete(entity_id)
+        # Delete from memory (using protected helper)
+        result = self._delete_entity(entity_id)
 
         if result:
             path = self._get_file_path(entity_id)
@@ -178,8 +199,8 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
             self._get_file_path(entity_id) for entity_id in self.storage.keys()
         ]
 
-        # Clear memory
-        await super().clear()
+        # Clear memory (using protected helper)
+        self._clear_storage()
 
         # Delete files
         for path in files_to_delete:
