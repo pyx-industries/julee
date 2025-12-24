@@ -1,6 +1,6 @@
-"""MultiplexRouter for routing responses to downstream pipelines.
+"""PipelineRouter for routing responses to downstream pipelines.
 
-A MultiplexRouter contains a list of Routes and matches responses against them.
+A PipelineRouter contains a list of PipelineRoutes and matches responses against them.
 Multiple routes can match the same response (multiplex routing).
 
 See: docs/architecture/proposals/pipeline_router_design.md
@@ -8,13 +8,13 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.route import Route
+from julee.shared.domain.models.pipeline_route import PipelineRoute
 
 
-class MultiplexRouter(BaseModel):
+class PipelineRouter(BaseModel):
     """Routes responses to downstream pipelines.
 
-    A MultiplexRouter is declarative and can be:
+    A PipelineRouter is declarative and can be:
     - Configured in code
     - Serialized to/from JSON/YAML
     - Visualized as PlantUML
@@ -22,9 +22,9 @@ class MultiplexRouter(BaseModel):
 
     name: str
     description: str = ""
-    routes: list[Route] = []
+    routes: list[PipelineRoute] = []
 
-    def route(self, response: BaseModel) -> list[Route]:
+    def route(self, response: BaseModel) -> list[PipelineRoute]:
         """Return all routes that match this response.
 
         This is multiplex routing - multiple routes can match the same response.
@@ -32,7 +32,7 @@ class MultiplexRouter(BaseModel):
         """
         return [r for r in self.routes if r.matches(response)]
 
-    def add_route(self, route: Route) -> "MultiplexRouter":
+    def add_route(self, route: PipelineRoute) -> "PipelineRouter":
         """Add a route (fluent API)."""
         self.routes.append(route)
         return self
@@ -47,7 +47,7 @@ class MultiplexRouter(BaseModel):
         ]
 
         # Group routes by response type
-        routes_by_response: dict[str, list[Route]] = {}
+        routes_by_response: dict[str, list[PipelineRoute]] = {}
         for route in self.routes:
             response_name = route.response_type.split(".")[-1]
             if response_name not in routes_by_response:
@@ -79,3 +79,7 @@ class MultiplexRouter(BaseModel):
         ])
 
         return "\n".join(lines)
+
+
+# Backwards-compatible alias
+MultiplexRouter = PipelineRouter

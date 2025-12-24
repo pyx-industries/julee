@@ -1,11 +1,11 @@
-"""RouteResponseUseCase doctrine.
+"""PipelineRouteResponseUseCase doctrine.
 
 These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 
-RouteResponseUseCase is responsible for routing a response to zero or more
-downstream pipelines. It uses RouteRepository to find matching routes and
-RequestTransformer to build the appropriate requests.
+PipelineRouteResponseUseCase is responsible for routing a response to zero or more
+downstream pipelines. It uses PipelineRouteRepository to find matching routes and
+PipelineRequestTransformer to build the appropriate requests.
 
 See: docs/architecture/proposals/pipeline_router_design.md
 """
@@ -44,38 +44,44 @@ class MockRequestB(BaseModel):
 
 
 # =============================================================================
-# DOCTRINE: RouteResponseUseCase Structure
+# DOCTRINE: PipelineRouteResponseUseCase Structure
 # =============================================================================
 
 
-class TestRouteResponseUseCaseStructure:
-    """Doctrine about RouteResponseUseCase structure."""
+class TestPipelineRouteResponseUseCaseStructure:
+    """Doctrine about PipelineRouteResponseUseCase structure."""
 
     def test_use_case_MUST_accept_route_repository_dependency(self):
-        """RouteResponseUseCase MUST accept RouteRepository as a dependency."""
-        from julee.shared.domain.use_cases.route_response import RouteResponseUseCase
+        """PipelineRouteResponseUseCase MUST accept PipelineRouteRepository as a dependency."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseUseCase,
+        )
         import inspect
 
-        sig = inspect.signature(RouteResponseUseCase.__init__)
+        sig = inspect.signature(PipelineRouteResponseUseCase.__init__)
         params = list(sig.parameters.keys())
         assert "route_repository" in params
 
     def test_use_case_MUST_accept_request_transformer_dependency(self):
-        """RouteResponseUseCase MUST accept RequestTransformer as a dependency."""
-        from julee.shared.domain.use_cases.route_response import RouteResponseUseCase
+        """PipelineRouteResponseUseCase MUST accept PipelineRequestTransformer as a dependency."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseUseCase,
+        )
         import inspect
 
-        sig = inspect.signature(RouteResponseUseCase.__init__)
+        sig = inspect.signature(PipelineRouteResponseUseCase.__init__)
         params = list(sig.parameters.keys())
         assert "request_transformer" in params
 
     def test_use_case_MUST_have_execute_method(self):
-        """RouteResponseUseCase MUST have an execute() method."""
-        from julee.shared.domain.use_cases.route_response import RouteResponseUseCase
+        """PipelineRouteResponseUseCase MUST have an execute() method."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseUseCase,
+        )
         import inspect
 
-        assert hasattr(RouteResponseUseCase, "execute")
-        assert inspect.iscoroutinefunction(RouteResponseUseCase.execute)
+        assert hasattr(PipelineRouteResponseUseCase, "execute")
+        assert inspect.iscoroutinefunction(PipelineRouteResponseUseCase.execute)
 
 
 # =============================================================================
@@ -83,41 +89,45 @@ class TestRouteResponseUseCaseStructure:
 # =============================================================================
 
 
-class TestRouteResponseRequestDoctrine:
-    """Doctrine about RouteResponseRequest."""
+class TestPipelineRouteResponseRequestDoctrine:
+    """Doctrine about PipelineRouteResponseRequest."""
 
     def test_request_MUST_have_response_field(self):
-        """RouteResponseRequest MUST have a response field (serialized)."""
-        from julee.shared.domain.use_cases.route_response import RouteResponseRequest
+        """PipelineRouteResponseRequest MUST have a response field (serialized)."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+        )
 
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={"has_new_data": True},
             response_type="MockResponse",
         )
         assert request.response == {"has_new_data": True}
 
     def test_request_MUST_have_response_type_field(self):
-        """RouteResponseRequest MUST have response_type for route matching."""
-        from julee.shared.domain.use_cases.route_response import RouteResponseRequest
+        """PipelineRouteResponseRequest MUST have response_type for route matching."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+        )
 
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={"has_new_data": True},
             response_type="MockResponse",
         )
         assert request.response_type == "MockResponse"
 
 
-class TestRouteResponseResponseDoctrine:
-    """Doctrine about RouteResponseResponse."""
+class TestPipelineRouteResponseResponseDoctrine:
+    """Doctrine about PipelineRouteResponseResponse."""
 
     def test_response_MUST_have_dispatches_field(self):
-        """RouteResponseResponse MUST have dispatches list."""
-        from julee.shared.domain.use_cases.route_response import (
+        """PipelineRouteResponseResponse MUST have dispatches list."""
+        from julee.shared.domain.use_cases.pipeline_route_response import (
             PipelineDispatch,
-            RouteResponseResponse,
+            PipelineRouteResponseResponse,
         )
 
-        response = RouteResponseResponse(
+        response = PipelineRouteResponseResponse(
             dispatches=[
                 PipelineDispatch(pipeline="TestPipeline", request={"foo": "bar"})
             ]
@@ -130,51 +140,62 @@ class TestPipelineDispatchDoctrine:
 
     def test_dispatch_MUST_have_pipeline_field(self):
         """PipelineDispatch MUST specify target pipeline."""
-        from julee.shared.domain.use_cases.route_response import PipelineDispatch
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineDispatch,
+        )
 
         dispatch = PipelineDispatch(pipeline="NextPipeline", request={"data": "test"})
         assert dispatch.pipeline == "NextPipeline"
 
     def test_dispatch_MUST_have_request_field(self):
         """PipelineDispatch MUST contain serialized request."""
-        from julee.shared.domain.use_cases.route_response import PipelineDispatch
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineDispatch,
+        )
 
         dispatch = PipelineDispatch(pipeline="NextPipeline", request={"data": "test"})
         assert dispatch.request == {"data": "test"}
 
 
 # =============================================================================
-# DOCTRINE: RouteResponseUseCase Behavior
+# DOCTRINE: PipelineRouteResponseUseCase Behavior
 # =============================================================================
 
 
-class TestRouteResponseUseCaseBehavior:
-    """Doctrine about RouteResponseUseCase execution behavior."""
+class TestPipelineRouteResponseUseCaseBehavior:
+    """Doctrine about PipelineRouteResponseUseCase execution behavior."""
 
     @pytest.fixture
     def mock_route_repository(self):
         """Create mock route repository."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
-        class MockRouteRepository:
-            def __init__(self, routes: list[Route]):
+        class MockPipelineRouteRepository:
+            def __init__(self, routes: list[PipelineRoute]):
                 self._routes = routes
 
-            async def list_all(self) -> list[Route]:
+            async def list_all(self) -> list[PipelineRoute]:
                 return self._routes
 
-            async def list_for_response_type(self, response_type: str) -> list[Route]:
+            async def list_for_response_type(
+                self, response_type: str
+            ) -> list[PipelineRoute]:
                 return [r for r in self._routes if r.response_type == response_type]
 
-        return MockRouteRepository
+        return MockPipelineRouteRepository
 
     @pytest.fixture
     def mock_request_transformer(self):
         """Create mock request transformer."""
-        from julee.shared.domain.models.route import Route
+        from julee.shared.domain.models.pipeline_route import PipelineRoute
 
-        class MockRequestTransformer:
-            def transform(self, route: Route, response: BaseModel) -> BaseModel:
+        class MockPipelineRequestTransformer:
+            def transform(
+                self, route: PipelineRoute, response: BaseModel
+            ) -> BaseModel:
                 if route.request_type == "MockRequestA":
                     return MockRequestA(
                         data=response.get("content", b""),
@@ -187,34 +208,37 @@ class TestRouteResponseUseCaseBehavior:
                     )
                 raise ValueError(f"Unknown: {route.request_type}")
 
-        return MockRequestTransformer()
+        return MockPipelineRequestTransformer()
 
     @pytest.mark.asyncio
     async def test_execute_MUST_return_matching_dispatches(
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return dispatches for all matching routes."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.use_cases.route_response import (
-            RouteResponseRequest,
-            RouteResponseUseCase,
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+            PipelineRouteResponseUseCase,
         )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="ProcessingPipeline",
                 request_type="MockRequestA",
             ),
         ]
 
-        use_case = RouteResponseUseCase(
+        use_case = PipelineRouteResponseUseCase(
             route_repository=mock_route_repository(routes),
             request_transformer=mock_request_transformer,
         )
 
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={"has_new_data": True, "content": b"data", "current_hash": "h1"},
             response_type="MockResponse",
         )
@@ -229,34 +253,37 @@ class TestRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return multiple dispatches when multiple routes match."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.use_cases.route_response import (
-            RouteResponseRequest,
-            RouteResponseUseCase,
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+            PipelineRouteResponseUseCase,
         )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="ProcessingPipeline",
                 request_type="MockRequestA",
             ),
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("needs_notification"),
+                condition=PipelineCondition.is_true("needs_notification"),
                 pipeline="NotificationPipeline",
                 request_type="MockRequestB",
             ),
         ]
 
-        use_case = RouteResponseUseCase(
+        use_case = PipelineRouteResponseUseCase(
             route_repository=mock_route_repository(routes),
             request_transformer=mock_request_transformer,
         )
 
         # Both conditions are true
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={
                 "has_new_data": True,
                 "needs_notification": True,
@@ -278,28 +305,31 @@ class TestRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST return empty dispatches when no routes match."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.use_cases.route_response import (
-            RouteResponseRequest,
-            RouteResponseUseCase,
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+            PipelineRouteResponseUseCase,
         )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="ProcessingPipeline",
                 request_type="MockRequestA",
             ),
         ]
 
-        use_case = RouteResponseUseCase(
+        use_case = PipelineRouteResponseUseCase(
             route_repository=mock_route_repository(routes),
             request_transformer=mock_request_transformer,
         )
 
         # Condition is false
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={"has_new_data": False},
             response_type="MockResponse",
         )
@@ -313,33 +343,36 @@ class TestRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST only consider routes matching the response type."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.use_cases.route_response import (
-            RouteResponseRequest,
-            RouteResponseUseCase,
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+            PipelineRouteResponseUseCase,
         )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="ProcessingPipeline",
                 request_type="MockRequestA",
             ),
-            Route(
+            PipelineRoute(
                 response_type="OtherResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="OtherPipeline",
                 request_type="MockRequestA",
             ),
         ]
 
-        use_case = RouteResponseUseCase(
+        use_case = PipelineRouteResponseUseCase(
             route_repository=mock_route_repository(routes),
             request_transformer=mock_request_transformer,
         )
 
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={"has_new_data": True, "content": b"data", "current_hash": "h1"},
             response_type="MockResponse",  # Only match MockResponse routes
         )
@@ -354,27 +387,30 @@ class TestRouteResponseUseCaseBehavior:
         self, mock_route_repository, mock_request_transformer
     ):
         """execute() MUST include the transformed request in each dispatch."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.use_cases.route_response import (
-            RouteResponseRequest,
-            RouteResponseUseCase,
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.use_cases.pipeline_route_response import (
+            PipelineRouteResponseRequest,
+            PipelineRouteResponseUseCase,
         )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="MockResponse",
-                condition=Condition.is_true("has_new_data"),
+                condition=PipelineCondition.is_true("has_new_data"),
                 pipeline="ProcessingPipeline",
                 request_type="MockRequestA",
             ),
         ]
 
-        use_case = RouteResponseUseCase(
+        use_case = PipelineRouteResponseUseCase(
             route_repository=mock_route_repository(routes),
             request_transformer=mock_request_transformer,
         )
 
-        request = RouteResponseRequest(
+        request = PipelineRouteResponseRequest(
             response={
                 "has_new_data": True,
                 "content": b"my content",

@@ -1,6 +1,6 @@
-"""Route models for declarative pipeline routing.
+"""PipelineRoute models for declarative pipeline routing.
 
-A Route is a declarative routing rule that maps a response type + condition
+A PipelineRoute is a declarative routing rule that maps a response type + condition
 to a target pipeline + request type. Routes are introspectable and can be
 used to generate PlantUML visualizations.
 
@@ -111,7 +111,7 @@ class FieldCondition(BaseModel):
                 return f"{self.field} {op_symbols.get(self.operator.value, self.operator.value)} {self.value!r}"
 
 
-class Condition(BaseModel):
+class PipelineCondition(BaseModel):
     """A compound condition (AND of multiple field conditions)."""
 
     all_of: list[FieldCondition]
@@ -127,40 +127,44 @@ class Condition(BaseModel):
         return " AND ".join(f"({cond})" for cond in self.all_of)
 
     @classmethod
-    def when(cls, field: str, operator: Operator, value: Any = None) -> "Condition":
+    def when(cls, field: str, operator: Operator, value: Any = None) -> "PipelineCondition":
         """Factory for simple single-field conditions."""
         return cls(all_of=[FieldCondition(field=field, operator=operator, value=value)])
 
     @classmethod
-    def is_true(cls, field: str) -> "Condition":
+    def is_true(cls, field: str) -> "PipelineCondition":
         """Factory: field is True."""
         return cls.when(field, Operator.IS_TRUE)
 
     @classmethod
-    def is_false(cls, field: str) -> "Condition":
+    def is_false(cls, field: str) -> "PipelineCondition":
         """Factory: field is False."""
         return cls.when(field, Operator.IS_FALSE)
 
     @classmethod
-    def is_none(cls, field: str) -> "Condition":
+    def is_none(cls, field: str) -> "PipelineCondition":
         """Factory: field is None."""
         return cls.when(field, Operator.IS_NONE)
 
     @classmethod
-    def is_not_none(cls, field: str) -> "Condition":
+    def is_not_none(cls, field: str) -> "PipelineCondition":
         """Factory: field is not None."""
         return cls.when(field, Operator.IS_NOT_NONE)
 
     @classmethod
-    def equals(cls, field: str, value: Any) -> "Condition":
+    def equals(cls, field: str, value: Any) -> "PipelineCondition":
         """Factory: field equals value."""
         return cls.when(field, Operator.EQ, value)
 
 
-class Route(BaseModel):
-    """A routing rule: response type + condition -> pipeline + request type.
+# Backwards-compatible alias
+Condition = PipelineCondition
 
-    A Route is declarative and introspectable. It defines:
+
+class PipelineRoute(BaseModel):
+    """A pipeline routing rule: response type + condition -> pipeline + request type.
+
+    A PipelineRoute is declarative and introspectable. It defines:
     - Which response type it handles
     - What condition must be true
     - Which pipeline to trigger
@@ -168,7 +172,7 @@ class Route(BaseModel):
     """
 
     response_type: str
-    condition: Condition
+    condition: PipelineCondition
     pipeline: str
     request_type: str
     description: str = ""
@@ -198,3 +202,7 @@ class Route(BaseModel):
 
         # Check condition
         return self.condition.evaluate(response)
+
+
+# Backwards-compatible alias
+Route = PipelineRoute

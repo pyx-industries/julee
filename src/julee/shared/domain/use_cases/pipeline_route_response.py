@@ -1,8 +1,8 @@
-"""RouteResponseUseCase for pipeline routing.
+"""PipelineRouteResponseUseCase for pipeline routing.
 
 Routes a response to zero or more downstream pipelines based on
-declarative routing rules. Uses RouteRepository to find matching routes
-and RequestTransformer to build appropriate requests.
+declarative routing rules. Uses PipelineRouteRepository to find matching routes
+and PipelineRequestTransformer to build appropriate requests.
 
 This use case implements the multiplex routing pattern where a single
 response can trigger multiple downstream pipelines.
@@ -12,11 +12,11 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from pydantic import BaseModel, Field
 
-from julee.shared.domain.repositories.route import RouteRepository
-from julee.shared.domain.services.request_transformer import RequestTransformer
+from julee.shared.domain.repositories.pipeline_route import PipelineRouteRepository
+from julee.shared.domain.services.pipeline_request_transformer import PipelineRequestTransformer
 
 
-class RouteResponseRequest(BaseModel):
+class PipelineRouteResponseRequest(BaseModel):
     """Request to route a response to downstream pipelines.
 
     Contains the serialized response and its type for route matching.
@@ -28,6 +28,10 @@ class RouteResponseRequest(BaseModel):
     response_type: str = Field(
         description="Response type name for route matching (FQN or class name)"
     )
+
+
+# Backwards-compatible alias
+RouteResponseRequest = PipelineRouteResponseRequest
 
 
 class PipelineDispatch(BaseModel):
@@ -43,7 +47,7 @@ class PipelineDispatch(BaseModel):
     )
 
 
-class RouteResponseResponse(BaseModel):
+class PipelineRouteResponseResponse(BaseModel):
     """Result of routing a response.
 
     Contains the list of dispatches to execute. May be empty if no
@@ -56,7 +60,11 @@ class RouteResponseResponse(BaseModel):
     )
 
 
-class RouteResponseUseCase:
+# Backwards-compatible alias
+RouteResponseResponse = PipelineRouteResponseResponse
+
+
+class PipelineRouteResponseUseCase:
     """Route a response to downstream pipelines.
 
     This use case:
@@ -71,8 +79,8 @@ class RouteResponseUseCase:
 
     def __init__(
         self,
-        route_repository: RouteRepository,
-        request_transformer: RequestTransformer,
+        route_repository: PipelineRouteRepository,
+        request_transformer: PipelineRequestTransformer,
     ) -> None:
         """Initialize with dependencies.
 
@@ -83,14 +91,14 @@ class RouteResponseUseCase:
         self._route_repository = route_repository
         self._request_transformer = request_transformer
 
-    async def execute(self, request: RouteResponseRequest) -> RouteResponseResponse:
+    async def execute(self, request: PipelineRouteResponseRequest) -> PipelineRouteResponseResponse:
         """Route a response to downstream pipelines.
 
         Args:
             request: Contains serialized response and its type
 
         Returns:
-            RouteResponseResponse with list of dispatches to execute.
+            PipelineRouteResponseResponse with list of dispatches to execute.
             May be empty if no routes matched.
         """
         # Get routes for this response type
@@ -113,4 +121,8 @@ class RouteResponseUseCase:
                     )
                 )
 
-        return RouteResponseResponse(dispatches=dispatches)
+        return PipelineRouteResponseResponse(dispatches=dispatches)
+
+
+# Backwards-compatible alias
+RouteResponseUseCase = PipelineRouteResponseUseCase

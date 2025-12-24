@@ -1,13 +1,13 @@
-"""Route configuration for polling pipelines.
+"""PipelineRoute configuration for polling pipelines.
 
 Defines routing rules for NewDataDetectionResponse to downstream pipelines.
-These routes can be loaded into a RouteRepository for use by the
-RouteResponseUseCase.
+These routes can be loaded into a PipelineRouteRepository for use by the
+PipelineRouteResponseUseCase.
 
 See: docs/architecture/proposals/pipeline_router_design.md
 """
 
-from julee.shared.domain.models.route import Condition, Route
+from julee.shared.domain.models.pipeline_route import PipelineCondition, PipelineRoute
 
 # Polling routes configuration
 #
@@ -17,20 +17,20 @@ from julee.shared.domain.models.route import Condition, Route
 # Note: Target pipelines and request types must be registered separately.
 # The routes here only define the routing rules.
 
-polling_routes: list[Route] = [
+polling_routes: list[PipelineRoute] = [
     # Route 1: When new data is detected and processing should occur
-    # Route(
+    # PipelineRoute(
     #     response_type="NewDataDetectionResponse",
-    #     condition=Condition.is_true("should_process"),
+    #     condition=PipelineCondition.is_true("should_process"),
     #     pipeline="DocumentProcessingPipeline",
     #     request_type="ProcessDocumentRequest",
     #     description="When new data detected, trigger document processing",
     # ),
     #
     # Route 2: When an error occurs during polling
-    # Route(
+    # PipelineRoute(
     #     response_type="NewDataDetectionResponse",
-    #     condition=Condition.is_true("has_error"),
+    #     condition=PipelineCondition.is_true("has_error"),
     #     pipeline="ErrorNotificationPipeline",
     #     request_type="NotifyErrorRequest",
     #     description="When polling fails, notify error handler",
@@ -38,10 +38,10 @@ polling_routes: list[Route] = [
 ]
 
 
-def get_polling_routes() -> list[Route]:
+def get_polling_routes() -> list[PipelineRoute]:
     """Get all polling routes.
 
     Returns:
-        List of Route configurations for polling pipelines.
+        List of PipelineRoute configurations for polling pipelines.
     """
     return polling_routes.copy()

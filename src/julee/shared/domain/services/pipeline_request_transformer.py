@@ -1,11 +1,11 @@
-"""RequestTransformer service protocol.
+"""PipelineRequestTransformer service protocol.
 
 Defines the interface for transforming a Response into a Request for
 a target pipeline. This decouples Response and Request types from each
 other, allowing different implementations for different contexts.
 
 The transformer is keyed by (response_type, request_type) pairs from the
-Route. Each implementation registers transformation functions for the
+PipelineRoute. Each implementation registers transformation functions for the
 type pairs it supports.
 
 See: docs/architecture/proposals/pipeline_router_design.md
@@ -15,15 +15,15 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.route import Route
+from julee.shared.domain.models.pipeline_route import PipelineRoute
 
 
 @runtime_checkable
-class RequestTransformer(Protocol):
+class PipelineRequestTransformer(Protocol):
     """Service protocol for transforming responses to requests.
 
     Transforms a Response object into the appropriate Request object
-    for a target pipeline, based on the Route configuration.
+    for a target pipeline, based on the PipelineRoute configuration.
 
     This is NOT async because transformations are pure data mappings
     with no I/O. The transformer simply extracts fields from the response
@@ -33,11 +33,11 @@ class RequestTransformer(Protocol):
     functions keyed by (response_type, request_type) pairs.
     """
 
-    def transform(self, route: Route, response: BaseModel) -> BaseModel:
+    def transform(self, route: PipelineRoute, response: BaseModel) -> BaseModel:
         """Transform a response into a request for the target pipeline.
 
         Args:
-            route: The Route that matched the response, containing:
+            route: The PipelineRoute that matched the response, containing:
                 - response_type: The type of the source response
                 - request_type: The type of the target request
                 - pipeline: The target pipeline (for error messages)
@@ -55,3 +55,7 @@ class RequestTransformer(Protocol):
             with no I/O operations.
         """
         ...
+
+
+# Backwards-compatible alias
+RequestTransformer = PipelineRequestTransformer

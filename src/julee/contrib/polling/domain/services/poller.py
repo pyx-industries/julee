@@ -11,7 +11,7 @@ mechanisms and are created via factory functions.
 from typing import Protocol, runtime_checkable
 
 from ..models.polling_config import PollingResult
-from ..use_cases.requests import PollEndpointRequest
+from ..use_cases import PollEndpointRequest
 
 
 @runtime_checkable

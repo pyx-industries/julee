@@ -1,10 +1,10 @@
-"""RequestTransformer doctrine.
+"""PipelineRequestTransformer doctrine.
 
 These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 
-A RequestTransformer is a service protocol that transforms a Response
-into a Request for a target pipeline, based on the Route configuration.
+A PipelineRequestTransformer is a service protocol that transforms a Response
+into a Request for a target pipeline, based on the PipelineRoute configuration.
 This decouples Response and Request types from each other.
 
 See: docs/architecture/proposals/pipeline_router_design.md
@@ -15,31 +15,35 @@ from pydantic import BaseModel
 
 
 # =============================================================================
-# DOCTRINE: RequestTransformer Protocol
+# DOCTRINE: PipelineRequestTransformer Protocol
 # =============================================================================
 
 
-class TestRequestTransformerDoctrine:
-    """Doctrine about the RequestTransformer protocol."""
+class TestPipelineRequestTransformerDoctrine:
+    """Doctrine about the PipelineRequestTransformer protocol."""
 
     def test_request_transformer_MUST_be_protocol(self):
-        """RequestTransformer MUST be defined as a Protocol for structural typing."""
+        """PipelineRequestTransformer MUST be defined as a Protocol for structural typing."""
         from typing import Protocol
 
-        from julee.shared.domain.services.request_transformer import RequestTransformer
+        from julee.shared.domain.services.pipeline_request_transformer import (
+            PipelineRequestTransformer,
+        )
 
         # Should be a Protocol (or at least have Protocol in its bases)
-        assert hasattr(RequestTransformer, "__protocol_attrs__") or issubclass(
-            RequestTransformer, Protocol
+        assert hasattr(PipelineRequestTransformer, "__protocol_attrs__") or issubclass(
+            PipelineRequestTransformer, Protocol
         )
 
     def test_request_transformer_MUST_have_transform_method(self):
-        """RequestTransformer MUST have transform(route, response) method."""
-        from julee.shared.domain.services.request_transformer import RequestTransformer
+        """PipelineRequestTransformer MUST have transform(route, response) method."""
+        from julee.shared.domain.services.pipeline_request_transformer import (
+            PipelineRequestTransformer,
+        )
         import inspect
 
-        assert hasattr(RequestTransformer, "transform")
-        sig = inspect.signature(RequestTransformer.transform)
+        assert hasattr(PipelineRequestTransformer, "transform")
+        sig = inspect.signature(PipelineRequestTransformer.transform)
         params = list(sig.parameters.keys())
         # Should have route and response parameters (besides self)
         assert "route" in params
@@ -47,12 +51,12 @@ class TestRequestTransformerDoctrine:
 
 
 # =============================================================================
-# DOCTRINE: RequestTransformer Contract
+# DOCTRINE: PipelineRequestTransformer Contract
 # =============================================================================
 
 
-class TestRequestTransformerContract:
-    """Doctrine about RequestTransformer contract behavior.
+class TestPipelineRequestTransformerContract:
+    """Doctrine about PipelineRequestTransformer contract behavior.
 
     These tests use a mock implementation to verify the contract.
     Any implementation must satisfy these behaviors.
@@ -83,15 +87,19 @@ class TestRequestTransformerContract:
     @pytest.fixture
     def mock_request_transformer(self, sample_request_class):
         """Create a minimal mock implementation for testing contract."""
-        from julee.shared.domain.models.route import Route
-        from julee.shared.domain.services.request_transformer import RequestTransformer
+        from julee.shared.domain.models.pipeline_route import PipelineRoute
+        from julee.shared.domain.services.pipeline_request_transformer import (
+            PipelineRequestTransformer,
+        )
 
         SampleRequest = sample_request_class
 
-        class MockRequestTransformer:
+        class MockPipelineRequestTransformer:
             """Mock implementation for contract testing."""
 
-            def transform(self, route: Route, response: BaseModel) -> BaseModel:
+            def transform(
+                self, route: PipelineRoute, response: BaseModel
+            ) -> BaseModel:
                 # Simple transformation based on route types
                 if route.request_type == "SampleRequest":
                     return SampleRequest(
@@ -101,7 +109,7 @@ class TestRequestTransformerContract:
                     )
                 raise ValueError(f"Unknown request type: {route.request_type}")
 
-        return MockRequestTransformer()
+        return MockPipelineRequestTransformer()
 
     def test_transform_MUST_return_request_matching_route_type(
         self,
@@ -110,11 +118,14 @@ class TestRequestTransformerContract:
         sample_request_class,
     ):
         """transform() MUST return a request matching the route's request_type."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
-        route = Route(
+        route = PipelineRoute(
             response_type="SampleResponse",
-            condition=Condition.is_true("has_data"),
+            condition=PipelineCondition.is_true("has_data"),
             pipeline="NextPipeline",
             request_type="SampleRequest",
         )
@@ -130,11 +141,14 @@ class TestRequestTransformerContract:
         sample_response_class,
     ):
         """transform() MUST correctly map response fields to request fields."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
-        route = Route(
+        route = PipelineRoute(
             response_type="SampleResponse",
-            condition=Condition.is_true("has_data"),
+            condition=PipelineCondition.is_true("has_data"),
             pipeline="NextPipeline",
             request_type="SampleRequest",
         )
@@ -157,11 +171,14 @@ class TestRequestTransformerContract:
         sample_response_class,
     ):
         """transform() MUST raise error for unknown (response_type, request_type) pair."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
-        route = Route(
+        route = PipelineRoute(
             response_type="SampleResponse",
-            condition=Condition.is_true("has_data"),
+            condition=PipelineCondition.is_true("has_data"),
             pipeline="NextPipeline",
             request_type="UnknownRequest",  # Not registered
         )

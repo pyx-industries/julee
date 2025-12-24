@@ -1,11 +1,11 @@
-"""RouteRepository doctrine.
+"""PipelineRouteRepository doctrine.
 
 These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 
-A RouteRepository is a protocol for accessing Route entities. It provides
-the abstraction for route persistence, allowing different implementations
-(in-memory, file-based, database-backed).
+A PipelineRouteRepository is a protocol for accessing PipelineRoute entities.
+It provides the abstraction for route persistence, allowing different
+implementations (in-memory, file-based, database-backed).
 
 See: docs/architecture/proposals/pipeline_router_design.md
 """
@@ -15,55 +15,61 @@ from pydantic import BaseModel
 
 
 # =============================================================================
-# DOCTRINE: RouteRepository Protocol
+# DOCTRINE: PipelineRouteRepository Protocol
 # =============================================================================
 
 
-class TestRouteRepositoryDoctrine:
-    """Doctrine about the RouteRepository protocol."""
+class TestPipelineRouteRepositoryDoctrine:
+    """Doctrine about the PipelineRouteRepository protocol."""
 
     def test_route_repository_MUST_be_protocol(self):
-        """RouteRepository MUST be defined as a Protocol for structural typing."""
+        """PipelineRouteRepository MUST be defined as a Protocol for structural typing."""
         from typing import Protocol, runtime_checkable
 
-        from julee.shared.domain.repositories.route import RouteRepository
+        from julee.shared.domain.repositories.pipeline_route import (
+            PipelineRouteRepository,
+        )
 
         # Should be a Protocol (or at least have Protocol in its bases)
-        assert hasattr(RouteRepository, "__protocol_attrs__") or issubclass(
-            RouteRepository, Protocol
+        assert hasattr(PipelineRouteRepository, "__protocol_attrs__") or issubclass(
+            PipelineRouteRepository, Protocol
         )
 
     def test_route_repository_MUST_have_list_all_method(self):
-        """RouteRepository MUST have list_all() method returning all routes."""
-        from julee.shared.domain.repositories.route import RouteRepository
+        """PipelineRouteRepository MUST have list_all() method returning all routes."""
+        from julee.shared.domain.repositories.pipeline_route import (
+            PipelineRouteRepository,
+        )
         import inspect
 
-        assert hasattr(RouteRepository, "list_all")
-        sig = inspect.signature(RouteRepository.list_all)
+        assert hasattr(PipelineRouteRepository, "list_all")
+        sig = inspect.signature(PipelineRouteRepository.list_all)
         # Should be async (returns coroutine)
-        assert inspect.iscoroutinefunction(RouteRepository.list_all) or "async" in str(
-            sig
-        )
+        assert inspect.iscoroutinefunction(
+            PipelineRouteRepository.list_all
+        ) or "async" in str(sig)
 
     def test_route_repository_MUST_have_list_for_response_type_method(self):
-        """RouteRepository MUST have list_for_response_type() for filtered queries."""
-        from julee.shared.domain.repositories.route import RouteRepository
+        """PipelineRouteRepository MUST have list_for_response_type() for filtered queries."""
+        from julee.shared.domain.repositories.pipeline_route import (
+            PipelineRouteRepository,
+        )
         import inspect
 
-        assert hasattr(RouteRepository, "list_for_response_type")
-        sig = inspect.signature(RouteRepository.list_for_response_type)
+        assert hasattr(PipelineRouteRepository, "list_for_response_type")
+        sig = inspect.signature(PipelineRouteRepository.list_for_response_type)
         params = list(sig.parameters.keys())
         # Should have response_type parameter (besides self)
         assert "response_type" in params
 
 
 # =============================================================================
-# DOCTRINE: RouteRepository Contract
+# DOCTRINE: PipelineRouteRepository Contract
 # =============================================================================
 
 
-class TestRouteRepositoryContract:
-    """Doctrine about RouteRepository contract behavior.
+class TestPipelineRouteRepositoryContract:
+    """Doctrine about PipelineRouteRepository contract behavior.
 
     These tests use a mock implementation to verify the contract.
     Any implementation must satisfy these behaviors.
@@ -72,38 +78,48 @@ class TestRouteRepositoryContract:
     @pytest.fixture
     def mock_route_repository(self):
         """Create a minimal mock implementation for testing contract."""
-        from julee.shared.domain.models.route import Condition, Route
-        from julee.shared.domain.repositories.route import RouteRepository
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
+        from julee.shared.domain.repositories.pipeline_route import (
+            PipelineRouteRepository,
+        )
 
-        class MockRouteRepository:
+        class MockPipelineRouteRepository:
             """Mock implementation for contract testing."""
 
-            def __init__(self, routes: list[Route]):
+            def __init__(self, routes: list[PipelineRoute]):
                 self._routes = routes
 
-            async def list_all(self) -> list[Route]:
+            async def list_all(self) -> list[PipelineRoute]:
                 return self._routes
 
-            async def list_for_response_type(self, response_type: str) -> list[Route]:
+            async def list_for_response_type(
+                self, response_type: str
+            ) -> list[PipelineRoute]:
                 return [r for r in self._routes if r.response_type == response_type]
 
-        return MockRouteRepository
+        return MockPipelineRouteRepository
 
     @pytest.mark.asyncio
     async def test_list_all_MUST_return_all_routes(self, mock_route_repository):
         """list_all() MUST return all configured routes."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="ResponseA",
-                condition=Condition.is_true("field_a"),
+                condition=PipelineCondition.is_true("field_a"),
                 pipeline="PipelineA",
                 request_type="RequestA",
             ),
-            Route(
+            PipelineRoute(
                 response_type="ResponseB",
-                condition=Condition.is_true("field_b"),
+                condition=PipelineCondition.is_true("field_b"),
                 pipeline="PipelineB",
                 request_type="RequestB",
             ),
@@ -121,24 +137,27 @@ class TestRouteRepositoryContract:
         self, mock_route_repository
     ):
         """list_for_response_type() MUST return only routes for the specified type."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="ResponseA",
-                condition=Condition.is_true("field_a"),
+                condition=PipelineCondition.is_true("field_a"),
                 pipeline="PipelineA",
                 request_type="RequestA",
             ),
-            Route(
+            PipelineRoute(
                 response_type="ResponseA",
-                condition=Condition.is_not_none("error"),
+                condition=PipelineCondition.is_not_none("error"),
                 pipeline="ErrorPipeline",
                 request_type="ErrorRequest",
             ),
-            Route(
+            PipelineRoute(
                 response_type="ResponseB",
-                condition=Condition.is_true("field_b"),
+                condition=PipelineCondition.is_true("field_b"),
                 pipeline="PipelineB",
                 request_type="RequestB",
             ),
@@ -155,12 +174,15 @@ class TestRouteRepositoryContract:
         self, mock_route_repository
     ):
         """list_for_response_type() MUST return empty list for unknown response type."""
-        from julee.shared.domain.models.route import Condition, Route
+        from julee.shared.domain.models.pipeline_route import (
+            PipelineCondition,
+            PipelineRoute,
+        )
 
         routes = [
-            Route(
+            PipelineRoute(
                 response_type="ResponseA",
-                condition=Condition.is_true("field_a"),
+                condition=PipelineCondition.is_true("field_a"),
                 pipeline="PipelineA",
                 request_type="RequestA",
             ),

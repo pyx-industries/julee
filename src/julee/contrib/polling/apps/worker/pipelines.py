@@ -25,13 +25,13 @@ from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
 from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
-from julee.shared.domain.use_cases.route_response import (
-    RouteResponseRequest,
-    RouteResponseUseCase,
+from julee.shared.domain.use_cases.pipeline_route_response import (
+    PipelineRouteResponseRequest,
+    PipelineRouteResponseUseCase,
 )
-from julee.shared.infrastructure.routing import (
-    RegistryRequestTransformer,
-    routing_registry,
+from julee.shared.infrastructure.pipeline_routing import (
+    RegistryPipelineRequestTransformer,
+    pipeline_routing_registry,
 )
 
 logger = logging.getLogger(__name__)
@@ -151,17 +151,17 @@ class NewDataDetectionPipeline:
         """
         # Get routing configuration from global registry
         # (configured by solution developer at startup)
-        route_repository = routing_registry.get_route_repository()
-        request_transformer = RegistryRequestTransformer(routing_registry)
+        route_repository = pipeline_routing_registry.get_route_repository()
+        request_transformer = RegistryPipelineRequestTransformer(pipeline_routing_registry)
 
-        # Use RouteResponseUseCase to find matching routes and transform requests
-        routing_use_case = RouteResponseUseCase(
+        # Use PipelineRouteResponseUseCase to find matching routes and transform requests
+        routing_use_case = PipelineRouteResponseUseCase(
             route_repository=route_repository,
             request_transformer=request_transformer,
         )
 
         routing_result = await routing_use_case.execute(
-            RouteResponseRequest(
+            PipelineRouteResponseRequest(
                 response=response.model_dump(),
                 response_type=response.__class__.__name__,
             )

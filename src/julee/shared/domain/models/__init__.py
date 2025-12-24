@@ -25,6 +25,21 @@ from julee.shared.domain.models.response import Response
 from julee.shared.domain.models.service_protocol import ServiceProtocol
 from julee.shared.domain.models.use_case import UseCase
 
+# Routing models
+from julee.shared.domain.models.pipeline_route import (
+    Condition,
+    FieldCondition,
+    Operator,
+    PipelineCondition,
+    PipelineRoute,
+    Route,
+)
+from julee.shared.domain.models.pipeline_router import PipelineRouter
+from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
+
+# Backwards compatibility aliases
+MultiplexRouter = PipelineRouter
+
 __all__ = [
     # Core models
     "BoundedContext",
@@ -45,4 +60,14 @@ __all__ = [
     "Response",
     "ServiceProtocol",
     "UseCase",
+    # Routing models
+    "Condition",
+    "FieldCondition",
+    "MultiplexRouter",
+    "Operator",
+    "PipelineCondition",
+    "PipelineDispatchItem",
+    "PipelineRoute",
+    "PipelineRouter",
+    "Route",
 ]

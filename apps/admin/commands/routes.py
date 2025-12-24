@@ -10,8 +10,8 @@ from typing import Callable
 
 import click
 
-from julee.shared.domain.models.route import Route
-from julee.shared.repositories.memory.route import InMemoryRouteRepository
+from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
 
 
 # Default route modules to load
@@ -21,12 +21,12 @@ DEFAULT_ROUTE_MODULES = [
 ]
 
 
-def _load_routes_from_module(module_name: str) -> list[Route]:
+def _load_routes_from_module(module_name: str) -> list[PipelineRoute]:
     """Load routes from a module.
 
     Looks for:
-    - Functions named get_*_routes() that return list[Route]
-    - Variables named *_routes that are list[Route]
+    - Functions named get_*_routes() that return list[PipelineRoute]
+    - Variables named *_routes that are list[PipelineRoute]
 
     Args:
         module_name: Fully qualified module name
@@ -62,7 +62,9 @@ def _load_routes_from_module(module_name: str) -> list[Route]:
     return routes
 
 
-def _get_route_repository(modules: list[str] | None = None) -> InMemoryRouteRepository:
+def _get_route_repository(
+    modules: list[str] | None = None,
+) -> InMemoryPipelineRouteRepository:
     """Get a route repository populated with routes from configured modules.
 
     Args:
@@ -70,7 +72,7 @@ def _get_route_repository(modules: list[str] | None = None) -> InMemoryRouteRepo
                  Defaults to DEFAULT_ROUTE_MODULES.
 
     Returns:
-        InMemoryRouteRepository with loaded routes
+        InMemoryPipelineRouteRepository with loaded routes
     """
     modules = modules or DEFAULT_ROUTE_MODULES
     all_routes = []
@@ -79,7 +81,7 @@ def _get_route_repository(modules: list[str] | None = None) -> InMemoryRouteRepo
         routes = _load_routes_from_module(module_name)
         all_routes.extend(routes)
 
-    return InMemoryRouteRepository(all_routes)
+    return InMemoryPipelineRouteRepository(all_routes)
 
 
 @click.group(name="routes")
@@ -197,7 +199,7 @@ def show_routes(response_type: str, module: tuple[str, ...]) -> None:
         click.echo()
 
 
-def _print_route_detail(route: Route) -> None:
+def _print_route_detail(route: PipelineRoute) -> None:
     """Print detailed information about a route."""
     click.echo(f"Response Type: {route.response_type}")
     click.echo(f"Condition:     {route.condition}")

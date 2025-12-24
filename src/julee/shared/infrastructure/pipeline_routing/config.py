@@ -1,6 +1,6 @@
-"""Routing configuration and registry.
+"""Pipeline routing configuration and registry.
 
-Provides a central registry for routes and transformers that solution
+Provides a central registry for pipeline routes and transformers that solution
 developers configure at startup. Pipelines use this registry to route
 responses to downstream pipelines.
 """
@@ -12,8 +12,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from julee.shared.domain.models.route import Route
-from julee.shared.repositories.memory.route import InMemoryRouteRepository
+from julee.shared.domain.models.pipeline_route import PipelineRoute
+from julee.shared.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 TransformerFn = Callable[[BaseModel | dict], BaseModel]
 
 
-class RoutingRegistry:
-    """Registry for routes and transformers.
+class PipelineRoutingRegistry:
+    """Registry for pipeline routes and transformers.
 
     Solution developers register their routing configuration here.
     Pipelines query this registry to route responses to downstream pipelines.
@@ -34,30 +34,30 @@ class RoutingRegistry:
     """
 
     def __init__(self) -> None:
-        self._routes: list[Route] = []
+        self._routes: list[PipelineRoute] = []
         self._transformers: dict[tuple[str, str], TransformerFn] = {}
         self._route_modules: list[str] = []
 
-    def register_route(self, route: Route) -> "RoutingRegistry":
+    def register_route(self, route: PipelineRoute) -> "PipelineRoutingRegistry":
         """Register a single route.
 
         Args:
-            route: Route to register
+            route: PipelineRoute to register
 
         Returns:
             self for method chaining
         """
         self._routes.append(route)
         logger.debug(
-            f"Registered route: {route.response_type} -> {route.pipeline}"
+            f"Registered pipeline route: {route.response_type} -> {route.pipeline}"
         )
         return self
 
-    def register_routes(self, routes: list[Route]) -> "RoutingRegistry":
+    def register_routes(self, routes: list[PipelineRoute]) -> "PipelineRoutingRegistry":
         """Register multiple routes.
 
         Args:
-            routes: Routes to register
+            routes: PipelineRoutes to register
 
         Returns:
             self for method chaining
@@ -71,7 +71,7 @@ class RoutingRegistry:
         response_type: str,
         request_type: str,
         transformer: TransformerFn,
-    ) -> "RoutingRegistry":
+    ) -> "PipelineRoutingRegistry":
         """Register a transformer function for a type pair.
 
         Args:
@@ -96,12 +96,12 @@ class RoutingRegistry:
         logger.debug(f"Registered transformer: {response_type} -> {request_type}")
         return self
 
-    def register_route_module(self, module_name: str) -> "RoutingRegistry":
+    def register_route_module(self, module_name: str) -> "PipelineRoutingRegistry":
         """Register a module to load routes from.
 
         The module should have either:
-        - A `get_*_routes()` function returning list[Route]
-        - A `*_routes` variable containing list[Route]
+        - A `get_*_routes()` function returning list[PipelineRoute]
+        - A `*_routes` variable containing list[PipelineRoute]
 
         Args:
             module_name: Fully qualified module name
@@ -112,7 +112,7 @@ class RoutingRegistry:
         self._route_modules.append(module_name)
         return self
 
-    def load_route_modules(self) -> "RoutingRegistry":
+    def load_route_modules(self) -> "PipelineRoutingRegistry":
         """Load routes from all registered modules.
 
         Call this after registering modules but before workflows run.
@@ -138,7 +138,7 @@ class RoutingRegistry:
                     if name.endswith("_routes") and not name.startswith("get_"):
                         value = getattr(module, name)
                         if isinstance(value, list) and all(
-                            isinstance(r, Route) for r in value
+                            isinstance(r, PipelineRoute) for r in value
                         ):
                             self.register_routes(value)
 
@@ -151,13 +151,13 @@ class RoutingRegistry:
 
         return self
 
-    def get_route_repository(self) -> InMemoryRouteRepository:
+    def get_route_repository(self) -> InMemoryPipelineRouteRepository:
         """Get a route repository with all registered routes.
 
         Returns:
-            InMemoryRouteRepository populated with registered routes
+            InMemoryPipelineRouteRepository populated with registered routes
         """
-        return InMemoryRouteRepository(self._routes.copy())
+        return InMemoryPipelineRouteRepository(self._routes.copy())
 
     def get_transformer(
         self,
@@ -204,6 +204,13 @@ class RoutingRegistry:
         return len(self._transformers)
 
 
+# Backwards-compatible alias
+RoutingRegistry = PipelineRoutingRegistry
+
+
 # Global registry instance
 # Solution developers import and configure this at startup
-routing_registry = RoutingRegistry()
+pipeline_routing_registry = PipelineRoutingRegistry()
+
+# Backwards-compatible alias
+routing_registry = pipeline_routing_registry
