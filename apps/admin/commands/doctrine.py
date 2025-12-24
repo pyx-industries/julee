@@ -13,32 +13,20 @@ from pathlib import Path
 
 import click
 
-# Doctrine location - each test file maps to an entity in domain/models/
+# Doctrine location - each test file maps to an entity in entities/
 DOCTRINE_DIR = (
     Path(__file__).parent.parent.parent.parent
     / "src"
     / "julee"
-    / "shared"
+    / "core"
     / "doctrine"
 )
 MODELS_DIR = (
     Path(__file__).parent.parent.parent.parent
     / "src"
     / "julee"
-    / "shared"
-    / "domain"
-    / "models"
-)
-
-# Legacy location for backwards compatibility during migration
-DOCTRINE_TESTS_DIR = (
-    Path(__file__).parent.parent.parent.parent
-    / "src"
-    / "julee"
-    / "shared"
-    / "tests"
-    / "domain"
-    / "use_cases"
+    / "core"
+    / "entities"
 )
 
 
@@ -222,43 +210,6 @@ def extract_all_doctrine_new(
     return doctrine
 
 
-def extract_all_doctrine(tests_dir: Path) -> dict[str, list[DoctrineCategory]]:
-    """Extract all doctrine from doctrine test files (legacy format).
-
-    Args:
-        tests_dir: Directory containing doctrine test files
-
-    Returns:
-        Dict mapping doctrine area to list of categories
-    """
-    doctrine = {}
-
-    # Match both patterns: test_*_doctrine.py and test_doctrine_*.py
-    doctrine_files = set()
-    doctrine_files.update(tests_dir.glob("test_*_doctrine.py"))
-    doctrine_files.update(tests_dir.glob("test_doctrine_*.py"))
-
-    for test_file in sorted(doctrine_files):
-        categories = extract_doctrine_from_file(test_file)
-        if categories:
-            # For compliance tests, use category names as areas
-            # For other doctrine tests, use filename-derived area name
-            if "compliance" in test_file.stem:
-                # Use each category as its own area for compliance tests
-                for category in categories:
-                    area_name = category.name
-                    if area_name not in doctrine:
-                        doctrine[area_name] = []
-                    doctrine[area_name].append(category)
-            else:
-                # Extract area name from filename: test_foo_doctrine.py -> Foo
-                area_name = test_file.stem.replace("test_", "").replace("_doctrine", "")
-                area_name = area_name.replace("_", " ").title()
-                doctrine[area_name] = categories
-
-    return doctrine
-
-
 def format_doctrine_with_definitions(doctrine: dict[str, DoctrineArea]) -> str:
     """Format doctrine with entity definitions.
 
@@ -351,76 +302,6 @@ def format_doctrine_verbose(doctrine: dict[str, DoctrineArea]) -> str:
     return "\n".join(lines)
 
 
-def format_doctrine_summary(doctrine: dict[str, list[DoctrineCategory]]) -> str:
-    """Format doctrine as a readable summary (legacy format).
-
-    Args:
-        doctrine: Dict mapping area to categories
-
-    Returns:
-        Formatted string
-    """
-    lines = []
-    lines.append("=" * 70)
-    lines.append("ARCHITECTURAL DOCTRINE")
-    lines.append("=" * 70)
-    lines.append("")
-    lines.append(
-        "These rules are enforced by doctrine tests."
-    )
-    lines.append(
-        "The tests ARE the doctrine - docstrings state rules, assertions enforce them."
-    )
-    lines.append("")
-
-    for area, categories in doctrine.items():
-        lines.append("-" * 70)
-        lines.append(f"{area.upper()}")
-        lines.append("-" * 70)
-        lines.append("")
-
-        for category in categories:
-            if category.description:
-                lines.append(f"  {category.name}: {category.description}")
-            else:
-                lines.append(f"  {category.name}")
-            lines.append("")
-
-            for rule in category.rules:
-                # Only show first line of docstring
-                first_line = rule.statement.split("\n")[0].strip()
-                lines.append(f"    - {first_line}")
-
-            lines.append("")
-
-    return "\n".join(lines)
-
-
-def format_doctrine_table(doctrine: dict[str, list[DoctrineCategory]]) -> str:
-    """Format doctrine as a condensed table (legacy format).
-
-    Args:
-        doctrine: Dict mapping area to categories
-
-    Returns:
-        Formatted string
-    """
-    lines = []
-    lines.append("ARCHITECTURAL DOCTRINE")
-    lines.append("")
-
-    for area, categories in doctrine.items():
-        lines.append(f"{area}:")
-        for category in categories:
-            for rule in category.rules:
-                # Only show first line of docstring
-                first_line = rule.statement.split("\n")[0].strip()
-                lines.append(f"  - {first_line}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 @click.group(name="doctrine")
 def doctrine_group() -> None:
     """Display architectural doctrine."""
@@ -436,95 +317,52 @@ def show_doctrine(verbose: bool, area: str | None) -> None:
     """Show architectural doctrine rules.
 
     Extracts doctrine from test files. Each doctrine test file corresponds
-    to an entity in domain/models/. The entity docstring provides the
+    to an entity in entities/. The entity docstring provides the
     definition; test docstrings are the rules.
     """
-    # Use new doctrine directory if it exists, otherwise fall back to legacy
-    if DOCTRINE_DIR.exists():
-        doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
+    if not DOCTRINE_DIR.exists():
+        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
+        raise SystemExit(1)
 
-        if not doctrine:
-            click.echo("No doctrine tests found.")
-            return
+    doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
 
-        if area:
-            # Filter to specific area
-            area_lower = area.lower()
-            filtered = {k: v for k, v in doctrine.items() if area_lower in k.lower()}
-            if not filtered:
-                click.echo(f"No doctrine found for area '{area}'")
-                click.echo(f"Available areas: {', '.join(doctrine.keys())}")
-                raise SystemExit(1)
-            doctrine = filtered
+    if not doctrine:
+        click.echo("No doctrine tests found.")
+        return
 
-        if verbose:
-            click.echo(format_doctrine_verbose(doctrine))
-        else:
-            click.echo(format_doctrine_with_definitions(doctrine))
-    else:
-        # Legacy fallback
-        if not DOCTRINE_TESTS_DIR.exists():
-            click.echo(
-                f"Doctrine tests directory not found: {DOCTRINE_TESTS_DIR}", err=True
-            )
+    if area:
+        # Filter to specific area
+        area_lower = area.lower()
+        filtered = {k: v for k, v in doctrine.items() if area_lower in k.lower()}
+        if not filtered:
+            click.echo(f"No doctrine found for area '{area}'")
+            click.echo(f"Available areas: {', '.join(doctrine.keys())}")
             raise SystemExit(1)
+        doctrine = filtered
 
-        doctrine = extract_all_doctrine(DOCTRINE_TESTS_DIR)
-
-        if not doctrine:
-            click.echo("No doctrine tests found.")
-            return
-
-        if area:
-            # Filter to specific area
-            area_lower = area.lower()
-            filtered = {k: v for k, v in doctrine.items() if area_lower in k.lower()}
-            if not filtered:
-                click.echo(f"No doctrine found for area '{area}'")
-                click.echo(f"Available areas: {', '.join(doctrine.keys())}")
-                raise SystemExit(1)
-            doctrine = filtered
-
-        if verbose:
-            click.echo(format_doctrine_summary(doctrine))
-        else:
-            click.echo(format_doctrine_table(doctrine))
+    if verbose:
+        click.echo(format_doctrine_verbose(doctrine))
+    else:
+        click.echo(format_doctrine_with_definitions(doctrine))
 
 
 @doctrine_group.command(name="list")
 def list_doctrine_areas() -> None:
     """List available doctrine areas."""
-    # Use new doctrine directory if it exists, otherwise fall back to legacy
-    if DOCTRINE_DIR.exists():
-        doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
+    if not DOCTRINE_DIR.exists():
+        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
+        raise SystemExit(1)
 
-        if not doctrine:
-            click.echo("No doctrine tests found.")
-            return
+    doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
 
-        click.echo("Doctrine Areas:")
-        click.echo("")
-        for area_name, area in doctrine.items():
-            click.echo(f"  {area_name}: {area.rule_count} rules")
-    else:
-        # Legacy fallback
-        if not DOCTRINE_TESTS_DIR.exists():
-            click.echo(
-                f"Doctrine tests directory not found: {DOCTRINE_TESTS_DIR}", err=True
-            )
-            raise SystemExit(1)
+    if not doctrine:
+        click.echo("No doctrine tests found.")
+        return
 
-        doctrine = extract_all_doctrine(DOCTRINE_TESTS_DIR)
-
-        if not doctrine:
-            click.echo("No doctrine tests found.")
-            return
-
-        click.echo("Doctrine Areas:")
-        click.echo("")
-        for area, categories in doctrine.items():
-            rule_count = sum(len(c.rules) for c in categories)
-            click.echo(f"  {area}: {rule_count} rules")
+    click.echo("Doctrine Areas:")
+    click.echo("")
+    for area_name, area in doctrine.items():
+        click.echo(f"  {area_name}: {area.rule_count} rules")
 
 
 @doctrine_group.command(name="verify")
@@ -542,16 +380,13 @@ def verify_doctrine(verbose: bool, area: str | None) -> None:
     from apps.admin.commands.doctrine_plugin import run_doctrine_verification
     from apps.admin.templates import render_doctrine_verify
 
-    # Use new doctrine directory if it exists, otherwise fall back to legacy
-    tests_dir = DOCTRINE_DIR if DOCTRINE_DIR.exists() else DOCTRINE_TESTS_DIR
-
-    if not tests_dir.exists():
-        click.echo(f"Doctrine tests directory not found: {tests_dir}", err=True)
+    if not DOCTRINE_DIR.exists():
+        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
         raise SystemExit(1)
 
     click.echo("Running doctrine verification...\n")
 
-    results, exit_code = run_doctrine_verification(tests_dir)
+    results, exit_code = run_doctrine_verification(DOCTRINE_DIR)
 
     if not results:
         click.echo("No doctrine tests found.")
