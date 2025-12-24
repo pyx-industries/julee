@@ -152,7 +152,9 @@ class NewDataDetectionPipeline:
         # Get routing configuration from global registry
         # (configured by solution developer at startup)
         route_repository = pipeline_routing_registry.get_route_repository()
-        request_transformer = RegistryPipelineRequestTransformer(pipeline_routing_registry)
+        request_transformer = RegistryPipelineRequestTransformer(
+            pipeline_routing_registry
+        )
 
         # Use PipelineRouteResponseUseCase to find matching routes and transform requests
         routing_use_case = PipelineRouteResponseUseCase(

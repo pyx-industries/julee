@@ -13,7 +13,9 @@ See: docs/architecture/proposals/pipeline_router_design.md
 from pydantic import BaseModel, Field
 
 from julee.shared.domain.repositories.pipeline_route import PipelineRouteRepository
-from julee.shared.domain.services.pipeline_request_transformer import PipelineRequestTransformer
+from julee.shared.domain.services.pipeline_request_transformer import (
+    PipelineRequestTransformer,
+)
 
 
 class PipelineRouteResponseRequest(BaseModel):
@@ -42,9 +44,7 @@ class PipelineDispatch(BaseModel):
     """
 
     pipeline: str = Field(description="Target pipeline name")
-    request: dict = Field(
-        description="Serialized request for the target pipeline"
-    )
+    request: dict = Field(description="Serialized request for the target pipeline")
 
 
 class PipelineRouteResponseResponse(BaseModel):
@@ -55,8 +55,7 @@ class PipelineRouteResponseResponse(BaseModel):
     """
 
     dispatches: list[PipelineDispatch] = Field(
-        default_factory=list,
-        description="List of pipeline dispatches to execute"
+        default_factory=list, description="List of pipeline dispatches to execute"
     )
 
 
@@ -91,7 +90,9 @@ class PipelineRouteResponseUseCase:
         self._route_repository = route_repository
         self._request_transformer = request_transformer
 
-    async def execute(self, request: PipelineRouteResponseRequest) -> PipelineRouteResponseResponse:
+    async def execute(
+        self, request: PipelineRouteResponseRequest
+    ) -> PipelineRouteResponseResponse:
         """Route a response to downstream pipelines.
 
         Args:

@@ -13,7 +13,6 @@ See: docs/architecture/proposals/pipeline_router_design.md
 import pytest
 from pydantic import BaseModel
 
-
 # =============================================================================
 # DOCTRINE: PipelineRequestTransformer Protocol
 # =============================================================================
@@ -37,10 +36,11 @@ class TestPipelineRequestTransformerDoctrine:
 
     def test_request_transformer_MUST_have_transform_method(self):
         """PipelineRequestTransformer MUST have transform(route, response) method."""
+        import inspect
+
         from julee.shared.domain.services.pipeline_request_transformer import (
             PipelineRequestTransformer,
         )
-        import inspect
 
         assert hasattr(PipelineRequestTransformer, "transform")
         sig = inspect.signature(PipelineRequestTransformer.transform)
@@ -88,18 +88,13 @@ class TestPipelineRequestTransformerContract:
     def mock_request_transformer(self, sample_request_class):
         """Create a minimal mock implementation for testing contract."""
         from julee.shared.domain.models.pipeline_route import PipelineRoute
-        from julee.shared.domain.services.pipeline_request_transformer import (
-            PipelineRequestTransformer,
-        )
 
         SampleRequest = sample_request_class
 
         class MockPipelineRequestTransformer:
             """Mock implementation for contract testing."""
 
-            def transform(
-                self, route: PipelineRoute, response: BaseModel
-            ) -> BaseModel:
+            def transform(self, route: PipelineRoute, response: BaseModel) -> BaseModel:
                 # Simple transformation based on route types
                 if route.request_type == "SampleRequest":
                     return SampleRequest(

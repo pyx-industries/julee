@@ -13,7 +13,6 @@ See: docs/architecture/proposals/pipeline_router_design.md
 import pytest
 from pydantic import BaseModel
 
-
 # =============================================================================
 # MOCK IMPLEMENTATIONS FOR TESTING
 # =============================================================================
@@ -53,10 +52,11 @@ class TestPipelineRouteResponseUseCaseStructure:
 
     def test_use_case_MUST_accept_route_repository_dependency(self):
         """PipelineRouteResponseUseCase MUST accept PipelineRouteRepository as a dependency."""
+        import inspect
+
         from julee.shared.domain.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
-        import inspect
 
         sig = inspect.signature(PipelineRouteResponseUseCase.__init__)
         params = list(sig.parameters.keys())
@@ -64,10 +64,11 @@ class TestPipelineRouteResponseUseCaseStructure:
 
     def test_use_case_MUST_accept_request_transformer_dependency(self):
         """PipelineRouteResponseUseCase MUST accept PipelineRequestTransformer as a dependency."""
+        import inspect
+
         from julee.shared.domain.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
-        import inspect
 
         sig = inspect.signature(PipelineRouteResponseUseCase.__init__)
         params = list(sig.parameters.keys())
@@ -75,10 +76,11 @@ class TestPipelineRouteResponseUseCaseStructure:
 
     def test_use_case_MUST_have_execute_method(self):
         """PipelineRouteResponseUseCase MUST have an execute() method."""
+        import inspect
+
         from julee.shared.domain.use_cases.pipeline_route_response import (
             PipelineRouteResponseUseCase,
         )
-        import inspect
 
         assert hasattr(PipelineRouteResponseUseCase, "execute")
         assert inspect.iscoroutinefunction(PipelineRouteResponseUseCase.execute)
@@ -169,7 +171,6 @@ class TestPipelineRouteResponseUseCaseBehavior:
     def mock_route_repository(self):
         """Create mock route repository."""
         from julee.shared.domain.models.pipeline_route import (
-            PipelineCondition,
             PipelineRoute,
         )
 
@@ -193,9 +194,7 @@ class TestPipelineRouteResponseUseCaseBehavior:
         from julee.shared.domain.models.pipeline_route import PipelineRoute
 
         class MockPipelineRequestTransformer:
-            def transform(
-                self, route: PipelineRoute, response: BaseModel
-            ) -> BaseModel:
+            def transform(self, route: PipelineRoute, response: BaseModel) -> BaseModel:
                 if route.request_type == "MockRequestA":
                     return MockRequestA(
                         data=response.get("content", b""),

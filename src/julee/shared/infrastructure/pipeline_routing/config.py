@@ -8,12 +8,13 @@ responses to downstream pipelines.
 import importlib
 import logging
 from collections.abc import Callable
-from typing import Any
 
 from pydantic import BaseModel
 
 from julee.shared.domain.models.pipeline_route import PipelineRoute
-from julee.shared.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
+from julee.shared.repositories.memory.pipeline_route import (
+    InMemoryPipelineRouteRepository,
+)
 
 logger = logging.getLogger(__name__)
 

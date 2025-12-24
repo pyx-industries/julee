@@ -1,11 +1,21 @@
-"""GetPersonaBySlugUseCase.
+"""Get persona use case with co-located request/response."""
 
-Use case for getting a defined persona by slug.
-"""
+from pydantic import BaseModel
 
+from ...models.persona import Persona
 from ...repositories.persona import PersonaRepository
-from ..requests import GetPersonaBySlugRequest
-from ..responses import GetPersonaResponse
+
+
+class GetPersonaBySlugRequest(BaseModel):
+    """Request for getting a persona by slug."""
+
+    slug: str
+
+
+class GetPersonaBySlugResponse(BaseModel):
+    """Response from getting a persona by slug."""
+
+    persona: Persona | None
 
 
 class GetPersonaBySlugUseCase:
@@ -26,7 +36,9 @@ class GetPersonaBySlugUseCase:
         """
         self.persona_repo = persona_repo
 
-    async def execute(self, request: GetPersonaBySlugRequest) -> GetPersonaResponse:
+    async def execute(
+        self, request: GetPersonaBySlugRequest
+    ) -> GetPersonaBySlugResponse:
         """Get a defined persona by slug.
 
         Args:
@@ -36,4 +48,4 @@ class GetPersonaBySlugUseCase:
             Response containing the persona if found
         """
         persona = await self.persona_repo.get(request.slug)
-        return GetPersonaResponse(persona=persona)
+        return GetPersonaBySlugResponse(persona=persona)

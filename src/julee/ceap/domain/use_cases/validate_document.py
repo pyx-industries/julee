@@ -15,6 +15,7 @@ from collections.abc import Callable
 from datetime import datetime
 
 import multihash
+from pydantic import BaseModel, Field
 
 from julee.ceap.domain.models import (
     ContentStream,
@@ -38,7 +39,18 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol
 
 from .decorators import try_use_case_step
-from .requests import ValidateDocumentRequest
+
+
+class ValidateDocumentRequest(BaseModel):
+    """Request for validating a document against a policy.
+
+    Used by ValidateDocumentUseCase to validate document content
+    against policy rules.
+    """
+
+    document_id: str = Field(description="ID of the document to validate")
+    policy_id: str = Field(description="ID of the policy to validate against")
+
 
 logger = logging.getLogger(__name__)
 

@@ -127,7 +127,9 @@ class PipelineCondition(BaseModel):
         return " AND ".join(f"({cond})" for cond in self.all_of)
 
     @classmethod
-    def when(cls, field: str, operator: Operator, value: Any = None) -> "PipelineCondition":
+    def when(
+        cls, field: str, operator: Operator, value: Any = None
+    ) -> "PipelineCondition":
         """Factory for simple single-field conditions."""
         return cls(all_of=[FieldCondition(field=field, operator=operator, value=value)])
 

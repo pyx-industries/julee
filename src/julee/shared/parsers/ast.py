@@ -440,6 +440,70 @@ def _method_delegates_to_use_case(
     return delegates, use_case_instantiated
 
 
+def _method_calls_method(
+    method_node: ast.FunctionDef | ast.AsyncFunctionDef,
+    target_method: str,
+) -> bool:
+    """Check if a method calls self.{target_method}().
+
+    Looks for patterns like:
+    - await self.run_next(...)
+    - self.run_next(...)
+    - result = await self.run_next(...)
+
+    Args:
+        method_node: The method to analyze
+        target_method: Name of the method being called (e.g., "run_next")
+
+    Returns:
+        True if the method calls self.{target_method}()
+    """
+    for node in ast.walk(method_node):
+        call_node = None
+
+        # Handle await self.method(...)
+        if isinstance(node, ast.Await):
+            if isinstance(node.value, ast.Call):
+                call_node = node.value
+        # Handle self.method(...)
+        elif isinstance(node, ast.Call):
+            call_node = node
+
+        if call_node and isinstance(call_node.func, ast.Attribute):
+            if call_node.func.attr == target_method:
+                # Check if it's self.method
+                if isinstance(call_node.func.value, ast.Name):
+                    if call_node.func.value.id == "self":
+                        return True
+
+    return False
+
+
+def _method_sets_dispatches(
+    method_node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> bool:
+    """Check if a method sets dispatches on a response.
+
+    Looks for patterns like:
+    - response.dispatches = ...
+    - result.dispatches = ...
+
+    Args:
+        method_node: The method to analyze
+
+    Returns:
+        True if the method sets .dispatches on any object
+    """
+    for node in ast.walk(method_node):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Attribute):
+                    if target.attr == "dispatches":
+                        return True
+
+    return False
+
+
 def _parse_pipeline_class(
     class_node: ast.ClassDef,
     file_path: str,
@@ -486,6 +550,22 @@ def _parse_pipeline_class(
             run_method
         )
 
+    # Check for run_next() pattern
+    run_next_method = _find_method(class_node, "run_next")
+    has_run_next_method = run_next_method is not None
+    run_next_has_workflow_decorator = False
+    run_calls_run_next = False
+    sets_dispatches_on_response = False
+
+    if run_next_method:
+        run_next_has_workflow_decorator = _has_decorator(
+            run_next_method, "workflow.run"
+        )
+
+    if run_method:
+        run_calls_run_next = _method_calls_method(run_method, "run_next")
+        sets_dispatches_on_response = _method_sets_dispatches(run_method)
+
     # Extract methods (same logic as _extract_class_methods but we want run too)
     methods = []
     for node in class_node.body:
@@ -513,6 +593,11 @@ def _parse_pipeline_class(
         wrapped_use_case=wrapped_use_case,
         delegates_to_use_case=delegates_to_use_case,
         methods=methods,
+        # run_next() pattern
+        has_run_next_method=has_run_next_method,
+        run_next_has_workflow_decorator=run_next_has_workflow_decorator,
+        run_calls_run_next=run_calls_run_next,
+        sets_dispatches_on_response=sets_dispatches_on_response,
     )
 
 

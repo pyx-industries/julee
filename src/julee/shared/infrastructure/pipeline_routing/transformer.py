@@ -4,10 +4,21 @@ Provides a concrete PipelineRequestTransformer that delegates to registered
 transformer functions in the PipelineRoutingRegistry.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
 
 from julee.shared.domain.models.pipeline_route import PipelineRoute
-from julee.shared.domain.services.pipeline_request_transformer import PipelineRequestTransformer
+from julee.shared.domain.services.pipeline_request_transformer import (
+    PipelineRequestTransformer,
+)
+
+if TYPE_CHECKING:
+    from julee.shared.infrastructure.pipeline_routing.config import (
+        PipelineRoutingRegistry,
+    )
 
 
 class RegistryPipelineRequestTransformer:
@@ -19,14 +30,17 @@ class RegistryPipelineRequestTransformer:
     This implementation satisfies the PipelineRequestTransformer protocol.
     """
 
-    def __init__(self, registry: "PipelineRoutingRegistry | None" = None) -> None:
+    def __init__(self, registry: PipelineRoutingRegistry | None = None) -> None:
         """Initialize with optional registry.
 
         Args:
             registry: PipelineRoutingRegistry to use. If None, uses global registry.
         """
         if registry is None:
-            from julee.shared.infrastructure.pipeline_routing.config import pipeline_routing_registry
+            from julee.shared.infrastructure.pipeline_routing.config import (
+                pipeline_routing_registry,
+            )
+
             registry = pipeline_routing_registry
         self._registry = registry
 

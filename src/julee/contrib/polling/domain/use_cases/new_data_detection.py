@@ -146,7 +146,9 @@ class NewDataDetectionResponse(BaseModel):
     )
 
     # Error handling
-    error: str | None = Field(default=None, description="Error message if polling failed")
+    error: str | None = Field(
+        default=None, description="Error message if polling failed"
+    )
 
     # Dispatch tracking (populated by pipeline after routing)
     dispatches: list = Field(
@@ -203,7 +205,9 @@ class NewDataDetectionUseCase:
         """
         self._poller_service = poller_service
 
-    async def execute(self, request: NewDataDetectionRequest) -> NewDataDetectionResponse:
+    async def execute(
+        self, request: NewDataDetectionRequest
+    ) -> NewDataDetectionResponse:
         """Execute the new data detection.
 
         Args:

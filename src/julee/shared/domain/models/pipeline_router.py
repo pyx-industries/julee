@@ -73,10 +73,12 @@ class PipelineRouter(BaseModel):
                 lines.append("endif")
                 lines.append("")
 
-        lines.extend([
-            "stop",
-            "@enduml",
-        ])
+        lines.extend(
+            [
+                "stop",
+                "@enduml",
+            ]
+        )
 
         return "\n".join(lines)
 

@@ -17,6 +17,7 @@ from typing import Any
 import jsonpointer  # type: ignore
 import jsonschema
 import multihash
+from pydantic import BaseModel, Field
 
 from julee.ceap.domain.models import (
     Assembly,
@@ -37,7 +38,23 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
-from .requests import ExtractAssembleDataRequest
+
+
+class ExtractAssembleDataRequest(BaseModel):
+    """Request for extracting and assembling document data.
+
+    Used by ExtractAssembleDataUseCase to assemble a document according
+    to its specification.
+    """
+
+    document_id: str = Field(description="ID of the document to assemble")
+    assembly_specification_id: str = Field(
+        description="ID of the specification defining how to assemble"
+    )
+    workflow_id: str = Field(
+        description="Temporal workflow ID that creates this assembly"
+    )
+
 
 logger = logging.getLogger(__name__)
 

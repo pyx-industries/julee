@@ -4,7 +4,6 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 """
 
-
 import pytest
 
 from julee.shared.domain.doctrine_constants import (

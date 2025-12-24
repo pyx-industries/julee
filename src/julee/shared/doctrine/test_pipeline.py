@@ -248,6 +248,127 @@ class TestPipelineStructure:
 
 
 # =============================================================================
+# DOCTRINE: Pipeline run_next() Pattern
+# =============================================================================
+
+
+class TestPipelineRunNextPattern:
+    """Doctrine about pipeline routing via run_next().
+
+    A Pipeline MUST call run_next() to route responses to downstream pipelines.
+    This pattern separates business logic (in UseCase) from routing logic.
+    """
+
+    def test_pipeline_MUST_have_run_next_method(self, tmp_path: Path):
+        """A compliant pipeline MUST have a run_next() method."""
+        content = '''
+        from temporalio import workflow
+
+        @workflow.defn
+        class CompliantPipeline:
+            """Pipeline with run_next method."""
+
+            @workflow.run
+            async def run(self, request: dict) -> dict:
+                response = await SomeUseCase().execute(request)
+                await self.run_next(response)
+                return response
+
+            async def run_next(self, response) -> list:
+                return []
+        '''
+        file_path = create_pipeline_file(tmp_path, content)
+        pipelines = parse_pipelines_from_file(file_path)
+
+        assert len(pipelines) == 1
+        assert pipelines[0].has_run_next_method is True
+
+    def test_pipeline_run_next_MUST_NOT_have_workflow_run_decorator(
+        self, tmp_path: Path
+    ):
+        """run_next() MUST NOT have @workflow.run decorator.
+
+        Only run() is the entry point. run_next() is a helper method.
+        """
+        content = '''
+        from temporalio import workflow
+
+        @workflow.defn
+        class ValidPipeline:
+            """Pipeline with undecorated run_next."""
+
+            @workflow.run
+            async def run(self, request: dict) -> dict:
+                response = await SomeUseCase().execute(request)
+                await self.run_next(response)
+                return response
+
+            async def run_next(self, response) -> list:
+                # No @workflow.run here - correct!
+                return []
+        '''
+        file_path = create_pipeline_file(tmp_path, content)
+        pipelines = parse_pipelines_from_file(file_path)
+
+        assert len(pipelines) == 1
+        assert pipelines[0].run_next_has_workflow_decorator is False
+
+    def test_pipeline_run_MUST_call_run_next(self, tmp_path: Path):
+        """Pipeline's run() method MUST call self.run_next()."""
+        content = '''
+        from temporalio import workflow
+
+        @workflow.defn
+        class CompliantPipeline:
+            """Pipeline that calls run_next."""
+
+            @workflow.run
+            async def run(self, request: dict) -> dict:
+                response = await SomeUseCase().execute(request)
+                dispatches = await self.run_next(response)
+                response.dispatches = dispatches
+                return response
+
+            async def run_next(self, response) -> list:
+                return []
+        '''
+        file_path = create_pipeline_file(tmp_path, content)
+        pipelines = parse_pipelines_from_file(file_path)
+
+        assert len(pipelines) == 1
+        assert pipelines[0].run_calls_run_next is True
+
+    def test_pipeline_response_MUST_include_dispatches(self, tmp_path: Path):
+        """Pipeline response MUST include dispatches list from run_next()."""
+        # This is a structural test - the response type should have dispatches
+        content = '''
+        from temporalio import workflow
+        from julee.shared.domain.models.pipeline_dispatch import PipelineDispatchItem
+
+        @workflow.defn
+        class CompliantPipeline:
+            """Pipeline that includes dispatches in response."""
+
+            @workflow.run
+            async def run(self, request: dict) -> dict:
+                response = await SomeUseCase().execute(request)
+                dispatches = await self.run_next(response)
+                response.dispatches = dispatches
+                return response.model_dump()
+
+            async def run_next(self, response) -> list[PipelineDispatchItem]:
+                # Route via RouteResponseUseCase
+                return []
+        '''
+        file_path = create_pipeline_file(tmp_path, content)
+        pipelines = parse_pipelines_from_file(file_path)
+
+        assert len(pipelines) == 1
+        # The pipeline should set dispatches on response
+        assert pipelines[0].sets_dispatches_on_response is True
+
+
+# =============================================================================
 # DOCTRINE: Pipeline Compliance (Real Codebase)
 # =============================================================================
 

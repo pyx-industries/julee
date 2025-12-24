@@ -9,7 +9,6 @@ NewDataDetectionUseCase.
 import hashlib
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch
 
 import pytest
 from temporalio import activity
@@ -50,9 +49,7 @@ class TestNewDataDetectionPipelineFirstRun:
     """Test first run scenarios (no previous completion)."""
 
     @pytest.mark.asyncio
-    async def test_first_run_detects_as_first_poll(
-        self, workflow_env, sample_request
-    ):
+    async def test_first_run_detects_as_first_poll(self, workflow_env, sample_request):
         """Test first run sets is_first_poll=True."""
 
         @activity.defn(name="julee.contrib.polling.poll_endpoint")
@@ -82,7 +79,10 @@ class TestNewDataDetectionPipelineFirstRun:
             assert result["is_first_poll"] is True
             assert result["success"] is True
             assert result["endpoint_id"] == "test-api"
-            assert result["content_hash"] == hashlib.sha256(b"first response data").hexdigest()
+            assert (
+                result["content_hash"]
+                == hashlib.sha256(b"first response data").hexdigest()
+            )
 
     @pytest.mark.asyncio
     async def test_first_run_returns_response_structure(

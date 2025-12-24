@@ -92,7 +92,9 @@ class InMemoryPipelineRouteRepository:
         self._add_route(route)
         return self
 
-    def add_routes(self, routes: list[PipelineRoute]) -> "InMemoryPipelineRouteRepository":
+    def add_routes(
+        self, routes: list[PipelineRoute]
+    ) -> "InMemoryPipelineRouteRepository":
         """Add multiple routes (fluent API for configuration).
 
         Args:
