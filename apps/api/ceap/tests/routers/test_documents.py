@@ -16,7 +16,7 @@ from fastapi_pagination import add_pagination
 from apps.api.ceap.dependencies import get_document_repository
 from apps.api.ceap.routers.documents import router
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
-from julee.repositories.memory import MemoryDocumentRepository
+from julee.contrib.ceap.infrastructure.repositories.memory import MemoryDocumentRepository
 
 pytestmark = pytest.mark.unit
 
@@ -289,9 +289,9 @@ class TestGetDocumentContent:
 
         # Save document normally, then manually remove content from storage
         await memory_repo.save(doc)
-        stored_doc = memory_repo.storage_dict[doc.document_id]
+        stored_doc = memory_repo.storage[doc.document_id]
         # Remove content from the stored document
-        memory_repo.storage_dict[doc.document_id] = stored_doc.model_copy(
+        memory_repo.storage[doc.document_id] = stored_doc.model_copy(
             update={"content": None, "content_bytes": None}
         )
 

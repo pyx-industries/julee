@@ -20,7 +20,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
 
-from julee.core.entities import EvaluationResult
+from julee.core.entities.evaluation import EvaluationResult
 
 
 class EvaluateDocstringQualityRequest(BaseModel):

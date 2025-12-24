@@ -10,23 +10,28 @@ The classes follow the naming pattern documented in systemPatterns.org:
 - Each repository type gets its own activity prefix
 """
 
-from julee.repositories.minio.assembly import MinioAssemblyRepository
-from julee.repositories.minio.assembly_specification import (
+from julee.contrib.ceap.infrastructure.repositories.minio.assembly import (
+    MinioAssemblyRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
-from julee.repositories.minio.document import MinioDocumentRepository
-from julee.repositories.minio.document_policy_validation import (
+from julee.contrib.ceap.infrastructure.repositories.minio.document import (
+    MinioDocumentRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.minio.document_policy_validation import (
     MinioDocumentPolicyValidationRepository,
 )
-from julee.repositories.minio.knowledge_service_config import (
+from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
-from julee.repositories.minio.knowledge_service_query import (
+from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_query import (
     MinioKnowledgeServiceQueryRepository,
 )
-from julee.repositories.minio.policy import (
+from julee.contrib.ceap.infrastructure.repositories.minio.policy import (
     MinioPolicyRepository,
 )
+from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
@@ -38,7 +43,6 @@ from julee.repositories.temporal.activity_names import (
     KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE,
     POLICY_ACTIVITY_BASE,
 )
-from julee.util.temporal.decorators import temporal_activity_registration
 
 
 @temporal_activity_registration(ASSEMBLY_ACTIVITY_BASE)

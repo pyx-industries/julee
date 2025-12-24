@@ -12,8 +12,8 @@ Implementation packages:
 
 Import implementations using their full module paths, e.g.::
 
-    from julee.repositories.memory import MemoryDocumentRepository
-    from julee.repositories.minio.document import (
+    from julee.contrib.ceap.infrastructure.repositories.memory import MemoryDocumentRepository
+    from julee.contrib.ceap.infrastructure.repositories.minio.document import (
         MinioDocumentRepository,
     )
 

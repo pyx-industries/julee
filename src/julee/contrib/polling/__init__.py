@@ -6,16 +6,16 @@ It follows the Julee contrib module pattern, providing a complete polling
 solution that can be imported and used by Julee solutions.
 
 The polling module includes:
-- Domain models for polling configuration and results
+- Entities for polling configuration and results
 - Service protocols for polling operations
 - HTTP implementation for REST API polling
 - Co-located tests and examples
 
 Example usage:
-    from julee.contrib.polling.domain.models.polling_config import PollingConfig, PollingProtocol
+    from julee.contrib.polling.entities.polling_config import PollingConfig, PollingProtocol
     from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService
-    from julee.contrib.polling.domain.services.poller import PollerService
-    from julee.contrib.polling.domain.models.polling_config import PollingResult
+    from julee.contrib.polling.services.poller import PollerService
+    from julee.contrib.polling.entities.polling_config import PollingResult
 
     # Configure polling
     config = PollingConfig(
@@ -37,9 +37,11 @@ the specific modules you need rather than using this convenience module.
 # No re-exports to avoid import chains that pull non-deterministic code
 # into Temporal workflows. Import from specific submodules instead:
 #
-# Domain:
-# - from julee.contrib.polling.domain.models.polling_config import PollingConfig, PollingProtocol, PollingResult
-# - from julee.contrib.polling.domain.services.poller import PollerService
+# Entities:
+# - from julee.contrib.polling.entities.polling_config import PollingConfig, PollingProtocol, PollingResult
+#
+# Services (protocols):
+# - from julee.contrib.polling.services.poller import PollerService
 #
 # Infrastructure:
 # - from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService

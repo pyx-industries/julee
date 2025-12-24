@@ -26,6 +26,7 @@ from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 from julee.contrib.ceap.repositories.policy import PolicyRepository
+from julee.core.infrastructure.temporal.decorators import temporal_workflow_proxy
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
@@ -37,7 +38,6 @@ from julee.repositories.temporal.activity_names import (
     KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE,
     POLICY_ACTIVITY_BASE,
 )
-from julee.util.temporal.decorators import temporal_workflow_proxy
 
 
 @temporal_workflow_proxy(

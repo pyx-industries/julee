@@ -6,21 +6,25 @@ All operations go through use-case classes following clean architecture.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.hcd.use_cases import (
+from julee.hcd.use_cases.accelerator import (
     CreateAcceleratorUseCase,
-    CreateAppUseCase,
-    CreateIntegrationUseCase,
     DeleteAcceleratorUseCase,
-    DeleteAppUseCase,
-    DeleteIntegrationUseCase,
     GetAcceleratorUseCase,
-    GetAppUseCase,
-    GetIntegrationUseCase,
     ListAcceleratorsUseCase,
-    ListAppsUseCase,
-    ListIntegrationsUseCase,
     UpdateAcceleratorUseCase,
+)
+from julee.hcd.use_cases.app import (
+    CreateAppUseCase,
+    DeleteAppUseCase,
+    GetAppUseCase,
+    ListAppsUseCase,
     UpdateAppUseCase,
+)
+from julee.hcd.use_cases.integration import (
+    CreateIntegrationUseCase,
+    DeleteIntegrationUseCase,
+    GetIntegrationUseCase,
+    ListIntegrationsUseCase,
     UpdateIntegrationUseCase,
 )
 from ..dependencies import (

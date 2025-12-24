@@ -5,7 +5,7 @@ The polling module provides endpoint polling with automatic change detection. Us
 ## Quick Start
 
 ```python
-from julee.contrib.polling.domain.models.polling_config import PollingConfig, PollingProtocol
+from julee.contrib.polling.entities.polling_config import PollingConfig, PollingProtocol
 from julee.contrib.polling.infrastructure.temporal.manager import PollingManager
 
 # Create manager with your Temporal client
@@ -64,7 +64,7 @@ Transformers convert the polling response into the request format your downstrea
 
 ```python
 # my_solution/transformers.py
-from julee.contrib.polling.domain.use_cases import NewDataDetectionResponse
+from julee.contrib.polling.use_cases import NewDataDetectionResponse
 
 def polling_to_document_request(response: dict) -> ProcessDocumentRequest:
     """Transform polling response to document processing request."""

@@ -1,5 +1,5 @@
+from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
 from julee.util.repos.minio.file_storage import MinioFileStorageRepository
-from julee.util.temporal.decorators import temporal_activity_registration
 
 
 @temporal_activity_registration("util.file_storage.minio")

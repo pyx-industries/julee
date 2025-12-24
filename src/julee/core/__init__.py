@@ -2,22 +2,9 @@
 
 Provides common utilities, repository protocols, and base classes
 used across all domain accelerators (CEAP, HCD, C4).
+
+Import directly from submodules:
+    from julee.core.utils import normalize_name, slugify
+    from julee.core.entities.bounded_context import BoundedContext
+    from julee.core.repositories.bounded_context import BoundedContextRepository
 """
-
-from .utils import (
-    kebab_to_snake,
-    normalize_name,
-    parse_csv_option,
-    parse_integration_options,
-    parse_list_option,
-    slugify,
-)
-
-__all__ = [
-    "normalize_name",
-    "slugify",
-    "kebab_to_snake",
-    "parse_list_option",
-    "parse_csv_option",
-    "parse_integration_options",
-]

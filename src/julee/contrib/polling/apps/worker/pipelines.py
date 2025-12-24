@@ -16,13 +16,13 @@ from typing import Any
 
 from temporalio import workflow
 
-from julee.contrib.polling.domain.use_cases import (
+from julee.contrib.polling.infrastructure.temporal.proxies import (
+    WorkflowPollerServiceProxy,
+)
+from julee.contrib.polling.use_cases import (
     NewDataDetectionRequest,
     NewDataDetectionResponse,
     NewDataDetectionUseCase,
-)
-from julee.contrib.polling.infrastructure.temporal.proxies import (
-    WorkflowPollerServiceProxy,
 )
 from julee.core.entities.pipeline_dispatch import PipelineDispatchItem
 from julee.core.infrastructure.pipeline_routing import (

@@ -21,11 +21,11 @@ from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
 from julee.contrib.polling.apps.worker.pipelines import NewDataDetectionPipeline
-from julee.contrib.polling.domain.models.polling_config import (
+from julee.contrib.polling.entities.polling_config import (
     PollingProtocol,
     PollingResult,
 )
-from julee.contrib.polling.domain.use_cases import NewDataDetectionRequest
+from julee.contrib.polling.use_cases import NewDataDetectionRequest
 
 pytestmark = pytest.mark.integration
 

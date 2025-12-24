@@ -19,6 +19,7 @@ DOCTRINE_DIR = Path(__file__).parent
 # - Tested via consolidated doctrine tests (e.g., pipeline routing models)
 SUPPORTING_MODELS = {
     "code_info",  # Contains FieldInfo, MethodInfo, BoundedContextInfo - supporting models
+    "content_stream",  # Pydantic IO stream wrapper - infrastructure utility
     "evaluation",  # Contains EvaluationResult - infrastructure for semantic evaluation
     # Pipeline routing models are tested via test_route_doctrine.py in tests/domain/models/
     "pipeline_dispatch",

@@ -19,20 +19,20 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.contrib.ceap.use_cases.initialize_system_data import (
-    InitializeSystemDataUseCase,
-)
-from julee.repositories.memory.assembly_specification import (
+from julee.contrib.ceap.infrastructure.repositories.memory.assembly_specification import (
     MemoryAssemblySpecificationRepository,
 )
-from julee.repositories.memory.document import (
+from julee.contrib.ceap.infrastructure.repositories.memory.document import (
     MemoryDocumentRepository,
 )
-from julee.repositories.memory.knowledge_service_config import (
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
 )
-from julee.repositories.memory.knowledge_service_query import (
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
+)
+from julee.contrib.ceap.use_cases.initialize_system_data import (
+    InitializeSystemDataUseCase,
 )
 
 pytestmark = pytest.mark.unit

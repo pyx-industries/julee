@@ -12,13 +12,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from julee.contrib.ceap.entities.content_stream import (
-    ContentStream,
-)
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
+)
+from julee.core.entities.content_stream import (
+    ContentStream,
 )
 from julee.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks,

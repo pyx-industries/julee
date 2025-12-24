@@ -21,13 +21,13 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
 from julee.contrib.ceap.repositories.document import DocumentRepository
+from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
 from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )
 from julee.services.temporal.activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
-from julee.util.temporal.decorators import temporal_activity_registration
 
 from ..knowledge_service import FileRegistrationResult
 

@@ -6,7 +6,7 @@ Use case for getting a single bounded context by slug.
 from pydantic import BaseModel, Field
 
 from julee.core.entities.bounded_context import BoundedContext
-from julee.core.repositories import BoundedContextRepository
+from julee.core.repositories.bounded_context import BoundedContextRepository
 
 
 class GetBoundedContextRequest(BaseModel):

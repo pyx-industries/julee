@@ -6,23 +6,29 @@ All operations go through use-case classes following clean architecture.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.hcd.use_cases import (
+from julee.hcd.use_cases.epic import (
     CreateEpicUseCase,
-    CreateJourneyUseCase,
-    CreateStoryUseCase,
     DeleteEpicUseCase,
-    DeleteJourneyUseCase,
-    DeleteStoryUseCase,
-    DerivePersonasUseCase,
     GetEpicUseCase,
-    GetJourneyUseCase,
-    GetPersonaUseCase,
-    GetStoryUseCase,
     ListEpicsUseCase,
-    ListJourneysUseCase,
-    ListStoriesUseCase,
     UpdateEpicUseCase,
+)
+from julee.hcd.use_cases.journey import (
+    CreateJourneyUseCase,
+    DeleteJourneyUseCase,
+    GetJourneyUseCase,
+    ListJourneysUseCase,
     UpdateJourneyUseCase,
+)
+from julee.hcd.use_cases.queries import (
+    DerivePersonasUseCase,
+    GetPersonaUseCase,
+)
+from julee.hcd.use_cases.story import (
+    CreateStoryUseCase,
+    DeleteStoryUseCase,
+    GetStoryUseCase,
+    ListStoriesUseCase,
     UpdateStoryUseCase,
 )
 from ..dependencies import (

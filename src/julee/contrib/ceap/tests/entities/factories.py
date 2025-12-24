@@ -18,13 +18,13 @@ from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee.contrib.ceap.entities.content_stream import ContentStream
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
 from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.core.entities.content_stream import ContentStream
 
 
 class AssemblyFactory(Factory):

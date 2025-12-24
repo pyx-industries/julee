@@ -12,7 +12,7 @@ without requiring the core framework to know about specific contrib modules.
 
 import logging
 
-from julee.util.temporal.decorators import temporal_activity_registration
+from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
 
 from ..services.polling.http.http_poller_service import HttpPollerService
 from .activity_names import POLLING_SERVICE_ACTIVITY_BASE

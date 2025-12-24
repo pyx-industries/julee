@@ -8,45 +8,50 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.hcd.use_cases import (
-    # Accelerator use-cases
+from julee.hcd.use_cases.accelerator import (
     CreateAcceleratorUseCase,
-    # App use-cases
-    CreateAppUseCase,
-    # Epic use-cases
-    CreateEpicUseCase,
-    # Integration use-cases
-    CreateIntegrationUseCase,
-    # Journey use-cases
-    CreateJourneyUseCase,
-    # Story use-cases
-    CreateStoryUseCase,
     DeleteAcceleratorUseCase,
-    DeleteAppUseCase,
-    DeleteEpicUseCase,
-    DeleteIntegrationUseCase,
-    DeleteJourneyUseCase,
-    DeleteStoryUseCase,
-    # Query use-cases
-    DerivePersonasUseCase,
     GetAcceleratorUseCase,
-    GetAppUseCase,
-    GetEpicUseCase,
-    GetIntegrationUseCase,
-    GetJourneyUseCase,
-    GetPersonaUseCase,
-    GetStoryUseCase,
     ListAcceleratorsUseCase,
-    ListAppsUseCase,
-    ListEpicsUseCase,
-    ListIntegrationsUseCase,
-    ListJourneysUseCase,
-    ListStoriesUseCase,
     UpdateAcceleratorUseCase,
+)
+from julee.hcd.use_cases.app import (
+    CreateAppUseCase,
+    DeleteAppUseCase,
+    GetAppUseCase,
+    ListAppsUseCase,
     UpdateAppUseCase,
+)
+from julee.hcd.use_cases.epic import (
+    CreateEpicUseCase,
+    DeleteEpicUseCase,
+    GetEpicUseCase,
+    ListEpicsUseCase,
     UpdateEpicUseCase,
+)
+from julee.hcd.use_cases.integration import (
+    CreateIntegrationUseCase,
+    DeleteIntegrationUseCase,
+    GetIntegrationUseCase,
+    ListIntegrationsUseCase,
     UpdateIntegrationUseCase,
+)
+from julee.hcd.use_cases.journey import (
+    CreateJourneyUseCase,
+    DeleteJourneyUseCase,
+    GetJourneyUseCase,
+    ListJourneysUseCase,
     UpdateJourneyUseCase,
+)
+from julee.hcd.use_cases.queries import (
+    DerivePersonasUseCase,
+    GetPersonaUseCase,
+)
+from julee.hcd.use_cases.story import (
+    CreateStoryUseCase,
+    DeleteStoryUseCase,
+    GetStoryUseCase,
+    ListStoriesUseCase,
     UpdateStoryUseCase,
 )
 from julee.hcd.infrastructure.repositories.file import (

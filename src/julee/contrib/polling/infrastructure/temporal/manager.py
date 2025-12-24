@@ -22,8 +22,8 @@ from temporalio.client import (
     ScheduleUpdateInput,
 )
 
-from julee.contrib.polling.domain.models.polling_config import PollingConfig
-from julee.contrib.polling.domain.use_cases import NewDataDetectionRequest
+from julee.contrib.polling.entities.polling_config import PollingConfig
+from julee.contrib.polling.use_cases import NewDataDetectionRequest
 
 logger = logging.getLogger(__name__)
 

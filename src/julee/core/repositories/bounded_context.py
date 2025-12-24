@@ -7,7 +7,7 @@ cached state, or from other sources.
 
 from typing import Protocol, runtime_checkable
 
-from julee.core.entities import BoundedContext
+from julee.core.entities.bounded_context import BoundedContext
 
 
 @runtime_checkable

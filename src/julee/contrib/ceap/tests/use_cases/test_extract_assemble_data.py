@@ -25,16 +25,16 @@ from julee.contrib.ceap.entities import (
     KnowledgeServiceQuery,
 )
 from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
-from julee.contrib.ceap.use_cases import (
-    ExtractAssembleDataRequest,
-    ExtractAssembleDataUseCase,
-)
-from julee.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
     MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
+)
+from julee.contrib.ceap.use_cases import (
+    ExtractAssembleDataRequest,
+    ExtractAssembleDataUseCase,
 )
 from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (

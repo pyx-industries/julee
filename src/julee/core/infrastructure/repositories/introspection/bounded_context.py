@@ -18,7 +18,7 @@ from julee.core.doctrine_constants import (
     USE_CASES_PATH,
     VIEWPOINT_SLUGS,
 )
-from julee.core.entities import BoundedContext, StructuralMarkers
+from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
 
 __all__ = ["FilesystemBoundedContextRepository"]
 

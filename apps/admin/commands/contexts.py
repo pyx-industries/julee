@@ -13,7 +13,7 @@ from apps.admin.dependencies import (
     get_get_bounded_context_use_case,
     get_list_bounded_contexts_use_case,
 )
-from julee.core.entities import BoundedContext
+from julee.core.entities.bounded_context import BoundedContext
 from julee.core.use_cases import (
     GetBoundedContextRequest,
     ListBoundedContextsRequest,

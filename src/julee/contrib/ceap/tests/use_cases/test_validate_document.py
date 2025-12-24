@@ -26,16 +26,16 @@ from julee.contrib.ceap.entities.document_policy_validation import (
 )
 from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.entities.policy import Policy, PolicyStatus
-from julee.contrib.ceap.use_cases import (
-    ValidateDocumentRequest,
-    ValidateDocumentUseCase,
-)
-from julee.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryDocumentPolicyValidationRepository,
     MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
     MemoryPolicyRepository,
+)
+from julee.contrib.ceap.use_cases import (
+    ValidateDocumentRequest,
+    ValidateDocumentUseCase,
 )
 from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (

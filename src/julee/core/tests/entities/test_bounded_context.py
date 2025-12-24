@@ -2,7 +2,7 @@
 
 import pytest
 
-from julee.core.entities import BoundedContext, StructuralMarkers
+from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
 
 
 class TestStructuralMarkers:

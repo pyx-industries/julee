@@ -11,11 +11,11 @@ from typing import Any
 
 import httpx
 
-from julee.contrib.polling.domain.models.polling_config import (
+from julee.contrib.polling.entities.polling_config import (
     PollingConfig,
     PollingResult,
 )
-from julee.contrib.polling.domain.services.poller import PollerService
+from julee.contrib.polling.services.poller import PollerService
 
 
 class HttpPollerService(PollerService):

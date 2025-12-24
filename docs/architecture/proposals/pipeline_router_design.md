@@ -418,7 +418,7 @@ polling_router = MultiplexRouter(
     description="Routes polling responses to downstream processing pipelines",
     routes=[
         Route(
-            response_type="julee.contrib.polling.domain.use_cases.responses.NewDataDetectionResponse",
+            response_type="julee.contrib.polling.use_cases.NewDataDetectionResponse",
             condition=Condition.is_true("has_new_data"),
             pipeline="julee.contrib.docproc.apps.worker.pipelines.DocumentProcessingPipeline",
             request_type="julee.contrib.docproc.domain.use_cases.requests.ProcessDocumentRequest",
@@ -430,7 +430,7 @@ polling_router = MultiplexRouter(
             description="When new data detected, trigger document processing",
         ),
         Route(
-            response_type="julee.contrib.polling.domain.use_cases.responses.NewDataDetectionResponse",
+            response_type="julee.contrib.polling.use_cases.NewDataDetectionResponse",
             condition=Condition.is_not_none("error"),
             pipeline="julee.shared.apps.worker.pipelines.ErrorNotificationPipeline",
             request_type="julee.shared.domain.use_cases.requests.NotifyErrorRequest",
@@ -453,10 +453,10 @@ polling_router = MultiplexRouter(
 
 from temporalio import workflow
 
-from julee.contrib.polling.domain.use_cases.new_data_detection import (
+from julee.contrib.polling.use_cases import (
     NewDataDetectionUseCase,
+    NewDataDetectionRequest,
 )
-from julee.contrib.polling.domain.use_cases.requests import NewDataDetectionRequest
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )

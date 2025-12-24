@@ -21,7 +21,7 @@ from julee.contrib.ceap.entities import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
-from julee.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryAssemblySpecificationRepository,
 )
 

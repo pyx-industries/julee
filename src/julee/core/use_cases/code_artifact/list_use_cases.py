@@ -6,7 +6,7 @@ Use case for listing use case classes across bounded contexts.
 from pathlib import Path
 
 from julee.core.parsers.ast import parse_bounded_context
-from julee.core.repositories import BoundedContextRepository
+from julee.core.repositories.bounded_context import BoundedContextRepository
 
 from .uc_interfaces import (
     CodeArtifactWithContext,
