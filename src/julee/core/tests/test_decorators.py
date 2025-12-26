@@ -26,7 +26,9 @@ class TestResponse(BaseModel):
 
 
 @runtime_checkable
-class TestRepository(Protocol):
+class SampleRepository(Protocol):
+    """Sample repository protocol for testing (not a test class)."""
+
     async def get(self, id: str) -> str | None: ...
 
 
@@ -36,7 +38,7 @@ class ValidRepository:
 
 
 class InvalidRepository:
-    """Does not implement TestRepository protocol."""
+    """Does not implement SampleRepository protocol."""
 
     def something_else(self) -> None:
         pass
@@ -55,7 +57,7 @@ class TestUseCaseDecorator:
 
         @use_case
         class MyUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -94,7 +96,7 @@ class TestProtocolValidation:
 
         @use_case
         class MyUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -109,14 +111,14 @@ class TestProtocolValidation:
 
         @use_case
         class MyUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
                 return TestResponse(result="ok")
 
         with pytest.raises(
-            UseCaseConfigurationError, match="does not implement TestRepository"
+            UseCaseConfigurationError, match="does not implement SampleRepository"
         ):
             MyUseCase(InvalidRepository())
 
@@ -125,7 +127,7 @@ class TestProtocolValidation:
 
         @use_case
         class MyUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -139,7 +141,7 @@ class TestProtocolValidation:
 
         @use_case
         class MyUseCase:
-            def __init__(self, repo: TestRepository, name: str):
+            def __init__(self, repo: SampleRepository, name: str):
                 self.repo = repo
                 self.name = name
 
@@ -164,7 +166,7 @@ class TestLogging:
 
         @use_case
         class LoggedUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -190,7 +192,7 @@ class TestLogging:
 
         @use_case
         class FailingUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -220,7 +222,7 @@ class TestErrorWrapping:
 
         @use_case
         class FailingUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -240,7 +242,7 @@ class TestErrorWrapping:
 
         @use_case
         class RethrowingUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -268,7 +270,7 @@ class TestSyncExecute:
 
         @use_case
         class SyncUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             def execute(self, request: TestRequest) -> TestResponse:
@@ -283,7 +285,7 @@ class TestSyncExecute:
 
         @use_case
         class SyncFailingUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             def execute(self, request: TestRequest) -> TestResponse:
@@ -309,7 +311,7 @@ class TestGenericBaseClass:
         """Should work with execute() inherited from base class."""
 
         class BaseUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:
@@ -327,7 +329,7 @@ class TestGenericBaseClass:
         """Should wrap execute() when overridden in derived class."""
 
         class BaseUseCase:
-            def __init__(self, repo: TestRepository):
+            def __init__(self, repo: SampleRepository):
                 self.repo = repo
 
             async def execute(self, request: TestRequest) -> TestResponse:

@@ -66,3 +66,23 @@ class AppRepository(BaseRepository[App], Protocol):
             List of apps that have this accelerator in their accelerators list
         """
         ...
+
+    async def list_filtered(
+        self,
+        app_type: str | None = None,
+        has_accelerator: str | None = None,
+    ) -> list[App]:
+        """List apps matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            app_type: Filter to apps of this type (staff, external, member-tool, etc.)
+            has_accelerator: Filter to apps that expose this accelerator
+
+        Returns:
+            List of apps matching all provided filters
+        """
+        ...
