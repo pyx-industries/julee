@@ -19,6 +19,7 @@ from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.journey import Journey, JourneyStep
+from julee.hcd.use_cases.journey.list import ListJourneysRequest
 from julee.hcd.utils import (
     normalize_name,
     parse_csv_option,
@@ -300,14 +301,12 @@ class JourneysForPersonaDirective(HCDDirective):
 
     def run(self):
         persona_arg = self.arguments[0]
-        persona_normalized = normalize_name(persona_arg)
 
-        all_journeys = self.hcd_context.journey_repo.list_all()
-
-        # Find journeys for this persona
-        journeys = [
-            j for j in all_journeys if normalize_name(j.persona) == persona_normalized
-        ]
+        # Get journeys using filtered use case
+        response = self.hcd_context.list_journeys.execute_sync(
+            ListJourneysRequest(persona=persona_arg)
+        )
+        journeys = response.journeys
 
         if not journeys:
             return self.empty_result(f"No journeys found for persona '{persona_arg}'")

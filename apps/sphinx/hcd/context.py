@@ -3,6 +3,10 @@
 Provides a single context object that holds all repositories for the
 HCD documentation system. This replaces the scattered global/env registries
 with a unified, type-safe interface.
+
+Use cases are exposed as properties for filtering operations:
+    response = context.list_stories.execute_sync(ListStoriesRequest(app_slug="portal"))
+    stories = response.stories
 """
 
 from dataclasses import dataclass, field
@@ -23,6 +27,11 @@ from julee.hcd.infrastructure.repositories.memory.integration import (
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
 from julee.hcd.infrastructure.repositories.memory.persona import MemoryPersonaRepository
 from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
+from julee.hcd.use_cases.accelerator.list import ListAcceleratorsUseCase
+from julee.hcd.use_cases.app.list import ListAppsUseCase
+from julee.hcd.use_cases.epic.list import ListEpicsUseCase
+from julee.hcd.use_cases.journey.list import ListJourneysUseCase
+from julee.hcd.use_cases.story.list import ListStoriesUseCase
 
 from .adapters import SyncRepositoryAdapter
 from .repositories import (
@@ -92,6 +101,33 @@ class HCDContext:
     code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(
         default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository())
     )
+
+    # Use case factories (created on demand from underlying async repos)
+
+    @property
+    def list_stories(self) -> ListStoriesUseCase:
+        """Get ListStoriesUseCase for filtered story queries."""
+        return ListStoriesUseCase(self.story_repo.async_repo)  # type: ignore
+
+    @property
+    def list_journeys(self) -> ListJourneysUseCase:
+        """Get ListJourneysUseCase for filtered journey queries."""
+        return ListJourneysUseCase(self.journey_repo.async_repo)  # type: ignore
+
+    @property
+    def list_epics(self) -> ListEpicsUseCase:
+        """Get ListEpicsUseCase for filtered epic queries."""
+        return ListEpicsUseCase(self.epic_repo.async_repo)  # type: ignore
+
+    @property
+    def list_apps(self) -> ListAppsUseCase:
+        """Get ListAppsUseCase for filtered app queries."""
+        return ListAppsUseCase(self.app_repo.async_repo)  # type: ignore
+
+    @property
+    def list_accelerators(self) -> ListAcceleratorsUseCase:
+        """Get ListAcceleratorsUseCase for filtered accelerator queries."""
+        return ListAcceleratorsUseCase(self.accelerator_repo.async_repo)  # type: ignore
 
     def clear_all(self) -> None:
         """Clear all repositories.

@@ -18,6 +18,7 @@ from julee.hcd.use_cases.resolve_story_references import (
     get_epics_for_story,
     get_journeys_for_story,
 )
+from julee.hcd.use_cases.story.list import ListStoriesRequest
 from julee.hcd.utils import normalize_name, slugify
 
 from .base import HCDDirective, make_deprecated_directive
@@ -46,11 +47,12 @@ class StoryAppDirective(HCDDirective):
 
     def run(self):
         app_arg = self.arguments[0]
-        app_normalized = normalize_name(app_arg)
 
-        # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list_all()
-        stories = [s for s in all_stories if s.app_normalized == app_normalized]
+        # Get stories using filtered use case
+        response = self.hcd_context.list_stories.execute_sync(
+            ListStoriesRequest(app_slug=app_arg)
+        )
+        stories = response.stories
 
         if not stories:
             return self.empty_result(f"No stories found for application '{app_arg}'")
@@ -156,11 +158,12 @@ class StoryListForPersonaDirective(HCDDirective):
 
     def run(self):
         persona_arg = self.arguments[0]
-        persona_normalized = normalize_name(persona_arg)
 
-        # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list_all()
-        stories = [s for s in all_stories if s.persona_normalized == persona_normalized]
+        # Get stories using filtered use case
+        response = self.hcd_context.list_stories.execute_sync(
+            ListStoriesRequest(persona=persona_arg)
+        )
+        stories = response.stories
 
         if not stories:
             return self.empty_result(f"No stories found for persona '{persona_arg}'")
@@ -205,11 +208,12 @@ class StoryListForAppDirective(HCDDirective):
 
     def run(self):
         app_arg = self.arguments[0]
-        app_normalized = normalize_name(app_arg)
 
-        # Get stories from repository
-        all_stories = self.hcd_context.story_repo.list_all()
-        stories = [s for s in all_stories if s.app_normalized == app_normalized]
+        # Get stories using filtered use case
+        response = self.hcd_context.list_stories.execute_sync(
+            ListStoriesRequest(app_slug=app_arg)
+        )
+        stories = response.stories
 
         if not stories:
             return self.empty_result(f"No stories found for application '{app_arg}'")
