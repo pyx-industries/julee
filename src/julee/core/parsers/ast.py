@@ -588,7 +588,7 @@ def _parse_pipeline_class(
         Pipeline if class is a pipeline, None otherwise
     """
     from julee.core.doctrine_constants import PIPELINE_SUFFIX
-    from julee.core.entities.code_info import MethodInfo
+    from julee.core.entities.code_info import MethodInfo, ParameterInfo
     from julee.core.entities.pipeline import Pipeline
 
     # Check if this is a pipeline class
@@ -635,7 +635,14 @@ def _parse_pipeline_class(
     methods = []
     for node in class_node.body:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-            params = [arg.arg for arg in node.args.args if arg.arg != "self"]
+            params = [
+                ParameterInfo(
+                    name=arg.arg,
+                    type_annotation=_get_annotation_str(arg.annotation),
+                )
+                for arg in node.args.args
+                if arg.arg != "self"
+            ]
             method_doc = ast.get_docstring(node) or ""
             methods.append(
                 MethodInfo(
