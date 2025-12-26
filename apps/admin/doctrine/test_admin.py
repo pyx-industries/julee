@@ -133,7 +133,6 @@ class TestAdminSolutionStructureCommands:
             f"Found commands: {sorted(command_names)}"
         )
 
-    @pytest.mark.skip(reason="Pending implementation of solution commands")
     def test_admin_MUST_have_solution_command(self, admin_root: Path) -> None:
         """Admin CLI MUST have commands for the Solution entity.
 
@@ -149,7 +148,6 @@ class TestAdminSolutionStructureCommands:
             f"Found commands: {sorted(command_names)}"
         )
 
-    @pytest.mark.skip(reason="Pending implementation of apps commands")
     def test_admin_MUST_have_apps_command(self, admin_root: Path) -> None:
         """Admin CLI MUST have commands for listing applications.
 
@@ -164,7 +162,6 @@ class TestAdminSolutionStructureCommands:
             f"Found commands: {sorted(command_names)}"
         )
 
-    @pytest.mark.skip(reason="Pending implementation of deployments commands")
     def test_admin_MUST_have_deployments_command(self, admin_root: Path) -> None:
         """Admin CLI MUST have commands for listing deployments.
 

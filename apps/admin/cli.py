@@ -16,6 +16,11 @@ from apps.admin.commands.artifacts import (
 from apps.admin.commands.contexts import contexts_group
 from apps.admin.commands.doctrine import doctrine_group
 from apps.admin.commands.routes import routes_group
+from apps.admin.commands.solution import (
+    apps_group,
+    deployments_group,
+    solution_group,
+)
 
 
 @click.group()
@@ -29,6 +34,9 @@ def cli() -> None:
 
 
 # Register command groups
+cli.add_command(solution_group)
+cli.add_command(apps_group)
+cli.add_command(deployments_group)
 cli.add_command(contexts_group)
 cli.add_command(entities_group)
 cli.add_command(use_cases_group)

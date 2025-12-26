@@ -9,8 +9,17 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from julee.core.infrastructure.repositories.introspection.application import (
+    FilesystemApplicationRepository,
+)
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
+)
+from julee.core.infrastructure.repositories.introspection.deployment import (
+    FilesystemDeploymentRepository,
+)
+from julee.core.infrastructure.repositories.introspection.solution import (
+    FilesystemSolutionRepository,
 )
 from julee.core.use_cases.bounded_context.get import GetBoundedContextUseCase
 from julee.core.use_cases.bounded_context.list import ListBoundedContextsUseCase
@@ -158,3 +167,38 @@ def get_list_responses_use_case() -> ListResponsesUseCase:
         Use case for listing response DTOs
     """
     return ListResponsesUseCase(get_bounded_context_repository())
+
+
+# =============================================================================
+# Solution Structure Repositories
+# =============================================================================
+
+
+@lru_cache
+def get_solution_repository() -> FilesystemSolutionRepository:
+    """Get the solution repository singleton.
+
+    Returns:
+        Repository for discovering the solution structure
+    """
+    return FilesystemSolutionRepository(get_project_root())
+
+
+@lru_cache
+def get_application_repository() -> FilesystemApplicationRepository:
+    """Get the application repository singleton.
+
+    Returns:
+        Repository for discovering applications in the solution
+    """
+    return FilesystemApplicationRepository(get_project_root())
+
+
+@lru_cache
+def get_deployment_repository() -> FilesystemDeploymentRepository:
+    """Get the deployment repository singleton.
+
+    Returns:
+        Repository for discovering deployments in the solution
+    """
+    return FilesystemDeploymentRepository(get_project_root())
