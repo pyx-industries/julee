@@ -42,7 +42,9 @@ async def list_knowledge_service_queries(
         if not id_list:
             raise HTTPException(status_code=400, detail="Invalid ids parameter")
         if len(id_list) > 100:
-            raise HTTPException(status_code=400, detail="Maximum 100 IDs per request")
+            raise HTTPException(
+                status_code=400, detail="Too many IDs requested: maximum 100 allowed"
+            )
 
         results = await repository.get_many(id_list)
         found_queries = [q for q in results.values() if q is not None]

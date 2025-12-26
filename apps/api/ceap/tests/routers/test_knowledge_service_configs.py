@@ -14,7 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.ceap.app import app
-from apps.api.ceap.dependencies import (
+from julee.contrib.ceap.apps.api.dependencies import (
     get_knowledge_service_config_repository,
 )
 from julee.contrib.ceap.entities.knowledge_service_config import (

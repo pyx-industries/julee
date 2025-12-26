@@ -12,11 +12,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.ceap.app import app
-from apps.api.ceap.dependencies import (
+from julee.contrib.ceap.apps.api.dependencies import (
     get_knowledge_service_config_repository,
     get_knowledge_service_query_repository,
 )
-from apps.api.ceap.responses import ServiceStatus
+from julee.contrib.ceap.apps.api.responses import ServiceStatus
 from julee.contrib.ceap.entities import KnowledgeServiceQuery
 from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
@@ -55,8 +55,8 @@ def client(
     )
 
     with (
-        patch("apps.api.ceap.routers.system.check_temporal_health") as mock_temporal,
-        patch("apps.api.ceap.routers.system.check_storage_health") as mock_storage,
+        patch("julee.contrib.ceap.apps.api.routers.system.check_temporal_health") as mock_temporal,
+        patch("julee.contrib.ceap.apps.api.routers.system.check_storage_health") as mock_storage,
     ):
         # Mock health checks to return UP status
         mock_temporal.return_value = ServiceStatus.UP

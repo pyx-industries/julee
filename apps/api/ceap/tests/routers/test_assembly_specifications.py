@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from apps.api.ceap.dependencies import (
+from julee.contrib.ceap.apps.api.dependencies import (
     get_assembly_specification_repository,
 )
 from apps.api.ceap.routers import assembly_specifications_router as router

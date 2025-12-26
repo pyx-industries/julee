@@ -11,7 +11,7 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from apps.api.ceap.requests import (
+from julee.contrib.ceap.use_cases.crud import (
     CreateAssemblySpecificationRequest,
     CreateKnowledgeServiceQueryRequest,
 )
@@ -79,37 +79,6 @@ class TestCreateAssemblySpecificationRequest:
             and "type" in e["msg"]
             for e in errors
         )
-
-    def test_to_domain_model_conversion(self) -> None:
-        """Test conversion from request model to domain model."""
-        request = CreateAssemblySpecificationRequest(
-            name="Test Assembly",
-            applicability="Test documents",
-            jsonschema={
-                "type": "object",
-                "properties": {"content": {"type": "string"}},
-            },
-            knowledge_service_queries={"/properties/content": "query-123"},
-            version="1.0.0",
-        )
-
-        domain_model = request.to_domain_model("spec-456")
-
-        assert isinstance(domain_model, AssemblySpecification)
-        assert domain_model.assembly_specification_id == "spec-456"
-        assert domain_model.name == "Test Assembly"
-        assert domain_model.applicability == "Test documents"
-        assert domain_model.jsonschema == {
-            "type": "object",
-            "properties": {"content": {"type": "string"}},
-        }
-        assert domain_model.knowledge_service_queries == {
-            "/properties/content": "query-123"
-        }
-        assert domain_model.version == "1.0.0"
-        assert domain_model.status == AssemblySpecificationStatus.DRAFT
-        assert isinstance(domain_model.created_at, datetime)
-        assert isinstance(domain_model.updated_at, datetime)
 
     def test_field_definitions_match_domain_model(self) -> None:
         """Test that field definitions are copied from domain model."""
@@ -193,32 +162,6 @@ class TestCreateKnowledgeServiceQueryRequest:
             and "service ID cannot be empty" in e["msg"]
             for e in errors
         )
-
-    def test_to_domain_model_conversion(self) -> None:
-        """Test conversion from request model to domain model."""
-        request = CreateKnowledgeServiceQueryRequest(
-            name="Test Query",
-            knowledge_service_id="test-service",
-            prompt="Test prompt for extraction",
-            query_metadata={"model": "claude-3", "temperature": 0.2},
-            assistant_prompt="Please format as JSON",
-        )
-
-        domain_model = request.to_domain_model("query-456")
-
-        assert isinstance(domain_model, KnowledgeServiceQuery)
-        assert domain_model.query_id == "query-456"
-        assert domain_model.name == "Test Query"
-        assert domain_model.knowledge_service_id == "test-service"
-        assert domain_model.prompt == "Test prompt for extraction"
-        assert domain_model.query_metadata == {
-            "model": "claude-3",
-            "temperature": 0.2,
-        }
-        assert domain_model.assistant_prompt == "Please format as JSON"
-        assert isinstance(domain_model.created_at, datetime)
-        assert isinstance(domain_model.updated_at, datetime)
-        assert domain_model.created_at == domain_model.updated_at
 
     def test_field_definitions_match_domain_model(self) -> None:
         """Test that field definitions are copied from domain model."""

@@ -14,8 +14,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from apps.api.ceap.responses import ServiceStatus
-from apps.api.ceap.routers.system import router
+from julee.contrib.ceap.apps.api.responses import ServiceStatus
+from apps.api.ceap.routers import system_router as router
 
 pytestmark = pytest.mark.unit
 
@@ -37,8 +37,8 @@ def client(
 ) -> Generator[TestClient, None, None]:
     """Create a test client with the system router app."""
     with (
-        patch("julee.api.routers.system.check_temporal_health") as mock_temporal,
-        patch("julee.api.routers.system.check_storage_health") as mock_storage,
+        patch("julee.contrib.ceap.apps.api.routers.system.check_temporal_health") as mock_temporal,
+        patch("julee.contrib.ceap.apps.api.routers.system.check_storage_health") as mock_storage,
     ):
         # Mock health checks to return UP status
         mock_temporal.return_value = ServiceStatus.UP

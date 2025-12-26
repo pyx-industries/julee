@@ -13,8 +13,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from apps.api.ceap.dependencies import get_temporal_client
-from apps.api.ceap.routers.workflows import router
+from julee.contrib.ceap.apps.api.routers import workflows as bc_workflows
+from apps.api.ceap.routers import workflows_router as router
 
 pytestmark = pytest.mark.unit
 
@@ -34,7 +34,7 @@ def app_with_router(mock_temporal_client: MagicMock) -> FastAPI:
     app = FastAPI()
 
     # Override the dependency with our mock temporal client
-    app.dependency_overrides[get_temporal_client] = lambda: mock_temporal_client
+    app.dependency_overrides[bc_workflows.get_temporal_client] = lambda: mock_temporal_client
 
     # Add pagination support (required for potential future endpoints)
     add_pagination(app)
