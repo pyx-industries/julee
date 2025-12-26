@@ -203,7 +203,7 @@ async def run_worker() -> None:
     """Run the standalone CEAP Temporal worker.
 
     This function initializes and runs a Temporal worker that handles
-    CEAP workflows (ExtractAssembleWorkflow, ValidateDocumentWorkflow)
+    CEAP pipelines (ExtractAssemblePipeline, ValidateDocumentPipeline)
     and their associated activities.
     """
     # Setup logging first

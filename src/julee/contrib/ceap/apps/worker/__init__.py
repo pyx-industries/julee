@@ -19,8 +19,8 @@ then do their own DI wiring.
 """
 
 from .pipelines import (
-    ExtractAssembleWorkflow,
-    ValidateDocumentWorkflow,
+    ExtractAssemblePipeline,
+    ValidateDocumentPipeline,
 )
 
 # Task queue for standalone CEAP worker
@@ -34,8 +34,8 @@ def get_workflow_classes() -> list[type]:
         List of workflow classes to register with a Temporal worker.
     """
     return [
-        ExtractAssembleWorkflow,
-        ValidateDocumentWorkflow,
+        ExtractAssemblePipeline,
+        ValidateDocumentPipeline,
     ]
 
 
@@ -78,6 +78,6 @@ __all__ = [
     "TASK_QUEUE",
     "get_workflow_classes",
     "get_activity_classes",
-    "ExtractAssembleWorkflow",
-    "ValidateDocumentWorkflow",
+    "ExtractAssemblePipeline",
+    "ValidateDocumentPipeline",
 ]

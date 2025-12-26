@@ -87,8 +87,11 @@ class TestStartExtractAssembleWorkflow:
         mock_temporal_client.start_workflow.assert_called_once()
         call_args = mock_temporal_client.start_workflow.call_args
 
-        # Check positional arguments
-        assert call_args[1]["args"] == ["doc-123", "spec-456"]
+        # Check pipeline request dict (doctrine-compliant pattern)
+        pipeline_request = call_args[1]["args"][0]
+        assert pipeline_request["document_id"] == "doc-123"
+        assert pipeline_request["assembly_specification_id"] == "spec-456"
+        assert "extract-assemble-doc-123-spec-456" in pipeline_request["workflow_id"]
         assert call_args[1]["task_queue"] == "julee-contrib-ceap-queue"
         assert "extract-assemble-doc-123-spec-456" in call_args[1]["id"]
 

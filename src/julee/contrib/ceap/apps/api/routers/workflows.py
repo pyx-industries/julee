@@ -10,7 +10,7 @@ from temporalio.client import Client
 from julee.contrib.ceap.apps.worker import TASK_QUEUE as CEAP_TASK_QUEUE
 from julee.contrib.ceap.apps.worker.pipelines import (
     EXTRACT_ASSEMBLE_RETRY_POLICY,
-    ExtractAssembleWorkflow,
+    ExtractAssemblePipeline,
 )
 
 logger = logging.getLogger(__name__)
@@ -88,9 +88,15 @@ async def start_extract_assemble_workflow(
             },
         )
 
+        # Pipeline now takes a dict request (doctrine-compliant pattern)
+        pipeline_request = {
+            "document_id": request.document_id,
+            "assembly_specification_id": request.assembly_specification_id,
+            "workflow_id": workflow_id,
+        }
         handle = await temporal_client.start_workflow(
-            ExtractAssembleWorkflow.run,
-            args=[request.document_id, request.assembly_specification_id],
+            ExtractAssemblePipeline.run,
+            args=[pipeline_request],
             id=workflow_id,
             task_queue=CEAP_TASK_QUEUE,
             retry_policy=EXTRACT_ASSEMBLE_RETRY_POLICY,

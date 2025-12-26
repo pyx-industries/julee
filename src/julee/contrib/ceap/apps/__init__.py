@@ -11,7 +11,7 @@ services and infrastructure implementations into runnable applications.
 No re-exports to avoid import chains that pull non-deterministic code
 into Temporal workflows. Import directly from specific modules:
 
-- from julee.contrib.ceap.apps.worker.pipelines import ExtractAssembleWorkflow
+- from julee.contrib.ceap.apps.worker.pipelines import ExtractAssemblePipeline
 """
 
 __all__: list[str] = []

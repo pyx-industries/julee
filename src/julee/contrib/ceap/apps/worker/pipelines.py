@@ -1,28 +1,25 @@
 """
-Temporal workflows (pipelines) for CEAP document operations.
+Doctrine-compliant Temporal workflows (pipelines) for CEAP document operations.
 
 This module contains the refactored pipelines that follow the Pipeline doctrine:
 - Pipeline wraps exactly one business UseCase
 - run() is the single entry point with @workflow.run
+- run_next() handles routing (no decorator)
 - Business logic stays in UseCase, not Pipeline
 
 Pipelines included:
-- ExtractAssembleWorkflow: Orchestrates document extraction and assembly
-- ValidateDocumentWorkflow: Orchestrates document policy validation
+- ExtractAssemblePipeline: Orchestrates document extraction and assembly
+- ValidateDocumentPipeline: Orchestrates document policy validation
 
 See: docs/architecture/proposals/pipeline_router_design.md
 """
 
-import logging
 from datetime import timedelta
+from typing import Any
 
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from julee.contrib.ceap.entities.assembly import Assembly
-from julee.contrib.ceap.entities.document_policy_validation import (
-    DocumentPolicyValidation,
-)
 from julee.contrib.ceap.infrastructure.temporal.repositories.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,
@@ -41,24 +38,20 @@ from julee.contrib.ceap.use_cases import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )
-
-logger = logging.getLogger(__name__)
+from julee.core.entities.pipeline_dispatch import PipelineDispatchItem
 
 
 @workflow.defn
-class ExtractAssembleWorkflow:
+class ExtractAssemblePipeline:
     """
-    Temporal workflow for document extract and assemble operations.
+    Doctrine-compliant pipeline for document extract and assemble operations.
 
-    This workflow:
-    1. Receives document_id and assembly_specification_id
-    2. Orchestrates the ExtractAssembleDataUseCase with workflow-safe proxies
-    3. Provides durability and retry logic for long-running assembly
-    4. Returns the completed Assembly object
+    This pipeline wraps ExtractAssembleDataUseCase and provides:
+    1. Temporal durability guarantees
+    2. Routing to downstream pipelines via run_next()
+    3. Full dispatch traceability in response
 
-    The workflow remains framework-agnostic by delegating all business logic
-    to the use case, while providing Temporal-specific orchestration concerns
-    like retry policies, timeouts, and state management.
+    The pipeline is thin - business logic is in ExtractAssembleDataUseCase.
     """
 
     def __init__(self) -> None:
@@ -67,137 +60,121 @@ class ExtractAssembleWorkflow:
 
     @workflow.query
     def get_current_step(self) -> str:
-        """Query method to get the current workflow step"""
+        """Query method to get the current workflow step."""
         return self.current_step
 
     @workflow.query
     def get_assembly_id(self) -> str | None:
-        """Query method to get the assembly ID once created"""
+        """Query method to get the assembly ID once created."""
         return self.assembly_id
 
     @workflow.run
-    async def run(self, document_id: str, assembly_specification_id: str) -> Assembly:
+    async def run(self, request: dict[str, Any]) -> dict[str, Any]:
         """
-        Execute the extract and assemble workflow.
+        Execute the extract and assemble pipeline.
 
         Args:
-            document_id: ID of the document to assemble
-            assembly_specification_id: ID of the specification to use
+            request: Serialized ExtractAssembleDataRequest (dict from Temporal)
 
         Returns:
-            Completed Assembly object with assembled document
-
-        Raises:
-            ValueError: If required entities are not found
-            RuntimeError: If assembly processing fails after retries
+            Serialized response with assembly data and dispatches
         """
+        self.current_step = "validating_request"
+
+        # Convert dict to Request (Temporal serializes as dict)
+        assemble_request = ExtractAssembleDataRequest.model_validate(request)
+
         workflow.logger.info(
-            "Starting extract assemble workflow",
+            "Starting extract assemble pipeline",
             extra={
-                "document_id": document_id,
-                "assembly_specification_id": assembly_specification_id,
+                "document_id": assemble_request.document_id,
+                "assembly_specification_id": assemble_request.assembly_specification_id,
                 "workflow_id": workflow.info().workflow_id,
-                "run_id": workflow.info().run_id,
             },
         )
 
-        self.current_step = "initializing_repositories"
+        self.current_step = "creating_use_case"
 
-        try:
-            # Create workflow-safe repository proxies
-            # These proxy all calls through Temporal activities for durability
-            document_repo = WorkflowDocumentRepositoryProxy()  # type: ignore[abstract]
-            assembly_repo = WorkflowAssemblyRepositoryProxy()  # type: ignore[abstract]
-            assembly_specification_repo = (
-                WorkflowAssemblySpecificationRepositoryProxy()  # type: ignore[abstract]
-            )
-            knowledge_service_query_repo = (
-                WorkflowKnowledgeServiceQueryRepositoryProxy()  # type: ignore[abstract]
-            )
-            knowledge_service_config_repo = (
-                WorkflowKnowledgeServiceConfigRepositoryProxy()  # type: ignore[abstract]
-            )
+        # Create workflow-safe repository proxies
+        document_repo = WorkflowDocumentRepositoryProxy()  # type: ignore[abstract]
+        assembly_repo = WorkflowAssemblyRepositoryProxy()  # type: ignore[abstract]
+        assembly_specification_repo = (
+            WorkflowAssemblySpecificationRepositoryProxy()  # type: ignore[abstract]
+        )
+        knowledge_service_query_repo = (
+            WorkflowKnowledgeServiceQueryRepositoryProxy()  # type: ignore[abstract]
+        )
+        knowledge_service_config_repo = (
+            WorkflowKnowledgeServiceConfigRepositoryProxy()  # type: ignore[abstract]
+        )
+        knowledge_service = WorkflowKnowledgeServiceProxy()  # type: ignore[abstract]
 
-            workflow.logger.debug(
-                "Repository proxies created",
-                extra={
-                    "document_id": document_id,
-                    "assembly_specification_id": assembly_specification_id,
-                },
-            )
+        # Create the use case with workflow-safe repositories
+        use_case = ExtractAssembleDataUseCase(
+            document_repo=document_repo,
+            assembly_repo=assembly_repo,
+            assembly_specification_repo=assembly_specification_repo,
+            knowledge_service_query_repo=knowledge_service_query_repo,
+            knowledge_service_config_repo=knowledge_service_config_repo,
+            knowledge_service=knowledge_service,
+            now_fn=workflow.now,
+        )
 
-            self.current_step = "creating_use_case"
+        self.current_step = "executing_use_case"
 
-            # Create workflow-safe knowledge service proxy
-            knowledge_service = WorkflowKnowledgeServiceProxy()  # type: ignore[abstract]
+        # Execute business UseCase - delegates all business logic
+        assembly = await use_case.execute(assemble_request)
 
-            # Create the use case with workflow-safe repositories
-            # The use case remains completely unaware it's running in workflow
-            use_case = ExtractAssembleDataUseCase(
-                document_repo=document_repo,
-                assembly_repo=assembly_repo,
-                assembly_specification_repo=assembly_specification_repo,
-                knowledge_service_query_repo=knowledge_service_query_repo,
-                knowledge_service_config_repo=knowledge_service_config_repo,
-                knowledge_service=knowledge_service,
-                now_fn=workflow.now,
-            )
+        self.assembly_id = assembly.assembly_id
+        self.current_step = "routing"
 
-            workflow.logger.debug(
-                "Use case created successfully",
-                extra={
-                    "document_id": document_id,
-                    "assembly_specification_id": assembly_specification_id,
-                },
-            )
+        # Build response with assembly data
+        response = {
+            "assembly_id": assembly.assembly_id,
+            "assembly_specification_id": assembly.assembly_specification_id,
+            "input_document_id": assembly.input_document_id,
+            "assembled_document_id": assembly.assembled_document_id,
+            "status": assembly.status.value,
+            "workflow_id": assembly.workflow_id,
+        }
 
-            self.current_step = "executing_assembly"
+        # Route to downstream pipelines
+        dispatches = await self.run_next(response)
+        response["dispatches"] = [d.model_dump() for d in dispatches]
 
-            # Execute the assembly process with workflow durability
-            # All repository calls inside the use case will be executed as
-            # Temporal activities with automatic retry and state persistence
-            request = ExtractAssembleDataRequest(
-                document_id=document_id,
-                assembly_specification_id=assembly_specification_id,
-                workflow_id=workflow.info().workflow_id,
-            )
-            assembly = await use_case.assemble_data(request)
+        self.current_step = "completed"
 
-            # Store the assembly ID for queries
-            self.assembly_id = assembly.assembly_id
+        workflow.logger.info(
+            "Extract assemble pipeline completed",
+            extra={
+                "assembly_id": assembly.assembly_id,
+                "assembled_document_id": assembly.assembled_document_id,
+                "status": assembly.status.value,
+                "dispatch_count": len(dispatches),
+            },
+        )
 
-            self.current_step = "completed"
+        return response
 
-            workflow.logger.info(
-                "Extract assemble workflow completed successfully",
-                extra={
-                    "document_id": document_id,
-                    "assembly_specification_id": assembly_specification_id,
-                    "assembly_id": assembly.assembly_id,
-                    "assembled_document_id": assembly.assembled_document_id,
-                    "status": assembly.status.value,
-                },
-            )
+    async def run_next(self, response: dict[str, Any]) -> list[PipelineDispatchItem]:
+        """
+        Route response to downstream pipelines.
 
-            return assembly
+        Args:
+            response: The response from the UseCase
 
-        except Exception as e:
-            self.current_step = "failed"
+        Returns:
+            List of PipelineDispatchItem records tracking what was dispatched
 
-            workflow.logger.error(
-                "Extract assemble workflow failed",
-                extra={
-                    "document_id": document_id,
-                    "assembly_specification_id": assembly_specification_id,
-                    "assembly_id": self.assembly_id,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-                exc_info=True,
-            )
-
-            # Re-raise to let Temporal handle retry logic
-            raise
+        Note: This method does NOT have @workflow.run - it's a helper method.
+        """
+        # CEAP pipelines don't currently have downstream routing configured
+        # This is a stub for future routing implementation
+        workflow.logger.debug(
+            "run_next called - no downstream routes configured",
+            extra={"assembly_id": response.get("assembly_id")},
+        )
+        return []
 
     @workflow.signal
     async def cancel_assembly(self, reason: str) -> None:
@@ -206,10 +183,6 @@ class ExtractAssembleWorkflow:
 
         Args:
             reason: Reason for cancellation
-
-        Note:
-            This is a placeholder for future cancellation logic.
-            Currently, we rely on Temporal's built-in workflow cancellation.
         """
         workflow.logger.info(
             "Assembly cancellation requested",
@@ -220,24 +193,18 @@ class ExtractAssembleWorkflow:
             },
         )
 
-        # Future: Implement graceful cancellation logic here
-        # For now, let the workflow be cancelled naturally by Temporal
-
 
 @workflow.defn
-class ValidateDocumentWorkflow:
+class ValidateDocumentPipeline:
     """
-    Temporal workflow for document validation operations.
+    Doctrine-compliant pipeline for document validation operations.
 
-    This workflow:
-    1. Receives document_id and policy_id
-    2. Orchestrates the ValidateDocumentUseCase with workflow-safe proxies
-    3. Provides durability and retry logic for validation processing
-    4. Returns the completed DocumentPolicyValidation object
+    This pipeline wraps ValidateDocumentUseCase and provides:
+    1. Temporal durability guarantees
+    2. Routing to downstream pipelines via run_next()
+    3. Full dispatch traceability in response
 
-    The workflow remains framework-agnostic by delegating all business logic
-    to the use case, while providing Temporal-specific orchestration concerns
-    like retry policies, timeouts, and state management.
+    The pipeline is thin - business logic is in ValidateDocumentUseCase.
     """
 
     def __init__(self) -> None:
@@ -246,136 +213,123 @@ class ValidateDocumentWorkflow:
 
     @workflow.query
     def get_current_step(self) -> str:
-        """Query method to get the current workflow step"""
+        """Query method to get the current workflow step."""
         return self.current_step
 
     @workflow.query
     def get_validation_id(self) -> str | None:
-        """Query method to get the validation ID once created"""
+        """Query method to get the validation ID once created."""
         return self.validation_id
 
     @workflow.run
-    async def run(self, document_id: str, policy_id: str) -> DocumentPolicyValidation:
+    async def run(self, request: dict[str, Any]) -> dict[str, Any]:
         """
-        Execute the document validation workflow.
+        Execute the document validation pipeline.
 
         Args:
-            document_id: ID of the document to validate
-            policy_id: ID of the policy to validate against
+            request: Serialized ValidateDocumentRequest (dict from Temporal)
 
         Returns:
-            Completed DocumentPolicyValidation object with validation results
-
-        Raises:
-            ValueError: If required entities are not found
-            RuntimeError: If validation processing fails after retries
+            Serialized response with validation data and dispatches
         """
+        self.current_step = "validating_request"
+
+        # Convert dict to Request (Temporal serializes as dict)
+        validate_request = ValidateDocumentRequest.model_validate(request)
+
         workflow.logger.info(
-            "Starting document validation workflow",
+            "Starting document validation pipeline",
             extra={
-                "document_id": document_id,
-                "policy_id": policy_id,
+                "document_id": validate_request.document_id,
+                "policy_id": validate_request.policy_id,
                 "workflow_id": workflow.info().workflow_id,
-                "run_id": workflow.info().run_id,
             },
         )
 
-        self.current_step = "initializing_repositories"
+        self.current_step = "creating_use_case"
 
-        try:
-            # Create workflow-safe repository proxies
-            # These proxy all calls through Temporal activities for durability
-            document_repo = WorkflowDocumentRepositoryProxy()  # type: ignore[abstract]
-            knowledge_service_query_repo = (
-                WorkflowKnowledgeServiceQueryRepositoryProxy()  # type: ignore[abstract]
-            )
-            knowledge_service_config_repo = (
-                WorkflowKnowledgeServiceConfigRepositoryProxy()  # type: ignore[abstract]
-            )
-            policy_repo = WorkflowPolicyRepositoryProxy()  # type: ignore[abstract]
-            document_policy_validation_repo = (
-                WorkflowDocumentPolicyValidationRepositoryProxy()  # type: ignore[abstract]
-            )
+        # Create workflow-safe repository proxies
+        document_repo = WorkflowDocumentRepositoryProxy()  # type: ignore[abstract]
+        knowledge_service_query_repo = (
+            WorkflowKnowledgeServiceQueryRepositoryProxy()  # type: ignore[abstract]
+        )
+        knowledge_service_config_repo = (
+            WorkflowKnowledgeServiceConfigRepositoryProxy()  # type: ignore[abstract]
+        )
+        policy_repo = WorkflowPolicyRepositoryProxy()  # type: ignore[abstract]
+        document_policy_validation_repo = (
+            WorkflowDocumentPolicyValidationRepositoryProxy()  # type: ignore[abstract]
+        )
+        knowledge_service = WorkflowKnowledgeServiceProxy()  # type: ignore[abstract]
 
-            workflow.logger.debug(
-                "Repository proxies created",
-                extra={
-                    "document_id": document_id,
-                    "policy_id": policy_id,
-                },
-            )
+        # Create the use case with workflow-safe repositories
+        use_case = ValidateDocumentUseCase(
+            document_repo=document_repo,
+            knowledge_service_query_repo=knowledge_service_query_repo,
+            knowledge_service_config_repo=knowledge_service_config_repo,
+            policy_repo=policy_repo,
+            document_policy_validation_repo=document_policy_validation_repo,
+            knowledge_service=knowledge_service,
+            now_fn=workflow.now,
+        )
 
-            self.current_step = "creating_use_case"
+        self.current_step = "executing_use_case"
 
-            # Create workflow-safe knowledge service proxy
-            knowledge_service = WorkflowKnowledgeServiceProxy()  # type: ignore[abstract]
+        # Execute business UseCase - delegates all business logic
+        validation = await use_case.execute(validate_request)
 
-            # Create the use case with workflow-safe repositories
-            # The use case remains completely unaware it's running in workflow
-            use_case = ValidateDocumentUseCase(
-                document_repo=document_repo,
-                knowledge_service_query_repo=knowledge_service_query_repo,
-                knowledge_service_config_repo=knowledge_service_config_repo,
-                policy_repo=policy_repo,
-                document_policy_validation_repo=document_policy_validation_repo,
-                knowledge_service=knowledge_service,
-                now_fn=workflow.now,
-            )
+        self.validation_id = validation.validation_id
+        self.current_step = "routing"
 
-            workflow.logger.debug(
-                "Use case created successfully",
-                extra={
-                    "document_id": document_id,
-                    "policy_id": policy_id,
-                },
-            )
+        # Build response with validation data
+        response = {
+            "validation_id": validation.validation_id,
+            "input_document_id": validation.input_document_id,
+            "policy_id": validation.policy_id,
+            "status": validation.status.value,
+            "passed": validation.passed,
+            "validation_scores": validation.validation_scores,
+            "transformed_document_id": validation.transformed_document_id,
+            "post_transform_validation_scores": validation.post_transform_validation_scores,
+        }
 
-            self.current_step = "executing_validation"
+        # Route to downstream pipelines
+        dispatches = await self.run_next(response)
+        response["dispatches"] = [d.model_dump() for d in dispatches]
 
-            # Execute the validation process with workflow durability
-            # All repository calls inside the use case will be executed as
-            # Temporal activities with automatic retry and state persistence
-            request = ValidateDocumentRequest(
-                document_id=document_id,
-                policy_id=policy_id,
-            )
-            validation = await use_case.validate_document(request)
+        self.current_step = "completed"
 
-            # Store the validation ID for queries
-            self.validation_id = validation.validation_id
+        workflow.logger.info(
+            "Document validation pipeline completed",
+            extra={
+                "validation_id": validation.validation_id,
+                "status": validation.status.value,
+                "passed": validation.passed,
+                "dispatch_count": len(dispatches),
+            },
+        )
 
-            self.current_step = "completed"
+        return response
 
-            workflow.logger.info(
-                "Document validation workflow completed successfully",
-                extra={
-                    "document_id": document_id,
-                    "policy_id": policy_id,
-                    "validation_id": validation.validation_id,
-                    "status": validation.status.value,
-                    "passed": validation.passed,
-                },
-            )
+    async def run_next(self, response: dict[str, Any]) -> list[PipelineDispatchItem]:
+        """
+        Route response to downstream pipelines.
 
-            return validation
+        Args:
+            response: The response from the UseCase
 
-        except Exception as e:
-            self.current_step = "failed"
+        Returns:
+            List of PipelineDispatchItem records tracking what was dispatched
 
-            workflow.logger.error(
-                "Document validation workflow failed",
-                extra={
-                    "document_id": document_id,
-                    "policy_id": policy_id,
-                    "validation_id": self.validation_id,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-                exc_info=True,
-            )
-
-            # Re-raise to let Temporal handle retry logic
-            raise
+        Note: This method does NOT have @workflow.run - it's a helper method.
+        """
+        # CEAP pipelines don't currently have downstream routing configured
+        # This is a stub for future routing implementation
+        workflow.logger.debug(
+            "run_next called - no downstream routes configured",
+            extra={"validation_id": response.get("validation_id")},
+        )
+        return []
 
     @workflow.signal
     async def cancel_validation(self, reason: str) -> None:
@@ -384,10 +338,6 @@ class ValidateDocumentWorkflow:
 
         Args:
             reason: Reason for cancellation
-
-        Note:
-            This is a placeholder for future cancellation logic.
-            Currently, we rely on Temporal's built-in workflow cancellation.
         """
         workflow.logger.info(
             "Validation cancellation requested",
@@ -397,9 +347,6 @@ class ValidateDocumentWorkflow:
                 "current_step": self.current_step,
             },
         )
-
-        # Future: Implement graceful cancellation logic here
-        # For now, let the workflow be cancelled naturally by Temporal
 
 
 # Workflow configuration with retry policies optimized for document processing
@@ -423,8 +370,8 @@ VALIDATE_DOCUMENT_RETRY_POLICY = RetryPolicy(
 
 # Export the pipelines
 __all__ = [
-    "ExtractAssembleWorkflow",
-    "ValidateDocumentWorkflow",
+    "ExtractAssemblePipeline",
+    "ValidateDocumentPipeline",
     "EXTRACT_ASSEMBLE_RETRY_POLICY",
     "VALIDATE_DOCUMENT_RETRY_POLICY",
 ]
