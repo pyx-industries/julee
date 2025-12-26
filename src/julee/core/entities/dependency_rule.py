@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class DependencyRule(BaseModel):
-    """The one rule that makes everything else possible.
+    """The constraint that source code dependencies must point inward toward higher-level policies.
 
     Source code dependencies must point inward. Always. No exceptions.
 

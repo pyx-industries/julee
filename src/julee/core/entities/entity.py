@@ -4,17 +4,30 @@ from julee.core.entities.code_info import ClassInfo
 
 
 class Entity(ClassInfo):
-    """The heart of the system - pure business logic with no dependencies.
+    """Domain concepts that define the ontology of a bounded context.
 
-    Entities encapsulate enterprise-wide business rules. They are the most
-    stable part of your architecture because they represent concepts that
-    exist independent of any application. A Customer, an Order, a Journey -
-    these exist whether you have a web app, a CLI, or no software at all.
+    Entities are what business logic is expressed in terms of. A use case
+    doesn't manipulate strings and dictionaries - it operates on Journeys,
+    Personas, PollingConfigs. The entities ARE the domain language. They
+    give meaning to the bounded context and constrain what can be said
+    within it.
+
+    Entities exist independent of any Application. Whether the system is
+    accessed via API, CLI, or workflow trigger, the entities remain the
+    same. They are the most stable part of your architecture because they
+    represent the business itself, not the technology serving it.
 
     This is the Dependency Rule in action: entities know nothing about use
-    cases, controllers, databases, or frameworks. They are pure. When the
-    UI framework changes, entities don't change. When you switch databases,
-    entities don't change. They embody the business, not the technology.
+    cases, controllers, databases, or frameworks. When the UI framework
+    changes, entities don't change. When you switch databases, entities
+    don't change. They embody the business, not the technology.
+
+    Each bounded context defines its own ontology. Because entities are
+    architecturally bound to implementation (not just documented separately),
+    we can reason over them programmatically. This binding enables viewpoint
+    projection: HCD personas, C4 containers, and other perspectives can be
+    inferred across bounded contexts because they share a common ontological
+    foundation in code.
 
     In julee, entities are immutable value objects (Pydantic models with
     frozen=True). Immutability prevents accidental state corruption and

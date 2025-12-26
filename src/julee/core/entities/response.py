@@ -4,22 +4,21 @@ from julee.core.entities.code_info import ClassInfo
 
 
 class Response(ClassInfo):
-    """The output boundary - data crossing out from the use case to the application.
+    """The output contract that use cases return for Applications to serialize from.
 
-    Responses are canonical models that carry the results of use case execution
-    back across the boundary to the application layer. The application then
-    serializes the Response for external consumption (JSON, terminal output,
-    message payloads).
+    A Response defines what data a use case produces as its result. The use
+    case constructs a Response containing exactly what callers need to know -
+    no more, no less. Applications then serialize this Response for external
+    consumption (JSON, terminal output, message payloads).
 
-    The use case builds a Response containing exactly what the caller needs
-    to know - no more, no less. A web controller serializes it to JSON. A
-    CLI command formats it for terminal output. A message handler publishes
-    it to a queue. Each adapts the same Response to their specific needs.
+    This mirrors the Request pattern. Applications depend on the Response
+    format defined by use cases, not the other way around. When you add a
+    new Application, you write code that consumes the existing Response -
+    you don't change the use case.
 
-    Responses and Requests together form the "ports" in Ports and Adapters
-    architecture. The use case defines these ports; the delivery mechanisms
-    are adapters that plug into them. This inverts the typical dependency
-    where business logic depends on web frameworks or ORMs.
+    Responses may reference entities but are not themselves entities. They
+    are data transfer objects optimized for the boundary crossing, carrying
+    exactly what the Application needs to present the result.
     """
 
     pass  # Inherits all fields from ClassInfo
