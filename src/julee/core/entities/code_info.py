@@ -31,6 +31,7 @@ class MethodInfo(BaseModel):
     )  # parameter names excluding self
     return_type: str = ""
     docstring: str = ""
+    source: str = ""
 
 
 class ClassInfo(BaseModel):

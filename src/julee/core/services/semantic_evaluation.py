@@ -14,68 +14,18 @@ Implementations may use various approaches:
 - AI/LLM evaluation
 - Statistical analysis
 - Human review workflows
+
+Entity Semantics:
+    This service transforms code structure entities (ClassInfo, MethodInfo,
+    FieldInfo) into evaluation entities (EvaluationResult). It is bound to
+    multiple entity types, which is the defining characteristic of a service
+    (as opposed to a repository, which is bound to a single entity type).
 """
 
 from typing import Protocol, runtime_checkable
 
-from pydantic import BaseModel, Field
-
+from julee.core.entities.code_info import ClassInfo, FieldInfo, MethodInfo
 from julee.core.entities.evaluation import EvaluationResult
-
-
-class EvaluateDocstringQualityRequest(BaseModel):
-    """Request for evaluating docstring quality.
-
-    Used by SemanticEvaluationService to assess whether a docstring
-    adequately describes its subject.
-    """
-
-    docstring: str = Field(description="The docstring text to evaluate")
-    context: str = Field(
-        description="What the docstring describes (e.g., 'CreateInvoiceUseCase')"
-    )
-
-
-class EvaluateSingleResponsibilityRequest(BaseModel):
-    """Request for evaluating single responsibility principle.
-
-    Used by SemanticEvaluationService to assess whether a class
-    has a single responsibility.
-    """
-
-    class_name: str = Field(description="Name of the class")
-    class_docstring: str = Field(default="", description="Class docstring")
-    method_names: list[str] = Field(
-        default_factory=list, description="Names of public methods in the class"
-    )
-    field_names: list[str] = Field(
-        default_factory=list, description="Names of fields/attributes in the class"
-    )
-
-
-class EvaluateNamingQualityRequest(BaseModel):
-    """Request for evaluating naming quality.
-
-    Used by SemanticEvaluationService to assess whether a name
-    is meaningful and appropriate.
-    """
-
-    name: str = Field(description="The identifier name to evaluate")
-    kind: str = Field(description="What it is: 'class', 'method', 'variable', 'field'")
-    context: str = Field(
-        default="", description="Surrounding context (class name, module, etc.)"
-    )
-
-
-class EvaluateMethodComplexityRequest(BaseModel):
-    """Request for evaluating method complexity.
-
-    Used by SemanticEvaluationService to assess whether a method
-    is too complex.
-    """
-
-    method_source: str = Field(description="The method's source code")
-    method_name: str = Field(description="The name of the method")
 
 
 @runtime_checkable
@@ -85,22 +35,42 @@ class SemanticEvaluationService(Protocol):
     This protocol defines the interface for evaluating aspects of code
     quality that require judgment rather than structural analysis.
 
+    Transforms: ClassInfo, MethodInfo, FieldInfo → EvaluationResult
+
     All methods are async to accommodate implementations that may need
     to make external calls (e.g., to an AI service).
     """
 
-    async def evaluate_docstring_quality(
-        self, request: EvaluateDocstringQualityRequest
+    async def evaluate_class_docstring(
+        self, class_info: ClassInfo
     ) -> EvaluationResult:
-        """Evaluate if a docstring adequately describes its subject.
+        """Evaluate if a class docstring adequately describes its purpose.
 
         A good docstring should:
         - Describe the business purpose, not implementation
         - Be concise but informative
-        - Not repeat the class/function name
+        - Not repeat the class name
 
         Args:
-            request: Contains docstring and context to evaluate
+            class_info: The class to evaluate
+
+        Returns:
+            EvaluationResult with pass/fail, confidence, and explanation
+        """
+        ...
+
+    async def evaluate_method_docstring(
+        self, method_info: MethodInfo
+    ) -> EvaluationResult:
+        """Evaluate if a method docstring adequately describes its purpose.
+
+        A good docstring should:
+        - Describe what the method does, not how
+        - Document parameters and return values
+        - Be concise but informative
+
+        Args:
+            method_info: The method to evaluate
 
         Returns:
             EvaluationResult with pass/fail, confidence, and explanation
@@ -108,9 +78,9 @@ class SemanticEvaluationService(Protocol):
         ...
 
     async def evaluate_single_responsibility(
-        self, request: EvaluateSingleResponsibilityRequest
+        self, class_info: ClassInfo
     ) -> EvaluationResult:
-        """Evaluate if a class appears to have a single responsibility.
+        """Evaluate if a class has a single responsibility.
 
         Single Responsibility Principle: A class should have one,
         and only one, reason to change.
@@ -121,26 +91,64 @@ class SemanticEvaluationService(Protocol):
         - Name contains "And" or "Manager" without clear domain meaning
 
         Args:
-            request: Contains class info to evaluate
+            class_info: The class to evaluate
 
         Returns:
             EvaluationResult with assessment
         """
         ...
 
-    async def evaluate_naming_quality(
-        self, request: EvaluateNamingQualityRequest
+    async def evaluate_class_naming(
+        self, class_info: ClassInfo
     ) -> EvaluationResult:
-        """Evaluate if a name is meaningful and appropriate.
+        """Evaluate if a class name is meaningful and appropriate.
 
-        Good names should:
+        Good class names should:
         - Be intention-revealing
         - Use domain vocabulary
-        - Avoid abbreviations (except well-known ones)
-        - Follow naming conventions for the kind
+        - Follow naming conventions (PascalCase)
+        - Reflect the class's single responsibility
 
         Args:
-            request: Contains name, kind, and context to evaluate
+            class_info: The class to evaluate
+
+        Returns:
+            EvaluationResult with assessment
+        """
+        ...
+
+    async def evaluate_method_naming(
+        self, method_info: MethodInfo
+    ) -> EvaluationResult:
+        """Evaluate if a method name is meaningful and appropriate.
+
+        Good method names should:
+        - Be intention-revealing (verb phrases)
+        - Use domain vocabulary
+        - Follow naming conventions (snake_case)
+        - Reflect what the method does
+
+        Args:
+            method_info: The method to evaluate
+
+        Returns:
+            EvaluationResult with assessment
+        """
+        ...
+
+    async def evaluate_field_naming(
+        self, field_info: FieldInfo
+    ) -> EvaluationResult:
+        """Evaluate if a field name is meaningful and appropriate.
+
+        Good field names should:
+        - Be intention-revealing
+        - Use domain vocabulary
+        - Follow naming conventions (snake_case)
+        - Reflect the field's purpose
+
+        Args:
+            field_info: The field to evaluate
 
         Returns:
             EvaluationResult with assessment
@@ -148,7 +156,7 @@ class SemanticEvaluationService(Protocol):
         ...
 
     async def evaluate_method_complexity(
-        self, request: EvaluateMethodComplexityRequest
+        self, method_info: MethodInfo
     ) -> EvaluationResult:
         """Evaluate if a method is too complex.
 
@@ -158,8 +166,10 @@ class SemanticEvaluationService(Protocol):
         - Long methods
         - Mixed abstraction levels
 
+        Requires method_info.source to be populated.
+
         Args:
-            request: Contains method source and name to evaluate
+            method_info: The method to evaluate (must have source)
 
         Returns:
             EvaluationResult with assessment
