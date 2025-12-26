@@ -11,6 +11,7 @@ from julee.core.doctrine_constants import (
 from julee.core.infrastructure.repositories.introspection import (
     FilesystemApplicationRepository,
     FilesystemBoundedContextRepository,
+    FilesystemDeploymentRepository,
     FilesystemSolutionRepository,
 )
 
@@ -50,6 +51,16 @@ def solution_repo() -> FilesystemSolutionRepository:
     The repository caches its discovery results internally.
     """
     return FilesystemSolutionRepository(PROJECT_ROOT)
+
+
+@pytest.fixture(scope="session")
+def deployment_repo() -> FilesystemDeploymentRepository:
+    """Deployment repository pointing at real codebase.
+
+    Session-scoped to avoid re-discovering deployments for each test.
+    The repository caches its discovery results internally.
+    """
+    return FilesystemDeploymentRepository(PROJECT_ROOT)
 
 
 @pytest.fixture

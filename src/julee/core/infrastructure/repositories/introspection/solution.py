@@ -1,7 +1,7 @@
 """Filesystem-based solution repository.
 
 Discovers solutions by scanning the filesystem structure, including
-bounded contexts, applications, and nested solutions.
+bounded contexts, applications, deployments, and nested solutions.
 """
 
 from pathlib import Path
@@ -9,16 +9,21 @@ from pathlib import Path
 from julee.core.doctrine_constants import (
     APPS_ROOT,
     CONTRIB_DIR,
+    DEPLOYMENTS_ROOT,
     SEARCH_ROOT,
 )
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
+from julee.core.entities.deployment import Deployment
 from julee.core.entities.solution import Solution
 from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
 )
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
+)
+from julee.core.infrastructure.repositories.introspection.deployment import (
+    FilesystemDeploymentRepository,
 )
 
 __all__ = ["FilesystemSolutionRepository"]
@@ -30,10 +35,12 @@ class FilesystemSolutionRepository:
     A solution consists of:
     - Bounded contexts at {solution}/src/julee/ (or configured search root)
     - Applications at {solution}/apps/
+    - Deployments at {solution}/deployments/
     - Nested solutions (like contrib/) which may contain their own BCs and apps
 
-    This repository coordinates FilesystemBoundedContextRepository and
-    FilesystemApplicationRepository to build a complete Solution graph.
+    This repository coordinates FilesystemBoundedContextRepository,
+    FilesystemApplicationRepository, and FilesystemDeploymentRepository to
+    build a complete Solution graph.
     """
 
     def __init__(self, project_root: Path) -> None:
@@ -112,6 +119,10 @@ class FilesystemSolutionRepository:
         app_repo = FilesystemApplicationRepository(self.project_root)
         top_level_apps = app_repo._discover_all()
 
+        # Discover top-level deployments
+        dep_repo = FilesystemDeploymentRepository(self.project_root)
+        top_level_deps = dep_repo._discover_all()
+
         # Discover nested solutions (contrib/)
         nested_solutions: list[Solution] = []
         contrib_path = self.project_root / SEARCH_ROOT / CONTRIB_DIR
@@ -134,6 +145,7 @@ class FilesystemSolutionRepository:
             path=str(self.project_root),
             bounded_contexts=top_level_bcs,
             applications=top_level_apps,
+            deployments=top_level_deps,
             nested_solutions=nested_solutions,
             is_nested=False,
             parent_path=None,

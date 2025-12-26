@@ -346,7 +346,8 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
     {
         "docs",  # Documentation
-        "deployment",  # Deployment configuration
+        "deployment",  # Deployment configuration (legacy singular form)
+        "deployments",  # Deployment configurations (canonical plural form)
     }
 )
 """Structural directories that are not bounded contexts.
@@ -508,4 +509,34 @@ APP_BC_ORGANIZATION_EXCLUDES: Final[frozenset[str]] = frozenset(
 
 When detecting whether an app uses BC-based organization, these
 directories are excluded from consideration.
+"""
+
+
+# =============================================================================
+# DEPLOYMENT DISCOVERY
+# =============================================================================
+# Configuration for finding deployments in the filesystem.
+# Deployments are the outermost layer - they describe how applications
+# are provisioned and run on infrastructure.
+
+DEPLOYMENTS_ROOT: Final[str] = "deployments"
+"""Root directory for deployment discovery.
+
+Deployments are discovered under this path. Each top-level directory
+represents a deployment configuration for a specific environment or target.
+
+Note: 'deployments' is a reserved word - it cannot be a bounded context name.
+"""
+
+DEPLOYMENT_TYPE_MARKERS: Final[dict[str, tuple[str, ...]]] = {
+    "DOCKER-COMPOSE": ("docker-compose.yml", "docker-compose.yaml"),
+    "KUBERNETES": ("manifests", "helm", "kustomize"),
+    "TERRAFORM": ("*.tf",),
+    "CLOUDFORMATION": ("template.yaml", "template.json"),
+    "ANSIBLE": ("playbooks", "ansible.cfg"),
+}
+"""File/directory markers used to infer deployment type.
+
+Each deployment type has characteristic files or directories. Detection
+uses these to classify deployments.
 """

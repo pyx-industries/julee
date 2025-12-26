@@ -1,13 +1,17 @@
 """Solution domain model.
 
 Represents a solution as the top-level organizational container for a julee
-project. A solution aggregates bounded contexts, applications, and optionally
-nested solutions into a coherent unit.
+project. A solution aggregates bounded contexts, applications, deployments,
+and optionally nested solutions into a coherent unit.
 
 Doctrine:
 - Solution MAY contain one or more Bounded Contexts
 - Solution MAY contain one or more Applications
+- Solution MAY contain one or more Deployments
 - Solution MAY contain one or more nested Solutions
+
+The dependency chain flows outward:
+    Deployment → Application → BoundedContext
 
 The canonical structure is:
     {solution}/
@@ -17,10 +21,14 @@ The canonical structure is:
     │   └── contrib/         # Nested solution container
     │       ├── ceap/        # BC with optional apps/
     │       └── polling/     # BC with optional apps/
-    └── apps/                # Applications live here
-        ├── api/
-        ├── mcp/
-        └── worker/
+    ├── apps/                # Applications live here
+    │   ├── api/
+    │   ├── mcp/
+    │   └── worker/
+    └── deployments/         # Deployments live here (outermost layer)
+        ├── local/           # Local development deployment
+        ├── staging/         # Staging environment
+        └── production/      # Production environment
 
 Nested solutions (like contrib/) follow the same structure recursively.
 BCs within nested solutions may contain reference applications at {bc}/apps/.
@@ -34,15 +42,19 @@ from pydantic import BaseModel, Field, field_validator
 
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
+from julee.core.entities.deployment import Deployment
 
 
 class Solution(BaseModel):
     """The top-level organizational container for a julee project.
 
-    A solution aggregates bounded contexts (domain logic) and applications
-    (deployment artifacts) into a coherent namespace. Solutions can be nested;
-    for example, `contrib/` is a nested solution containing batteries-included
-    bounded contexts with their reference applications.
+    A solution aggregates bounded contexts (domain logic), applications
+    (runnable compositions), and deployments (infrastructure configurations)
+    into a coherent namespace. Solutions can be nested; for example, `contrib/`
+    is a nested solution containing batteries-included bounded contexts with
+    their reference applications.
+
+    The dependency chain flows outward: Deployment → Application → BoundedContext.
     """
 
     # Identity
@@ -57,6 +69,10 @@ class Solution(BaseModel):
     applications: list[Application] = Field(
         default_factory=list,
         description="Applications discovered in this solution",
+    )
+    deployments: list[Deployment] = Field(
+        default_factory=list,
+        description="Deployments discovered in this solution",
     )
     nested_solutions: list[Solution] = Field(
         default_factory=list,
@@ -107,6 +123,14 @@ class Solution(BaseModel):
             apps.extend(nested.all_applications)
         return apps
 
+    @property
+    def all_deployments(self) -> list[Deployment]:
+        """All deployments including those in nested solutions."""
+        deps = list(self.deployments)
+        for nested in self.nested_solutions:
+            deps.extend(nested.all_deployments)
+        return deps
+
     def get_bounded_context(self, slug: str) -> BoundedContext | None:
         """Find a bounded context by slug, searching nested solutions."""
         for bc in self.bounded_contexts:
@@ -127,4 +151,15 @@ class Solution(BaseModel):
             app = nested.get_application(slug)
             if app:
                 return app
+        return None
+
+    def get_deployment(self, slug: str) -> Deployment | None:
+        """Find a deployment by slug, searching nested solutions."""
+        for dep in self.deployments:
+            if dep.slug == slug:
+                return dep
+        for nested in self.nested_solutions:
+            dep = nested.get_deployment(slug)
+            if dep:
+                return dep
         return None
