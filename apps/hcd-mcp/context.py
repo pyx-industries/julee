@@ -7,67 +7,70 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.hcd.infrastructure.repositories.file import (
+from julee.hcd.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
-    FileAppRepository,
-    FileEpicRepository,
+)
+from julee.hcd.infrastructure.repositories.file.app import FileAppRepository
+from julee.hcd.infrastructure.repositories.file.epic import FileEpicRepository
+from julee.hcd.infrastructure.repositories.file.integration import (
     FileIntegrationRepository,
-    FileJourneyRepository,
-    FileStoryRepository,
 )
-from julee.hcd.infrastructure.repositories.memory import MemoryPersonaRepository
-from julee.hcd.use_cases.accelerator import (
-    CreateAcceleratorUseCase,
-    DeleteAcceleratorUseCase,
-    GetAcceleratorUseCase,
-    ListAcceleratorsUseCase,
-    UpdateAcceleratorUseCase,
-)
-from julee.hcd.use_cases.app import (
-    CreateAppUseCase,
-    DeleteAppUseCase,
-    GetAppUseCase,
-    ListAppsUseCase,
-    UpdateAppUseCase,
-)
-from julee.hcd.use_cases.epic import (
-    CreateEpicUseCase,
-    DeleteEpicUseCase,
-    GetEpicUseCase,
-    ListEpicsUseCase,
-    UpdateEpicUseCase,
-)
-from julee.hcd.use_cases.integration import (
-    CreateIntegrationUseCase,
-    DeleteIntegrationUseCase,
-    GetIntegrationUseCase,
-    ListIntegrationsUseCase,
-    UpdateIntegrationUseCase,
-)
-from julee.hcd.use_cases.journey import (
-    CreateJourneyUseCase,
-    DeleteJourneyUseCase,
-    GetJourneyUseCase,
-    ListJourneysUseCase,
-    UpdateJourneyUseCase,
-)
-from julee.hcd.use_cases.persona import (
-    CreatePersonaUseCase,
-    DeletePersonaUseCase,
-    ListPersonasUseCase,
-    UpdatePersonaUseCase,
-)
-from julee.hcd.use_cases.queries import (
-    DerivePersonasUseCase,
-    GetPersonaUseCase,
-)
-from julee.hcd.use_cases.story import (
-    CreateStoryUseCase,
-    DeleteStoryUseCase,
-    GetStoryUseCase,
-    ListStoriesUseCase,
-    UpdateStoryUseCase,
-)
+from julee.hcd.infrastructure.repositories.file.journey import FileJourneyRepository
+from julee.hcd.infrastructure.repositories.file.story import FileStoryRepository
+from julee.hcd.infrastructure.repositories.memory.persona import MemoryPersonaRepository
+# Accelerator use cases
+from julee.hcd.use_cases.accelerator.create import CreateAcceleratorUseCase
+from julee.hcd.use_cases.accelerator.delete import DeleteAcceleratorUseCase
+from julee.hcd.use_cases.accelerator.get import GetAcceleratorUseCase
+from julee.hcd.use_cases.accelerator.list import ListAcceleratorsUseCase
+from julee.hcd.use_cases.accelerator.update import UpdateAcceleratorUseCase
+
+# App use cases
+from julee.hcd.use_cases.app.create import CreateAppUseCase
+from julee.hcd.use_cases.app.delete import DeleteAppUseCase
+from julee.hcd.use_cases.app.get import GetAppUseCase
+from julee.hcd.use_cases.app.list import ListAppsUseCase
+from julee.hcd.use_cases.app.update import UpdateAppUseCase
+
+# Epic use cases
+from julee.hcd.use_cases.epic.create import CreateEpicUseCase
+from julee.hcd.use_cases.epic.delete import DeleteEpicUseCase
+from julee.hcd.use_cases.epic.get import GetEpicUseCase
+from julee.hcd.use_cases.epic.list import ListEpicsUseCase
+from julee.hcd.use_cases.epic.update import UpdateEpicUseCase
+
+# Integration use cases
+from julee.hcd.use_cases.integration.create import CreateIntegrationUseCase
+from julee.hcd.use_cases.integration.delete import DeleteIntegrationUseCase
+from julee.hcd.use_cases.integration.get import GetIntegrationUseCase
+from julee.hcd.use_cases.integration.list import ListIntegrationsUseCase
+from julee.hcd.use_cases.integration.update import UpdateIntegrationUseCase
+
+# Journey use cases
+from julee.hcd.use_cases.journey.create import CreateJourneyUseCase
+from julee.hcd.use_cases.journey.delete import DeleteJourneyUseCase
+from julee.hcd.use_cases.journey.get import GetJourneyUseCase
+from julee.hcd.use_cases.journey.list import ListJourneysUseCase
+from julee.hcd.use_cases.journey.update import UpdateJourneyUseCase
+
+# Persona use cases
+from julee.hcd.use_cases.persona.create import CreatePersonaUseCase
+from julee.hcd.use_cases.persona.delete import DeletePersonaUseCase
+from julee.hcd.use_cases.persona.list import ListPersonasUseCase
+from julee.hcd.use_cases.persona.update import UpdatePersonaUseCase
+
+# Query use cases
+from julee.hcd.use_cases.queries.derive_personas import DerivePersonasUseCase
+from julee.hcd.use_cases.queries.get_persona import GetPersonaUseCase
+
+# Story use cases
+from julee.hcd.use_cases.story.create import CreateStoryUseCase
+from julee.hcd.use_cases.story.delete import DeleteStoryUseCase
+from julee.hcd.use_cases.story.get import GetStoryUseCase
+from julee.hcd.use_cases.story.list import ListStoriesUseCase
+from julee.hcd.use_cases.story.update import UpdateStoryUseCase
+
+# Suggestions
 from julee.hcd.use_cases.suggestions import SuggestionRepositories
 
 

@@ -8,7 +8,7 @@ token context, enabling features like:
 - Safe retry behavior (idempotentHint)
 
 Usage:
-    from apps.mcp.shared import read_only_annotation
+    from julee.core.infrastructure.mcp import read_only_annotation
 
     @mcp.tool(annotations=read_only_annotation("List Stories"))
     async def mcp_list_stories() -> dict:

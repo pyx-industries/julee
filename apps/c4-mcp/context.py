@@ -7,58 +7,60 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.c4.infrastructure.repositories.file import (
-    FileComponentRepository,
-    FileContainerRepository,
+from julee.c4.infrastructure.repositories.file.component import FileComponentRepository
+from julee.c4.infrastructure.repositories.file.container import FileContainerRepository
+from julee.c4.infrastructure.repositories.file.deployment_node import (
     FileDeploymentNodeRepository,
+)
+from julee.c4.infrastructure.repositories.file.dynamic_step import (
     FileDynamicStepRepository,
+)
+from julee.c4.infrastructure.repositories.file.relationship import (
     FileRelationshipRepository,
+)
+from julee.c4.infrastructure.repositories.file.software_system import (
     FileSoftwareSystemRepository,
 )
-from julee.c4.use_cases.component import (
+from julee.c4.use_cases.crud import (
     CreateComponentUseCase,
     DeleteComponentUseCase,
     GetComponentUseCase,
     ListComponentsUseCase,
     UpdateComponentUseCase,
 )
-from julee.c4.use_cases.container import (
+from julee.c4.use_cases.crud import (
     CreateContainerUseCase,
     DeleteContainerUseCase,
     GetContainerUseCase,
     ListContainersUseCase,
     UpdateContainerUseCase,
 )
-from julee.c4.use_cases.deployment_node import (
+from julee.c4.use_cases.crud import (
     CreateDeploymentNodeUseCase,
     DeleteDeploymentNodeUseCase,
     GetDeploymentNodeUseCase,
     ListDeploymentNodesUseCase,
     UpdateDeploymentNodeUseCase,
-)
-from julee.c4.use_cases.diagrams import (
-    GetComponentDiagramUseCase,
-    GetContainerDiagramUseCase,
-    GetDeploymentDiagramUseCase,
-    GetDynamicDiagramUseCase,
-    GetSystemContextDiagramUseCase,
-    GetSystemLandscapeDiagramUseCase,
-)
-from julee.c4.use_cases.dynamic_step import (
     CreateDynamicStepUseCase,
     DeleteDynamicStepUseCase,
     GetDynamicStepUseCase,
     ListDynamicStepsUseCase,
     UpdateDynamicStepUseCase,
 )
-from julee.c4.use_cases.relationship import (
+from julee.c4.use_cases.diagrams.component_diagram import GetComponentDiagramUseCase
+from julee.c4.use_cases.diagrams.container_diagram import GetContainerDiagramUseCase
+from julee.c4.use_cases.diagrams.deployment_diagram import GetDeploymentDiagramUseCase
+from julee.c4.use_cases.diagrams.dynamic_diagram import GetDynamicDiagramUseCase
+from julee.c4.use_cases.diagrams.system_context import GetSystemContextDiagramUseCase
+from julee.c4.use_cases.diagrams.system_landscape import GetSystemLandscapeDiagramUseCase
+from julee.c4.use_cases.crud import (
     CreateRelationshipUseCase,
     DeleteRelationshipUseCase,
     GetRelationshipUseCase,
     ListRelationshipsUseCase,
     UpdateRelationshipUseCase,
 )
-from julee.c4.use_cases.software_system import (
+from julee.c4.use_cases.crud import (
     CreateSoftwareSystemUseCase,
     DeleteSoftwareSystemUseCase,
     GetSoftwareSystemUseCase,

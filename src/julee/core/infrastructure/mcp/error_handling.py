@@ -4,7 +4,7 @@ Provides consistent error responses with helpful suggestions for resolution.
 Errors include similar item suggestions for typos and guidance on next steps.
 
 Usage:
-    from apps.mcp.shared import not_found_error, validation_error
+    from julee.core.infrastructure.mcp import not_found_error, validation_error
 
     if not response.story:
         return not_found_error("story", slug, available_slugs)

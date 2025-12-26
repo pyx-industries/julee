@@ -4,7 +4,7 @@ Provides consistent pagination across list operations, enabling agents to
 efficiently work with large result sets without consuming excessive tokens.
 
 Usage:
-    from apps.mcp.shared import paginate_results
+    from julee.core.infrastructure.mcp import paginate_results
 
     @mcp.tool()
     async def mcp_list_stories(limit: int | None = None, offset: int = 0) -> dict:

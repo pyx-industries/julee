@@ -4,7 +4,7 @@ Controls response verbosity to optimize token usage. Agents can request
 minimal data for listing operations, or full details when needed.
 
 Usage:
-    from apps.mcp.shared import ResponseFormat, format_entity
+    from julee.core.infrastructure.mcp import ResponseFormat, format_entity
 
     @mcp.tool()
     async def mcp_get_story(slug: str, format: str = "full") -> dict:
