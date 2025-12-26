@@ -33,13 +33,13 @@ from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
     MemoryPolicyRepository,
 )
+from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
+    MemoryKnowledgeService,
+)
+from julee.contrib.ceap.services.knowledge_service import QueryResult
 from julee.contrib.ceap.use_cases import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
-)
-from julee.services.knowledge_service import QueryResult
-from julee.services.knowledge_service.memory import (
-    MemoryKnowledgeService,
 )
 
 pytestmark = pytest.mark.unit

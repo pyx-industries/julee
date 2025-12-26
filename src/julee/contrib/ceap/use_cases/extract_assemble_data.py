@@ -34,7 +34,7 @@ from julee.contrib.ceap.repositories import (
     KnowledgeServiceConfigRepository,
     KnowledgeServiceQueryRepository,
 )
-from julee.services import KnowledgeService
+from julee.contrib.ceap.services.knowledge_service import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
