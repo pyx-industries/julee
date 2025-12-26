@@ -6,7 +6,7 @@ repositories with data that doesn't change during the build.
 
 import logging
 
-from julee.hcd.parsers.ast import scan_bounded_contexts
+from julee.core.parsers.ast import scan_bounded_contexts
 from julee.hcd.parsers.gherkin import scan_feature_directory
 from julee.hcd.parsers.yaml import scan_app_manifests, scan_integration_manifests
 
