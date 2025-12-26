@@ -54,11 +54,15 @@ def _find_router_files(app_path: Path) -> list[Path]:
 def _extract_endpoints(file_path: Path) -> list[dict]:
     """Extract endpoint information from a router file using AST.
 
+    Detects UseCase usage via two patterns:
+    1. DI pattern: `use_case: SomeUseCase = Depends(...)` (type annotation)
+    2. Inline instantiation: `SomeUseCase(repo).execute(...)` (function call)
+
     Returns list of dicts with:
     - name: function name
     - method: HTTP method (get, post, put, delete, patch)
     - line: line number
-    - has_usecase_call: whether body contains UseCase instantiation
+    - has_usecase: whether endpoint references a UseCase
     - usecase_names: list of UseCase class names found
     """
     try:
@@ -71,7 +75,7 @@ def _extract_endpoints(file_path: Path) -> list[dict]:
     route_decorators = {"get", "post", "put", "delete", "patch", "head", "options"}
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             # Check if decorated with route decorator
             http_method = None
             for decorator in node.decorator_list:
@@ -88,25 +92,40 @@ def _extract_endpoints(file_path: Path) -> list[dict]:
                         break
 
             if http_method:
-                # Scan function body for UseCase instantiations
                 usecase_names = []
+
+                # Pattern 1: DI via type annotation (use_case: SomeUseCase = Depends)
+                for arg in node.args.args:
+                    if arg.annotation:
+                        # Use ast.unparse to get annotation as string
+                        ann_str = ast.unparse(arg.annotation)
+                        if USE_CASE_SUFFIX in ann_str:
+                            # Extract just the UseCase name from annotation
+                            # Handles both "SomeUseCase" and "module.SomeUseCase"
+                            for part in ann_str.replace(".", " ").split():
+                                if part.endswith(USE_CASE_SUFFIX):
+                                    usecase_names.append(part)
+
+                # Pattern 2: Inline instantiation (SomeUseCase(repo))
                 for body_node in ast.walk(node):
                     if isinstance(body_node, ast.Call):
                         # Check for UseCase() instantiation
                         if isinstance(body_node.func, ast.Name):
                             if body_node.func.id.endswith(USE_CASE_SUFFIX):
-                                usecase_names.append(body_node.func.id)
+                                if body_node.func.id not in usecase_names:
+                                    usecase_names.append(body_node.func.id)
                         # Check for module.UseCase() instantiation
                         elif isinstance(body_node.func, ast.Attribute):
                             if body_node.func.attr.endswith(USE_CASE_SUFFIX):
-                                usecase_names.append(body_node.func.attr)
+                                if body_node.func.attr not in usecase_names:
+                                    usecase_names.append(body_node.func.attr)
 
                 endpoints.append(
                     {
                         "name": node.name,
                         "method": http_method.upper(),
                         "line": node.lineno,
-                        "has_usecase_call": len(usecase_names) > 0,
+                        "has_usecase": len(usecase_names) > 0,
                         "usecase_names": usecase_names,
                     }
                 )
@@ -139,9 +158,6 @@ class TestRestApiEndpointUseCaseMapping:
             ), f"REST-API application '{app.slug}' has no routers"
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="Doctrine under development - CEAP refactoring required first"
-    )
     async def test_all_endpoints_MUST_map_to_exactly_one_usecase(
         self, app_repo: FilesystemApplicationRepository
     ) -> None:
@@ -167,12 +183,12 @@ class TestRestApiEndpointUseCaseMapping:
                 endpoints = _extract_endpoints(router_file)
 
                 for endpoint in endpoints:
-                    if not endpoint["has_usecase_call"]:
+                    if not endpoint["has_usecase"]:
                         violations.append(
                             f"{router_file.relative_to(Path(app.path))}:"
                             f"{endpoint['line']} "
                             f"{endpoint['method']} {endpoint['name']} - "
-                            f"no UseCase instantiation found"
+                            f"no UseCase found"
                         )
                     elif len(endpoint["usecase_names"]) > 1:
                         violations.append(
