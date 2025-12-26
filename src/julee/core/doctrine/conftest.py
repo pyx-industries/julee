@@ -11,6 +11,7 @@ from julee.core.doctrine_constants import (
 from julee.core.infrastructure.repositories.introspection import (
     FilesystemApplicationRepository,
     FilesystemBoundedContextRepository,
+    FilesystemSolutionRepository,
 )
 
 # Project root - find by looking for pyproject.toml
@@ -39,6 +40,16 @@ def app_repo() -> FilesystemApplicationRepository:
     The repository caches its discovery results internally.
     """
     return FilesystemApplicationRepository(PROJECT_ROOT)
+
+
+@pytest.fixture(scope="session")
+def solution_repo() -> FilesystemSolutionRepository:
+    """Solution repository pointing at real codebase.
+
+    Session-scoped to avoid re-discovering the solution structure for each test.
+    The repository caches its discovery results internally.
+    """
+    return FilesystemSolutionRepository(PROJECT_ROOT)
 
 
 @pytest.fixture

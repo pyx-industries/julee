@@ -10,8 +10,12 @@ from julee.core.infrastructure.repositories.introspection.application import (
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
+from julee.core.infrastructure.repositories.introspection.solution import (
+    FilesystemSolutionRepository,
+)
 
 __all__ = [
     "FilesystemApplicationRepository",
     "FilesystemBoundedContextRepository",
+    "FilesystemSolutionRepository",
 ]
