@@ -1,46 +1,43 @@
 """
-Temporal worker for julee domain workflows and activities.
+Standalone Polling Temporal worker entry point.
 
-This worker runs workflows and activities for document processing,
-assembly, and knowledge service operations within the julee domain.
+This module provides a standalone worker process for polling operations.
+It is a complete reference implementation demonstrating how to use the
+polling contrib module with Temporal.
+
+Usage:
+    python -m julee.contrib.polling.apps.worker.main
+
+Environment Variables:
+    TEMPORAL_ENDPOINT: Temporal server address (default: localhost:7234)
+    LOG_LEVEL: Logging level (default: INFO)
+    LOG_FORMAT: Logging format string
 """
 
 import asyncio
 import logging
 import os
+from typing import Any
 
-from minio import Minio
 from temporalio.client import Client
 from temporalio.service import RPCError
 from temporalio.worker import Worker
 
-from julee.core.infrastructure.repositories.minio.client import MinioClient
+from julee.contrib.polling.infrastructure.temporal.activities import (
+    TemporalPollerService,
+)
 from julee.core.infrastructure.temporal.activities import (
     collect_activities_from_instances,
 )
-from julee.repositories.temporal.activities import (
-    TemporalMinioAssemblyRepository,
-    TemporalMinioAssemblySpecificationRepository,
-    TemporalMinioDocumentPolicyValidationRepository,
-    TemporalMinioDocumentRepository,
-    TemporalMinioKnowledgeServiceConfigRepository,
-    TemporalMinioKnowledgeServiceQueryRepository,
-    TemporalMinioPolicyRepository,
-)
-from julee.services.temporal.activities import (
-    TemporalKnowledgeService,
-)
 from julee.util.repos.temporal.data_converter import temporal_data_converter
-from julee.workflows import (
-    ExtractAssembleWorkflow,
-    ValidateDocumentWorkflow,
-)
+
+from . import TASK_QUEUE, get_workflow_classes
 
 logger = logging.getLogger(__name__)
 
 
 def setup_logging() -> None:
-    """Configure logging based on environment variables"""
+    """Configure logging based on environment variables."""
     log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
     log_format = os.environ.get(
         "LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -67,7 +64,19 @@ def setup_logging() -> None:
 async def get_temporal_client_with_retries(
     endpoint: str, attempts: int = 10, delay: int = 5
 ) -> Client:
-    """Attempt to connect to Temporal with retries."""
+    """Attempt to connect to Temporal with retries.
+
+    Args:
+        endpoint: Temporal server address.
+        attempts: Maximum number of connection attempts.
+        delay: Delay in seconds between retry attempts.
+
+    Returns:
+        Connected Temporal client.
+
+    Raises:
+        RuntimeError: If all connection attempts fail.
+    """
     logger.debug(
         "Attempting to connect to Temporal",
         extra={
@@ -119,92 +128,76 @@ async def get_temporal_client_with_retries(
     raise RuntimeError("Failed to connect to Temporal after all attempts")
 
 
+class PollingWorkerDependencyContainer:
+    """
+    Dependency injection container for standalone polling worker.
+
+    This container manages singleton lifecycle for infrastructure dependencies
+    and provides factory methods for creating activity instances. Polling
+    activities are simpler than CEAP (no MinIO required).
+    """
+
+    def __init__(self) -> None:
+        self._instances: dict[str, Any] = {}
+
+    def create_activity_instances(self) -> list[Any]:
+        """Create all polling activity instances.
+
+        Returns:
+            List of activity instances ready for Temporal worker registration.
+        """
+        return [
+            TemporalPollerService(),
+        ]
+
+
 async def run_worker() -> None:
-    """Run the Temporal worker for julee domain"""
+    """Run the standalone Polling Temporal worker.
+
+    This function initializes and runs a Temporal worker that handles
+    polling workflows (NewDataDetectionPipeline) and their associated activities.
+    """
     # Setup logging first
     setup_logging()
 
     # Connect to Temporal server using environment variable
     temporal_endpoint = os.environ.get("TEMPORAL_ENDPOINT", "localhost:7234")
     logger.info(
-        "Starting julee Temporal worker",
-        extra={"temporal_endpoint": temporal_endpoint},
+        "Starting Polling Temporal worker",
+        extra={"temporal_endpoint": temporal_endpoint, "task_queue": TASK_QUEUE},
     )
 
     client = await get_temporal_client_with_retries(temporal_endpoint)
 
-    # Get Minio endpoint and create client for repositories
-    logger.debug("Preparing repository configurations")
-    minio_endpoint = os.environ.get("MINIO_ENDPOINT", "localhost:9000")
-
-    # Create Minio client for repositories
-    # minio.Minio implements the MinioClient protocol
-    minio_client: MinioClient = Minio(  # type: ignore[assignment]
-        endpoint=minio_endpoint,
-        access_key="minioadmin",
-        secret_key="minioadmin",
-        secure=False,
-    )
-
-    # Instantiate temporal repository classes for activity registration
-    logger.debug("Creating Temporal Activity repository implementations")
-    temporal_assembly_repo = TemporalMinioAssemblyRepository(client=minio_client)
-    temporal_assembly_spec_repo = TemporalMinioAssemblySpecificationRepository(
-        client=minio_client
-    )
-    temporal_document_repo = TemporalMinioDocumentRepository(client=minio_client)
-    temporal_knowledge_config_repo = TemporalMinioKnowledgeServiceConfigRepository(
-        client=minio_client
-    )
-    temporal_knowledge_query_repo = TemporalMinioKnowledgeServiceQueryRepository(
-        client=minio_client
-    )
-
-    # Create policy repositories for validation workflow
-    temporal_policy_repo = TemporalMinioPolicyRepository(client=minio_client)
-    temporal_document_policy_validation_repo = (
-        TemporalMinioDocumentPolicyValidationRepository(client=minio_client)
-    )
-
-    # Create temporal knowledge service for activity registration
-    # Pass the document repository for dependency injection
-    temporal_knowledge_service = TemporalKnowledgeService(
-        document_repo=temporal_document_repo
-    )
+    # Create DI container and get activity instances
+    container = PollingWorkerDependencyContainer()
+    activity_instances = container.create_activity_instances()
 
     # Automatically collect all activities from decorated instances
-    # This uses the same _discover_protocol_methods that the decorator uses,
-    # ensuring we never miss activities and eliminating boilerplate
-    activities = collect_activities_from_instances(
-        temporal_assembly_repo,
-        temporal_assembly_spec_repo,
-        temporal_document_repo,
-        temporal_knowledge_config_repo,
-        temporal_knowledge_query_repo,
-        temporal_policy_repo,
-        temporal_document_policy_validation_repo,
-        temporal_knowledge_service,
-    )
+    activities = collect_activities_from_instances(*activity_instances)
+
+    # Get workflow classes
+    workflows = get_workflow_classes()
 
     logger.info(
-        "Creating Temporal worker for julee domain",
+        "Creating Temporal worker for polling domain",
         extra={
-            "task_queue": "julee-extract-assemble-queue",
-            "workflow_count": 2,
+            "task_queue": TASK_QUEUE,
+            "workflow_count": len(workflows),
             "activity_count": len(activities),
             "data_converter_type": type(client.data_converter).__name__,
         },
     )
 
-    # Create worker with workflow retry policy
+    # Create worker
     worker = Worker(
         client,
-        task_queue="julee-extract-assemble-queue",
-        workflows=[ExtractAssembleWorkflow, ValidateDocumentWorkflow],
+        task_queue=TASK_QUEUE,
+        workflows=workflows,
         activities=activities,  # type: ignore[arg-type]
     )
 
-    logger.info("Starting julee worker execution")
+    logger.info("Starting Polling worker execution")
 
     # Run the worker
     await worker.run()

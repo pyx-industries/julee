@@ -89,7 +89,7 @@ class TestStartExtractAssembleWorkflow:
 
         # Check positional arguments
         assert call_args[1]["args"] == ["doc-123", "spec-456"]
-        assert call_args[1]["task_queue"] == "julee-extract-assemble-queue"
+        assert call_args[1]["task_queue"] == "julee-contrib-ceap-queue"
         assert "extract-assemble-doc-123-spec-456" in call_args[1]["id"]
 
     def test_start_workflow_success_with_custom_id(

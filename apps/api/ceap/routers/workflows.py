@@ -20,7 +20,8 @@ from pydantic import BaseModel, Field
 from temporalio.client import Client
 
 from apps.api.ceap.dependencies import get_temporal_client
-from julee.workflows.extract_assemble import (
+from julee.contrib.ceap.apps.worker import TASK_QUEUE as CEAP_TASK_QUEUE
+from julee.contrib.ceap.apps.worker.pipelines import (
     EXTRACT_ASSEMBLE_RETRY_POLICY,
     ExtractAssembleWorkflow,
 )
@@ -106,7 +107,7 @@ async def start_extract_assemble_workflow(
             ExtractAssembleWorkflow.run,
             args=[request.document_id, request.assembly_specification_id],
             id=workflow_id,
-            task_queue="julee-extract-assemble-queue",
+            task_queue=CEAP_TASK_QUEUE,
             retry_policy=EXTRACT_ASSEMBLE_RETRY_POLICY,
         )
 
