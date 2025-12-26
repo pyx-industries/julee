@@ -1,37 +1,22 @@
-"""
-API routers for the julee CEAP system.
+"""CEAP API routers - imports from BC.
 
-This package contains APIRouter modules that organize endpoints by domain.
-Each router module defines routes at the root level and is mounted with a
-prefix in the main app.
-
-Organization:
-- knowledge_service_queries: CRUD operations for knowledge service queries
-- assembly_specifications: CRUD operations for assembly specifications
-- documents: CRUD operations for documents
-- workflows: Workflow management and execution endpoints
-- system: Health checks and system status endpoints
-
-Router modules follow the pattern:
-1. Define routes at root level ("/" and "/{id}")
-2. Include proper dependency injection
-3. Use domain models for request/response
-4. Follow consistent error handling patterns
+This thin composition layer imports routers from the bounded context.
 """
 
-# Import routers for convenient access
-from apps.api.ceap.routers.assembly_specifications import (
+from julee.contrib.ceap.apps.api.routers.assembly_specifications import (
     router as assembly_specifications_router,
 )
-from apps.api.ceap.routers.documents import router as documents_router
-from apps.api.ceap.routers.knowledge_service_configs import (
+from julee.contrib.ceap.apps.api.routers.documents import (
+    router as documents_router,
+)
+from julee.contrib.ceap.apps.api.routers.knowledge_service_configs import (
     router as knowledge_service_configs_router,
 )
-from apps.api.ceap.routers.knowledge_service_queries import (
+from julee.contrib.ceap.apps.api.routers.knowledge_service_queries import (
     router as knowledge_service_queries_router,
 )
-from apps.api.ceap.routers.system import router as system_router
-from apps.api.ceap.routers.workflows import router as workflows_router
+from julee.contrib.ceap.apps.api.routers.system import router as system_router
+from julee.contrib.ceap.apps.api.routers.workflows import router as workflows_router
 
 __all__ = [
     "knowledge_service_queries_router",

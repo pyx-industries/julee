@@ -28,6 +28,7 @@ from fastapi_pagination.utils import disable_installed_extensions_check
 from apps.api.ceap.dependencies import (
     get_knowledge_service_config_repository,
     get_startup_dependencies,
+    get_temporal_client,
 )
 from apps.api.ceap.routers import (
     assembly_specifications_router,
@@ -37,6 +38,7 @@ from apps.api.ceap.routers import (
     system_router,
     workflows_router,
 )
+from julee.contrib.ceap.apps.api.routers import workflows as bc_workflows
 
 # Disable pagination extensions check for cleaner startup
 disable_installed_extensions_check()
@@ -136,6 +138,8 @@ app.add_middleware(
 # Add pagination support
 _ = add_pagination(app)
 
+# Override BC's workflow dependencies with composition layer's implementations
+app.dependency_overrides[bc_workflows.get_temporal_client] = get_temporal_client
 
 # Include routers
 app.include_router(system_router, tags=["System"])

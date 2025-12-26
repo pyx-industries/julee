@@ -1,16 +1,4 @@
-"""
-Workflows API router for the julee CEAP system.
-
-This module provides workflow management API endpoints for starting,
-monitoring, and managing workflows in the system.
-
-Routes defined at root level:
-- POST /extract-assemble - Start extract-assemble workflow
-- GET /{workflow_id}/status - Get workflow status
-- GET / - List workflows
-
-These routes are mounted with '/workflows' prefix in the main app.
-"""
+"""Workflows API router for workflow management."""
 
 import logging
 import uuid
@@ -19,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from temporalio.client import Client
 
-from apps.api.ceap.dependencies import get_temporal_client
 from julee.contrib.ceap.apps.worker import TASK_QUEUE as CEAP_TASK_QUEUE
 from julee.contrib.ceap.apps.worker.pipelines import (
     EXTRACT_ASSEMBLE_RETRY_POLICY,
@@ -29,6 +16,10 @@ from julee.contrib.ceap.apps.worker.pipelines import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+# Request/Response models for workflow operations
+# These are API-layer models, not domain use case models
 
 
 class StartExtractAssembleRequest(BaseModel):
@@ -41,7 +32,7 @@ class StartExtractAssembleRequest(BaseModel):
     workflow_id: str | None = Field(
         None,
         min_length=1,
-        description=("Optional custom workflow ID (auto-generated if not provided)"),
+        description="Optional custom workflow ID (auto-generated if not provided)",
     )
 
 
@@ -50,7 +41,7 @@ class WorkflowStatusResponse(BaseModel):
 
     workflow_id: str
     run_id: str
-    status: str  # "RUNNING", "COMPLETED", "FAILED", "CANCELLED", etc.
+    status: str
     current_step: str | None = None
     assembly_id: str | None = None
 
@@ -64,28 +55,23 @@ class StartWorkflowResponse(BaseModel):
     message: str
 
 
+# Dependency placeholder - to be provided by composition layer
+async def get_temporal_client() -> Client:
+    """Temporal client dependency - override in composition layer."""
+    raise NotImplementedError(
+        "get_temporal_client must be overridden via dependency_overrides"
+    )
+
+
 @router.post("/extract-assemble", response_model=StartWorkflowResponse)
 async def start_extract_assemble_workflow(
     request: StartExtractAssembleRequest,
     temporal_client: Client = Depends(get_temporal_client),
 ) -> StartWorkflowResponse:
-    """
-    Start an extract-assemble workflow.
-
-    Args:
-        request: Workflow start request with document and spec IDs
-        temporal_client: Temporal client dependency
-
-    Returns:
-        Workflow ID and initial status
-
-    Raises:
-        HTTPException: If workflow start fails
-    """
+    """Start an extract-assemble workflow."""
     try:
         logger.info("Starting extract-assemble workflow request received")
 
-        # Generate workflow ID if not provided
         workflow_id = request.workflow_id
         if not workflow_id:
             workflow_id = (
@@ -98,11 +84,10 @@ async def start_extract_assemble_workflow(
             extra={
                 "workflow_id": workflow_id,
                 "document_id": request.document_id,
-                "assembly_specification_id": (request.assembly_specification_id),
+                "assembly_specification_id": request.assembly_specification_id,
             },
         )
 
-        # Start the workflow
         handle = await temporal_client.start_workflow(
             ExtractAssembleWorkflow.run,
             args=[request.document_id, request.assembly_specification_id],
@@ -132,7 +117,7 @@ async def start_extract_assemble_workflow(
             e,
             extra={
                 "document_id": request.document_id,
-                "assembly_specification_id": (request.assembly_specification_id),
+                "assembly_specification_id": request.assembly_specification_id,
             },
         )
         raise HTTPException(status_code=500, detail="Failed to start workflow") from e
@@ -143,26 +128,12 @@ async def get_workflow_status(
     workflow_id: str,
     temporal_client: Client = Depends(get_temporal_client),
 ) -> WorkflowStatusResponse:
-    """
-    Get the status of a workflow.
-
-    Args:
-        workflow_id: Workflow ID to query
-        temporal_client: Temporal client dependency
-
-    Returns:
-        Current workflow status and details
-
-    Raises:
-        HTTPException: If workflow not found or query fails
-    """
+    """Get the status of a workflow."""
     logger.info("Getting workflow status", extra={"workflow_id": workflow_id})
 
-    # Get workflow handle - if this fails, workflow doesn't exist
     try:
         handle = temporal_client.get_workflow_handle(workflow_id)
     except Exception as e:
-        # Check if it's a workflow not found error (common patterns)
         error_message = str(e).lower()
         if any(
             pattern in error_message
@@ -178,7 +149,6 @@ async def get_workflow_status(
                 detail=f"Workflow with ID '{workflow_id}' not found",
             )
 
-        # Other errors from getting workflow handle
         logger.error(
             "Failed to get workflow handle: %s",
             e,
@@ -188,7 +158,6 @@ async def get_workflow_status(
             status_code=500, detail="Failed to retrieve workflow handle"
         ) from e
 
-    # Get workflow description - if this fails, it's a server error
     try:
         description = await handle.describe()
     except Exception as e:
@@ -201,7 +170,6 @@ async def get_workflow_status(
             status_code=500, detail="Failed to retrieve workflow description"
         ) from e
 
-    # Query current step and assembly ID if workflow supports it
     current_step = None
     assembly_id = None
     try:
