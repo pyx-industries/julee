@@ -53,6 +53,15 @@ class ValidateDocumentRequest(BaseModel):
     policy_id: str = Field(description="ID of the policy to validate against")
 
 
+class ValidateDocumentResponse(BaseModel):
+    """Response from validating a document against a policy.
+
+    Wraps the resulting DocumentPolicyValidation entity.
+    """
+
+    entity: DocumentPolicyValidation
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,16 +139,18 @@ class ValidateDocumentUseCase:
 
     async def execute(
         self, request: ValidateDocumentRequest
-    ) -> DocumentPolicyValidation:
+    ) -> ValidateDocumentResponse:
         """Execute the use case.
 
         Args:
             request: Request containing document_id and policy_id
 
         Returns:
-            DocumentPolicyValidation with validation results
+            Response containing the DocumentPolicyValidation with validation
+            results
         """
-        return await self.validate_document(request)
+        validation = await self.validate_document(request)
+        return ValidateDocumentResponse(entity=validation)
 
     async def validate_document(
         self, request: ValidateDocumentRequest

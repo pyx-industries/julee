@@ -56,6 +56,15 @@ class ExtractAssembleDataRequest(BaseModel):
     )
 
 
+class ExtractAssembleDataResponse(BaseModel):
+    """Response from extracting and assembling document data.
+
+    Wraps the resulting Assembly entity.
+    """
+
+    entity: Assembly
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -134,7 +143,7 @@ class ExtractAssembleDataUseCase:
     async def execute(
         self,
         request: ExtractAssembleDataRequest,
-    ) -> Assembly:
+    ) -> ExtractAssembleDataResponse:
         """Execute the use case.
 
         Args:
@@ -142,9 +151,11 @@ class ExtractAssembleDataUseCase:
                 and workflow_id
 
         Returns:
-            New Assembly with the assembled document iteration
+            Response containing the new Assembly with the assembled document
+            iteration
         """
-        return await self.assemble_data(request)
+        assembly = await self.assemble_data(request)
+        return ExtractAssembleDataResponse(entity=assembly)
 
     async def assemble_data(
         self,

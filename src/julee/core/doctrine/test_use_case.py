@@ -5,7 +5,6 @@ The assertions enforce them.
 """
 
 import importlib
-import warnings
 
 import pytest
 
@@ -171,10 +170,10 @@ class TestUseCaseStructure:
         )
 
     @pytest.mark.asyncio
-    async def test_all_use_cases_SHOULD_have_matching_response(self, repo):
-        """All use cases SHOULD have a matching {Prefix}Response class.
+    async def test_all_use_cases_MUST_have_matching_response(self, repo):
+        """All use cases MUST have a matching {Prefix}Response class.
 
-        Use cases that return data should have a corresponding Response class
+        Use cases that return data MUST have a corresponding Response class
         in the same bounded context.
         """
         uc_use_case = ListUseCasesUseCase(repo)
@@ -191,7 +190,7 @@ class TestUseCaseStructure:
                 responses_by_context[ctx] = set()
             responses_by_context[ctx].add(artifact.artifact.name)
 
-        missing = []
+        violations = []
         suffix_len = len(USE_CASE_SUFFIX)
         for artifact in uc_response.artifacts:
             name = artifact.artifact.name
@@ -201,12 +200,8 @@ class TestUseCaseStructure:
                 expected_response = f"{prefix}{RESPONSE_SUFFIX}"
                 available = responses_by_context.get(ctx, set())
                 if expected_response not in available:
-                    missing.append(f"{ctx}.{name}: missing {expected_response}")
+                    violations.append(f"{ctx}.{name}: missing {expected_response}")
 
-        # This is a SHOULD rule - log but don't fail
-        if missing:
-            warnings.warn(
-                "Use cases missing matching Response classes (SHOULD have):\n"
-                + "\n".join(missing),
-                stacklevel=2,
-            )
+        assert not violations, "Use cases missing matching responses:\n" + "\n".join(
+            violations
+        )

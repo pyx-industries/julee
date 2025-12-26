@@ -58,6 +58,15 @@ class InitializeSystemDataRequest(BaseModel):
     pass
 
 
+class InitializeSystemDataResponse(BaseModel):
+    """Response from initializing system data.
+
+    Indicates successful completion of system data initialization.
+    """
+
+    pass
+
+
 @use_case
 class InitializeSystemDataUseCase:
     """
@@ -95,7 +104,9 @@ class InitializeSystemDataUseCase:
         self.assembly_spec_repo = assembly_specification_repository
         self.logger = logging.getLogger("InitializeSystemDataUseCase")
 
-    async def execute(self, request: InitializeSystemDataRequest | None = None) -> None:
+    async def execute(
+        self, request: InitializeSystemDataRequest | None = None
+    ) -> InitializeSystemDataResponse:
         """
         Execute system data initialization.
 
@@ -105,6 +116,9 @@ class InitializeSystemDataUseCase:
         Args:
             request: Request object (currently unused, accepts None for
                 backward compatibility)
+
+        Returns:
+            Response indicating successful initialization
 
         Raises:
             Exception: If any critical system data cannot be initialized
@@ -118,6 +132,7 @@ class InitializeSystemDataUseCase:
             await self._ensure_assembly_specifications_exist()
 
             self.logger.info("System data initialization completed successfully")
+            return InitializeSystemDataResponse()
 
         except Exception as e:
             self.logger.error(

@@ -125,7 +125,8 @@ class ExtractAssemblePipeline:
         self.current_step = "executing_use_case"
 
         # Execute business UseCase - delegates all business logic
-        assembly = await use_case.execute(assemble_request)
+        use_case_response = await use_case.execute(assemble_request)
+        assembly = use_case_response.entity
 
         self.assembly_id = assembly.assembly_id
         self.current_step = "routing"
@@ -278,7 +279,8 @@ class ValidateDocumentPipeline:
         self.current_step = "executing_use_case"
 
         # Execute business UseCase - delegates all business logic
-        validation = await use_case.execute(validate_request)
+        use_case_response = await use_case.execute(validate_request)
+        validation = use_case_response.entity
 
         self.validation_id = validation.validation_id
         self.current_step = "routing"
