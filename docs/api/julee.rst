@@ -1,14 +1,14 @@
 Julee Core Modules
 ==================
 
-CEAP Domain
------------
+Core Framework
+--------------
 
 .. autosummary::
    :toctree: _generated/
    :recursive:
 
-   julee.ceap.domain
+   julee.core
 
 HCD (Human-Centered Design)
 ---------------------------
@@ -17,11 +17,10 @@ HCD (Human-Centered Design)
    :toctree: _generated/
    :recursive:
 
-   julee.hcd.domain
-   julee.hcd.parsers
+   julee.hcd.entities
+   julee.hcd.use_cases
    julee.hcd.repositories
-   julee.hcd.serializers
-   julee.hcd.templates
+   julee.hcd.infrastructure
 
 C4 Architecture
 ---------------
@@ -30,62 +29,7 @@ C4 Architecture
    :toctree: _generated/
    :recursive:
 
-   julee.c4.domain
+   julee.c4.entities
+   julee.c4.use_cases
    julee.c4.repositories
-
-Shared Utilities
-----------------
-
-.. autosummary::
-   :toctree: _generated/
-   :recursive:
-
-   julee.shared.domain
-   julee.shared.introspection
-   julee.shared.parsers
-   julee.shared.repositories
-   julee.shared.templates
-   julee.shared.utils
-
-Repositories
-------------
-
-.. autosummary::
-   :toctree: _generated/
-   :recursive:
-
-   julee.repositories.memory
-   julee.repositories.minio
-   julee.repositories.temporal
-
-Services
---------
-
-.. autosummary::
-   :toctree: _generated/
-   :recursive:
-
-   julee.services.knowledge_service
-   julee.services.temporal
-
-Workflows
----------
-
-.. autosummary::
-   :toctree: _generated/
-   :recursive:
-
-   julee.workflows
-
-Utilities
----------
-
-.. autosummary::
-   :toctree: _generated/
-   :recursive:
-
-   julee.util.domain
-   julee.util.repos
-   julee.util.repositories
-   julee.util.temporal
-   julee.util.validation
+   julee.c4.infrastructure

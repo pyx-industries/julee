@@ -13,5 +13,9 @@
    :toctree:
    :recursive:
 
-   file
-   memory
+   component
+   container
+   deployment_node
+   dynamic_step
+   relationship
+   software_system
