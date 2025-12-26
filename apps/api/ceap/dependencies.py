@@ -24,6 +24,18 @@ from minio import Minio
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 
+from julee.contrib.ceap.infrastructure.repositories.minio.assembly_specification import (
+    MinioAssemblySpecificationRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.minio.document import (
+    MinioDocumentRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_config import (
+    MinioKnowledgeServiceConfigRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_query import (
+    MinioKnowledgeServiceQueryRepository,
+)
 from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
@@ -36,19 +48,7 @@ from julee.contrib.ceap.repositories.knowledge_service_config import (
 from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-from julee.contrib.ceap.infrastructure.repositories.minio.assembly_specification import (
-    MinioAssemblySpecificationRepository,
-)
 from julee.core.infrastructure.repositories.minio.client import MinioClient
-from julee.contrib.ceap.infrastructure.repositories.minio.document import (
-    MinioDocumentRepository,
-)
-from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_config import (
-    MinioKnowledgeServiceConfigRepository,
-)
-from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_query import (
-    MinioKnowledgeServiceQueryRepository,
-)
 
 logger = logging.getLogger(__name__)
 

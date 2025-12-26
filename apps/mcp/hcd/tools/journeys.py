@@ -16,6 +16,7 @@ from julee.hcd.use_cases.journey import (
     UpdateJourneyRequest,
 )
 from julee.hcd.use_cases.suggestions import compute_journey_suggestions
+
 from ..context import (
     get_create_journey_use_case,
     get_delete_journey_use_case,

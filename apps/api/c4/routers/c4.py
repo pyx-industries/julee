@@ -44,6 +44,7 @@ from julee.c4.use_cases import (
     UpdateRelationshipUseCase,
     UpdateSoftwareSystemUseCase,
 )
+
 from ..dependencies import (
     get_component_diagram_use_case,
     get_container_diagram_use_case,

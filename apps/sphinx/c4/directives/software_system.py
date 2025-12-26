@@ -7,6 +7,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.c4.entities.software_system import SoftwareSystem, SystemType
+
 from .base import C4Directive
 
 

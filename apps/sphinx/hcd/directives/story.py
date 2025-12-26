@@ -19,7 +19,7 @@ from julee.hcd.use_cases.resolve_story_references import (
     get_journeys_for_story,
 )
 from julee.hcd.utils import normalize_name, slugify
-from apps.sphinx.shared import path_to_root
+
 from .base import HCDDirective, make_deprecated_directive
 
 
@@ -452,9 +452,10 @@ def build_story_seealso(story, env, docname: str, hcd_context):
     Returns:
         Seealso admonition node or None if no links
     """
-    from ..config import get_config
     from apps.sphinx.shared import path_to_root
     from julee.hcd.utils import slugify
+
+    from ..config import get_config
 
     config = get_config()
     prefix = path_to_root(docname)

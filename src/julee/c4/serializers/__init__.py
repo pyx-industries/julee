@@ -12,11 +12,9 @@ from .rst import (
     serialize_relationship,
     serialize_software_system,
 )
-from .structurizr import StructurizrSerializer
 
 __all__ = [
     "PlantUMLSerializer",
-    "StructurizrSerializer",
     # RST serializers
     "serialize_component",
     "serialize_container",

@@ -9,10 +9,11 @@ Provides directives for defining and cross-referencing epics:
 
 from docutils import nodes
 
+from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.epic import Epic
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
 from julee.hcd.utils import normalize_name
-from apps.sphinx.shared import path_to_root
+
 from .base import HCDDirective
 
 

@@ -2,17 +2,17 @@
 
 import pytest
 
-from julee.hcd.entities.accelerator import Accelerator
-from julee.hcd.entities.app import App, AppType
-from julee.hcd.entities.epic import Epic
-from julee.hcd.entities.journey import Journey
-from julee.hcd.entities.story import Story
 from apps.sphinx.hcd.context import (
     HCDContext,
     ensure_hcd_context,
     get_hcd_context,
     set_hcd_context,
 )
+from julee.hcd.entities.accelerator import Accelerator
+from julee.hcd.entities.app import App, AppType
+from julee.hcd.entities.epic import Epic
+from julee.hcd.entities.journey import Journey
+from julee.hcd.entities.story import Story
 
 
 class MockSphinxEnv:

@@ -3,8 +3,8 @@
 import pytest
 from pydantic import BaseModel
 
-from julee.core.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 from apps.sphinx.hcd.adapters import SyncRepositoryAdapter
+from julee.core.infrastructure.repositories.memory.base import MemoryRepositoryMixin
 
 
 class SampleEntity(BaseModel):

@@ -6,19 +6,17 @@ focus on verifying the delegation works correctly and that the API-specific
 behavior (like field copying and conversion methods) functions as expected.
 """
 
-from datetime import datetime
 
 import pytest
 from pydantic import ValidationError
 
+from julee.contrib.ceap.entities import (
+    AssemblySpecification,
+    KnowledgeServiceQuery,
+)
 from julee.contrib.ceap.use_cases.crud import (
     CreateAssemblySpecificationRequest,
     CreateKnowledgeServiceQueryRequest,
-)
-from julee.contrib.ceap.entities import (
-    AssemblySpecification,
-    AssemblySpecificationStatus,
-    KnowledgeServiceQuery,
 )
 
 pytestmark = pytest.mark.unit

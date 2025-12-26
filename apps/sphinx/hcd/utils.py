@@ -4,6 +4,12 @@ Re-exports utilities needed by HCD Sphinx directives.
 """
 
 # Domain utilities from HCD accelerator
+# Sphinx-specific utilities from shared
+from apps.sphinx.shared import (
+    make_internal_link,
+    make_reference,
+    path_to_root,
+)
 from julee.hcd.utils import (
     kebab_to_snake,
     normalize_name,
@@ -11,13 +17,6 @@ from julee.hcd.utils import (
     parse_integration_options,
     parse_list_option,
     slugify,
-)
-
-# Sphinx-specific utilities from shared
-from apps.sphinx.shared import (
-    make_internal_link,
-    make_reference,
-    path_to_root,
 )
 
 __all__ = [

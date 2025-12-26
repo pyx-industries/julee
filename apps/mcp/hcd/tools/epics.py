@@ -13,6 +13,7 @@ from julee.hcd.use_cases.epic import (
     UpdateEpicRequest,
 )
 from julee.hcd.use_cases.suggestions import compute_epic_suggestions
+
 from ..context import (
     get_create_epic_use_case,
     get_delete_epic_use_case,

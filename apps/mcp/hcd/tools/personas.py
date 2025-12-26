@@ -8,6 +8,7 @@ Responses include contextual suggestions based on domain semantics.
 from apps.mcp.shared import ResponseFormat, format_entity, paginate_results
 from julee.hcd.use_cases.queries import DerivePersonasRequest, GetPersonaRequest
 from julee.hcd.use_cases.suggestions import compute_persona_suggestions
+
 from ..context import (
     get_derive_personas_use_case,
     get_get_persona_use_case,

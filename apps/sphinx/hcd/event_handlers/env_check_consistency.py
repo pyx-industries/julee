@@ -10,6 +10,7 @@ from julee.hcd.use_cases.queries import (
     ValidateAcceleratorsRequest,
     ValidateAcceleratorsUseCase,
 )
+
 from ..context import get_hcd_context
 
 logger = logging.getLogger(__name__)

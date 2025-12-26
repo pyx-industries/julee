@@ -14,8 +14,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from julee.contrib.ceap.apps.api.responses import ServiceStatus
 from apps.api.ceap.routers import system_router as router
+from julee.contrib.ceap.apps.api.responses import ServiceStatus
 
 pytestmark = pytest.mark.unit
 

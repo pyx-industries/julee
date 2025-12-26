@@ -13,8 +13,8 @@ def setup(app: Sphinx) -> dict:
 
     Registers directives and event handlers for both HCD and C4.
     """
-    from .hcd import setup as setup_hcd
     from .c4 import setup as setup_c4
+    from .hcd import setup as setup_hcd
 
     # Set up HCD directives
     setup_hcd(app)

@@ -14,6 +14,7 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
@@ -25,7 +26,7 @@ from julee.hcd.utils import (
     parse_integration_options,
     parse_list_option,
 )
-from apps.sphinx.shared import path_to_root
+
 from .base import HCDDirective
 
 

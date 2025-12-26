@@ -13,8 +13,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
-from julee.contrib.ceap.apps.api.routers import workflows as bc_workflows
 from apps.api.ceap.routers import workflows_router as router
+from julee.contrib.ceap.apps.api.routers import workflows as bc_workflows
 
 pytestmark = pytest.mark.unit
 

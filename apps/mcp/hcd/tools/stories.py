@@ -18,6 +18,7 @@ from julee.hcd.use_cases.story import (
     UpdateStoryRequest,
 )
 from julee.hcd.use_cases.suggestions import compute_story_suggestions
+
 from ..context import (
     get_create_story_use_case,
     get_delete_story_use_case,

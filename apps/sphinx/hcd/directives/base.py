@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
 
+from apps.sphinx.shared import path_to_root
+from julee.hcd.utils import slugify
+
 from ..config import get_config
 from ..context import HCDContext, get_hcd_context
-
-from julee.hcd.utils import slugify
-from apps.sphinx.shared import path_to_root
 
 if TYPE_CHECKING:
     pass

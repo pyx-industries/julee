@@ -31,10 +31,11 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
 
     Returns dict mapping app slug to doctrine directory path.
     """
+    import asyncio
+
     from julee.core.infrastructure.repositories.introspection import (
         FilesystemSolutionRepository,
     )
-    import asyncio
 
     async def _discover():
         repo = FilesystemSolutionRepository(PROJECT_ROOT)

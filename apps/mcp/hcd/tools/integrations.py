@@ -16,6 +16,7 @@ from julee.hcd.use_cases.integration import (
     UpdateIntegrationRequest,
 )
 from julee.hcd.use_cases.suggestions import compute_integration_suggestions
+
 from ..context import (
     get_create_integration_use_case,
     get_delete_integration_use_case,

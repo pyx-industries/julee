@@ -12,6 +12,27 @@ julee_app = FastAPI(
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    from .c4.routers import (
+        components as c4_components,
+    )
+    from .c4.routers import (
+        containers as c4_containers,
+    )
+    from .c4.routers import (
+        deployment_nodes as c4_deployment_nodes,
+    )
+    from .c4.routers import (
+        diagrams as c4_diagrams,
+    )
+    from .c4.routers import (
+        dynamic_steps as c4_dynamic_steps,
+    )
+    from .c4.routers import (
+        relationships as c4_relationships,
+    )
+    from .c4.routers import (
+        software_systems as c4_software_systems,
+    )
     from .ceap.routers import (
         assembly_specifications,
         documents,
@@ -20,21 +41,24 @@ def create_app() -> FastAPI:
     )
     from .hcd.routers import (
         accelerators as hcd_accelerators,
-        apps as hcd_apps,
-        epics as hcd_epics,
-        integrations as hcd_integrations,
-        journeys as hcd_journeys,
-        personas as hcd_personas,
-        stories as hcd_stories,
     )
-    from .c4.routers import (
-        components as c4_components,
-        containers as c4_containers,
-        deployment_nodes as c4_deployment_nodes,
-        diagrams as c4_diagrams,
-        dynamic_steps as c4_dynamic_steps,
-        relationships as c4_relationships,
-        software_systems as c4_software_systems,
+    from .hcd.routers import (
+        apps as hcd_apps,
+    )
+    from .hcd.routers import (
+        epics as hcd_epics,
+    )
+    from .hcd.routers import (
+        integrations as hcd_integrations,
+    )
+    from .hcd.routers import (
+        journeys as hcd_journeys,
+    )
+    from .hcd.routers import (
+        personas as hcd_personas,
+    )
+    from .hcd.routers import (
+        stories as hcd_stories,
     )
 
     # CEAP routers

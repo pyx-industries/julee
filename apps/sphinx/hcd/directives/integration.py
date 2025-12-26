@@ -12,6 +12,7 @@ import os
 from docutils import nodes
 
 from julee.hcd.entities.integration import Direction
+
 from .base import HCDDirective
 
 

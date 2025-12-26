@@ -10,7 +10,6 @@ Test categories:
 """
 
 import importlib
-from pathlib import Path
 
 import pytest
 from click.testing import CliRunner

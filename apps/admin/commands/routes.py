@@ -6,13 +6,13 @@ Routes define how responses from one pipeline are routed to downstream pipelines
 
 import asyncio
 import importlib
-from typing import Callable
 
 import click
 
 from julee.core.entities.pipeline_route import PipelineRoute
-from julee.core.infrastructure.repositories.memory.pipeline_route import InMemoryPipelineRouteRepository
-
+from julee.core.infrastructure.repositories.memory.pipeline_route import (
+    InMemoryPipelineRouteRepository,
+)
 
 # Default route modules to load
 # Each module should have a get_*_routes() function or a *_routes list

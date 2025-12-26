@@ -8,6 +8,7 @@ from julee.c4.use_cases.relationship import (
     ListRelationshipsRequest,
     UpdateRelationshipRequest,
 )
+
 from ..context import (
     get_create_relationship_use_case,
     get_delete_relationship_use_case,

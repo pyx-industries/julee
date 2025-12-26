@@ -9,6 +9,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.c4.serializers.plantuml import PlantUMLSerializer
+
 from .base import C4Directive
 
 
@@ -579,10 +580,10 @@ def build_system_context_diagram(system_slug: str, title: str, docname: str, app
                         description=_first_sentence(persona.context or ""),
                     )
                 )
-    except (ImportError, AttributeError) as e:
+    except (ImportError, AttributeError):
         # HCD extension not loaded or no personas - use slugs only
         pass
-    except Exception as e:
+    except Exception:
         # Log unexpected errors
         pass
 

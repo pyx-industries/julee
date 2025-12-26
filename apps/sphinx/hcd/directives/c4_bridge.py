@@ -251,7 +251,7 @@ def build_c4_container_diagram(
 
     # Relationships: Foundation to external (foundation provides infrastructure)
     if show_external and show_foundation:
-        lines.append(f'Rel(foundation, external, "Connects to")')
+        lines.append('Rel(foundation, external, "Connects to")')
         lines.append("")
 
     lines.append("@enduml")

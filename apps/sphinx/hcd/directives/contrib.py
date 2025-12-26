@@ -9,8 +9,9 @@ Provides directives for contrib modules (reusable utilities):
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.hcd.entities.contrib import ContribModule
 from apps.sphinx.shared import path_to_root
+from julee.hcd.entities.contrib import ContribModule
+
 from .base import HCDDirective
 
 

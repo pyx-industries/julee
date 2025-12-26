@@ -7,6 +7,14 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from julee.c4.infrastructure.repositories.file import (
+    FileComponentRepository,
+    FileContainerRepository,
+    FileDeploymentNodeRepository,
+    FileDynamicStepRepository,
+    FileRelationshipRepository,
+    FileSoftwareSystemRepository,
+)
 from julee.c4.use_cases.component import (
     CreateComponentUseCase,
     DeleteComponentUseCase,
@@ -56,14 +64,6 @@ from julee.c4.use_cases.software_system import (
     GetSoftwareSystemUseCase,
     ListSoftwareSystemsUseCase,
     UpdateSoftwareSystemUseCase,
-)
-from julee.c4.infrastructure.repositories.file import (
-    FileComponentRepository,
-    FileContainerRepository,
-    FileDeploymentNodeRepository,
-    FileDynamicStepRepository,
-    FileRelationshipRepository,
-    FileSoftwareSystemRepository,
 )
 
 

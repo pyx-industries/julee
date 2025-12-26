@@ -6,15 +6,15 @@ repositories with data that doesn't change during the build.
 
 import logging
 
-from .config import get_config
-from .context import HCDContext, create_sphinx_env_context, set_hcd_context
-
 from julee.hcd.parsers import (
     scan_app_manifests,
     scan_bounded_contexts,
     scan_feature_directory,
     scan_integration_manifests,
 )
+
+from .config import get_config
+from .context import HCDContext, create_sphinx_env_context, set_hcd_context
 
 logger = logging.getLogger(__name__)
 

@@ -8,6 +8,7 @@ from docutils.parsers.rst import directives
 
 from julee.c4.entities.dynamic_step import DynamicStep
 from julee.c4.entities.relationship import ElementType
+
 from .base import C4Directive
 
 

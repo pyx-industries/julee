@@ -9,6 +9,7 @@ Provides directives for rendering application information:
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.app import App, AppInterface, AppType
 from julee.hcd.use_cases.resolve_app_references import (
     get_epics_for_app,
@@ -17,7 +18,7 @@ from julee.hcd.use_cases.resolve_app_references import (
     get_stories_for_app,
 )
 from julee.hcd.utils import normalize_name, parse_csv_option, slugify
-from apps.sphinx.shared import path_to_root
+
 from .base import HCDDirective
 
 
@@ -323,7 +324,7 @@ def build_app_index(docname: str, hcd_context):
                 desc = app.description.split(".")[0] + "."
                 if len(desc) > 80:
                     desc = desc[:77] + "..."
-                para += nodes.Text(f" ")
+                para += nodes.Text(" ")
                 para += nodes.emphasis(text=desc)
 
             item += para
@@ -336,8 +337,12 @@ def build_app_index(docname: str, hcd_context):
 
 def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
     """Build list of apps for a persona."""
+    from julee.hcd.use_cases.derive_personas import (
+        derive_personas,
+        get_apps_for_persona,
+    )
+
     from ..config import get_config
-    from julee.hcd.use_cases.derive_personas import derive_personas, get_apps_for_persona
 
     config = get_config()
     prefix = path_to_root(docname)

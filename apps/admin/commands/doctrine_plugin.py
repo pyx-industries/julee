@@ -5,7 +5,6 @@ status during execution, enabling structured output of doctrine
 verification results.
 """
 
-import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 

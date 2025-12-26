@@ -13,6 +13,7 @@ from julee.hcd.use_cases.app import (
     UpdateAppRequest,
 )
 from julee.hcd.use_cases.suggestions import compute_app_suggestions
+
 from ..context import (
     get_create_app_use_case,
     get_delete_app_use_case,

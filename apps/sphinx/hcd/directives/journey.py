@@ -17,13 +17,14 @@ Provides directives:
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.utils import (
     normalize_name,
     parse_csv_option,
     parse_list_option,
 )
-from apps.sphinx.shared import path_to_root
+
 from .base import HCDDirective
 
 
