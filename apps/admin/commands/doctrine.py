@@ -3,6 +3,11 @@
 Commands for displaying architectural doctrine rules extracted from doctrine tests.
 The doctrine tests ARE the doctrine - this command extracts and displays them.
 
+Doctrine Hierarchy:
+1. Core Doctrine - framework-level rules (src/julee/core/doctrine/)
+2. App Type Doctrine - rules by app type, part of core (test_application.py)
+3. App Instance Doctrine - app-specific rules (apps/{app}/doctrine/)
+
 Each doctrine test file corresponds to an entity in domain/models/.
 The entity docstring is the definition; test docstrings are the rules.
 """
@@ -13,21 +18,35 @@ from pathlib import Path
 
 import click
 
-# Doctrine location - each test file maps to an entity in entities/
-DOCTRINE_DIR = (
-    Path(__file__).parent.parent.parent.parent
-    / "src"
-    / "julee"
-    / "core"
-    / "doctrine"
-)
-MODELS_DIR = (
-    Path(__file__).parent.parent.parent.parent
-    / "src"
-    / "julee"
-    / "core"
-    / "entities"
-)
+# Project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+
+# Core doctrine location - each test file maps to an entity in entities/
+DOCTRINE_DIR = PROJECT_ROOT / "src" / "julee" / "core" / "doctrine"
+MODELS_DIR = PROJECT_ROOT / "src" / "julee" / "core" / "entities"
+
+
+def _discover_app_doctrine_dirs() -> dict[str, Path]:
+    """Discover all app doctrine directories using Solution introspection.
+
+    Returns dict mapping app slug to doctrine directory path.
+    """
+    from julee.core.infrastructure.repositories.introspection import (
+        FilesystemSolutionRepository,
+    )
+    import asyncio
+
+    async def _discover():
+        repo = FilesystemSolutionRepository(PROJECT_ROOT)
+        solution = await repo.get()
+        dirs = {}
+        for app in solution.all_applications:
+            doctrine_dir = Path(app.path) / "doctrine"
+            if doctrine_dir.exists():
+                dirs[app.slug] = doctrine_dir
+        return dirs
+
+    return asyncio.run(_discover())
 
 
 @dataclass
@@ -347,22 +366,54 @@ def show_doctrine(verbose: bool, area: str | None) -> None:
 
 
 @doctrine_group.command(name="list")
-def list_doctrine_areas() -> None:
-    """List available doctrine areas."""
-    if not DOCTRINE_DIR.exists():
-        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
-        raise SystemExit(1)
+@click.option(
+    "--scope",
+    type=click.Choice(["core", "apps", "all"]),
+    default="all",
+    help="Doctrine scope: core (framework), apps (app instance), or all",
+)
+def list_doctrine_areas(scope: str) -> None:
+    """List available doctrine areas.
 
-    doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
+    Scope controls which doctrine is shown:
+    - core: Framework doctrine (src/julee/core/doctrine/)
+    - apps: App instance doctrine (apps/{app}/doctrine/)
+    - all: Both core and app doctrine
+    """
+    total_rules = 0
 
-    if not doctrine:
-        click.echo("No doctrine tests found.")
-        return
+    # Core doctrine
+    if scope in ("core", "all"):
+        if DOCTRINE_DIR.exists():
+            doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
+            if doctrine:
+                click.echo("Core Doctrine:")
+                click.echo("")
+                for area_name, area in doctrine.items():
+                    click.echo(f"  {area_name}: {area.rule_count} rules")
+                    total_rules += area.rule_count
+                click.echo("")
+        else:
+            click.echo(f"Core doctrine not found: {DOCTRINE_DIR}", err=True)
 
-    click.echo("Doctrine Areas:")
-    click.echo("")
-    for area_name, area in doctrine.items():
-        click.echo(f"  {area_name}: {area.rule_count} rules")
+    # App instance doctrine
+    if scope in ("apps", "all"):
+        app_dirs = _discover_app_doctrine_dirs()
+        if app_dirs:
+            click.echo("App Instance Doctrine:")
+            click.echo("")
+            for app_slug, doctrine_dir in sorted(app_dirs.items()):
+                doctrine = extract_all_doctrine_new(doctrine_dir, doctrine_dir)
+                if doctrine:
+                    rule_count = sum(area.rule_count for area in doctrine.values())
+                    click.echo(f"  {app_slug}: {rule_count} rules")
+                    total_rules += rule_count
+            click.echo("")
+        elif scope == "apps":
+            click.echo("No app instance doctrine found.")
+
+    if total_rules > 0:
+        click.echo(f"Total: {total_rules} rules")
 
 
 @doctrine_group.command(name="verify")
@@ -370,40 +421,82 @@ def list_doctrine_areas() -> None:
     "--verbose", "-v", is_flag=True, help="Show detailed verification report"
 )
 @click.option("--area", "-a", help="Filter to specific doctrine area")
-def verify_doctrine(verbose: bool, area: str | None) -> None:
+@click.option(
+    "--scope",
+    type=click.Choice(["core", "apps", "all"]),
+    default="all",
+    help="Doctrine scope: core (framework), apps (app instance), or all",
+)
+@click.option("--app", "app_filter", help="Filter to specific app (for apps scope)")
+def verify_doctrine(
+    verbose: bool, area: str | None, scope: str, app_filter: str | None
+) -> None:
     """Verify codebase compliance with architectural doctrine.
 
     Runs doctrine tests and displays results in a structured format.
     The tests ARE the doctrine - this command executes them and
     reports which rules pass or fail.
+
+    Scope controls which doctrine is verified:
+    - core: Framework doctrine only
+    - apps: App instance doctrine only
+    - all: Both (default)
     """
     from apps.admin.commands.doctrine_plugin import run_doctrine_verification
     from apps.admin.templates import render_doctrine_verify
 
-    if not DOCTRINE_DIR.exists():
-        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
-        raise SystemExit(1)
+    all_results: dict = {}
+    final_exit_code = 0
 
-    click.echo("Running doctrine verification...\n")
+    # Core doctrine
+    if scope in ("core", "all"):
+        if DOCTRINE_DIR.exists():
+            click.echo("Verifying core doctrine...\n")
+            results, exit_code = run_doctrine_verification(DOCTRINE_DIR)
+            if results:
+                # Prefix with "Core: " to distinguish
+                for k, v in results.items():
+                    all_results[f"Core: {k}"] = v
+            if exit_code != 0:
+                final_exit_code = exit_code
+        else:
+            click.echo(f"Core doctrine not found: {DOCTRINE_DIR}", err=True)
 
-    results, exit_code = run_doctrine_verification(DOCTRINE_DIR)
+    # App instance doctrine
+    if scope in ("apps", "all"):
+        app_dirs = _discover_app_doctrine_dirs()
+        if app_filter:
+            app_dirs = {k: v for k, v in app_dirs.items() if k == app_filter}
+            if not app_dirs:
+                click.echo(f"App '{app_filter}' has no doctrine directory.")
+                if scope == "apps":
+                    raise SystemExit(1)
 
-    if not results:
+        for app_slug, doctrine_dir in sorted(app_dirs.items()):
+            click.echo(f"Verifying {app_slug} app doctrine...\n")
+            results, exit_code = run_doctrine_verification(doctrine_dir)
+            if results:
+                for k, v in results.items():
+                    all_results[f"App/{app_slug}: {k}"] = v
+            if exit_code != 0:
+                final_exit_code = exit_code
+
+    if not all_results:
         click.echo("No doctrine tests found.")
         return
 
     if area:
         # Filter to specific area
         area_lower = area.lower()
-        filtered = {k: v for k, v in results.items() if area_lower in k.lower()}
+        filtered = {k: v for k, v in all_results.items() if area_lower in k.lower()}
         if not filtered:
             click.echo(f"No doctrine found for area '{area}'")
-            click.echo(f"Available areas: {', '.join(results.keys())}")
+            click.echo(f"Available areas: {', '.join(all_results.keys())}")
             raise SystemExit(1)
-        results = filtered
+        all_results = filtered
 
-    output = render_doctrine_verify(results, verbose=verbose)
+    output = render_doctrine_verify(all_results, verbose=verbose)
     click.echo(output)
 
     # Exit with appropriate code
-    raise SystemExit(exit_code)
+    raise SystemExit(final_exit_code)
