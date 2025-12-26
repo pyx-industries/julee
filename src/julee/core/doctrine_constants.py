@@ -465,3 +465,47 @@ The run method is the entry point for workflow execution. It MUST:
 2. Delegate to the UseCase's execute() method
 3. Return the UseCase's response
 """
+
+
+# =============================================================================
+# APPLICATION DISCOVERY
+# =============================================================================
+# Configuration for finding applications in the filesystem.
+# Applications are orthogonal to bounded contexts - they are deployable
+# compositions that depend on one or more BCs.
+
+APPS_ROOT: Final[str] = "apps"
+"""Root directory for application discovery.
+
+Applications are discovered under this path. Each top-level directory
+represents a deployable application.
+
+Note: 'apps' is a reserved word - it cannot be a bounded context name.
+"""
+
+APP_TYPE_MARKERS: Final[dict[str, tuple[str, ...]]] = {
+    "REST-API": ("routers",),
+    "MCP": ("tools",),
+    "SPHINX-EXTENSION": ("directives",),
+    "TEMPORAL-WORKER": ("pipelines",),
+    "CLI": ("commands",),
+}
+"""Directory markers used to infer application type.
+
+Each app type has characteristic subdirectories. Detection uses these
+to classify applications when app_type is not explicitly declared.
+"""
+
+APP_BC_ORGANIZATION_EXCLUDES: Final[frozenset[str]] = frozenset(
+    {
+        "shared",
+        "tests",
+        "__pycache__",
+        "common",
+    }
+)
+"""Subdirectory names that do NOT indicate BC-based organization.
+
+When detecting whether an app uses BC-based organization, these
+directories are excluded from consideration.
+"""
