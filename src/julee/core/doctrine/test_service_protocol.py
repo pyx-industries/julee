@@ -3,22 +3,20 @@
 These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 
-A Service is a wrapper around a REMOTE UseCase. Services provide an abstraction
-that allows local code to invoke business logic that may execute elsewhere
-(different process, different machine, different service). Because Services
-delegate to UseCases, they follow the same Request/Response pattern:
+A Service is semantically bound to TWO OR MORE entity types and is typically
+responsible for TRANSFORMATION between them. This distinguishes Services from
+Repositories:
 
-    UseCase:  execute(Request) -> Response    (local invocation)
-    Service:  method(Request) -> Response     (remote invocation)
+    Repository: Protocol → 1 Entity → Persistence
+    Service:    Protocol → N Entities → Transformation (N >= 2)
 
-This symmetry is intentional:
-- Consistent interface regardless of execution location
-- Request/Response objects are serializable for transport
-- Same validation, typing, and documentation patterns apply
-- A Service method maps 1:1 to a remote UseCase.execute()
+Services transform data between entity types. Examples:
+- SemanticEvaluationService: ClassInfo, MethodInfo, FieldInfo → EvaluationResult
+- SuggestionContextService: Story, Epic, Journey, etc. → cross-entity queries
+- PipelineRequestTransformer: Response entities → Request entities
 
 Implementation note: Service protocols define the interface; infrastructure
-implementations handle the transport (HTTP, gRPC, Temporal activities, etc.).
+implementations handle the actual transformation logic.
 """
 
 import pytest
@@ -30,7 +28,7 @@ from julee.core.doctrine_constants import (
 from julee.core.parsers.ast import parse_python_classes
 from julee.core.use_cases import (
     ListCodeArtifactsRequest,
-    ListRequestsUseCase,
+    ListEntitiesUseCase,
     ListServiceProtocolsUseCase,
 )
 
@@ -110,113 +108,141 @@ class TestServiceProtocolInheritance:
         ), "Service protocols not inheriting from Protocol:\n" + "\n".join(violations)
 
 
-# Service protocols exempt from the matching Request class rule.
-# These are internal query/utility services that don't follow the formal use case pattern.
-# They do NOT wrap remote UseCases; they provide local utility functionality.
-EXEMPT_SERVICE_PROTOCOLS = {
-    "SuggestionContextService",  # Internal query service for suggestions
-    "SemanticEvaluationService",  # Internal evaluation service
-    "PipelineRequestTransformer",  # Internal utility for data transformation
-    "KnowledgeService",  # External AI service adapter (takes domain entities directly)
+# Infrastructure protocols that are intentionally generic.
+# These use BaseModel or similar generics because they operate on
+# ANY entity types, not specific ones. They're plumbing, not domain services.
+GENERIC_INFRASTRUCTURE_PROTOCOLS = {
+    "PipelineRequestTransformer",  # Transforms any Response → any Request
+    "RequestTransformer",  # Alias for PipelineRequestTransformer
 }
 
 
-class TestServiceProtocolMethods:
-    """Doctrine about service protocol methods."""
+# Types to exclude from entity binding analysis.
+# These are generic/utility types, not domain entities.
+NON_ENTITY_TYPES = {
+    # Python builtins and typing
+    "Any",
+    "None",
+    "Protocol",
+    "BaseModel",
+    "Self",
+    "Type",
+    "TypeVar",
+    "Generic",
+    # Common containers (the types inside them are what matter)
+    "Optional",
+    "Union",
+    "List",
+    "Dict",
+    "Set",
+    "Tuple",
+    "Sequence",
+    "Mapping",
+    "Iterable",
+    "Iterator",
+    "Callable",
+    "Awaitable",
+    "Coroutine",
+    # Primitives (not entities)
+    "str",
+    "int",
+    "float",
+    "bool",
+    "bytes",
+}
+
+
+class TestServiceProtocolEntityBinding:
+    """Doctrine about service protocol entity binding."""
 
     @pytest.mark.asyncio
-    async def test_all_service_protocol_methods_MUST_have_matching_request(
+    async def test_all_service_protocols_MUST_be_bound_to_multiple_entity_types(
         self, repo, project_root
     ):
-        """All service protocol methods MUST have a matching {MethodName}Request class.
+        """All service protocols MUST be bound to 2+ entity types.
 
-        Because a Service wraps a remote UseCase, each Service method corresponds
-        to a UseCase.execute() call. The Request class provides:
-        - Type-safe input validation
-        - Serializable transport format
-        - Documentation of the operation's inputs
+        A Service is semantically bound to TWO OR MORE entity types and is
+        responsible for TRANSFORMATION between them. This is the defining
+        characteristic that distinguishes Services from Repositories:
 
-        For each public method in a service protocol, there must be a corresponding
-        Request class in the same bounded context's use_cases/ directory.
+            Repository: bound to 1 entity type (persistence)
+            Service: bound to 2+ entity types (transformation)
 
-        Example: method `evaluate_docstring_quality` -> `EvaluateDocstringQualityRequest`
+        This test:
+        1. Discovers all entity types across bounded contexts
+        2. For each service protocol, extracts referenced types from method signatures
+        3. Filters to only entity types (excludes primitives, builtins, generics)
+        4. Verifies each service references at least 2 distinct entity types
 
-        Note: Some internal query/utility services are exempt (see EXEMPT_SERVICE_PROTOCOLS).
+        Note: The service's own name and Protocol are excluded from the count.
         """
-        use_case = ListServiceProtocolsUseCase(repo)
-        response = await use_case.execute(ListCodeArtifactsRequest())
+        # Step 1: Collect all known entity names across bounded contexts
+        entities_use_case = ListEntitiesUseCase(repo)
+        entities_response = await entities_use_case.execute(ListCodeArtifactsRequest())
 
-        req_use_case = ListRequestsUseCase(repo)
-        req_response = await req_use_case.execute(ListCodeArtifactsRequest())
+        all_entity_names: set[str] = set()
+        for artifact in entities_response.artifacts:
+            all_entity_names.add(artifact.artifact.name)
 
-        # Also check shared bounded context (which is reserved but still has services)
-        shared_services_dir = (
-            project_root / "src" / "julee" / "shared" / "domain" / "services"
-        )
-        shared_requests_dir = (
-            project_root / "src" / "julee" / "shared" / "domain" / "use_cases"
-        )
+        # Also scan core entities (shared across all contexts)
+        core_entities_dir = project_root / "src" / "julee" / "core" / "entities"
+        if core_entities_dir.exists():
+            core_entities = parse_python_classes(core_entities_dir)
+            for entity in core_entities:
+                all_entity_names.add(entity.name)
 
-        # Create artifact-like structures for shared services
+        # Step 2: Get all service protocols
+        services_use_case = ListServiceProtocolsUseCase(repo)
+        services_response = await services_use_case.execute(ListCodeArtifactsRequest())
+
+        # Also check core services
+        core_services_dir = project_root / "src" / "julee" / "core" / "services"
+
         class ArtifactLike:
             def __init__(self, artifact, bounded_context):
                 self.artifact = artifact
                 self.bounded_context = bounded_context
 
-        shared_services = (
-            parse_python_classes(shared_services_dir)
-            if shared_services_dir.exists()
+        core_services = (
+            parse_python_classes(core_services_dir)
+            if core_services_dir.exists()
             else []
         )
-        shared_requests = (
-            parse_python_classes(shared_requests_dir, exclude_files=["responses.py"])
-            if shared_requests_dir.exists()
-            else []
-        )
-
-        # Add shared artifacts to the response
-        all_service_artifacts = list(response.artifacts) + [
-            ArtifactLike(svc, "shared")
-            for svc in shared_services
-            if svc.name.endswith("Service")
-        ]
-        all_request_artifacts = list(req_response.artifacts) + [
-            ArtifactLike(req, "shared")
-            for req in shared_requests
-            if req.name.endswith("Request")
+        all_service_artifacts = list(services_response.artifacts) + [
+            ArtifactLike(svc, "core")
+            for svc in core_services
+            if svc.name.endswith("Service") or svc.name.endswith("Transformer")
         ]
 
-        # Build set of available requests per context
-        requests_by_context: dict[str, set[str]] = {}
-        for artifact in all_request_artifacts:
-            ctx = artifact.bounded_context
-            if ctx not in requests_by_context:
-                requests_by_context[ctx] = set()
-            requests_by_context[ctx].add(artifact.artifact.name)
-
-        def snake_to_pascal(name: str) -> str:
-            """Convert snake_case to PascalCase."""
-            return "".join(word.capitalize() for word in name.split("_"))
-
+        # Step 3: Check each service for entity binding
         violations = []
         for artifact in all_service_artifacts:
-            service_name = artifact.artifact.name
-            # Skip exempt services
-            if service_name in EXEMPT_SERVICE_PROTOCOLS:
+            service = artifact.artifact
+            service_name = service.name
+
+            # Skip generic infrastructure protocols (intentionally use BaseModel)
+            if service_name in GENERIC_INFRASTRUCTURE_PROTOCOLS:
                 continue
 
-            ctx = artifact.bounded_context
-            available = requests_by_context.get(ctx, set())
+            # Get all types referenced in method signatures
+            referenced_types = service.referenced_types
 
-            for method in artifact.artifact.methods:
-                expected_request = f"{snake_to_pascal(method.name)}Request"
-                if expected_request not in available:
-                    violations.append(
-                        f"{ctx}.{service_name}.{method.name}(): missing {expected_request}"
-                    )
+            # Filter to only entity types (exclude primitives, builtins, self)
+            entity_refs = referenced_types & all_entity_names
+            entity_refs -= NON_ENTITY_TYPES
+            entity_refs.discard(service_name)  # Exclude self-reference
 
-        assert (
-            not violations
-        ), "Service protocol methods missing matching Request classes:\n" + "\n".join(
-            violations
+            if len(entity_refs) < 2:
+                violations.append(
+                    f"{artifact.bounded_context}.{service_name}: "
+                    f"bound to {len(entity_refs)} entity types {sorted(entity_refs)}, "
+                    f"needs 2+ (referenced: {sorted(referenced_types - NON_ENTITY_TYPES)})"
+                )
+
+        assert not violations, (
+            "Service protocols MUST be bound to 2+ entity types:\n"
+            + "\n".join(violations)
+            + "\n\nServices transform data between entity types. "
+            "If a service only references one entity type, it may belong "
+            "in a repository instead."
         )

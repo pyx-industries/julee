@@ -80,9 +80,9 @@ def _extract_class_methods(class_node: ast.ClassDef) -> list["MethodInfo"]:
     Extracts public methods (not starting with _) including:
     - Regular methods
     - Async methods
-    - Method signatures and docstrings
+    - Method signatures with parameter types and docstrings
     """
-    from julee.core.entities.code_info import MethodInfo
+    from julee.core.entities.code_info import MethodInfo, ParameterInfo
 
     methods = []
     for node in class_node.body:
@@ -91,11 +91,16 @@ def _extract_class_methods(class_node: ast.ClassDef) -> list["MethodInfo"]:
             if node.name.startswith("_"):
                 continue
 
-            # Extract parameter names (excluding self)
+            # Extract parameters with type annotations (excluding self)
             params = []
             for arg in node.args.args:
                 if arg.arg != "self":
-                    params.append(arg.arg)
+                    params.append(
+                        ParameterInfo(
+                            name=arg.arg,
+                            type_annotation=_get_annotation_str(arg.annotation),
+                        )
+                    )
 
             # Get return type annotation
             return_type = _get_annotation_str(node.returns)

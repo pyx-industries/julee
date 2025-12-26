@@ -226,15 +226,9 @@ class NewDataDetectionUseCase:
         )
 
         try:
-            # Step 1: Poll the endpoint
-            poll_request = PollEndpointRequest(
-                endpoint_identifier=request.endpoint_identifier,
-                polling_protocol=request.polling_protocol,
-                connection_params=request.connection_params,
-                polling_params=request.polling_params,
-                timeout_seconds=request.timeout_seconds,
-            )
-            polling_result = await self._poller_service.poll_endpoint(poll_request)
+            # Step 1: Poll the endpoint using domain entity
+            polling_config = request.to_polling_config()
+            polling_result = await self._poller_service.poll_endpoint(polling_config)
 
             # Step 2: Compute content hash
             content_hash = hashlib.sha256(polling_result.content).hexdigest()
