@@ -15,6 +15,14 @@ from .uc_interfaces import (
 )
 
 
+class ListRepositoryProtocolsRequest(ListCodeArtifactsRequest):
+    """Request for listing repository protocols."""
+
+
+class ListRepositoryProtocolsResponse(ListCodeArtifactsResponse):
+    """Response from listing repository protocols."""
+
+
 class ListRepositoryProtocolsUseCase:
     """Use case for listing repository protocols."""
 

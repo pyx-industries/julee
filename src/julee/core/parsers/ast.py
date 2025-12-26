@@ -328,6 +328,13 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     responses = [c for c in all_classes if c.name.endswith("Response")]
     use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
 
+    # Service protocols are classes in services/ that end with 'Service'.
+    # Other Protocol classes (Transformers, Handlers) are utility protocols,
+    # not service protocols that wrap remote UseCases.
+    # Request, Response, Result classes in services/ are supporting types.
+    all_service_classes = parse_python_classes(services_dir)
+    service_protocols = [c for c in all_service_classes if c.name.endswith("Service")]
+
     return BoundedContextInfo(
         slug=context_dir.name,
         entities=parse_python_classes(entities_dir),
@@ -335,7 +342,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         requests=requests,
         responses=responses,
         repository_protocols=parse_python_classes(repositories_dir),
-        service_protocols=parse_python_classes(services_dir),
+        service_protocols=service_protocols,
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,

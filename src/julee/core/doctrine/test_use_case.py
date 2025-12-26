@@ -4,6 +4,7 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 """
 
+import importlib
 import warnings
 
 import pytest
@@ -19,6 +20,29 @@ from julee.core.use_cases import (
     ListResponsesUseCase,
     ListUseCasesUseCase,
 )
+
+
+def _resolve_class(import_path: str, file_path: str, class_name: str) -> type | None:
+    """Resolve a class by importing its module at runtime.
+
+    Args:
+        import_path: BC's Python import path (e.g., 'julee.hcd', 'julee.contrib.ceap')
+        file_path: Relative file path within use_cases (e.g., 'crud.py', 'story/get.py')
+        class_name: Name of the class to resolve
+
+    Returns None if the class cannot be resolved (import error, etc).
+    """
+    try:
+        # Convert file path to module suffix: story/get.py -> story.get
+        file_module = file_path.replace(".py", "").replace("/", ".")
+
+        # Build full module path: {import_path}.use_cases.{file_module}
+        module_path = f"{import_path}.use_cases.{file_module}"
+
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name, None)
+    except Exception:
+        return None
 
 
 class TestUseCaseNaming:
@@ -75,14 +99,38 @@ class TestUseCaseStructure:
 
         The execute() method is the single entry point for use case invocation.
         It accepts a Request and returns a Response.
+
+        Uses runtime inspection (hasattr) to support inherited methods from
+        generic base classes like generic_crud.GetUseCase.
         """
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
+        # Build slug -> import_path mapping from repo
+        bounded_contexts = await repo.list_all()
+        import_paths = {bc.slug: bc.import_path for bc in bounded_contexts}
+
         violations = []
         for artifact in response.artifacts:
-            method_names = [m.name for m in artifact.artifact.methods]
-            if "execute" not in method_names:
+            # Try runtime inspection first (supports inherited methods)
+            bc_import_path = import_paths.get(artifact.bounded_context)
+            if bc_import_path:
+                cls = _resolve_class(
+                    bc_import_path, artifact.artifact.file, artifact.artifact.name
+                )
+            else:
+                cls = None
+
+            if cls is not None:
+                has_execute = hasattr(cls, "execute") and callable(
+                    getattr(cls, "execute", None)
+                )
+            else:
+                # Fall back to AST-parsed methods if class can't be resolved
+                method_names = [m.name for m in artifact.artifact.methods]
+                has_execute = "execute" in method_names
+
+            if not has_execute:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name}: missing execute() method"
                 )

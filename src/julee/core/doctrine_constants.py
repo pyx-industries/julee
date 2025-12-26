@@ -336,34 +336,40 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 # =============================================================================
 # RESERVED WORDS
 # =============================================================================
-# Directory names that cannot be bounded context names because they have
-# special structural meaning.
+# Directory names that are NOT bounded contexts because they have special
+# structural meaning. Reserved words are utility/infrastructure directories
+# that don't follow bounded context structure.
+#
+# NOTE: Nested solutions (like contrib/) are NOT reserved words. They are
+# solution containers that hold bounded contexts and follow the same doctrine.
 
 RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
     {
-        "contrib",  # Plugin/contributed modules
         "docs",  # Documentation
         "deployment",  # Deployment configuration
     }
 )
 """Structural directories that are not bounded contexts.
 
-These directories have special meaning in the project layout.
+These directories have special meaning in the project layout but don't
+contain domain logic.
 """
 
 RESERVED_COMMON: Final[frozenset[str]] = frozenset(
     {
-        "core",  # Foundational accelerator (cross-cutting concerns)
         "util",  # Utilities
         "utils",  # Utilities (alternative spelling)
         "common",  # Common code
         "tests",  # Test directories
+        "maintenance",  # Developer tooling (release scripts, etc.)
     }
 )
 """Common utility directories that are not bounded contexts.
 
 These are typical names for shared/utility code that shouldn't be
-treated as bounded contexts.
+treated as bounded contexts because they lack domain identity.
+
+NOTE: 'core' is NOT reserved - it's a foundational bounded context.
 """
 
 RESERVED_WORDS: Final[frozenset[str]] = RESERVED_STRUCTURAL | RESERVED_COMMON

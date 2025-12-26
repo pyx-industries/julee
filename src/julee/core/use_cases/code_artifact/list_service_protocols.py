@@ -15,6 +15,14 @@ from .uc_interfaces import (
 )
 
 
+class ListServiceProtocolsRequest(ListCodeArtifactsRequest):
+    """Request for listing service protocols."""
+
+
+class ListServiceProtocolsResponse(ListCodeArtifactsResponse):
+    """Response from listing service protocols."""
+
+
 class ListServiceProtocolsUseCase:
     """Use case for listing service protocols."""
 

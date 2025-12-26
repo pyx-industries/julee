@@ -11,6 +11,10 @@ from julee.core.repositories.bounded_context import BoundedContextRepository
 from .uc_interfaces import ListCodeArtifactsRequest, ListPipelinesResponse
 
 
+class ListPipelinesRequest(ListCodeArtifactsRequest):
+    """Request for listing pipelines."""
+
+
 class ListPipelinesUseCase:
     """Use case for listing pipelines.
 

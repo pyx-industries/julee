@@ -11,7 +11,10 @@ Item types are used for list attributes within requests that need their own
 validation and to_domain_model() conversion. They are NOT top-level requests.
 """
 
+import importlib
+
 import pytest
+from pydantic import BaseModel
 
 from julee.core.doctrine_constants import (
     ITEM_SUFFIX,
@@ -22,6 +25,29 @@ from julee.core.use_cases import (
     ListCodeArtifactsRequest,
     ListRequestsUseCase,
 )
+
+
+def _resolve_class(import_path: str, file_path: str, class_name: str) -> type | None:
+    """Resolve a class by importing its module at runtime.
+
+    Args:
+        import_path: BC's Python import path (e.g., 'julee.hcd', 'julee.contrib.ceap')
+        file_path: Relative file path within use_cases (e.g., 'crud.py', 'story/get.py')
+        class_name: Name of the class to resolve
+
+    Returns None if the class cannot be resolved (import error, etc).
+    """
+    try:
+        # Convert file path to module suffix: story/get.py -> story.get
+        file_module = file_path.replace(".py", "").replace("/", ".")
+
+        # Build full module path: {import_path}.use_cases.{file_module}
+        module_path = f"{import_path}.use_cases.{file_module}"
+
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name, None)
+    except Exception:
+        return None
 
 
 class TestRequestNaming:
@@ -76,13 +102,36 @@ class TestRequestInheritance:
 
     @pytest.mark.asyncio
     async def test_all_requests_MUST_inherit_from_BaseModel(self, repo):
-        """All request classes MUST inherit from BaseModel."""
+        """All request classes MUST inherit from BaseModel.
+
+        Uses runtime inspection (issubclass) to support inherited classes from
+        generic base classes like generic_crud.GetRequest.
+        """
         use_case = ListRequestsUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
+        # Build slug -> import_path mapping from repo
+        bounded_contexts = await repo.list_all()
+        import_paths = {bc.slug: bc.import_path for bc in bounded_contexts}
+
         violations = []
         for artifact in response.artifacts:
-            if REQUEST_BASE not in artifact.artifact.bases:
+            # Try runtime inspection first (supports inherited classes)
+            bc_import_path = import_paths.get(artifact.bounded_context)
+            if bc_import_path:
+                cls = _resolve_class(
+                    bc_import_path, artifact.artifact.file, artifact.artifact.name
+                )
+            else:
+                cls = None
+
+            if cls is not None:
+                inherits_basemodel = issubclass(cls, BaseModel)
+            else:
+                # Fall back to AST-parsed bases if class can't be resolved
+                inherits_basemodel = REQUEST_BASE in artifact.artifact.bases
+
+            if not inherits_basemodel:
                 violations.append(
                     f"{artifact.bounded_context}.{artifact.artifact.name} "
                     f"(bases: {artifact.artifact.bases})"

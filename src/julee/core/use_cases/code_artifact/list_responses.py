@@ -15,6 +15,14 @@ from .uc_interfaces import (
 )
 
 
+class ListResponsesRequest(ListCodeArtifactsRequest):
+    """Request for listing response classes."""
+
+
+class ListResponsesResponse(ListCodeArtifactsResponse):
+    """Response from listing response classes."""
+
+
 class ListResponsesUseCase:
     """Use case for listing response classes."""
 

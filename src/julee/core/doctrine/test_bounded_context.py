@@ -10,8 +10,10 @@ import pytest
 
 from julee.core.doctrine.conftest import create_bounded_context, create_solution
 from julee.core.doctrine_constants import (
+    CONTRIB_DIR,
     ENTITIES_PATH,
     RESERVED_WORDS,
+    SEARCH_ROOT,
     VIEWPOINT_SLUGS,
 )
 from julee.core.infrastructure.repositories.introspection import (
@@ -86,14 +88,28 @@ class TestReservedWords:
             ), f"'{ctx.slug}' MUST NOT use reserved word"
 
     def test_RESERVED_WORDS_MUST_include_structural_directories(self):
-        """RESERVED_WORDS MUST include: contrib, docs, deployment."""
-        required = {"contrib", "docs", "deployment"}
+        """RESERVED_WORDS MUST include: docs, deployment.
+
+        NOTE: 'contrib' is NOT reserved - it's a nested solution container.
+        """
+        required = {"docs", "deployment"}
         assert required.issubset(RESERVED_WORDS)
 
     def test_RESERVED_WORDS_MUST_include_common_directories(self):
-        """RESERVED_WORDS MUST include: core, util, utils, common, tests."""
-        required = {"core", "util", "utils", "common", "tests"}
+        """RESERVED_WORDS MUST include: util, utils, common, tests.
+
+        NOTE: 'core' is NOT reserved - it's a foundational bounded context.
+        """
+        required = {"util", "utils", "common", "tests"}
         assert required.issubset(RESERVED_WORDS)
+
+    def test_core_MUST_NOT_be_reserved(self):
+        """'core' MUST NOT be reserved - it's a foundational bounded context."""
+        assert "core" not in RESERVED_WORDS
+
+    def test_contrib_MUST_NOT_be_reserved(self):
+        """'contrib' MUST NOT be reserved - it's a nested solution container."""
+        assert "contrib" not in RESERVED_WORDS
 
 
 # =============================================================================
@@ -192,3 +208,141 @@ class TestContrib:
                 assert (
                     ctx.is_contrib is False
                 ), f"'{ctx.slug}' MUST have is_contrib=False"
+
+
+# =============================================================================
+# DOCTRINE: Solution Exhaustiveness
+# =============================================================================
+
+
+class TestSolutionExhaustiveness:
+    """Doctrine about solution exhaustiveness.
+
+    All Python packages in a solution root MUST be:
+    - Valid bounded contexts (with entities/ or use_cases/), OR
+    - Nested solutions (containing bounded contexts), OR
+    - Reserved words (structural/utility directories)
+
+    This prevents "orphan" packages that slip through doctrine checks by not
+    being discovered as bounded contexts.
+    """
+
+    def _is_nested_solution(self, path: Path) -> bool:
+        """Check if a directory is a nested solution (contains bounded contexts)."""
+        if not path.is_dir() or not (path / "__init__.py").exists():
+            return False
+
+        # A nested solution contains at least one bounded context
+        for child in path.iterdir():
+            if not child.is_dir() or not (child / "__init__.py").exists():
+                continue
+            # Check if child has BC structure
+            if (child / "entities").is_dir() or (child / "use_cases").is_dir():
+                return True
+        return False
+
+    @pytest.mark.asyncio
+    async def test_all_packages_in_solution_MUST_be_BC_or_reserved_or_nested_solution(
+        self, project_root: Path
+    ):
+        """All Python packages in solution root MUST be BC, reserved, or nested solution.
+
+        This is the exhaustiveness check. It catches packages that exist but don't
+        follow doctrine - like a bounded context that has domain/ instead of entities/.
+        """
+        search_path = project_root / SEARCH_ROOT
+
+        # Get discovered bounded contexts
+        repo = FilesystemBoundedContextRepository(project_root)
+        use_case = ListBoundedContextsUseCase(repo)
+        response = await use_case.execute(ListBoundedContextsRequest())
+        discovered_slugs = {ctx.slug for ctx in response.bounded_contexts}
+
+        # Check all Python packages in solution root
+        violations = []
+        for candidate in search_path.iterdir():
+            if not candidate.is_dir():
+                continue
+            if candidate.name.startswith(".") or candidate.name == "__pycache__":
+                continue
+            if not (candidate / "__init__.py").exists():
+                continue
+
+            # This is a Python package. It MUST be one of:
+            # 1. A discovered bounded context
+            # 2. A reserved word
+            # 3. A nested solution
+
+            if candidate.name in discovered_slugs:
+                continue  # Valid: discovered BC
+
+            if candidate.name in RESERVED_WORDS:
+                continue  # Valid: reserved word
+
+            if self._is_nested_solution(candidate):
+                continue  # Valid: nested solution
+
+            violations.append(
+                f"'{candidate.name}' at {candidate}: Python package is not a valid "
+                "bounded context (missing entities/ or use_cases/), not reserved, "
+                "and not a nested solution"
+            )
+
+        assert not violations, (
+            "All Python packages in solution root MUST be bounded contexts, "
+            "reserved words, or nested solutions:\n" + "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_all_packages_in_nested_solution_MUST_be_BC_or_reserved(
+        self, project_root: Path
+    ):
+        """All Python packages in nested solution MUST be BC or reserved.
+
+        Nested solutions (like contrib/) contain bounded contexts, not other
+        nested solutions (no deep nesting allowed).
+        """
+        contrib_path = project_root / SEARCH_ROOT / CONTRIB_DIR
+
+        if not contrib_path.exists():
+            pytest.skip("No contrib directory")
+
+        # Get discovered bounded contexts in contrib
+        repo = FilesystemBoundedContextRepository(project_root)
+        use_case = ListBoundedContextsUseCase(repo)
+        response = await use_case.execute(ListBoundedContextsRequest())
+        contrib_slugs = {
+            ctx.slug for ctx in response.bounded_contexts if ctx.is_contrib
+        }
+
+        # Check all Python packages in contrib
+        violations = []
+        for candidate in contrib_path.iterdir():
+            if not candidate.is_dir():
+                continue
+            if candidate.name.startswith(".") or candidate.name == "__pycache__":
+                continue
+            if not (candidate / "__init__.py").exists():
+                continue
+
+            # This is a Python package. It MUST be one of:
+            # 1. A discovered bounded context
+            # 2. A reserved word
+            # (No nested solutions in nested solutions)
+
+            if candidate.name in contrib_slugs:
+                continue  # Valid: discovered BC
+
+            if candidate.name in RESERVED_WORDS:
+                continue  # Valid: reserved word
+
+            violations.append(
+                f"'{candidate.name}' at {candidate}: Python package in nested solution "
+                "is not a valid bounded context (missing entities/ or use_cases/) "
+                "and not reserved"
+            )
+
+        assert not violations, (
+            "All Python packages in nested solution MUST be bounded contexts or "
+            "reserved words:\n" + "\n".join(violations)
+        )

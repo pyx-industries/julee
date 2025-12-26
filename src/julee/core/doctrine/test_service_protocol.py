@@ -2,6 +2,23 @@
 
 These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
+
+A Service is a wrapper around a REMOTE UseCase. Services provide an abstraction
+that allows local code to invoke business logic that may execute elsewhere
+(different process, different machine, different service). Because Services
+delegate to UseCases, they follow the same Request/Response pattern:
+
+    UseCase:  execute(Request) -> Response    (local invocation)
+    Service:  method(Request) -> Response     (remote invocation)
+
+This symmetry is intentional:
+- Consistent interface regardless of execution location
+- Request/Response objects are serializable for transport
+- Same validation, typing, and documentation patterns apply
+- A Service method maps 1:1 to a remote UseCase.execute()
+
+Implementation note: Service protocols define the interface; infrastructure
+implementations handle the transport (HTTP, gRPC, Temporal activities, etc.).
 """
 
 import pytest
@@ -95,9 +112,12 @@ class TestServiceProtocolInheritance:
 
 # Service protocols exempt from the matching Request class rule.
 # These are internal query/utility services that don't follow the formal use case pattern.
+# They do NOT wrap remote UseCases; they provide local utility functionality.
 EXEMPT_SERVICE_PROTOCOLS = {
     "SuggestionContextService",  # Internal query service for suggestions
     "SemanticEvaluationService",  # Internal evaluation service
+    "PipelineRequestTransformer",  # Internal utility for data transformation
+    "KnowledgeService",  # External AI service adapter (takes domain entities directly)
 }
 
 
@@ -110,8 +130,14 @@ class TestServiceProtocolMethods:
     ):
         """All service protocol methods MUST have a matching {MethodName}Request class.
 
+        Because a Service wraps a remote UseCase, each Service method corresponds
+        to a UseCase.execute() call. The Request class provides:
+        - Type-safe input validation
+        - Serializable transport format
+        - Documentation of the operation's inputs
+
         For each public method in a service protocol, there must be a corresponding
-        Request class in the same bounded context's requests.py.
+        Request class in the same bounded context's use_cases/ directory.
 
         Example: method `evaluate_docstring_quality` -> `EvaluateDocstringQualityRequest`
 

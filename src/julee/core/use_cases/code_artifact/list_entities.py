@@ -15,6 +15,14 @@ from .uc_interfaces import (
 )
 
 
+class ListEntitiesRequest(ListCodeArtifactsRequest):
+    """Request for listing entities."""
+
+
+class ListEntitiesResponse(ListCodeArtifactsResponse):
+    """Response from listing entities."""
+
+
 class ListEntitiesUseCase:
     """Use case for listing domain entities."""
 

@@ -12,6 +12,11 @@ from julee.core.use_cases import (
     ListEntitiesUseCase,
 )
 
+# Meta-entities in core that describe what Request/Response/UseCase ARE.
+# These are exempt from the forbidden suffix rule because they're describing
+# the concept (for introspection/documentation), not being instances of the concept.
+META_ENTITIES = {"Request", "Response", "UseCase"}
+
 
 class TestEntityNaming:
     """Doctrine about entity naming conventions."""
@@ -41,13 +46,20 @@ class TestEntityNaming:
 
     @pytest.mark.asyncio
     async def test_all_entities_MUST_NOT_have_reserved_suffixes(self, repo):
-        """All entity class names MUST NOT end with UseCase, Request, or Response."""
+        """All entity class names MUST NOT end with UseCase, Request, or Response.
+
+        Exception: Meta-entities in core that describe these concepts are exempt
+        (e.g., core.Request describes what a Request IS for introspection).
+        """
         use_case = ListEntitiesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
         violations = []
         for artifact in response.artifacts:
             name = artifact.artifact.name
+            # Skip meta-entities that describe the concepts
+            if artifact.bounded_context == "core" and name in META_ENTITIES:
+                continue
             for forbidden_suffix in ENTITY_FORBIDDEN_SUFFIXES:
                 if name.endswith(forbidden_suffix):
                     violations.append(
