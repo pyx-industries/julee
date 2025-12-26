@@ -6,7 +6,7 @@ relationships, deployment nodes, dynamic steps, and diagram generation.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.c4.use_cases import (
+from julee.c4.use_cases.crud import (
     CreateComponentUseCase,
     CreateContainerUseCase,
     CreateDeploymentNodeUseCase,
@@ -19,18 +19,12 @@ from julee.c4.use_cases import (
     DeleteDynamicStepUseCase,
     DeleteRelationshipUseCase,
     DeleteSoftwareSystemUseCase,
-    GetComponentDiagramUseCase,
     GetComponentUseCase,
-    GetContainerDiagramUseCase,
     GetContainerUseCase,
-    GetDeploymentDiagramUseCase,
     GetDeploymentNodeUseCase,
-    GetDynamicDiagramUseCase,
     GetDynamicStepUseCase,
     GetRelationshipUseCase,
     GetSoftwareSystemUseCase,
-    GetSystemContextDiagramUseCase,
-    GetSystemLandscapeDiagramUseCase,
     ListComponentsUseCase,
     ListContainersUseCase,
     ListDeploymentNodesUseCase,
@@ -44,6 +38,12 @@ from julee.c4.use_cases import (
     UpdateRelationshipUseCase,
     UpdateSoftwareSystemUseCase,
 )
+from julee.c4.use_cases.diagrams.component_diagram import GetComponentDiagramUseCase
+from julee.c4.use_cases.diagrams.container_diagram import GetContainerDiagramUseCase
+from julee.c4.use_cases.diagrams.deployment_diagram import GetDeploymentDiagramUseCase
+from julee.c4.use_cases.diagrams.dynamic_diagram import GetDynamicDiagramUseCase
+from julee.c4.use_cases.diagrams.system_context import GetSystemContextDiagramUseCase
+from julee.c4.use_cases.diagrams.system_landscape import GetSystemLandscapeDiagramUseCase
 
 from ..dependencies import (
     get_component_diagram_use_case,

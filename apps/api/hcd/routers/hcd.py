@@ -6,31 +6,23 @@ All operations go through use-case classes following clean architecture.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.hcd.use_cases.epic import (
-    CreateEpicUseCase,
-    DeleteEpicUseCase,
-    GetEpicUseCase,
-    ListEpicsUseCase,
-    UpdateEpicUseCase,
-)
-from julee.hcd.use_cases.journey import (
-    CreateJourneyUseCase,
-    DeleteJourneyUseCase,
-    GetJourneyUseCase,
-    ListJourneysUseCase,
-    UpdateJourneyUseCase,
-)
-from julee.hcd.use_cases.queries import (
-    DerivePersonasUseCase,
-    GetPersonaUseCase,
-)
-from julee.hcd.use_cases.story import (
-    CreateStoryUseCase,
-    DeleteStoryUseCase,
-    GetStoryUseCase,
-    ListStoriesUseCase,
-    UpdateStoryUseCase,
-)
+from julee.hcd.use_cases.epic.create import CreateEpicUseCase
+from julee.hcd.use_cases.epic.delete import DeleteEpicUseCase
+from julee.hcd.use_cases.epic.get import GetEpicUseCase
+from julee.hcd.use_cases.epic.list import ListEpicsUseCase
+from julee.hcd.use_cases.epic.update import UpdateEpicUseCase
+from julee.hcd.use_cases.journey.create import CreateJourneyUseCase
+from julee.hcd.use_cases.journey.delete import DeleteJourneyUseCase
+from julee.hcd.use_cases.journey.get import GetJourneyUseCase
+from julee.hcd.use_cases.journey.list import ListJourneysUseCase
+from julee.hcd.use_cases.journey.update import UpdateJourneyUseCase
+from julee.hcd.use_cases.queries.derive_personas import DerivePersonasUseCase
+from julee.hcd.use_cases.queries.get_persona import GetPersonaUseCase
+from julee.hcd.use_cases.story.create import CreateStoryUseCase
+from julee.hcd.use_cases.story.delete import DeleteStoryUseCase
+from julee.hcd.use_cases.story.get import GetStoryUseCase
+from julee.hcd.use_cases.story.list import ListStoriesUseCase
+from julee.hcd.use_cases.story.update import UpdateStoryUseCase
 
 from ..dependencies import (
     get_create_epic_use_case,

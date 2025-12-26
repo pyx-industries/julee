@@ -3,7 +3,7 @@
 Provides use-case factory functions for FastAPI's dependency injection.
 """
 
-from apps.mcp.c4.context import (
+from apps.c4_mcp.context import (
     # Diagram use cases
     get_component_diagram_use_case,
     get_container_diagram_use_case,
