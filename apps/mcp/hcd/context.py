@@ -6,10 +6,8 @@ Provides repository instances and use-case factories for MCP tool functions.
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from julee.hcd.services import SuggestionContextService
+from julee.hcd.use_cases.suggestions import SuggestionRepositories
 
 from julee.hcd.use_cases.accelerator import (
     CreateAcceleratorUseCase,
@@ -369,23 +367,21 @@ def get_get_persona_use_case() -> GetPersonaUseCase:
 
 
 # =============================================================================
-# Suggestion Context Factory
+# Suggestion Repositories Factory
 # =============================================================================
 
 
-def get_suggestion_context_service() -> "SuggestionContextService":
-    """Get SuggestionContextService with all repository dependencies.
+def get_suggestion_repositories() -> SuggestionRepositories:
+    """Get SuggestionRepositories with all repository dependencies.
 
     This provides the cross-entity visibility needed to compute
     contextual suggestions based on domain relationships.
     """
-    from julee.hcd.infrastructure.services.memory import MemorySuggestionContextService
-
-    return MemorySuggestionContextService(
-        story_repo=get_story_repository(),
-        epic_repo=get_epic_repository(),
-        journey_repo=get_journey_repository(),
-        accelerator_repo=get_accelerator_repository(),
-        integration_repo=get_integration_repository(),
-        app_repo=get_app_repository(),
+    return SuggestionRepositories(
+        stories=get_story_repository(),
+        epics=get_epic_repository(),
+        journeys=get_journey_repository(),
+        apps=get_app_repository(),
+        accelerators=get_accelerator_repository(),
+        integrations=get_integration_repository(),
     )

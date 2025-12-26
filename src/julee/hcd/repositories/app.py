@@ -55,3 +55,14 @@ class AppRepository(BaseRepository[App], Protocol):
             List of apps with non-empty accelerators list
         """
         ...
+
+    async def get_by_accelerator(self, accelerator_slug: str) -> list[App]:
+        """Get all apps that reference a specific accelerator.
+
+        Args:
+            accelerator_slug: Accelerator slug to search for
+
+        Returns:
+            List of apps that have this accelerator in their accelerators list
+        """
+        ...

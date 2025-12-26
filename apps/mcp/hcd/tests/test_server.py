@@ -94,12 +94,12 @@ class TestToolRegistration:
             mcp_update_story,
         )
 
-        # Verify functions exist and are callable
-        assert callable(mcp_create_story)
-        assert callable(mcp_get_story)
-        assert callable(mcp_list_stories)
-        assert callable(mcp_update_story)
-        assert callable(mcp_delete_story)
+        # Verify tools exist (they're FunctionTool objects, not plain callables)
+        assert mcp_create_story is not None
+        assert mcp_get_story is not None
+        assert mcp_list_stories is not None
+        assert mcp_update_story is not None
+        assert mcp_delete_story is not None
 
     def test_epic_tools_registered(self) -> None:
         """Epic CRUD tools must be registered."""
@@ -111,11 +111,11 @@ class TestToolRegistration:
             mcp_update_epic,
         )
 
-        assert callable(mcp_create_epic)
-        assert callable(mcp_get_epic)
-        assert callable(mcp_list_epics)
-        assert callable(mcp_update_epic)
-        assert callable(mcp_delete_epic)
+        assert mcp_create_epic is not None
+        assert mcp_get_epic is not None
+        assert mcp_list_epics is not None
+        assert mcp_update_epic is not None
+        assert mcp_delete_epic is not None
 
     def test_journey_tools_registered(self) -> None:
         """Journey CRUD tools must be registered."""
@@ -127,18 +127,18 @@ class TestToolRegistration:
             mcp_update_journey,
         )
 
-        assert callable(mcp_create_journey)
-        assert callable(mcp_get_journey)
-        assert callable(mcp_list_journeys)
-        assert callable(mcp_update_journey)
-        assert callable(mcp_delete_journey)
+        assert mcp_create_journey is not None
+        assert mcp_get_journey is not None
+        assert mcp_list_journeys is not None
+        assert mcp_update_journey is not None
+        assert mcp_delete_journey is not None
 
     def test_persona_tools_registered(self) -> None:
         """Persona read tools must be registered (personas are derived, not created)."""
         from apps.mcp.hcd.server import mcp_get_persona, mcp_list_personas
 
-        assert callable(mcp_get_persona)
-        assert callable(mcp_list_personas)
+        assert mcp_get_persona is not None
+        assert mcp_list_personas is not None
 
     def test_accelerator_tools_registered(self) -> None:
         """Accelerator CRUD tools must be registered."""
@@ -150,11 +150,11 @@ class TestToolRegistration:
             mcp_update_accelerator,
         )
 
-        assert callable(mcp_create_accelerator)
-        assert callable(mcp_get_accelerator)
-        assert callable(mcp_list_accelerators)
-        assert callable(mcp_update_accelerator)
-        assert callable(mcp_delete_accelerator)
+        assert mcp_create_accelerator is not None
+        assert mcp_get_accelerator is not None
+        assert mcp_list_accelerators is not None
+        assert mcp_update_accelerator is not None
+        assert mcp_delete_accelerator is not None
 
     def test_integration_tools_registered(self) -> None:
         """Integration CRUD tools must be registered."""
@@ -166,11 +166,11 @@ class TestToolRegistration:
             mcp_update_integration,
         )
 
-        assert callable(mcp_create_integration)
-        assert callable(mcp_get_integration)
-        assert callable(mcp_list_integrations)
-        assert callable(mcp_update_integration)
-        assert callable(mcp_delete_integration)
+        assert mcp_create_integration is not None
+        assert mcp_get_integration is not None
+        assert mcp_list_integrations is not None
+        assert mcp_update_integration is not None
+        assert mcp_delete_integration is not None
 
     def test_app_tools_registered(self) -> None:
         """App CRUD tools must be registered."""
@@ -182,11 +182,11 @@ class TestToolRegistration:
             mcp_update_app,
         )
 
-        assert callable(mcp_create_app)
-        assert callable(mcp_get_app)
-        assert callable(mcp_list_apps)
-        assert callable(mcp_update_app)
-        assert callable(mcp_delete_app)
+        assert mcp_create_app is not None
+        assert mcp_get_app is not None
+        assert mcp_list_apps is not None
+        assert mcp_update_app is not None
+        assert mcp_delete_app is not None
 
 
 @pytest.mark.skipif(not CONTEXT_IMPORTS_OK, reason="HCD context has import errors")

@@ -75,3 +75,13 @@ class MemoryAppRepository(MemoryRepositoryMixin[App], AppRepository):
     async def get_apps_with_accelerators(self) -> list[App]:
         """Get all apps that have accelerators defined."""
         return [app for app in self.storage.values() if app.accelerators]
+
+    async def list_slugs(self) -> set[str]:
+        """List all app slugs."""
+        return self._list_slugs()
+
+    async def get_by_accelerator(self, accelerator_slug: str) -> list[App]:
+        """Get all apps that reference a specific accelerator."""
+        return [
+            app for app in self.storage.values() if accelerator_slug in app.accelerators
+        ]

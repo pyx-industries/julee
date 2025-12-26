@@ -85,3 +85,15 @@ class BaseRepository(Protocol[T]):
         Used primarily for testing and re-initialization.
         """
         ...
+
+    async def list_slugs(self) -> set[str]:
+        """List all entity slugs.
+
+        Convenience method for getting just the identifiers without
+        loading full entity data. Default implementation derives from
+        list_all(), but implementations may optimize.
+
+        Returns:
+            Set of entity slugs
+        """
+        ...

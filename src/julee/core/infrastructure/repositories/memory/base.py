@@ -131,6 +131,14 @@ class MemoryRepositoryMixin(Generic[T]):
         """
         return list(self.storage.values())
 
+    def _list_slugs(self) -> set[str]:
+        """List all entity slugs/IDs.
+
+        Returns:
+            Set of entity identifiers
+        """
+        return set(self.storage.keys())
+
     # -------------------------------------------------------------------------
     # Destructive helpers (opt-in by exposing in your repo)
     # -------------------------------------------------------------------------

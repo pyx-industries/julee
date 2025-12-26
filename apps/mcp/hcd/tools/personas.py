@@ -11,7 +11,7 @@ from julee.hcd.use_cases.suggestions import compute_persona_suggestions
 from ..context import (
     get_derive_personas_use_case,
     get_get_persona_use_case,
-    get_suggestion_context_service,
+    get_suggestion_repositories,
 )
 
 
@@ -35,10 +35,10 @@ async def list_personas(
 
     # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
 
     # Check for personas without journeys
-    all_journeys = await ctx.get_all_journeys()
+    all_journeys = await repos.journeys.list_all()
     journey_personas = {j.persona_normalized for j in all_journeys}
 
     personas_without_journeys = [
@@ -119,8 +119,8 @@ async def get_persona(name: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_persona_suggestions(response.persona, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_persona_suggestions(response.persona, repos)
 
     return {
         "entity": format_entity(

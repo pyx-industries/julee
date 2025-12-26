@@ -23,7 +23,7 @@ from ..context import (
     get_delete_story_use_case,
     get_get_story_use_case,
     get_list_stories_use_case,
-    get_suggestion_context_service,
+    get_suggestion_repositories,
     get_update_story_use_case,
 )
 
@@ -58,8 +58,8 @@ async def create_story(
     response = await use_case.execute(request)
 
     # Compute suggestions for the created story
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_story_suggestions(response.story, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_story_suggestions(response.story, repos)
 
     return {
         "success": True,
@@ -89,8 +89,8 @@ async def get_story(slug: str, format: str = "full") -> dict:
         return not_found_error("story", slug, available_slugs)
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_story_suggestions(response.story, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_story_suggestions(response.story, repos)
 
     return {
         "entity": format_entity(
@@ -213,9 +213,9 @@ async def update_story(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
     suggestions = (
-        await compute_story_suggestions(response.story, ctx) if response.story else []
+        await compute_story_suggestions(response.story, repos) if response.story else []
     )
 
     return {

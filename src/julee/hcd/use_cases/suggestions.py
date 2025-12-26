@@ -4,6 +4,8 @@ Computes contextual suggestions for entities based on domain semantics
 and cross-entity validation rules.
 """
 
+from dataclasses import dataclass
+
 from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
 from julee.hcd.entities.epic import Epic
@@ -11,14 +13,36 @@ from julee.hcd.entities.integration import Integration
 from julee.hcd.entities.journey import Journey, StepType
 from julee.hcd.entities.persona import Persona
 from julee.hcd.entities.story import Story
-from julee.hcd.services.suggestion_context import SuggestionContextService
+from julee.hcd.repositories.accelerator import AcceleratorRepository
+from julee.hcd.repositories.app import AppRepository
+from julee.hcd.repositories.epic import EpicRepository
+from julee.hcd.repositories.integration import IntegrationRepository
+from julee.hcd.repositories.journey import JourneyRepository
+from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
 
-__all__ = ["SuggestionContextService"]
+__all__ = ["SuggestionRepositories"]
+
+
+@dataclass
+class SuggestionRepositories:
+    """Repository aggregate for suggestion computation.
+
+    Groups all repositories needed by suggestion computation functions,
+    replacing the SuggestionContextService abstraction with direct
+    repository access.
+    """
+
+    stories: StoryRepository
+    epics: EpicRepository
+    journeys: JourneyRepository
+    apps: AppRepository
+    accelerators: AcceleratorRepository
+    integrations: IntegrationRepository
 
 
 async def compute_story_suggestions(
-    story: Story, ctx: SuggestionContextService
+    story: Story, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for a story.
 
@@ -39,16 +63,16 @@ async def compute_story_suggestions(
         suggestions.append(story_has_unknown_persona(story.slug).model_dump())
 
     # Check app exists
-    app_slugs = await ctx.get_app_slugs()
+    app_slugs = await repos.apps.list_slugs()
     if story.app_slug and story.app_slug not in app_slugs:
         suggestions.append(
             story_references_unknown_app(story.slug, story.app_slug).model_dump()
         )
 
     # Check if in any epic
-    epics_with_story = await ctx.get_epics_containing_story(story.feature_title)
+    epics_with_story = await repos.epics.get_with_story_ref(story.feature_title)
     if not epics_with_story:
-        all_epics = await ctx.get_all_epics()
+        all_epics = await repos.epics.list_all()
         available_epic_slugs = [e.slug for e in all_epics]
         suggestions.append(
             story_not_in_any_epic(
@@ -65,7 +89,7 @@ async def compute_story_suggestions(
 
     # Check if persona has journeys
     if story.persona_normalized != "unknown":
-        journeys = await ctx.get_journeys_for_persona(story.persona)
+        journeys = await repos.journeys.get_by_persona(story.persona)
         if not journeys:
             suggestions.append(
                 story_persona_has_no_journey(story.slug, story.persona, []).model_dump()
@@ -82,7 +106,7 @@ async def compute_story_suggestions(
 
 
 async def compute_epic_suggestions(
-    epic: Epic, ctx: SuggestionContextService
+    epic: Epic, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for an epic."""
     from ....hcd_api.suggestions import (
@@ -98,7 +122,7 @@ async def compute_epic_suggestions(
         suggestions.append(epic_has_no_stories(epic.slug).model_dump())
     else:
         # Check each story ref
-        story_titles = await ctx.get_story_titles_normalized()
+        story_titles = await repos.stories.get_title_map()
         all_story_titles = list(story_titles.keys())
 
         for ref in epic.story_refs:
@@ -131,7 +155,7 @@ async def compute_epic_suggestions(
 
 
 async def compute_journey_suggestions(
-    journey: Journey, ctx: SuggestionContextService
+    journey: Journey, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for a journey."""
     from ....hcd_api.suggestions import (
@@ -151,8 +175,8 @@ async def compute_journey_suggestions(
         )
     else:
         # Check step references
-        story_titles = await ctx.get_story_titles_normalized()
-        epic_slugs = await ctx.get_epic_slugs()
+        story_titles = await repos.stories.get_title_map()
+        epic_slugs = await repos.epics.list_slugs()
 
         for step in journey.steps:
             if step.step_type == StepType.STORY:
@@ -173,7 +197,7 @@ async def compute_journey_suggestions(
                     )
 
     # Check depends_on
-    journey_slugs = await ctx.get_journey_slugs()
+    journey_slugs = await repos.journeys.list_slugs()
     for dep in journey.depends_on:
         if dep not in journey_slugs:
             suggestions.append(
@@ -183,7 +207,7 @@ async def compute_journey_suggestions(
             )
 
     # Check persona exists in stories
-    personas = await ctx.get_personas()
+    personas = await repos.stories.get_all_personas()
     if journey.persona_normalized and journey.persona_normalized not in personas:
         suggestions.append(
             journey_persona_not_in_stories(
@@ -195,7 +219,7 @@ async def compute_journey_suggestions(
 
 
 async def compute_accelerator_suggestions(
-    accelerator: Accelerator, ctx: SuggestionContextService
+    accelerator: Accelerator, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for an accelerator."""
     from ....hcd_api.suggestions import (
@@ -215,7 +239,7 @@ async def compute_accelerator_suggestions(
         )
     else:
         # Check integration references
-        integration_slugs = await ctx.get_integration_slugs()
+        integration_slugs = await repos.integrations.list_slugs()
         all_integrations = list(integration_slugs)
 
         for ref in accelerator.sources_from:
@@ -241,7 +265,7 @@ async def compute_accelerator_suggestions(
                 )
 
     # Check depends_on
-    accelerator_slugs = await ctx.get_accelerator_slugs()
+    accelerator_slugs = await repos.accelerators.list_slugs()
     all_accelerators = list(accelerator_slugs)
 
     for dep in accelerator.depends_on:
@@ -261,7 +285,7 @@ async def compute_accelerator_suggestions(
             )
 
     # Info about apps using this accelerator
-    apps = await ctx.get_apps_using_accelerator(accelerator.slug)
+    apps = await repos.apps.get_by_accelerator(accelerator.slug)
     if apps:
         suggestions.append(
             list_related_entities(
@@ -273,7 +297,7 @@ async def compute_accelerator_suggestions(
 
 
 async def compute_integration_suggestions(
-    integration: Integration, ctx: SuggestionContextService
+    integration: Integration, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for an integration."""
     from ....hcd_api.suggestions import (
@@ -283,8 +307,21 @@ async def compute_integration_suggestions(
 
     suggestions = []
 
-    # Check if used by any accelerators
-    accelerators = await ctx.get_accelerators_using_integration(integration.slug)
+    # Check if used by any accelerators (sources from OR publishes to)
+    sources_from = await repos.accelerators.get_by_integration(
+        integration.slug, "sources_from"
+    )
+    publishes_to = await repos.accelerators.get_by_integration(
+        integration.slug, "publishes_to"
+    )
+    # Combine and deduplicate
+    accelerator_slugs_seen: set[str] = set()
+    accelerators: list[Accelerator] = []
+    for acc in sources_from + publishes_to:
+        if acc.slug not in accelerator_slugs_seen:
+            accelerator_slugs_seen.add(acc.slug)
+            accelerators.append(acc)
+
     if not accelerators:
         suggestions.append(
             integration_not_used_by_accelerators(
@@ -305,7 +342,7 @@ async def compute_integration_suggestions(
 
 
 async def compute_app_suggestions(
-    app: App, ctx: SuggestionContextService
+    app: App, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for an app."""
     from ....hcd_api.suggestions import (
@@ -317,7 +354,7 @@ async def compute_app_suggestions(
     suggestions = []
 
     # Check if app has stories
-    stories = await ctx.get_stories_for_app(app.slug)
+    stories = await repos.stories.get_by_app(app.slug)
     if not stories:
         suggestions.append(app_has_no_stories(app.slug, app.name).model_dump())
     else:
@@ -337,7 +374,7 @@ async def compute_app_suggestions(
             )
 
     # Check accelerator references
-    accelerator_slugs = await ctx.get_accelerator_slugs()
+    accelerator_slugs = await repos.accelerators.list_slugs()
     for acc_slug in app.accelerators:
         if acc_slug not in accelerator_slugs:
             suggestions.append(
@@ -350,7 +387,7 @@ async def compute_app_suggestions(
 
 
 async def compute_persona_suggestions(
-    persona: Persona, ctx: SuggestionContextService
+    persona: Persona, repos: SuggestionRepositories
 ) -> list[dict]:
     """Compute suggestions for a persona."""
     from ....hcd_api.suggestions import (
@@ -361,7 +398,7 @@ async def compute_persona_suggestions(
     suggestions = []
 
     # Check if persona has journeys
-    journeys = await ctx.get_journeys_for_persona(persona.name)
+    journeys = await repos.journeys.get_by_persona(persona.name)
     if not journeys and persona.app_slugs:
         suggestions.append(
             persona_has_stories_but_no_journeys(

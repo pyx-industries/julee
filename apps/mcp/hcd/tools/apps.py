@@ -18,7 +18,7 @@ from ..context import (
     get_delete_app_use_case,
     get_get_app_use_case,
     get_list_apps_use_case,
-    get_suggestion_context_service,
+    get_suggestion_repositories,
     get_update_app_use_case,
 )
 
@@ -56,8 +56,8 @@ async def create_app(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_app_suggestions(response.app, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_app_suggestions(response.app, repos)
 
     # Add suggestion to create stories
     suggestions.append(
@@ -99,8 +99,8 @@ async def get_app(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_app_suggestions(response.app, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_app_suggestions(response.app, repos)
 
     return {
         "entity": format_entity(
@@ -131,12 +131,12 @@ async def list_apps(
 
     # Compute aggregate suggestions (on full dataset before pagination)
     suggestions = []
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
 
     # Check for apps without stories
     apps_without_stories = []
     for app in response.apps:
-        stories = await ctx.get_stories_for_app(app.slug)
+        stories = await repos.stories.get_by_app(app.slug)
         if not stories:
             apps_without_stories.append(app)
 
@@ -222,9 +222,9 @@ async def update_app(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
     suggestions = (
-        await compute_app_suggestions(response.app, ctx) if response.app else []
+        await compute_app_suggestions(response.app, repos) if response.app else []
     )
 
     return {

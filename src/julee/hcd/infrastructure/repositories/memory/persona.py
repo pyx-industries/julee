@@ -85,3 +85,7 @@ class MemoryPersonaRepository(MemoryRepositoryMixin[Persona], PersonaRepository)
         for slug in to_remove:
             del self.storage[slug]
         return len(to_remove)
+
+    async def list_slugs(self) -> set[str]:
+        """List all persona slugs."""
+        return self._list_slugs()

@@ -100,3 +100,7 @@ class MemoryIntegrationRepository(
             for integration in self.storage.values()
             if integration.has_dependency(dep_name)
         ]
+
+    async def list_slugs(self) -> set[str]:
+        """List all integration slugs."""
+        return self._list_slugs()

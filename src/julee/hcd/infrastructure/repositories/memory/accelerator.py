@@ -116,3 +116,7 @@ class MemoryAcceleratorRepository(
             for accel in self.storage.values()
             if accel.status_normalized
         }
+
+    async def list_slugs(self) -> set[str]:
+        """List all accelerator slugs."""
+        return self._list_slugs()

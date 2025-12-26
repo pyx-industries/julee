@@ -84,3 +84,7 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
         for epic in self.storage.values():
             refs.update(normalize_name(ref) for ref in epic.story_refs)
         return refs
+
+    async def list_slugs(self) -> set[str]:
+        """List all epic slugs."""
+        return self._list_slugs()

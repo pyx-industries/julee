@@ -126,3 +126,7 @@ class MemoryJourneyRepository(MemoryRepositoryMixin[Journey], JourneyRepository)
             for journey in self.storage.values()
             if epic_slug in journey.get_epic_refs()
         ]
+
+    async def list_slugs(self) -> set[str]:
+        """List all journey slugs."""
+        return self._list_slugs()

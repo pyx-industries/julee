@@ -21,7 +21,7 @@ from ..context import (
     get_delete_integration_use_case,
     get_get_integration_use_case,
     get_list_integrations_use_case,
-    get_suggestion_context_service,
+    get_suggestion_repositories,
     get_update_integration_use_case,
 )
 
@@ -63,8 +63,8 @@ async def create_integration(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_integration_suggestions(response.integration, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_integration_suggestions(response.integration, repos)
 
     # Add suggestion to connect to accelerators
     suggestions.append(
@@ -106,8 +106,8 @@ async def get_integration(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_integration_suggestions(response.integration, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_integration_suggestions(response.integration, repos)
 
     return {
         "entity": format_entity(
@@ -142,8 +142,8 @@ async def list_integrations(
     suggestions = []
 
     # Get accelerators to check usage
-    ctx = get_suggestion_context_service()
-    all_accelerators = await ctx.get_all_accelerators()
+    repos = get_suggestion_repositories()
+    all_accelerators = await repos.accelerators.list_all()
 
     # Find used integrations
     used_integrations = set()
@@ -242,9 +242,9 @@ async def update_integration(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
     suggestions = (
-        await compute_integration_suggestions(response.integration, ctx)
+        await compute_integration_suggestions(response.integration, repos)
         if response.integration
         else []
     )

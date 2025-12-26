@@ -66,3 +66,14 @@ class StoryRepository(BaseRepository[Story], Protocol):
             Set of persona names (normalized)
         """
         ...
+
+    async def get_title_map(self) -> dict[str, "Story"]:
+        """Get mapping of normalized feature titles to stories.
+
+        Used for efficient lookup of stories by their feature title,
+        supporting case-insensitive matching via normalized keys.
+
+        Returns:
+            Dict mapping normalized title to Story
+        """
+        ...

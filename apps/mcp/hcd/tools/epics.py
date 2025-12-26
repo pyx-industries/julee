@@ -18,7 +18,7 @@ from ..context import (
     get_delete_epic_use_case,
     get_get_epic_use_case,
     get_list_epics_use_case,
-    get_suggestion_context_service,
+    get_suggestion_repositories,
     get_update_epic_use_case,
 )
 
@@ -47,8 +47,8 @@ async def create_epic(
     response = await use_case.execute(request)
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_epic_suggestions(response.epic, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_epic_suggestions(response.epic, repos)
 
     return {
         "success": True,
@@ -78,8 +78,8 @@ async def get_epic(slug: str, format: str = "full") -> dict:
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
-    suggestions = await compute_epic_suggestions(response.epic, ctx)
+    repos = get_suggestion_repositories()
+    suggestions = await compute_epic_suggestions(response.epic, repos)
 
     return {
         "entity": format_entity(
@@ -184,9 +184,9 @@ async def update_epic(
         }
 
     # Compute suggestions
-    ctx = get_suggestion_context_service()
+    repos = get_suggestion_repositories()
     suggestions = (
-        await compute_epic_suggestions(response.epic, ctx) if response.epic else []
+        await compute_epic_suggestions(response.epic, repos) if response.epic else []
     )
 
     return {

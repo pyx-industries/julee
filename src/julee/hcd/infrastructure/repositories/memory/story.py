@@ -93,3 +93,14 @@ class MemoryStoryRepository(MemoryRepositoryMixin[Story], StoryRepository):
             for story in self.storage.values()
             if story.persona_normalized != "unknown"
         }
+
+    async def list_slugs(self) -> set[str]:
+        """List all story slugs."""
+        return self._list_slugs()
+
+    async def get_title_map(self) -> dict[str, Story]:
+        """Get mapping of normalized feature titles to stories."""
+        return {
+            normalize_name(story.feature_title): story
+            for story in self.storage.values()
+        }
