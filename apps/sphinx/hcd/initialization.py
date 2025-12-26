@@ -6,12 +6,9 @@ repositories with data that doesn't change during the build.
 
 import logging
 
-from julee.hcd.parsers import (
-    scan_app_manifests,
-    scan_bounded_contexts,
-    scan_feature_directory,
-    scan_integration_manifests,
-)
+from julee.hcd.parsers.ast import scan_bounded_contexts
+from julee.hcd.parsers.gherkin import scan_feature_directory
+from julee.hcd.parsers.yaml import scan_app_manifests, scan_integration_manifests
 
 from .config import get_config
 from .context import HCDContext, create_sphinx_env_context, set_hcd_context

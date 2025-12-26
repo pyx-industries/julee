@@ -6,7 +6,7 @@ Validates accelerators against code structure after all documents are read.
 import asyncio
 import logging
 
-from julee.hcd.use_cases.queries import (
+from julee.hcd.use_cases.queries.validate_accelerators import (
     ValidateAcceleratorsRequest,
     ValidateAcceleratorsUseCase,
 )

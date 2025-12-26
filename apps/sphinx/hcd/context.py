@@ -8,17 +8,21 @@ with a unified, type-safe interface.
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from julee.hcd.infrastructure.repositories.memory import (
+from julee.hcd.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
-    MemoryAppRepository,
-    MemoryCodeInfoRepository,
-    MemoryContribRepository,
-    MemoryEpicRepository,
-    MemoryIntegrationRepository,
-    MemoryJourneyRepository,
-    MemoryPersonaRepository,
-    MemoryStoryRepository,
 )
+from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
+from julee.hcd.infrastructure.repositories.memory.code_info import (
+    MemoryCodeInfoRepository,
+)
+from julee.hcd.infrastructure.repositories.memory.contrib import MemoryContribRepository
+from julee.hcd.infrastructure.repositories.memory.epic import MemoryEpicRepository
+from julee.hcd.infrastructure.repositories.memory.integration import (
+    MemoryIntegrationRepository,
+)
+from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
+from julee.hcd.infrastructure.repositories.memory.persona import MemoryPersonaRepository
+from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
 
 from .adapters import SyncRepositoryAdapter
 from .repositories import (

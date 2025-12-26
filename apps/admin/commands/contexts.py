@@ -14,10 +14,8 @@ from apps.admin.dependencies import (
     get_list_bounded_contexts_use_case,
 )
 from julee.core.entities.bounded_context import BoundedContext
-from julee.core.use_cases import (
-    GetBoundedContextRequest,
-    ListBoundedContextsRequest,
-)
+from julee.core.use_cases.bounded_context.get import GetBoundedContextRequest
+from julee.core.use_cases.bounded_context.list import ListBoundedContextsRequest
 
 # Template environment
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"

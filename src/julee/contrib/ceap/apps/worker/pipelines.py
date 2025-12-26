@@ -32,9 +32,11 @@ from julee.contrib.ceap.infrastructure.temporal.repositories.proxies import (
 from julee.contrib.ceap.infrastructure.temporal.services.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
-from julee.contrib.ceap.use_cases import (
+from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
+)
+from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )

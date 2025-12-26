@@ -32,6 +32,7 @@ SUPPORTING_MODELS = {
 # These define organizational/structural rules rather than entity doctrine.
 META_DOCTRINE_TESTS = {
     "test_doctrine_coverage",  # This test file itself
+    "test_mcp",  # MCP application structure doctrine (not an entity)
     "test_tests",  # Test organization doctrine (not an entity)
 }
 

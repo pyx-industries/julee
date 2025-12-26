@@ -18,7 +18,7 @@ from julee.contrib.ceap.apps.api.dependencies import (
 )
 from julee.contrib.ceap.apps.api.responses import ServiceStatus
 from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
-from julee.contrib.ceap.infrastructure.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
 )
 from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_config import (

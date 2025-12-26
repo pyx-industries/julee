@@ -16,7 +16,7 @@ from fastapi_pagination import add_pagination
 from apps.api.ceap.routers import documents_router as router
 from julee.contrib.ceap.apps.api.dependencies import get_document_repository
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
-from julee.contrib.ceap.infrastructure.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory.document import (
     MemoryDocumentRepository,
 )
 
