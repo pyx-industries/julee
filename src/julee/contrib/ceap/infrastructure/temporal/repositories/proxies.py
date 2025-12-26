@@ -1,5 +1,5 @@
 """
-Workflow-safe proxy classes for the julee domain.
+Workflow-safe proxy classes for CEAP repositories.
 
 This module contains all @temporal_workflow_proxy decorated classes that
 delegate to Temporal activities from within workflows. These classes are
@@ -28,8 +28,7 @@ from julee.contrib.ceap.repositories.knowledge_service_query import (
 from julee.contrib.ceap.repositories.policy import PolicyRepository
 from julee.core.infrastructure.temporal.decorators import temporal_workflow_proxy
 
-# Import activity name bases from shared module
-from julee.repositories.temporal.activity_names import (
+from .activity_names import (
     ASSEMBLY_ACTIVITY_BASE,
     ASSEMBLY_SPECIFICATION_ACTIVITY_BASE,
     DOCUMENT_ACTIVITY_BASE,

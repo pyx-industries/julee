@@ -16,8 +16,7 @@ from julee.contrib.ceap.entities.document import Document
 from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-
-from ..knowledge_service import (
+from julee.contrib.ceap.services.knowledge_service import (
     FileRegistrationResult,
     KnowledgeService,
     QueryResult,

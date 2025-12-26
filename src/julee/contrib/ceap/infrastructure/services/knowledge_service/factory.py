@@ -13,13 +13,13 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.services.knowledge_service import (
+from julee.contrib.ceap.services.knowledge_service import (
     FileRegistrationResult,
+    KnowledgeService,
     QueryResult,
 )
 
 from .anthropic import AnthropicKnowledgeService
-from .knowledge_service import KnowledgeService
 
 logger = logging.getLogger(__name__)
 

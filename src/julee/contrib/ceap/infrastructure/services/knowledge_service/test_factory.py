@@ -15,15 +15,17 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.core.entities.content_stream import (
-    ContentStream,
+from julee.contrib.ceap.infrastructure.services.knowledge_service import (
+    ensure_knowledge_service,
 )
-from julee.services.knowledge_service import ensure_knowledge_service
-from julee.services.knowledge_service.anthropic import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic import (
     AnthropicKnowledgeService,
 )
-from julee.services.knowledge_service.factory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.factory import (
     knowledge_service_factory,
+)
+from julee.core.entities.content_stream import (
+    ContentStream,
 )
 
 pytestmark = pytest.mark.unit

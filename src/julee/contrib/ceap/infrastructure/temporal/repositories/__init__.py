@@ -1,5 +1,5 @@
 """
-Temporal repository wrappers for the julee domain.
+Temporal repository wrappers for CEAP.
 
 This package contains @temporal_activity_registration decorated classes that
 wrap pure backend repositories as Temporal activities, and
@@ -25,14 +25,4 @@ specific module you need:
 - Both can import constants from activity_names.py
 """
 
-# This __init__.py intentionally does NOT re-export classes to avoid
-# mixing sandbox-safe (proxies) and non-sandbox-safe (activities) imports.
-# Import directly from the specific modules instead.
-
-__all__: list[str] = [
-    # No re-exports to avoid sandbox violations
-    # Import directly from:
-    # - .activities for worker use
-    # - .proxies for workflow use
-    # - .activity_names for constants
-]
+__all__: list[str] = []

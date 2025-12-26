@@ -1,8 +1,8 @@
 """
-Temporal activity wrapper classes for the julee domain.
+Temporal activity wrapper classes for CEAP repositories.
 
 This module contains all @temporal_activity_registration decorated classes
-that wrap pure backend repositories as Temporal activities. These classes are
+that wrap CEAP MinIO repositories as Temporal activities. These classes are
 imported by the worker to register activities with Temporal.
 
 The classes follow the naming pattern documented in systemPatterns.org:
@@ -33,8 +33,7 @@ from julee.contrib.ceap.infrastructure.repositories.minio.policy import (
 )
 from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
 
-# Import activity name bases from shared module
-from julee.repositories.temporal.activity_names import (
+from .activity_names import (
     ASSEMBLY_ACTIVITY_BASE,
     ASSEMBLY_SPECIFICATION_ACTIVITY_BASE,
     DOCUMENT_ACTIVITY_BASE,

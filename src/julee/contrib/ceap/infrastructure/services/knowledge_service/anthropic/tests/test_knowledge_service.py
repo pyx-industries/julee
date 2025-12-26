@@ -17,14 +17,14 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
     ServiceApi,
 )
-from julee.core.entities.content_stream import (
-    ContentStream,
-)
-from julee.services.knowledge_service.anthropic import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks,
 )
-from julee.services.knowledge_service.anthropic import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic import (
     knowledge_service as anthropic_ks_module,
+)
+from julee.core.entities.content_stream import (
+    ContentStream,
 )
 
 pytestmark = pytest.mark.unit
@@ -92,7 +92,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query without service file IDs."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -139,7 +139,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with service file IDs."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -190,7 +190,7 @@ class TestAnthropicKnowledgeService:
         mock_client.messages.create = AsyncMock(side_effect=RuntimeError("API Error"))
 
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_client
 
@@ -207,7 +207,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test that query IDs are unique and properly formatted."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -236,7 +236,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with empty service_file_ids list."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -264,7 +264,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query with query_metadata configuration."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 
@@ -301,7 +301,7 @@ class TestAnthropicKnowledgeService:
     ) -> None:
         """Test execute_query uses default values when metadata is None."""
         with patch(
-            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+            "julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
         ) as mock_anthropic:
             mock_anthropic.return_value = mock_anthropic_client
 

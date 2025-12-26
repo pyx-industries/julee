@@ -20,16 +20,16 @@ from julee.contrib.ceap.entities.document import Document
 from julee.contrib.ceap.entities.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.contrib.ceap.repositories.document import DocumentRepository
-from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
-from julee.services.knowledge_service.factory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )
-from julee.services.temporal.activity_names import (
+from julee.contrib.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.services.knowledge_service import FileRegistrationResult
+from julee.core.infrastructure.temporal.decorators import temporal_activity_registration
+
+from .activity_names import (
     KNOWLEDGE_SERVICE_ACTIVITY_BASE,
 )
-
-from ..knowledge_service import FileRegistrationResult
 
 
 @temporal_activity_registration(KNOWLEDGE_SERVICE_ACTIVITY_BASE)

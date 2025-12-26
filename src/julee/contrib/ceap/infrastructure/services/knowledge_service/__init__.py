@@ -1,14 +1,13 @@
 """
-Knowledge Service module for julee domain.
+Knowledge service implementations for CEAP.
 
-This module provides the KnowledgeService protocol and factory function for
-creating configured knowledge service instances. The factory routes to the
-appropriate implementation based on the service_api configuration.
+This module provides the factory function and implementations for
+creating configured knowledge service instances.
 """
 
 import logging
 
-from .knowledge_service import (
+from julee.contrib.ceap.services.knowledge_service import (
     FileRegistrationResult,
     KnowledgeService,
     QueryResult,
