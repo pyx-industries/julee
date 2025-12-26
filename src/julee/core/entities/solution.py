@@ -2,9 +2,10 @@
 
 Represents a solution as the top-level organizational container for a julee
 project. A solution aggregates bounded contexts, applications, deployments,
-and optionally nested solutions into a coherent unit.
+documentation, and optionally nested solutions into a coherent unit.
 
 Doctrine:
+- Solution MUST have documentation (docs/)
 - Solution MAY contain one or more Bounded Contexts
 - Solution MAY contain one or more Applications
 - Solution MAY contain one or more Deployments
@@ -15,23 +16,18 @@ The dependency chain flows outward:
 
 The canonical structure is:
     {solution}/
-    ├── src/julee/           # Bounded contexts live here
-    │   ├── core/            # Core BC
-    │   ├── hcd/             # HCD BC
-    │   └── contrib/         # Nested solution container
-    │       ├── ceap/        # BC with optional apps/
-    │       └── polling/     # BC with optional apps/
+    ├── docs/                # Documentation (REQUIRED)
+    │   ├── conf.py          # Sphinx configuration
+    │   ├── Makefile         # Build with 'make html'
+    │   └── index.rst        # Entry point
+    ├── src/{solution}/      # Bounded contexts live here
+    │   ├── {bc}/            # Bounded context directories
+    │   └── {nested}/        # Optional nested solution(s)
+    │       └── {bc}/        # Bounded contexts in nested solution
     ├── apps/                # Applications live here
-    │   ├── api/
-    │   ├── mcp/
-    │   └── worker/
-    └── deployments/         # Deployments live here (outermost layer)
-        ├── local/           # Local development deployment
-        ├── staging/         # Staging environment
-        └── production/      # Production environment
-
-Nested solutions (like contrib/) follow the same structure recursively.
-BCs within nested solutions may contain reference applications at {bc}/apps/.
+    │   └── {app}/           # Application directories
+    └── deployments/         # Deployments live here
+        └── {env}/           # Environment directories
 """
 
 from __future__ import annotations
@@ -43,6 +39,7 @@ from pydantic import BaseModel, Field, field_validator
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
 from julee.core.entities.deployment import Deployment
+from julee.core.entities.documentation import Documentation
 
 
 class Solution(BaseModel):
@@ -77,6 +74,10 @@ class Solution(BaseModel):
     nested_solutions: list[Solution] = Field(
         default_factory=list,
         description="Nested solutions (e.g., contrib/) within this solution",
+    )
+    documentation: Documentation | None = Field(
+        default=None,
+        description="Documentation configuration (docs/ directory)",
     )
 
     # Configuration

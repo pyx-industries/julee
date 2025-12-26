@@ -25,6 +25,9 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
 from julee.core.infrastructure.repositories.introspection.deployment import (
     FilesystemDeploymentRepository,
 )
+from julee.core.infrastructure.repositories.introspection.documentation import (
+    FilesystemDocumentationRepository,
+)
 
 __all__ = ["FilesystemSolutionRepository"]
 
@@ -123,6 +126,10 @@ class FilesystemSolutionRepository:
         dep_repo = FilesystemDeploymentRepository(self.project_root)
         top_level_deps = dep_repo._discover_all()
 
+        # Discover documentation
+        doc_repo = FilesystemDocumentationRepository(self.project_root)
+        documentation = doc_repo._discover()
+
         # Discover nested solutions (contrib/)
         nested_solutions: list[Solution] = []
         contrib_path = self.project_root / SEARCH_ROOT / CONTRIB_DIR
@@ -147,6 +154,7 @@ class FilesystemSolutionRepository:
             applications=top_level_apps,
             deployments=top_level_deps,
             nested_solutions=nested_solutions,
+            documentation=documentation,
             is_nested=False,
             parent_path=None,
         )

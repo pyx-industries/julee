@@ -513,6 +513,25 @@ uses these to classify deployments.
 
 
 # =============================================================================
+# DOCUMENTATION DISCOVERY
+# =============================================================================
+# Configuration for finding documentation in the filesystem.
+# Documentation is required for every julee solution and uses Sphinx.
+
+DOCS_ROOT: Final[str] = "docs"
+"""Root directory for documentation.
+
+Every julee solution MUST have a docs/ directory with valid Sphinx
+configuration. This is a reserved word - it cannot be a bounded context name.
+
+Doctrine:
+- Solution MUST have docs/ directory
+- docs/ MUST have a valid Sphinx conf.py
+- docs/ MUST have a Makefile with 'make html' target
+"""
+
+
+# =============================================================================
 # RESERVED WORDS (derived from doctrine constants)
 # =============================================================================
 # Reserved words are derived from doctrine constants, not hardcoded.
@@ -526,6 +545,7 @@ RESERVED_WORDS: Final[frozenset[str]] = frozenset(
         APPS_ROOT,  # "apps" - application layer, has its own discovery
         DEPLOYMENTS_ROOT,  # "deployments" - deployment configurations
         LAYER_DEPLOYMENT,  # "deployment" - legacy singular form
+        DOCS_ROOT,  # "docs" - documentation, required for every solution
     }
 )
 """Directory names that are NOT bounded contexts.
