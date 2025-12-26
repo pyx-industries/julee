@@ -5,6 +5,9 @@
     },
     "c4": {
       "command": "c4-mcp"
+    },
+    "core": {
+      "command": "core-mcp"
     }
   }
 }

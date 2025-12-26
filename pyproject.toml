@@ -97,9 +97,9 @@ Issues = "https://github.com/pyx-industries/julee/issues"
 
 [project.scripts]
 julee-admin = "apps.admin.cli:main"
-julee-mcp = "apps.mcp.server:main"
-hcd-mcp = "apps.mcp.hcd.server:main"
-c4-mcp = "apps.mcp.c4.server:main"
+hcd-mcp = "apps.hcd_mcp:main"
+c4-mcp = "apps.c4_mcp:main"
+core-mcp = "apps.core_mcp:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
