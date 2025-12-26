@@ -1,25 +1,22 @@
 """DynamicStep use-cases.
 
 CRUD operations for DynamicStep entities.
+Re-exports from consolidated crud.py module.
 """
 
-from .create import (
+from julee.c4.use_cases.crud import (
     CreateDynamicStepRequest,
     CreateDynamicStepResponse,
     CreateDynamicStepUseCase,
-)
-from .delete import (
     DeleteDynamicStepRequest,
     DeleteDynamicStepResponse,
     DeleteDynamicStepUseCase,
-)
-from .get import GetDynamicStepRequest, GetDynamicStepResponse, GetDynamicStepUseCase
-from .list import (
+    GetDynamicStepRequest,
+    GetDynamicStepResponse,
+    GetDynamicStepUseCase,
     ListDynamicStepsRequest,
     ListDynamicStepsResponse,
     ListDynamicStepsUseCase,
-)
-from .update import (
     UpdateDynamicStepRequest,
     UpdateDynamicStepResponse,
     UpdateDynamicStepUseCase,

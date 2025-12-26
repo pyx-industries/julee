@@ -19,12 +19,13 @@ Example:
         '''List all stories.'''
 """
 
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
 E = TypeVar("E", bound=BaseModel)
 R = TypeVar("R")
+Resp = TypeVar("Resp", bound=BaseModel)
 
 
 # =============================================================================
@@ -59,11 +60,13 @@ class GetUseCase(Generic[E, R]):
 
     Class attributes:
         id_field: Name of the identifier field on the request (default: "slug")
+        response_cls: Response class to use (default: GetResponse)
 
     The repository must have an async `get(id) -> Entity | None` method.
     """
 
     id_field: str = "slug"
+    response_cls: type[Any] = GetResponse
 
     def __init__(self, repo: R) -> None:
         self.repo = repo
@@ -71,7 +74,7 @@ class GetUseCase(Generic[E, R]):
     async def execute(self, request: GetRequest) -> GetResponse[E]:
         entity_id = getattr(request, self.id_field)
         entity = await self.repo.get(entity_id)
-        return GetResponse(entity=entity)
+        return self.response_cls(entity=entity)
 
 
 # =============================================================================
@@ -103,15 +106,20 @@ class ListResponse(BaseModel, Generic[E]):
 class ListUseCase(Generic[E, R]):
     """Base use case for listing entities.
 
+    Class attributes:
+        response_cls: Response class to use (default: ListResponse)
+
     The repository must have an async `list_all() -> list[Entity]` method.
     """
+
+    response_cls: type[Any] = ListResponse
 
     def __init__(self, repo: R) -> None:
         self.repo = repo
 
     async def execute(self, request: ListRequest) -> ListResponse[E]:
         entities = await self.repo.list_all()
-        return ListResponse(entities=entities)
+        return self.response_cls(entities=entities)
 
 
 # =============================================================================

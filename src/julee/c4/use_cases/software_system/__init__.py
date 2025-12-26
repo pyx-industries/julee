@@ -1,29 +1,22 @@
 """SoftwareSystem use-cases.
 
 CRUD operations for SoftwareSystem entities.
+Re-exports from consolidated crud.py module.
 """
 
-from .create import (
+from julee.c4.use_cases.crud import (
     CreateSoftwareSystemRequest,
     CreateSoftwareSystemResponse,
     CreateSoftwareSystemUseCase,
-)
-from .delete import (
     DeleteSoftwareSystemRequest,
     DeleteSoftwareSystemResponse,
     DeleteSoftwareSystemUseCase,
-)
-from .get import (
     GetSoftwareSystemRequest,
     GetSoftwareSystemResponse,
     GetSoftwareSystemUseCase,
-)
-from .list import (
     ListSoftwareSystemsRequest,
     ListSoftwareSystemsResponse,
     ListSoftwareSystemsUseCase,
-)
-from .update import (
     UpdateSoftwareSystemRequest,
     UpdateSoftwareSystemResponse,
     UpdateSoftwareSystemUseCase,

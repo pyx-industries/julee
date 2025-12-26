@@ -1,48 +1,40 @@
 """Component use-cases.
 
 CRUD operations for Component entities.
+Re-exports from consolidated crud.py module.
 """
 
-from .create import (
+from julee.c4.use_cases.crud import (
     CreateComponentRequest,
     CreateComponentResponse,
     CreateComponentUseCase,
-)
-from .delete import (
     DeleteComponentRequest,
     DeleteComponentResponse,
     DeleteComponentUseCase,
-)
-from .get import GetComponentRequest, GetComponentResponse, GetComponentUseCase
-from .list import (
+    GetComponentRequest,
+    GetComponentResponse,
+    GetComponentUseCase,
     ListComponentsRequest,
     ListComponentsResponse,
     ListComponentsUseCase,
-)
-from .update import (
     UpdateComponentRequest,
     UpdateComponentResponse,
     UpdateComponentUseCase,
 )
 
 __all__ = [
-    # Create
     "CreateComponentRequest",
     "CreateComponentResponse",
     "CreateComponentUseCase",
-    # Get
     "GetComponentRequest",
     "GetComponentResponse",
     "GetComponentUseCase",
-    # List
     "ListComponentsRequest",
     "ListComponentsResponse",
     "ListComponentsUseCase",
-    # Update
     "UpdateComponentRequest",
     "UpdateComponentResponse",
     "UpdateComponentUseCase",
-    # Delete
     "DeleteComponentRequest",
     "DeleteComponentResponse",
     "DeleteComponentUseCase",
