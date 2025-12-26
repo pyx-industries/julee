@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 
 from apps.api.ceap.dependencies import get_document_repository
-from apps.api.ceap.routers.documents import router
+from apps.api.ceap.routers import documents_router as router
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.contrib.ceap.infrastructure.repositories.memory import MemoryDocumentRepository
 

@@ -16,7 +16,7 @@ from fastapi_pagination import add_pagination
 from apps.api.ceap.dependencies import (
     get_knowledge_service_query_repository,
 )
-from apps.api.ceap.routers.knowledge_service_queries import router
+from apps.api.ceap.routers import knowledge_service_queries_router as router
 from julee.contrib.ceap.entities import KnowledgeServiceQuery
 from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,

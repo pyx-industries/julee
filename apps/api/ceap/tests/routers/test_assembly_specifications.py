@@ -16,7 +16,7 @@ from fastapi_pagination import add_pagination
 from apps.api.ceap.dependencies import (
     get_assembly_specification_repository,
 )
-from apps.api.ceap.routers.assembly_specifications import router
+from apps.api.ceap.routers import assembly_specifications_router as router
 from julee.contrib.ceap.entities import (
     AssemblySpecification,
     AssemblySpecificationStatus,
