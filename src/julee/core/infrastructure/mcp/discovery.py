@@ -216,9 +216,12 @@ def discover_use_cases(
         # Parse name for CRUD/diagram info
         crud_op, entity_name, is_diagram = _parse_use_case_name(name)
 
+        # Remove only the trailing "UseCase" suffix for display name
+        display_name = name[:-7] if name.endswith("UseCase") else name
+
         use_cases.append(
             UseCaseMetadata(
-                name=name.replace("UseCase", ""),  # Remove UseCase suffix for display
+                name=display_name,
                 use_case_cls=obj,
                 request_cls=request_cls,
                 response_cls=response_cls,
