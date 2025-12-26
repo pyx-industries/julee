@@ -36,9 +36,6 @@ from julee.contrib.ceap.repositories import (
 )
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService
 from julee.core.decorators import use_case
-from julee.core.infrastructure.temporal.validation.type_guards import (
-    validate_parameter_types,
-)
 
 from .decorators import try_use_case_step
 
@@ -274,7 +271,6 @@ class ExtractAssembleDataUseCase:
             raise
 
     @try_use_case_step("document_registration")
-    @validate_parameter_types()
     async def _register_document_with_services(
         self,
         document: Document,

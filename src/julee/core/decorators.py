@@ -2,6 +2,9 @@
 
 This module provides the @use_case decorator that enforces architectural
 contracts at runtime, reducing boilerplate while ensuring consistency.
+
+Includes automatic parameter type validation for debugging serialization
+issues when use cases are executed as Temporal pipelines.
 """
 
 import inspect
@@ -9,7 +12,9 @@ import logging
 import time
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Protocol, TypeVar, get_args, get_origin, get_type_hints
+from typing import Any, Protocol, TypeVar, Union, get_args, get_origin, get_type_hints
+
+from pydantic import BaseModel
 
 T = TypeVar("T")
 
@@ -29,6 +34,173 @@ class UseCaseConfigurationError(UseCaseError):
     - Missing execute() method
     - Invalid Protocol implementation passed to __init__
     """
+
+
+class TypeValidationError(TypeError):
+    """Raised when parameter type validation fails with detailed diagnostics."""
+
+
+# =============================================================================
+# Parameter Type Validation (for debugging Temporal serialization issues)
+# =============================================================================
+
+
+def _format_type(type_hint: Any) -> str:
+    """Format a type hint for display in error messages."""
+    if hasattr(type_hint, "__name__"):
+        return str(type_hint.__name__)
+    return str(type_hint)
+
+
+def _format_value(value: Any, max_items: int = 5) -> str:
+    """Format a value for display in error messages."""
+    if isinstance(value, dict):
+        if len(value) <= max_items:
+            return str(value)
+        items = list(value.items())[:max_items]
+        return f"{dict(items)}... ({len(value)} total items)"
+    elif isinstance(value, list | tuple):
+        if len(value) <= max_items:
+            return str(value)
+        return f"{value[:max_items]}... ({len(value)} total items)"
+    return repr(value)
+
+
+def _validate_type(
+    value: Any,
+    expected_type: Any,
+    context_name: str = "value",
+    allow_none: bool = False,
+) -> None:
+    """Validate that a value matches the expected type with detailed diagnostics."""
+    if value is None:
+        if allow_none:
+            return
+        raise TypeValidationError(
+            f"{context_name}: Expected {_format_type(expected_type)}, got None"
+        )
+
+    origin_type = get_origin(expected_type)
+    type_args = get_args(expected_type)
+
+    if origin_type is None:
+        _validate_simple_type(value, expected_type, context_name)
+    else:
+        _validate_generic_type(value, expected_type, origin_type, type_args, context_name)
+
+
+def _validate_simple_type(value: Any, expected_type: Any, context_name: str) -> None:
+    """Validate simple (non-generic) types."""
+    if isinstance(value, expected_type):
+        return
+
+    # Special handling for Pydantic models vs dicts (serialization issue)
+    if (
+        inspect.isclass(expected_type)
+        and issubclass(expected_type, BaseModel)
+        and isinstance(value, dict)
+    ):
+        _raise_pydantic_dict_error(value, expected_type, context_name)
+
+    raise TypeValidationError(
+        f"{context_name}: Type mismatch\n"
+        f"  Expected: {_format_type(expected_type)}\n"
+        f"  Actual: {type(value).__name__}\n"
+        f"  Value: {_format_value(value)}"
+    )
+
+
+def _validate_generic_type(
+    value: Any,
+    expected_type: Any,
+    origin_type: Any,
+    type_args: tuple,
+    context_name: str,
+) -> None:
+    """Validate generic types like List[X], Dict[K,V], etc."""
+    if not isinstance(value, origin_type):
+        raise TypeValidationError(
+            f"{context_name}: Container type mismatch\n"
+            f"  Expected: {origin_type.__name__}\n"
+            f"  Actual: {type(value).__name__}"
+        )
+
+    if origin_type is list and type_args:
+        for i, element in enumerate(value):
+            _validate_type(element, type_args[0], f"{context_name}[{i}]")
+    elif origin_type is dict and len(type_args) >= 2:
+        for key, val in value.items():
+            _validate_type(key, type_args[0], f"{context_name} key '{key}'")
+            _validate_type(val, type_args[1], f"{context_name}['{key}']")
+    elif origin_type is Union:
+        for union_type in type_args:
+            try:
+                _validate_type(value, union_type, context_name, allow_none=union_type is type(None))
+                return
+            except TypeValidationError:
+                continue
+        raise TypeValidationError(
+            f"{context_name}: Value doesn't match any type in Union"
+        )
+
+
+def _raise_pydantic_dict_error(
+    value: dict, expected_type: type, context_name: str
+) -> None:
+    """Raise a detailed error for Pydantic model vs dict serialization issues."""
+    model_fields = []
+    if hasattr(expected_type, "model_fields"):
+        model_fields = list(expected_type.model_fields.keys())
+
+    raise TypeValidationError(
+        f"SERIALIZATION ISSUE: {context_name} is dict instead of {expected_type.__name__}!\n"
+        f"  Expected: {expected_type.__name__}\n"
+        f"  Dict keys: {list(value.keys())}\n"
+        f"  Model fields: {model_fields}\n"
+        f"  This indicates Temporal deserialized a Pydantic model as a plain dict."
+    )
+
+
+def _validate_execute_request(
+    use_case_name: str,
+    execute_method: Callable,
+    request: Any,
+    logger: logging.Logger,
+) -> None:
+    """Validate the request parameter type for execute()."""
+    try:
+        type_hints = get_type_hints(execute_method)
+    except Exception:
+        return  # Can't get hints, skip validation
+
+    if "request" not in type_hints:
+        return
+
+    expected_type = type_hints["request"]
+
+    # Handle Optional[X] - extract the non-None type
+    origin = get_origin(expected_type)
+    if origin is Union:
+        args = get_args(expected_type)
+        non_none_types = [t for t in args if t is not type(None)]
+        if len(non_none_types) == 1:
+            expected_type = non_none_types[0]
+            if request is None:
+                return  # None is valid for Optional
+
+    try:
+        _validate_type(request, expected_type, f"{use_case_name}.execute(request)")
+    except TypeValidationError as e:
+        logger.error(
+            "Request parameter type validation failed",
+            extra={"use_case": use_case_name, "error": str(e)},
+        )
+        raise
+
+
+# =============================================================================
+# Protocol Validation
+# =============================================================================
 
 
 def _is_protocol_type(type_hint: Any) -> bool:
@@ -108,9 +280,10 @@ def _wrap_execute_method(
     use_case_class: type,
     original_execute: Callable,
 ) -> Callable:
-    """Wrap execute() with logging and error handling.
+    """Wrap execute() with logging, parameter validation, and error handling.
 
     Handles both sync and async execute methods transparently.
+    Validates request parameter types to catch Temporal serialization issues.
     """
     is_async = inspect.iscoroutinefunction(original_execute)
 
@@ -120,6 +293,9 @@ def _wrap_execute_method(
         async def async_execute(self: Any, request: Any) -> Any:
             logger = logging.getLogger(use_case_class.__module__)
             use_case_name = use_case_class.__name__
+
+            # Validate request parameter type (catches Temporal serialization issues)
+            _validate_execute_request(use_case_name, original_execute, request, logger)
 
             logger.debug(
                 "Use case starting",
@@ -169,6 +345,9 @@ def _wrap_execute_method(
         def sync_execute(self: Any, request: Any) -> Any:
             logger = logging.getLogger(use_case_class.__module__)
             use_case_name = use_case_class.__name__
+
+            # Validate request parameter type (catches Temporal serialization issues)
+            _validate_execute_request(use_case_name, original_execute, request, logger)
 
             logger.debug(
                 "Use case starting",
