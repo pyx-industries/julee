@@ -10,7 +10,7 @@ lint-python:
 # Python unit tests
 test-python-unit:
 	@echo "Running Python unit tests..."
-	pytest -m unit
+	pytest --no-cov -m "not integration"
 
 # Fast Python quality checks (for pre-commit)
 quality-fast-python: lint-python

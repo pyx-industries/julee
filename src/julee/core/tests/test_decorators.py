@@ -27,8 +27,6 @@ class TestResponse(BaseModel):
 
 @runtime_checkable
 class TestRepository(Protocol):
-    __test__ = False  # Tell pytest this isn't a test class
-
     async def get(self, id: str) -> str | None: ...
 
 
