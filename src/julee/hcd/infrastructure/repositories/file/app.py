@@ -73,3 +73,39 @@ class FileAppRepository(FileRepositoryMixin[App], AppRepository):
             for app in self.storage.values()
             if accelerator_slug in (app.accelerators or [])
         ]
+
+    async def get_all_types(self) -> set[AppType]:
+        """Get all unique app types that have apps."""
+        return {app.app_type for app in self.storage.values()}
+
+    async def get_apps_with_accelerators(self) -> list[App]:
+        """Get all apps that have accelerators defined."""
+        return [app for app in self.storage.values() if app.accelerators]
+
+    async def get_by_accelerator(self, accelerator_slug: str) -> list[App]:
+        """Get all apps that reference a specific accelerator."""
+        return [
+            app for app in self.storage.values() if accelerator_slug in app.accelerators
+        ]
+
+    async def list_filtered(
+        self,
+        app_type: str | None = None,
+        has_accelerator: str | None = None,
+    ) -> list[App]:
+        """List apps matching filters.
+
+        Uses AND logic when multiple filters are provided.
+        """
+        apps = list(self.storage.values())
+
+        # Filter by app type
+        if app_type is not None:
+            target_type = AppType.from_string(app_type)
+            apps = [a for a in apps if a.app_type == target_type]
+
+        # Filter by accelerator
+        if has_accelerator is not None:
+            apps = [a for a in apps if has_accelerator in a.accelerators]
+
+        return apps

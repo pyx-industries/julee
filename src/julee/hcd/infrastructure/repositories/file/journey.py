@@ -126,3 +126,28 @@ class FileJourneyRepository(FileRepositoryMixin[Journey], JourneyRepository):
                 for step in journey.steps
             )
         ]
+
+    async def list_filtered(
+        self,
+        persona: str | None = None,
+        contains_story: str | None = None,
+    ) -> list[Journey]:
+        """List journeys matching filters.
+
+        Delegates to optimized get_by_* methods when possible.
+        Uses AND logic when multiple filters are provided.
+        """
+        # No filters - return all
+        if persona is None and contains_story is None:
+            return await self.list_all()
+
+        # Single filter - use optimized methods
+        if persona and not contains_story:
+            return await self.get_by_persona(persona)
+        if contains_story and not persona:
+            return await self.get_with_story_ref(contains_story)
+
+        # Multiple filters - intersect results
+        by_persona = {j.slug for j in await self.get_by_persona(persona)}
+        by_story = await self.get_with_story_ref(contains_story)
+        return [j for j in by_story if j.slug in by_persona]

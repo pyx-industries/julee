@@ -40,6 +40,26 @@ class StoryRepository(BaseRepository[Story], Protocol):
         """
         ...
 
+    async def list_filtered(
+        self,
+        app_slug: str | None = None,
+        persona: str | None = None,
+    ) -> list[Story]:
+        """List stories matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            app_slug: Filter to stories for this application
+            persona: Filter to stories for this persona
+
+        Returns:
+            List of stories matching all provided filters
+        """
+        ...
+
     async def get_by_feature_title(self, feature_title: str) -> Story | None:
         """Get a story by its feature title.
 

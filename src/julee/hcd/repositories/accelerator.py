@@ -96,3 +96,21 @@ class AcceleratorRepository(BaseRepository[Accelerator], Protocol):
             Set of status strings (normalized to lowercase)
         """
         ...
+
+    async def list_filtered(
+        self,
+        status: str | None = None,
+    ) -> list[Accelerator]:
+        """List accelerators matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            status: Filter to accelerators with this status
+
+        Returns:
+            List of accelerators matching all provided filters
+        """
+        ...

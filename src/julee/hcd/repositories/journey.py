@@ -104,3 +104,23 @@ class JourneyRepository(BaseRepository[Journey], Protocol):
             List of journeys containing this epic in steps
         """
         ...
+
+    async def list_filtered(
+        self,
+        persona: str | None = None,
+        contains_story: str | None = None,
+    ) -> list[Journey]:
+        """List journeys matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            persona: Filter to journeys for this persona
+            contains_story: Filter to journeys containing this story title
+
+        Returns:
+            List of journeys matching all provided filters
+        """
+        ...

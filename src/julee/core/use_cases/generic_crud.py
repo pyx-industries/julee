@@ -18,9 +18,11 @@ Example:
         '''List all stories.'''
 """
 
-from typing import Any, Generic, TypeVar
+import inspect
+import types
+from typing import Any, Generic, TypeVar, get_args, get_origin, get_type_hints
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, create_model
 
 from julee.core.decorators import use_case
 
@@ -122,6 +124,143 @@ class ListUseCase(Generic[E, R]):
 
     async def execute(self, request: ListRequest) -> ListResponse[E]:
         entities = await self.repo.list_all()
+        return self.response_cls(entities=entities)
+
+
+# =============================================================================
+# FILTERABLE LIST
+# =============================================================================
+
+
+def extract_filter_params(repo_class: type) -> dict[str, tuple[type, Any]]:
+    """Extract filter parameters from repository's list_filtered signature.
+
+    Introspects the `list_filtered` method signature to determine what filters
+    are available. Each parameter with a default of None becomes a filter.
+
+    Args:
+        repo_class: Repository class or protocol with list_filtered method
+
+    Returns:
+        Dict mapping parameter name to (type, Field) tuple for create_model
+
+    Example:
+        >>> class MyRepo(Protocol):
+        ...     async def list_filtered(
+        ...         self, app_slug: str | None = None
+        ...     ) -> list[Entity]: ...
+        >>> extract_filter_params(MyRepo)
+        {'app_slug': (str | None, FieldInfo(default=None))}
+    """
+    if not hasattr(repo_class, "list_filtered"):
+        return {}
+
+    try:
+        hints = get_type_hints(repo_class.list_filtered)
+    except Exception:
+        hints = {}
+
+    sig = inspect.signature(repo_class.list_filtered)
+    filters: dict[str, tuple[type, Any]] = {}
+
+    for name, param in sig.parameters.items():
+        if name in ("self", "return"):
+            continue
+
+        type_hint = hints.get(name, str)
+
+        # Handle X | None (UnionType) -> extract base type for Field
+        origin = get_origin(type_hint)
+        if origin is types.UnionType:
+            args = get_args(type_hint)
+            # Keep the full type hint (including None) for the field
+            # but extract base for documentation
+            base_type = next((t for t in args if t is not type(None)), str)
+            field_type = base_type | None
+        else:
+            field_type = type_hint | None
+
+        default = param.default if param.default is not inspect.Parameter.empty else None
+        filters[name] = (field_type, Field(default=default))
+
+    return filters
+
+
+def make_list_request(name: str, repo_class: type) -> type[BaseModel]:
+    """Generate a ListRequest model from repository's list_filtered signature.
+
+    Creates a Pydantic model with filter fields matching the repository's
+    list_filtered parameters. This enables automatic query param extraction
+    in FastAPI via Depends().
+
+    Args:
+        name: Name for the generated model class
+        repo_class: Repository class or protocol with list_filtered method
+
+    Returns:
+        A new Pydantic model class with filter fields
+
+    Example:
+        >>> ListStoriesRequest = make_list_request("ListStoriesRequest", StoryRepository)
+        >>> # Equivalent to:
+        >>> class ListStoriesRequest(BaseModel):
+        ...     app_slug: str | None = None
+        ...     persona: str | None = None
+    """
+    filter_params = extract_filter_params(repo_class)
+    return create_model(name, **filter_params)
+
+
+@use_case
+class FilterableListUseCase(Generic[E, R]):
+    """List use case with automatic filtering from repository.
+
+    Delegates filtering to the repository's list_filtered() method. The
+    repository protocol's list_filtered signature declares available filters.
+
+    Class attributes:
+        response_cls: Response class to use (default: ListResponse)
+
+    Usage with dynamic request generation:
+        ListStoriesRequest = make_list_request("ListStoriesRequest", StoryRepository)
+
+        class ListStoriesUseCase(FilterableListUseCase[Story, StoryRepository]):
+            pass
+
+    Usage with explicit request (BCs can always choose this):
+        class ListStoriesRequest(BaseModel):
+            app_slug: str | None = None
+            persona: str | None = None
+
+        class ListStoriesUseCase(FilterableListUseCase[Story, StoryRepository]):
+            pass
+
+    The repository must implement:
+        async def list_filtered(self, **filters) -> list[Entity]
+        async def list_all(self) -> list[Entity]  # fallback when no filters
+    """
+
+    response_cls: type[Any] = ListResponse
+
+    def __init__(self, repo: R) -> None:
+        self.repo = repo
+
+    async def execute(self, request: BaseModel) -> ListResponse[E]:
+        """Execute list operation with optional filtering.
+
+        Extracts non-None filter values from request and delegates to
+        repository's list_filtered method. Falls back to list_all when
+        no filters are provided or repository lacks list_filtered.
+        """
+        # Extract non-None filter values from request
+        filters = {k: v for k, v in request.model_dump().items() if v is not None}
+
+        # Delegate to repository's list_filtered if filters provided
+        if filters and hasattr(self.repo, "list_filtered"):
+            entities = await self.repo.list_filtered(**filters)
+        else:
+            entities = await self.repo.list_all()
+
         return self.response_cls(entities=entities)
 
 

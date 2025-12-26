@@ -73,6 +73,31 @@ class FileStoryRepository(FileRepositoryMixin[Story], StoryRepository):
             if story.persona_normalized == persona_normalized
         ]
 
+    async def list_filtered(
+        self,
+        app_slug: str | None = None,
+        persona: str | None = None,
+    ) -> list[Story]:
+        """List stories matching filters.
+
+        Delegates to optimized get_by_* methods when possible.
+        Uses AND logic when multiple filters are provided.
+        """
+        # No filters - return all
+        if app_slug is None and persona is None:
+            return await self.list_all()
+
+        # Single filter - use optimized methods
+        if app_slug and not persona:
+            return await self.get_by_app(app_slug)
+        if persona and not app_slug:
+            return await self.get_by_persona(persona)
+
+        # Multiple filters - intersect results
+        by_app = {s.slug for s in await self.get_by_app(app_slug)}
+        by_persona = await self.get_by_persona(persona)
+        return [s for s in by_persona if s.slug in by_app]
+
     async def get_by_feature_title(self, feature_title: str) -> Story | None:
         """Get a story by its feature title."""
         title_normalized = normalize_name(feature_title)

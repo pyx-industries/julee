@@ -5,7 +5,7 @@ patterns. All repository operations are async for consistency with julee,
 with sync adapters provided in application layers where needed.
 """
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel
 
@@ -65,6 +65,31 @@ class BaseRepository(Protocol[T]):
 
         Returns:
             List of all entities in the repository
+        """
+        ...
+
+    async def list_filtered(self, **filters: Any) -> list[T]:
+        """List entities matching filters.
+
+        Base implementation accepts **kwargs. Domain-specific repository
+        protocols should override with explicit parameters to declare
+        available filters:
+
+            async def list_filtered(
+                self,
+                app_slug: str | None = None,
+                persona: str | None = None,
+            ) -> list[Story]: ...
+
+        The parameter signature declares what filters are available.
+        Implementations optimize as appropriate (memory scan, SQL index, etc.)
+        All filters use AND logic when multiple are provided.
+
+        Args:
+            **filters: Filter parameters (defined by subclass protocols)
+
+        Returns:
+            List of entities matching all provided filters
         """
         ...
 

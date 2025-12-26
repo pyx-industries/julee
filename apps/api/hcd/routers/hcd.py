@@ -9,19 +9,31 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from julee.hcd.use_cases.epic.create import CreateEpicUseCase
 from julee.hcd.use_cases.epic.delete import DeleteEpicUseCase
 from julee.hcd.use_cases.epic.get import GetEpicUseCase
-from julee.hcd.use_cases.epic.list import ListEpicsUseCase
+from julee.hcd.use_cases.epic.list import (
+    ListEpicsRequest,
+    ListEpicsResponse,
+    ListEpicsUseCase,
+)
 from julee.hcd.use_cases.epic.update import UpdateEpicUseCase
 from julee.hcd.use_cases.journey.create import CreateJourneyUseCase
 from julee.hcd.use_cases.journey.delete import DeleteJourneyUseCase
 from julee.hcd.use_cases.journey.get import GetJourneyUseCase
-from julee.hcd.use_cases.journey.list import ListJourneysUseCase
+from julee.hcd.use_cases.journey.list import (
+    ListJourneysRequest,
+    ListJourneysResponse,
+    ListJourneysUseCase,
+)
 from julee.hcd.use_cases.journey.update import UpdateJourneyUseCase
 from julee.hcd.use_cases.queries.derive_personas import DerivePersonasUseCase
 from julee.hcd.use_cases.queries.get_persona import GetPersonaUseCase
 from julee.hcd.use_cases.story.create import CreateStoryUseCase
 from julee.hcd.use_cases.story.delete import DeleteStoryUseCase
 from julee.hcd.use_cases.story.get import GetStoryUseCase
-from julee.hcd.use_cases.story.list import ListStoriesUseCase
+from julee.hcd.use_cases.story.list import (
+    ListStoriesRequest,
+    ListStoriesResponse,
+    ListStoriesUseCase,
+)
 from julee.hcd.use_cases.story.update import UpdateStoryUseCase
 
 from ..dependencies import (
@@ -55,9 +67,6 @@ from ..requests import (
     GetJourneyRequest,
     GetPersonaRequest,
     GetStoryRequest,
-    ListEpicsRequest,
-    ListJourneysRequest,
-    ListStoriesRequest,
     UpdateEpicRequest,
     UpdateJourneyRequest,
     UpdateStoryRequest,
@@ -71,9 +80,6 @@ from ..responses import (
     GetJourneyResponse,
     GetPersonaResponse,
     GetStoryResponse,
-    ListEpicsResponse,
-    ListJourneysResponse,
-    ListStoriesResponse,
     UpdateEpicResponse,
     UpdateJourneyResponse,
     UpdateStoryResponse,
@@ -89,10 +95,16 @@ router = APIRouter(prefix="/hcd", tags=["HCD"])
 
 @router.get("/stories", response_model=ListStoriesResponse)
 async def list_stories(
+    request: ListStoriesRequest = Depends(),
     use_case: ListStoriesUseCase = Depends(get_list_stories_use_case),
 ) -> ListStoriesResponse:
-    """List all stories."""
-    return await use_case.execute(ListStoriesRequest())
+    """List stories with optional filters.
+
+    Query params auto-surfaced from StoryRepository.list_filtered() signature:
+    - app_slug: Filter to stories for this application
+    - persona: Filter to stories for this persona
+    """
+    return await use_case.execute(request)
 
 
 @router.get("/stories/{slug}", response_model=GetStoryResponse)
@@ -149,10 +161,15 @@ async def delete_story(
 
 @router.get("/epics", response_model=ListEpicsResponse)
 async def list_epics(
+    request: ListEpicsRequest = Depends(),
     use_case: ListEpicsUseCase = Depends(get_list_epics_use_case),
 ) -> ListEpicsResponse:
-    """List all epics."""
-    return await use_case.execute(ListEpicsRequest())
+    """List epics with optional filters.
+
+    Query params auto-surfaced from EpicRepository.list_filtered() signature:
+    - contains_story: Filter to epics containing this story title
+    """
+    return await use_case.execute(request)
 
 
 @router.get("/epics/{slug}", response_model=GetEpicResponse)
@@ -208,10 +225,16 @@ async def delete_epic(
 
 @router.get("/journeys", response_model=ListJourneysResponse)
 async def list_journeys(
+    request: ListJourneysRequest = Depends(),
     use_case: ListJourneysUseCase = Depends(get_list_journeys_use_case),
 ) -> ListJourneysResponse:
-    """List all journeys."""
-    return await use_case.execute(ListJourneysRequest())
+    """List journeys with optional filters.
+
+    Query params auto-surfaced from JourneyRepository.list_filtered() signature:
+    - persona: Filter to journeys for this persona
+    - contains_story: Filter to journeys containing this story title
+    """
+    return await use_case.execute(request)
 
 
 @router.get("/journeys/{slug}", response_model=GetJourneyResponse)

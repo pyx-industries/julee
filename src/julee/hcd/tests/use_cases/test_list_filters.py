@@ -183,30 +183,16 @@ class TestListAcceleratorsFilters:
         assert all(a.status == "active" for a in response.accelerators)
 
     @pytest.mark.asyncio
-    async def test_filter_by_integration(self, repo):
-        """Should filter accelerators by integration dependency."""
+    async def test_filter_by_deprecated_status(self, repo):
+        """Should filter accelerators by deprecated status."""
         use_case = ListAcceleratorsUseCase(repo)
 
         response = await use_case.execute(
-            ListAcceleratorsRequest(integration_slug="kafka")
+            ListAcceleratorsRequest(status="deprecated")
         )
 
-        assert response.count == 2
-        slugs = {a.slug for a in response.accelerators}
-        assert slugs == {"ceap", "legacy"}
-
-    @pytest.mark.asyncio
-    async def test_grouped_by_status(self, repo):
-        """Should group accelerators by status."""
-        use_case = ListAcceleratorsUseCase(repo)
-
-        response = await use_case.execute(ListAcceleratorsRequest())
-        grouped = response.grouped_by_status()
-
-        assert "active" in grouped
-        assert len(grouped["active"]) == 2
-        assert "deprecated" in grouped
-        assert len(grouped["deprecated"]) == 1
+        assert response.count == 1
+        assert response.accelerators[0].slug == "legacy"
 
 
 class TestListEpicsFilters:

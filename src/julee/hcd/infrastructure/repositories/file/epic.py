@@ -80,3 +80,31 @@ class FileEpicRepository(FileRepositoryMixin[Epic], EpicRepository):
         for epic in self.storage.values():
             refs.update(normalize_name(ref) for ref in epic.story_refs)
         return refs
+
+    async def list_filtered(
+        self,
+        contains_story: str | None = None,
+        has_stories: bool | None = None,
+    ) -> list[Epic]:
+        """List epics matching filters.
+
+        Uses AND logic when multiple filters are provided.
+        """
+        epics = list(self.storage.values())
+
+        # Filter by story reference
+        if contains_story is not None:
+            story_normalized = normalize_name(contains_story)
+            epics = [
+                e for e in epics
+                if any(normalize_name(ref) == story_normalized for ref in e.story_refs)
+            ]
+
+        # Filter by has_stories
+        if has_stories is not None:
+            if has_stories:
+                epics = [e for e in epics if e.story_refs]
+            else:
+                epics = [e for e in epics if not e.story_refs]
+
+        return epics

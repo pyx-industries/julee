@@ -5,8 +5,12 @@ contracts at runtime, reducing boilerplate while ensuring consistency.
 
 Includes automatic parameter type validation for debugging serialization
 issues when use cases are executed as Temporal pipelines.
+
+For async use cases, automatically adds execute_sync() method for
+synchronous callers (e.g., Sphinx, CLI).
 """
 
+import asyncio
 import inspect
 import logging
 import time
@@ -403,6 +407,7 @@ def use_case(cls: type[T]) -> type[T]:
     - Protocol validation for constructor dependencies at instantiation time
     - Entry/exit logging with execution duration
     - Error wrapping in UseCaseError for consistent error boundaries
+    - execute_sync() method for async use cases (synchronous callers)
 
     Usage:
         @use_case
@@ -413,6 +418,12 @@ def use_case(cls: type[T]) -> type[T]:
             async def execute(self, request: GetStoryRequest) -> GetStoryResponse:
                 story = await self.story_repo.get(request.slug)
                 return GetStoryResponse(entity=story)
+
+        # Async caller:
+        response = await use_case.execute(request)
+
+        # Sync caller (Sphinx, CLI):
+        response = use_case.execute_sync(request)
 
     Validation:
         All Protocol-typed parameters in __init__ are validated at construction
@@ -432,6 +443,11 @@ def use_case(cls: type[T]) -> type[T]:
         All exceptions from execute() are wrapped in UseCaseError, providing
         a consistent error boundary. The original exception is preserved as
         __cause__ for debugging.
+
+    Sync Support:
+        For async use cases, execute_sync() is automatically added. This
+        method wraps asyncio.run(self.execute(request)) for synchronous
+        callers like Sphinx directives or CLI commands.
 
     Note:
         Works with both sync and async execute() methods.
@@ -461,6 +477,19 @@ def use_case(cls: type[T]) -> type[T]:
     if "execute" in cls.__dict__:
         wrapped_execute = _wrap_execute_method(cls, execute_method)
         cls.execute = wrapped_execute
+
+    # Add execute_sync() for async use cases to support synchronous callers
+    if inspect.iscoroutinefunction(execute_method):
+
+        def execute_sync(self: Any, request: Any) -> Any:
+            """Execute use case synchronously.
+
+            Convenience method for synchronous callers (Sphinx, CLI).
+            Wraps asyncio.run(self.execute(request)).
+            """
+            return asyncio.run(self.execute(request))
+
+        cls.execute_sync = execute_sync  # type: ignore[attr-defined]
 
     # Mark the class as a use case for doctrine verification
     cls._is_use_case = True  # type: ignore[attr-defined]

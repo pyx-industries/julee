@@ -120,3 +120,18 @@ class MemoryAcceleratorRepository(
     async def list_slugs(self) -> set[str]:
         """List all accelerator slugs."""
         return self._list_slugs()
+
+    async def list_filtered(
+        self,
+        status: str | None = None,
+    ) -> list[Accelerator]:
+        """List accelerators matching filters.
+
+        Delegates to optimized get_by_status when filtering by status.
+        """
+        # No filters - return all
+        if status is None:
+            return await self.list_all()
+
+        # Filter by status
+        return await self.get_by_status(status)

@@ -9,12 +9,20 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from julee.hcd.use_cases.accelerator.create import CreateAcceleratorUseCase
 from julee.hcd.use_cases.accelerator.delete import DeleteAcceleratorUseCase
 from julee.hcd.use_cases.accelerator.get import GetAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.list import ListAcceleratorsUseCase
+from julee.hcd.use_cases.accelerator.list import (
+    ListAcceleratorsRequest,
+    ListAcceleratorsResponse,
+    ListAcceleratorsUseCase,
+)
 from julee.hcd.use_cases.accelerator.update import UpdateAcceleratorUseCase
 from julee.hcd.use_cases.app.create import CreateAppUseCase
 from julee.hcd.use_cases.app.delete import DeleteAppUseCase
 from julee.hcd.use_cases.app.get import GetAppUseCase
-from julee.hcd.use_cases.app.list import ListAppsUseCase
+from julee.hcd.use_cases.app.list import (
+    ListAppsRequest,
+    ListAppsResponse,
+    ListAppsUseCase,
+)
 from julee.hcd.use_cases.app.update import UpdateAppUseCase
 from julee.hcd.use_cases.integration.create import CreateIntegrationUseCase
 from julee.hcd.use_cases.integration.delete import DeleteIntegrationUseCase
@@ -49,8 +57,6 @@ from ..requests import (
     GetAcceleratorRequest,
     GetAppRequest,
     GetIntegrationRequest,
-    ListAcceleratorsRequest,
-    ListAppsRequest,
     ListIntegrationsRequest,
     UpdateAcceleratorRequest,
     UpdateAppRequest,
@@ -63,8 +69,6 @@ from ..responses import (
     GetAcceleratorResponse,
     GetAppResponse,
     GetIntegrationResponse,
-    ListAcceleratorsResponse,
-    ListAppsResponse,
     ListIntegrationsResponse,
     UpdateAcceleratorResponse,
     UpdateAppResponse,
@@ -81,10 +85,15 @@ router = APIRouter(prefix="/solution", tags=["Solution"])
 
 @router.get("/accelerators", response_model=ListAcceleratorsResponse)
 async def list_accelerators(
+    request: ListAcceleratorsRequest = Depends(),
     use_case: ListAcceleratorsUseCase = Depends(get_list_accelerators_use_case),
 ) -> ListAcceleratorsResponse:
-    """List all accelerators."""
-    return await use_case.execute(ListAcceleratorsRequest())
+    """List accelerators with optional filters.
+
+    Query params auto-surfaced from AcceleratorRepository.list_filtered() signature:
+    - status: Filter to accelerators with this status
+    """
+    return await use_case.execute(request)
 
 
 @router.get("/accelerators/{slug}", response_model=GetAcceleratorResponse)
@@ -199,10 +208,15 @@ async def delete_integration(
 
 @router.get("/apps", response_model=ListAppsResponse)
 async def list_apps(
+    request: ListAppsRequest = Depends(),
     use_case: ListAppsUseCase = Depends(get_list_apps_use_case),
 ) -> ListAppsResponse:
-    """List all apps."""
-    return await use_case.execute(ListAppsRequest())
+    """List apps with optional filters.
+
+    Query params auto-surfaced from AppRepository.list_filtered() signature:
+    - app_type: Filter to apps of this type (staff, external, member-tool, etc.)
+    """
+    return await use_case.execute(request)
 
 
 @router.get("/apps/{slug}", response_model=GetAppResponse)
