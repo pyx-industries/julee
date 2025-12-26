@@ -18,7 +18,7 @@ from julee.hcd.use_cases.resolve_story_references import (
     get_epics_for_story,
     get_journeys_for_story,
 )
-from julee.hcd.use_cases.story.list import ListStoriesRequest
+from julee.hcd.use_cases.crud import ListStoriesRequest
 from julee.hcd.utils import normalize_name, slugify
 
 from .base import HCDDirective, make_deprecated_directive

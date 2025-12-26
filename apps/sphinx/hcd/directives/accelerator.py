@@ -16,10 +16,9 @@ from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
-from julee.hcd.use_cases.accelerator.create import (
+from julee.hcd.use_cases.crud import (
     CreateAcceleratorRequest,
     CreateAcceleratorUseCase,
-    IntegrationReferenceItem,
 )
 from julee.hcd.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
@@ -132,15 +131,11 @@ class DefineAcceleratorDirective(HCDDirective):
             bounded_context_path=bounded_context_path,
             technology=technology,
             sources_from=[
-                IntegrationReferenceItem(
-                    slug=s["slug"], description=s.get("description") or ""
-                )
+                {"slug": s["slug"], "description": s.get("description") or ""}
                 for s in sources_from
             ],
             publishes_to=[
-                IntegrationReferenceItem(
-                    slug=p["slug"], description=p.get("description") or ""
-                )
+                {"slug": p["slug"], "description": p.get("description") or ""}
                 for p in publishes_to
             ],
             depends_on=depends_on,

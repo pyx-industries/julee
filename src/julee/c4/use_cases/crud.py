@@ -1,18 +1,18 @@
 """CRUD use cases for C4 entities.
 
 Generic CRUD operations using base classes from julee.core.use_cases.generic_crud.
-Entity-specific Create/Update logic (validators, enum conversions) kept explicit.
+Response classes auto-derive field names from entity types (e.g., software_system, containers).
 """
 
 from typing import Any
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from julee.c4.entities.component import Component
 from julee.c4.entities.container import Container, ContainerType
 from julee.c4.entities.deployment_node import DeploymentNode, NodeType
 from julee.c4.entities.dynamic_step import DynamicStep
-from julee.c4.entities.relationship import Relationship
+from julee.c4.entities.relationship import ElementType, Relationship
 from julee.c4.entities.software_system import SoftwareSystem, SystemType
 from julee.c4.repositories.component import ComponentRepository
 from julee.c4.repositories.container import ContainerRepository
@@ -34,12 +34,6 @@ class GetSoftwareSystemRequest(generic_crud.GetRequest):
 class GetSoftwareSystemResponse(generic_crud.GetResponse[SoftwareSystem]):
     """Software system get response."""
 
-    @computed_field
-    @property
-    def software_system(self) -> SoftwareSystem | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
-
 
 class GetSoftwareSystemUseCase(
     generic_crud.GetUseCase[SoftwareSystem, SoftwareSystemRepository]
@@ -55,12 +49,6 @@ class ListSoftwareSystemsRequest(generic_crud.ListRequest):
 
 class ListSoftwareSystemsResponse(generic_crud.ListResponse[SoftwareSystem]):
     """Software systems list response."""
-
-    @computed_field
-    @property
-    def software_systems(self) -> list[SoftwareSystem]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListSoftwareSystemsUseCase(
@@ -86,122 +74,81 @@ class DeleteSoftwareSystemUseCase(
 
 
 class CreateSoftwareSystemRequest(BaseModel):
-    """Request for creating a software system."""
+    """Request for creating a software system.
+
+    Accepts string values for enums (e.g., system_type="internal") which are
+    coerced to proper enum types. Entity validation (slug/name) runs when
+    the entity is constructed.
+    """
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
     description: str = Field(default="", description="Human-readable description")
-    system_type: str = Field(
-        default="internal", description="Type: internal, external, existing"
+    system_type: SystemType = Field(
+        default=SystemType.INTERNAL, description="Type: internal, external, existing"
     )
     owner: str = Field(default="", description="Owning team")
     technology: str = Field(default="", description="High-level tech stack")
     url: str = Field(default="", description="Link to documentation")
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
-    @field_validator("slug")
+    @field_validator("system_type", mode="before")
     @classmethod
-    def validate_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("name cannot be empty")
-        return v.strip()
+    def coerce_system_type(cls, v):
+        """Coerce string to SystemType enum."""
+        if isinstance(v, str):
+            return SystemType(v)
+        return v
 
 
 class CreateSoftwareSystemResponse(generic_crud.CreateResponse[SoftwareSystem]):
     """Software system create response."""
 
-    @computed_field
-    @property
-    def software_system(self) -> SoftwareSystem:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateSoftwareSystemUseCase:
+class CreateSoftwareSystemUseCase(
+    generic_crud.CreateUseCase[SoftwareSystem, SoftwareSystemRepository]
+):
     """Create a software system."""
 
-    def __init__(self, repo: SoftwareSystemRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: CreateSoftwareSystemRequest
-    ) -> CreateSoftwareSystemResponse:
-        entity = SoftwareSystem(
-            slug=request.slug,
-            name=request.name,
-            description=request.description,
-            system_type=SystemType(request.system_type),
-            owner=request.owner,
-            technology=request.technology,
-            url=request.url,
-            tags=request.tags,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateSoftwareSystemResponse(entity=entity)
+    entity_cls = SoftwareSystem
+    response_cls = CreateSoftwareSystemResponse
 
 
 class UpdateSoftwareSystemRequest(generic_crud.UpdateRequest):
-    """Update software system fields."""
+    """Update software system fields.
+
+    Accepts string values for enums which are coerced to proper types.
+    """
 
     name: str | None = None
     description: str | None = None
-    system_type: str | None = None
+    system_type: SystemType | None = None
     owner: str | None = None
     technology: str | None = None
     url: str | None = None
     tags: list[str] | None = None
 
+    @field_validator("system_type", mode="before")
+    @classmethod
+    def coerce_system_type(cls, v):
+        """Coerce string to SystemType enum."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return SystemType(v)
+        return v
+
 
 class UpdateSoftwareSystemResponse(generic_crud.UpdateResponse[SoftwareSystem]):
     """Software system update response."""
 
-    @computed_field
-    @property
-    def software_system(self) -> SoftwareSystem | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateSoftwareSystemUseCase:
+class UpdateSoftwareSystemUseCase(
+    generic_crud.UpdateUseCase[SoftwareSystem, SoftwareSystemRepository]
+):
     """Update a software system."""
 
-    def __init__(self, repo: SoftwareSystemRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: UpdateSoftwareSystemRequest
-    ) -> UpdateSoftwareSystemResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateSoftwareSystemResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.name is not None:
-            updates["name"] = request.name
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.system_type is not None:
-            updates["system_type"] = SystemType(request.system_type)
-        if request.owner is not None:
-            updates["owner"] = request.owner
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.url is not None:
-            updates["url"] = request.url
-        if request.tags is not None:
-            updates["tags"] = request.tags
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateSoftwareSystemResponse(entity=updated)
+    response_cls = UpdateSoftwareSystemResponse
 
 
 # =============================================================================
@@ -216,12 +163,6 @@ class GetContainerRequest(generic_crud.GetRequest):
 class GetContainerResponse(generic_crud.GetResponse[Container]):
     """Container get response."""
 
-    @computed_field
-    @property
-    def container(self) -> Container | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
-
 
 class GetContainerUseCase(generic_crud.GetUseCase[Container, ContainerRepository]):
     """Get a container by slug."""
@@ -235,12 +176,6 @@ class ListContainersRequest(generic_crud.ListRequest):
 
 class ListContainersResponse(generic_crud.ListResponse[Container]):
     """Containers list response."""
-
-    @computed_field
-    @property
-    def containers(self) -> list[Container]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListContainersUseCase(generic_crud.ListUseCase[Container, ContainerRepository]):
@@ -264,123 +199,81 @@ class DeleteContainerUseCase(
 
 
 class CreateContainerRequest(BaseModel):
-    """Request for creating a container."""
+    """Request for creating a container.
+
+    Accepts string values for enums (e.g., container_type="api") which are
+    coerced to proper enum types. Entity validation (slug/name) runs when
+    the entity is constructed.
+    """
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
     system_slug: str = Field(description="Parent software system slug")
     description: str = Field(default="", description="Human-readable description")
-    container_type: str = Field(default="other", description="Type of container")
+    container_type: ContainerType = Field(
+        default=ContainerType.OTHER, description="Type of container"
+    )
     technology: str = Field(default="", description="Specific technology stack")
     url: str = Field(default="", description="Link to documentation")
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
-    @field_validator("slug")
+    @field_validator("container_type", mode="before")
     @classmethod
-    def validate_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("name cannot be empty")
-        return v.strip()
-
-    @field_validator("system_slug")
-    @classmethod
-    def validate_system_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("system_slug cannot be empty")
-        return v.strip()
+    def coerce_container_type(cls, v):
+        """Coerce string to ContainerType enum."""
+        if isinstance(v, str):
+            return ContainerType(v)
+        return v
 
 
 class CreateContainerResponse(generic_crud.CreateResponse[Container]):
     """Container create response."""
 
-    @computed_field
-    @property
-    def container(self) -> Container:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateContainerUseCase:
+class CreateContainerUseCase(
+    generic_crud.CreateUseCase[Container, ContainerRepository]
+):
     """Create a container."""
 
-    def __init__(self, repo: ContainerRepository) -> None:
-        self.repo = repo
-
-    async def execute(self, request: CreateContainerRequest) -> CreateContainerResponse:
-        entity = Container(
-            slug=request.slug,
-            name=request.name,
-            system_slug=request.system_slug,
-            description=request.description,
-            container_type=ContainerType(request.container_type),
-            technology=request.technology,
-            url=request.url,
-            tags=request.tags,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateContainerResponse(entity=entity)
+    entity_cls = Container
+    response_cls = CreateContainerResponse
 
 
 class UpdateContainerRequest(generic_crud.UpdateRequest):
-    """Update container fields."""
+    """Update container fields.
+
+    Accepts string values for enums which are coerced to proper types.
+    """
 
     name: str | None = None
     system_slug: str | None = None
     description: str | None = None
-    container_type: str | None = None
+    container_type: ContainerType | None = None
     technology: str | None = None
     url: str | None = None
     tags: list[str] | None = None
+
+    @field_validator("container_type", mode="before")
+    @classmethod
+    def coerce_container_type(cls, v):
+        """Coerce string to ContainerType enum."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return ContainerType(v)
+        return v
 
 
 class UpdateContainerResponse(generic_crud.UpdateResponse[Container]):
     """Container update response."""
 
-    @computed_field
-    @property
-    def container(self) -> Container | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateContainerUseCase:
+class UpdateContainerUseCase(
+    generic_crud.UpdateUseCase[Container, ContainerRepository]
+):
     """Update a container."""
 
-    def __init__(self, repo: ContainerRepository) -> None:
-        self.repo = repo
-
-    async def execute(self, request: UpdateContainerRequest) -> UpdateContainerResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateContainerResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.name is not None:
-            updates["name"] = request.name
-        if request.system_slug is not None:
-            updates["system_slug"] = request.system_slug
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.container_type is not None:
-            updates["container_type"] = ContainerType(request.container_type)
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.url is not None:
-            updates["url"] = request.url
-        if request.tags is not None:
-            updates["tags"] = request.tags
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateContainerResponse(entity=updated)
+    response_cls = UpdateContainerResponse
 
 
 # =============================================================================
@@ -395,12 +288,6 @@ class GetComponentRequest(generic_crud.GetRequest):
 class GetComponentResponse(generic_crud.GetResponse[Component]):
     """Component get response."""
 
-    @computed_field
-    @property
-    def component(self) -> Component | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
-
 
 class GetComponentUseCase(generic_crud.GetUseCase[Component, ComponentRepository]):
     """Get a component by slug."""
@@ -414,12 +301,6 @@ class ListComponentsRequest(generic_crud.ListRequest):
 
 class ListComponentsResponse(generic_crud.ListResponse[Component]):
     """Components list response."""
-
-    @computed_field
-    @property
-    def components(self) -> list[Component]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListComponentsUseCase(generic_crud.ListUseCase[Component, ComponentRepository]):
@@ -443,7 +324,10 @@ class DeleteComponentUseCase(
 
 
 class CreateComponentRequest(BaseModel):
-    """Request for creating a component."""
+    """Request for creating a component.
+
+    Entity validation (slug/name) runs when the entity is constructed.
+    """
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
@@ -456,67 +340,18 @@ class CreateComponentRequest(BaseModel):
     url: str = Field(default="", description="Link to documentation")
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
-    @field_validator("slug")
-    @classmethod
-    def validate_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("name cannot be empty")
-        return v.strip()
-
-    @field_validator("container_slug")
-    @classmethod
-    def validate_container_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("container_slug cannot be empty")
-        return v.strip()
-
-    @field_validator("system_slug")
-    @classmethod
-    def validate_system_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("system_slug cannot be empty")
-        return v.strip()
-
 
 class CreateComponentResponse(generic_crud.CreateResponse[Component]):
     """Component create response."""
 
-    @computed_field
-    @property
-    def component(self) -> Component:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateComponentUseCase:
+class CreateComponentUseCase(
+    generic_crud.CreateUseCase[Component, ComponentRepository]
+):
     """Create a component."""
 
-    def __init__(self, repo: ComponentRepository) -> None:
-        self.repo = repo
-
-    async def execute(self, request: CreateComponentRequest) -> CreateComponentResponse:
-        entity = Component(
-            slug=request.slug,
-            name=request.name,
-            container_slug=request.container_slug,
-            system_slug=request.system_slug,
-            description=request.description,
-            technology=request.technology,
-            interface=request.interface,
-            code_path=request.code_path,
-            url=request.url,
-            tags=request.tags,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateComponentResponse(entity=entity)
+    entity_cls = Component
+    response_cls = CreateComponentResponse
 
 
 class UpdateComponentRequest(generic_crud.UpdateRequest):
@@ -536,47 +371,13 @@ class UpdateComponentRequest(generic_crud.UpdateRequest):
 class UpdateComponentResponse(generic_crud.UpdateResponse[Component]):
     """Component update response."""
 
-    @computed_field
-    @property
-    def component(self) -> Component | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateComponentUseCase:
+class UpdateComponentUseCase(
+    generic_crud.UpdateUseCase[Component, ComponentRepository]
+):
     """Update a component."""
 
-    def __init__(self, repo: ComponentRepository) -> None:
-        self.repo = repo
-
-    async def execute(self, request: UpdateComponentRequest) -> UpdateComponentResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateComponentResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.name is not None:
-            updates["name"] = request.name
-        if request.container_slug is not None:
-            updates["container_slug"] = request.container_slug
-        if request.system_slug is not None:
-            updates["system_slug"] = request.system_slug
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.interface is not None:
-            updates["interface"] = request.interface
-        if request.code_path is not None:
-            updates["code_path"] = request.code_path
-        if request.url is not None:
-            updates["url"] = request.url
-        if request.tags is not None:
-            updates["tags"] = request.tags
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateComponentResponse(entity=updated)
+    response_cls = UpdateComponentResponse
 
 
 # =============================================================================
@@ -590,12 +391,6 @@ class GetRelationshipRequest(generic_crud.GetRequest):
 
 class GetRelationshipResponse(generic_crud.GetResponse[Relationship]):
     """Relationship get response."""
-
-    @computed_field
-    @property
-    def relationship(self) -> Relationship | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
 
 class GetRelationshipUseCase(
@@ -612,12 +407,6 @@ class ListRelationshipsRequest(generic_crud.ListRequest):
 
 class ListRelationshipsResponse(generic_crud.ListResponse[Relationship]):
     """Relationships list response."""
-
-    @computed_field
-    @property
-    def relationships(self) -> list[Relationship]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListRelationshipsUseCase(
@@ -643,82 +432,53 @@ class DeleteRelationshipUseCase(
 
 
 class CreateRelationshipRequest(BaseModel):
-    """Request for creating a relationship."""
+    """Request for creating a relationship.
 
-    source_type: str = Field(description="Type of source element")
+    Accepts string values for enums (e.g., source_type="container") which are
+    coerced to proper enum types. Entity validation runs when constructed.
+    Slug is auto-generated if not provided.
+    """
+
+    source_type: ElementType = Field(description="Type of source element")
     source_slug: str = Field(description="Slug of source element")
-    destination_type: str = Field(description="Type of destination element")
+    destination_type: ElementType = Field(description="Type of destination element")
     destination_slug: str = Field(description="Slug of destination element")
-    slug: str = Field(default="", description="Optional identifier")
+    slug: str = Field(
+        default="", description="Optional identifier (auto-generated if empty)"
+    )
     description: str = Field(default="Uses", description="Relationship description")
     technology: str = Field(default="", description="Protocol/technology used")
     bidirectional: bool = Field(default=False, description="Bidirectional relationship")
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
-    @field_validator("source_type")
+    @field_validator("source_type", mode="before")
     @classmethod
-    def validate_source_type(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("source_type cannot be empty")
-        return v.strip()
+    def coerce_source_type(cls, v):
+        """Coerce string to ElementType enum."""
+        if isinstance(v, str):
+            return ElementType(v)
+        return v
 
-    @field_validator("source_slug")
+    @field_validator("destination_type", mode="before")
     @classmethod
-    def validate_source_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("source_slug cannot be empty")
-        return v.strip()
-
-    @field_validator("destination_type")
-    @classmethod
-    def validate_destination_type(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("destination_type cannot be empty")
-        return v.strip()
-
-    @field_validator("destination_slug")
-    @classmethod
-    def validate_destination_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("destination_slug cannot be empty")
-        return v.strip()
+    def coerce_destination_type(cls, v):
+        """Coerce string to ElementType enum."""
+        if isinstance(v, str):
+            return ElementType(v)
+        return v
 
 
 class CreateRelationshipResponse(generic_crud.CreateResponse[Relationship]):
     """Relationship create response."""
 
-    @computed_field
-    @property
-    def relationship(self) -> Relationship:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateRelationshipUseCase:
+class CreateRelationshipUseCase(
+    generic_crud.CreateUseCase[Relationship, RelationshipRepository]
+):
     """Create a relationship."""
 
-    def __init__(self, repo: RelationshipRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: CreateRelationshipRequest
-    ) -> CreateRelationshipResponse:
-        # Auto-generate slug if not provided
-        slug = request.slug or f"{request.source_slug}-to-{request.destination_slug}"
-        entity = Relationship(
-            slug=slug,
-            source_type=request.source_type,
-            source_slug=request.source_slug,
-            destination_type=request.destination_type,
-            destination_slug=request.destination_slug,
-            description=request.description,
-            technology=request.technology,
-            bidirectional=request.bidirectional,
-            tags=request.tags,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateRelationshipResponse(entity=entity)
+    entity_cls = Relationship
+    response_cls = CreateRelationshipResponse
 
 
 class UpdateRelationshipRequest(generic_crud.UpdateRequest):
@@ -733,39 +493,13 @@ class UpdateRelationshipRequest(generic_crud.UpdateRequest):
 class UpdateRelationshipResponse(generic_crud.UpdateResponse[Relationship]):
     """Relationship update response."""
 
-    @computed_field
-    @property
-    def relationship(self) -> Relationship | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateRelationshipUseCase:
+class UpdateRelationshipUseCase(
+    generic_crud.UpdateUseCase[Relationship, RelationshipRepository]
+):
     """Update a relationship."""
 
-    def __init__(self, repo: RelationshipRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: UpdateRelationshipRequest
-    ) -> UpdateRelationshipResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateRelationshipResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.bidirectional is not None:
-            updates["bidirectional"] = request.bidirectional
-        if request.tags is not None:
-            updates["tags"] = request.tags
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateRelationshipResponse(entity=updated)
+    response_cls = UpdateRelationshipResponse
 
 
 # =============================================================================
@@ -779,12 +513,6 @@ class GetDeploymentNodeRequest(generic_crud.GetRequest):
 
 class GetDeploymentNodeResponse(generic_crud.GetResponse[DeploymentNode]):
     """Deployment node get response."""
-
-    @computed_field
-    @property
-    def deployment_node(self) -> DeploymentNode | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
 
 class GetDeploymentNodeUseCase(
@@ -801,12 +529,6 @@ class ListDeploymentNodesRequest(generic_crud.ListRequest):
 
 class ListDeploymentNodesResponse(generic_crud.ListResponse[DeploymentNode]):
     """Deployment nodes list response."""
-
-    @computed_field
-    @property
-    def deployment_nodes(self) -> list[DeploymentNode]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListDeploymentNodesUseCase(
@@ -832,12 +554,18 @@ class DeleteDeploymentNodeUseCase(
 
 
 class CreateDeploymentNodeRequest(BaseModel):
-    """Request for creating a deployment node."""
+    """Request for creating a deployment node.
+
+    Accepts string values for enums (e.g., node_type="server") which are
+    coerced to proper enum types. Entity validation runs when constructed.
+    """
 
     slug: str = Field(description="URL-safe identifier")
     name: str = Field(description="Display name")
     environment: str = Field(default="production", description="Deployment environment")
-    node_type: str = Field(default="other", description="Infrastructure type")
+    node_type: NodeType = Field(
+        default=NodeType.OTHER, description="Infrastructure type"
+    )
     technology: str = Field(default="", description="Infrastructure technology")
     description: str = Field(default="", description="Human-readable description")
     parent_slug: str | None = Field(default=None, description="Parent node slug")
@@ -849,63 +577,37 @@ class CreateDeploymentNodeRequest(BaseModel):
     )
     tags: list[str] = Field(default_factory=list, description="Classification tags")
 
-    @field_validator("slug")
+    @field_validator("node_type", mode="before")
     @classmethod
-    def validate_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("name cannot be empty")
-        return v.strip()
+    def coerce_node_type(cls, v):
+        """Coerce string to NodeType enum."""
+        if isinstance(v, str):
+            return NodeType(v)
+        return v
 
 
 class CreateDeploymentNodeResponse(generic_crud.CreateResponse[DeploymentNode]):
     """Deployment node create response."""
 
-    @computed_field
-    @property
-    def deployment_node(self) -> DeploymentNode:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateDeploymentNodeUseCase:
+class CreateDeploymentNodeUseCase(
+    generic_crud.CreateUseCase[DeploymentNode, DeploymentNodeRepository]
+):
     """Create a deployment node."""
 
-    def __init__(self, repo: DeploymentNodeRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: CreateDeploymentNodeRequest
-    ) -> CreateDeploymentNodeResponse:
-        entity = DeploymentNode(
-            slug=request.slug,
-            name=request.name,
-            environment=request.environment,
-            node_type=NodeType(request.node_type),
-            technology=request.technology,
-            description=request.description,
-            parent_slug=request.parent_slug,
-            container_instances=request.container_instances,
-            properties=request.properties,
-            tags=request.tags,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateDeploymentNodeResponse(entity=entity)
+    entity_cls = DeploymentNode
+    response_cls = CreateDeploymentNodeResponse
 
 
 class UpdateDeploymentNodeRequest(generic_crud.UpdateRequest):
-    """Update deployment node fields."""
+    """Update deployment node fields.
+
+    Accepts string values for enums which are coerced to proper types.
+    """
 
     name: str | None = None
     environment: str | None = None
-    node_type: str | None = None
+    node_type: NodeType | None = None
     technology: str | None = None
     description: str | None = None
     parent_slug: str | None = None
@@ -913,53 +615,27 @@ class UpdateDeploymentNodeRequest(generic_crud.UpdateRequest):
     properties: dict[str, str] | None = None
     tags: list[str] | None = None
 
+    @field_validator("node_type", mode="before")
+    @classmethod
+    def coerce_node_type(cls, v):
+        """Coerce string to NodeType enum."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return NodeType(v)
+        return v
+
 
 class UpdateDeploymentNodeResponse(generic_crud.UpdateResponse[DeploymentNode]):
     """Deployment node update response."""
 
-    @computed_field
-    @property
-    def deployment_node(self) -> DeploymentNode | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateDeploymentNodeUseCase:
+class UpdateDeploymentNodeUseCase(
+    generic_crud.UpdateUseCase[DeploymentNode, DeploymentNodeRepository]
+):
     """Update a deployment node."""
 
-    def __init__(self, repo: DeploymentNodeRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: UpdateDeploymentNodeRequest
-    ) -> UpdateDeploymentNodeResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateDeploymentNodeResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.name is not None:
-            updates["name"] = request.name
-        if request.environment is not None:
-            updates["environment"] = request.environment
-        if request.node_type is not None:
-            updates["node_type"] = NodeType(request.node_type)
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.parent_slug is not None:
-            updates["parent_slug"] = request.parent_slug
-        if request.container_instances is not None:
-            updates["container_instances"] = request.container_instances
-        if request.properties is not None:
-            updates["properties"] = request.properties
-        if request.tags is not None:
-            updates["tags"] = request.tags
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateDeploymentNodeResponse(entity=updated)
+    response_cls = UpdateDeploymentNodeResponse
 
 
 # =============================================================================
@@ -973,12 +649,6 @@ class GetDynamicStepRequest(generic_crud.GetRequest):
 
 class GetDynamicStepResponse(generic_crud.GetResponse[DynamicStep]):
     """Dynamic step get response."""
-
-    @computed_field
-    @property
-    def dynamic_step(self) -> DynamicStep | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
 
 class GetDynamicStepUseCase(
@@ -995,12 +665,6 @@ class ListDynamicStepsRequest(generic_crud.ListRequest):
 
 class ListDynamicStepsResponse(generic_crud.ListResponse[DynamicStep]):
     """Dynamic steps list response."""
-
-    @computed_field
-    @property
-    def dynamic_steps(self) -> list[DynamicStep]:
-        """Backward-compatible alias for entities."""
-        return self.entities
 
 
 class ListDynamicStepsUseCase(
@@ -1026,93 +690,55 @@ class DeleteDynamicStepUseCase(
 
 
 class CreateDynamicStepRequest(BaseModel):
-    """Request for creating a dynamic step."""
+    """Request for creating a dynamic step.
+
+    Accepts string values for enums (e.g., source_type="container") which are
+    coerced to proper enum types. Entity validation runs when constructed.
+    Slug is auto-generated if not provided.
+    """
 
     sequence_name: str = Field(description="Name of the dynamic sequence")
     step_number: int = Field(description="Order within sequence")
-    source_type: str = Field(description="Type of calling element")
+    source_type: ElementType = Field(description="Type of calling element")
     source_slug: str = Field(description="Slug of calling element")
-    destination_type: str = Field(description="Type of called element")
+    destination_type: ElementType = Field(description="Type of called element")
     destination_slug: str = Field(description="Slug of called element")
-    slug: str = Field(default="", description="Optional identifier")
+    slug: str = Field(
+        default="", description="Optional identifier (auto-generated if empty)"
+    )
     description: str = Field(default="", description="Step description")
     technology: str = Field(default="", description="Protocol/technology")
-    return_description: str = Field(default="", description="Return value description")
-    is_return: bool = Field(default=False, description="Is this a return step")
+    return_value: str = Field(default="", description="Return value description")
+    is_async: bool = Field(default=False, description="Is this an async step")
 
-    @field_validator("sequence_name")
+    @field_validator("source_type", mode="before")
     @classmethod
-    def validate_sequence_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("sequence_name cannot be empty")
-        return v.strip()
+    def coerce_source_type(cls, v):
+        """Coerce string to ElementType enum."""
+        if isinstance(v, str):
+            return ElementType(v)
+        return v
 
-    @field_validator("source_type")
+    @field_validator("destination_type", mode="before")
     @classmethod
-    def validate_source_type(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("source_type cannot be empty")
-        return v.strip()
-
-    @field_validator("source_slug")
-    @classmethod
-    def validate_source_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("source_slug cannot be empty")
-        return v.strip()
-
-    @field_validator("destination_type")
-    @classmethod
-    def validate_destination_type(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("destination_type cannot be empty")
-        return v.strip()
-
-    @field_validator("destination_slug")
-    @classmethod
-    def validate_destination_slug(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("destination_slug cannot be empty")
-        return v.strip()
+    def coerce_destination_type(cls, v):
+        """Coerce string to ElementType enum."""
+        if isinstance(v, str):
+            return ElementType(v)
+        return v
 
 
 class CreateDynamicStepResponse(generic_crud.CreateResponse[DynamicStep]):
     """Dynamic step create response."""
 
-    @computed_field
-    @property
-    def dynamic_step(self) -> DynamicStep:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class CreateDynamicStepUseCase:
+class CreateDynamicStepUseCase(
+    generic_crud.CreateUseCase[DynamicStep, DynamicStepRepository]
+):
     """Create a dynamic step."""
 
-    def __init__(self, repo: DynamicStepRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: CreateDynamicStepRequest
-    ) -> CreateDynamicStepResponse:
-        # Auto-generate slug if not provided
-        slug = request.slug or f"{request.sequence_name}-step-{request.step_number}"
-        entity = DynamicStep(
-            slug=slug,
-            sequence_name=request.sequence_name,
-            step_number=request.step_number,
-            source_type=request.source_type,
-            source_slug=request.source_slug,
-            destination_type=request.destination_type,
-            destination_slug=request.destination_slug,
-            description=request.description,
-            technology=request.technology,
-            return_description=request.return_description,
-            is_return=request.is_return,
-            docname="",
-        )
-        await self.repo.save(entity)
-        return CreateDynamicStepResponse(entity=entity)
+    entity_cls = DynamicStep
+    response_cls = CreateDynamicStepResponse
 
 
 class UpdateDynamicStepRequest(generic_crud.UpdateRequest):
@@ -1121,45 +747,17 @@ class UpdateDynamicStepRequest(generic_crud.UpdateRequest):
     step_number: int | None = None
     description: str | None = None
     technology: str | None = None
-    return_description: str | None = None
-    is_return: bool | None = None
+    return_value: str | None = None
+    is_async: bool | None = None
 
 
 class UpdateDynamicStepResponse(generic_crud.UpdateResponse[DynamicStep]):
     """Dynamic step update response."""
 
-    @computed_field
-    @property
-    def dynamic_step(self) -> DynamicStep | None:
-        """Backward-compatible alias for entity."""
-        return self.entity
 
-
-class UpdateDynamicStepUseCase:
+class UpdateDynamicStepUseCase(
+    generic_crud.UpdateUseCase[DynamicStep, DynamicStepRepository]
+):
     """Update a dynamic step."""
 
-    def __init__(self, repo: DynamicStepRepository) -> None:
-        self.repo = repo
-
-    async def execute(
-        self, request: UpdateDynamicStepRequest
-    ) -> UpdateDynamicStepResponse:
-        existing = await self.repo.get(request.slug)
-        if not existing:
-            return UpdateDynamicStepResponse(entity=None)
-
-        updates: dict[str, Any] = {}
-        if request.step_number is not None:
-            updates["step_number"] = request.step_number
-        if request.description is not None:
-            updates["description"] = request.description
-        if request.technology is not None:
-            updates["technology"] = request.technology
-        if request.return_description is not None:
-            updates["return_description"] = request.return_description
-        if request.is_return is not None:
-            updates["is_return"] = request.is_return
-
-        updated = existing.model_copy(update=updates) if updates else existing
-        await self.repo.save(updated)
-        return UpdateDynamicStepResponse(entity=updated)
+    response_cls = UpdateDynamicStepResponse

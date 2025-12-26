@@ -101,12 +101,14 @@ def _validate_simple_type(value: Any, expected_type: Any, context_name: str) -> 
         return
 
     # Special handling for Pydantic models vs dicts (serialization issue)
-    if (
-        inspect.isclass(expected_type)
-        and issubclass(expected_type, BaseModel)
-        and isinstance(value, dict)
-    ):
-        _raise_pydantic_dict_error(value, expected_type, context_name)
+    if inspect.isclass(expected_type) and issubclass(expected_type, BaseModel):
+        if isinstance(value, dict):
+            _raise_pydantic_dict_error(value, expected_type, context_name)
+        # Accept any BaseModel when expected_type is a BaseModel subclass.
+        # This supports generic CRUD where base class declares `request: CreateRequest`
+        # but subclass passes `CreateSoftwareSystemRequest`. Pydantic validates fields.
+        if isinstance(value, BaseModel):
+            return
 
     raise TypeValidationError(
         f"{context_name}: Type mismatch\n"

@@ -12,7 +12,7 @@ from docutils import nodes
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.epic import Epic
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
-from julee.hcd.use_cases.epic.create import CreateEpicRequest, CreateEpicUseCase
+from julee.hcd.use_cases.crud import CreateEpicRequest, CreateEpicUseCase
 from julee.hcd.utils import normalize_name
 
 from .base import HCDDirective

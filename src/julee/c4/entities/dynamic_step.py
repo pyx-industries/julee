@@ -97,6 +97,16 @@ class DynamicStep(BaseModel):
         """Generate slug from sequence and step number."""
         return f"{slugify(sequence_name)}-step-{step_number}"
 
+    @classmethod
+    def from_create_data(cls, **data) -> "DynamicStep":
+        """Create entity from request data, auto-generating slug if empty.
+
+        Used by generic CRUD CreateUseCase to support auto-slug generation.
+        """
+        if not data.get("slug"):
+            data["slug"] = cls.generate_slug(data["sequence_name"], data["step_number"])
+        return cls(**data)
+
     def involves_element(self, element_type: ElementType, element_slug: str) -> bool:
         """Check if step involves a specific element."""
         return (

@@ -24,7 +24,6 @@ from julee.contrib.ceap.entities.document_policy_validation import (
 )
 from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 from julee.contrib.ceap.entities.policy import Policy
-from julee.core.entities.content_stream import ContentStream
 from julee.contrib.ceap.repositories.document import DocumentRepository
 from julee.contrib.ceap.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
@@ -38,6 +37,7 @@ from julee.contrib.ceap.repositories.knowledge_service_query import (
 from julee.contrib.ceap.repositories.policy import PolicyRepository
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService
 from julee.core.decorators import use_case
+from julee.core.entities.content_stream import ContentStream
 
 from .decorators import try_use_case_step
 

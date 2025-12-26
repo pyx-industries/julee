@@ -129,6 +129,47 @@ class Integration(BaseModel):
             object.__setattr__(self, "name_normalized", normalize_name(self.name))
 
     @classmethod
+    def from_create_data(cls, **data) -> "Integration":
+        """Create from CRUD request data (doctrine pattern for generic CRUD).
+
+        Handles:
+        - direction: str -> Direction enum
+        - depends_on: list[dict] -> list[ExternalDependency]
+        """
+        # Convert direction string to enum
+        direction = data.get("direction", Direction.BIDIRECTIONAL)
+        if isinstance(direction, str):
+            direction = Direction.from_string(direction)
+        data["direction"] = direction
+
+        # Convert depends_on dicts to ExternalDependency objects
+        depends_on_raw = data.get("depends_on", [])
+        data["depends_on"] = [
+            ExternalDependency.from_dict(dep) if isinstance(dep, dict) else dep
+            for dep in depends_on_raw
+        ]
+
+        return cls(**data)
+
+    def apply_update(self, **data) -> "Integration":
+        """Apply update data, converting dicts to proper objects.
+
+        Used by generic UpdateUseCase.
+        """
+        # Convert direction string to enum if provided
+        if "direction" in data and isinstance(data["direction"], str):
+            data["direction"] = Direction.from_string(data["direction"])
+
+        # Convert depends_on dicts to ExternalDependency objects
+        if "depends_on" in data:
+            data["depends_on"] = [
+                ExternalDependency.from_dict(dep) if isinstance(dep, dict) else dep
+                for dep in data["depends_on"]
+            ]
+
+        return self.model_copy(update=data)
+
+    @classmethod
     def from_manifest(
         cls,
         module_name: str,

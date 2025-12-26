@@ -9,24 +9,15 @@ from julee.hcd.entities.accelerator import (
 from julee.hcd.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
-from julee.hcd.use_cases.accelerator.create import (
+from julee.hcd.use_cases.crud import (
     CreateAcceleratorRequest,
     CreateAcceleratorUseCase,
-    IntegrationReferenceItem,
-)
-from julee.hcd.use_cases.accelerator.delete import (
     DeleteAcceleratorRequest,
     DeleteAcceleratorUseCase,
-)
-from julee.hcd.use_cases.accelerator.get import (
     GetAcceleratorRequest,
     GetAcceleratorUseCase,
-)
-from julee.hcd.use_cases.accelerator.list import (
     ListAcceleratorsRequest,
     ListAcceleratorsUseCase,
-)
-from julee.hcd.use_cases.accelerator.update import (
     UpdateAcceleratorRequest,
     UpdateAcceleratorUseCase,
 )
@@ -59,17 +50,11 @@ class TestCreateAcceleratorUseCase:
             acceptance="All data sources integrated",
             objective="Centralize data storage",
             sources_from=[
-                IntegrationReferenceItem(
-                    slug="salesforce-api",
-                    description="Customer data",
-                ),
+                {"slug": "salesforce-api", "description": "Customer data"},
             ],
             feeds_into=["analytics-engine"],
             publishes_to=[
-                IntegrationReferenceItem(
-                    slug="reporting-db",
-                    description="Aggregated metrics",
-                ),
+                {"slug": "reporting-db", "description": "Aggregated metrics"},
             ],
             depends_on=["auth-service"],
         )
@@ -273,10 +258,7 @@ class TestUpdateAcceleratorUseCase:
         request = UpdateAcceleratorRequest(
             slug="update-accelerator",
             sources_from=[
-                IntegrationReferenceItem(
-                    slug="new-source",
-                    description="New data source",
-                ),
+                {"slug": "new-source", "description": "New data source"},
             ],
         )
 

@@ -14,14 +14,15 @@ import pytest
 from pydantic import ValidationError
 
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
-from julee.contrib.ceap.entities.knowledge_service_config import KnowledgeServiceConfig
-from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
-from julee.core.entities.content_stream import ContentStream
 from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
-from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
+from julee.contrib.ceap.entities.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
+)
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 from julee.contrib.ceap.entities.policy import Policy, PolicyStatus
 from julee.contrib.ceap.infrastructure.repositories.memory.document import (
     MemoryDocumentRepository,
@@ -46,6 +47,7 @@ from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )
+from julee.core.entities.content_stream import ContentStream
 
 pytestmark = pytest.mark.unit
 

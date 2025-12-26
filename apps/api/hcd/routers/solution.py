@@ -6,29 +6,30 @@ All operations go through use-case classes following clean architecture.
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 
-from julee.hcd.use_cases.accelerator.create import CreateAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.delete import DeleteAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.get import GetAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.list import (
+from julee.hcd.use_cases.crud import (
+    # Accelerator
+    CreateAcceleratorUseCase,
+    DeleteAcceleratorUseCase,
+    GetAcceleratorUseCase,
     ListAcceleratorsRequest,
     ListAcceleratorsResponse,
     ListAcceleratorsUseCase,
-)
-from julee.hcd.use_cases.accelerator.update import UpdateAcceleratorUseCase
-from julee.hcd.use_cases.app.create import CreateAppUseCase
-from julee.hcd.use_cases.app.delete import DeleteAppUseCase
-from julee.hcd.use_cases.app.get import GetAppUseCase
-from julee.hcd.use_cases.app.list import (
+    UpdateAcceleratorUseCase,
+    # App
+    CreateAppUseCase,
+    DeleteAppUseCase,
+    GetAppUseCase,
     ListAppsRequest,
     ListAppsResponse,
     ListAppsUseCase,
+    UpdateAppUseCase,
+    # Integration
+    CreateIntegrationUseCase,
+    DeleteIntegrationUseCase,
+    GetIntegrationUseCase,
+    ListIntegrationsUseCase,
+    UpdateIntegrationUseCase,
 )
-from julee.hcd.use_cases.app.update import UpdateAppUseCase
-from julee.hcd.use_cases.integration.create import CreateIntegrationUseCase
-from julee.hcd.use_cases.integration.delete import DeleteIntegrationUseCase
-from julee.hcd.use_cases.integration.get import GetIntegrationUseCase
-from julee.hcd.use_cases.integration.list import ListIntegrationsUseCase
-from julee.hcd.use_cases.integration.update import UpdateIntegrationUseCase
 
 from ..dependencies import (
     get_create_accelerator_use_case,

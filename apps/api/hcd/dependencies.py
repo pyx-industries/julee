@@ -18,38 +18,46 @@ from julee.hcd.infrastructure.repositories.file.integration import (
 )
 from julee.hcd.infrastructure.repositories.file.journey import FileJourneyRepository
 from julee.hcd.infrastructure.repositories.file.story import FileStoryRepository
-from julee.hcd.use_cases.accelerator.create import CreateAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.delete import DeleteAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.get import GetAcceleratorUseCase
-from julee.hcd.use_cases.accelerator.list import ListAcceleratorsUseCase
-from julee.hcd.use_cases.accelerator.update import UpdateAcceleratorUseCase
-from julee.hcd.use_cases.app.create import CreateAppUseCase
-from julee.hcd.use_cases.app.delete import DeleteAppUseCase
-from julee.hcd.use_cases.app.get import GetAppUseCase
-from julee.hcd.use_cases.app.list import ListAppsUseCase
-from julee.hcd.use_cases.app.update import UpdateAppUseCase
-from julee.hcd.use_cases.epic.create import CreateEpicUseCase
-from julee.hcd.use_cases.epic.delete import DeleteEpicUseCase
-from julee.hcd.use_cases.epic.get import GetEpicUseCase
-from julee.hcd.use_cases.epic.list import ListEpicsUseCase
-from julee.hcd.use_cases.epic.update import UpdateEpicUseCase
-from julee.hcd.use_cases.integration.create import CreateIntegrationUseCase
-from julee.hcd.use_cases.integration.delete import DeleteIntegrationUseCase
-from julee.hcd.use_cases.integration.get import GetIntegrationUseCase
-from julee.hcd.use_cases.integration.list import ListIntegrationsUseCase
-from julee.hcd.use_cases.integration.update import UpdateIntegrationUseCase
-from julee.hcd.use_cases.journey.create import CreateJourneyUseCase
-from julee.hcd.use_cases.journey.delete import DeleteJourneyUseCase
-from julee.hcd.use_cases.journey.get import GetJourneyUseCase
-from julee.hcd.use_cases.journey.list import ListJourneysUseCase
-from julee.hcd.use_cases.journey.update import UpdateJourneyUseCase
+from julee.hcd.use_cases.crud import (
+    # Accelerator
+    CreateAcceleratorUseCase,
+    DeleteAcceleratorUseCase,
+    GetAcceleratorUseCase,
+    ListAcceleratorsUseCase,
+    UpdateAcceleratorUseCase,
+    # App
+    CreateAppUseCase,
+    DeleteAppUseCase,
+    GetAppUseCase,
+    ListAppsUseCase,
+    UpdateAppUseCase,
+    # Epic
+    CreateEpicUseCase,
+    DeleteEpicUseCase,
+    GetEpicUseCase,
+    ListEpicsUseCase,
+    UpdateEpicUseCase,
+    # Integration
+    CreateIntegrationUseCase,
+    DeleteIntegrationUseCase,
+    GetIntegrationUseCase,
+    ListIntegrationsUseCase,
+    UpdateIntegrationUseCase,
+    # Journey
+    CreateJourneyUseCase,
+    DeleteJourneyUseCase,
+    GetJourneyUseCase,
+    ListJourneysUseCase,
+    UpdateJourneyUseCase,
+    # Story
+    CreateStoryUseCase,
+    DeleteStoryUseCase,
+    GetStoryUseCase,
+    ListStoriesUseCase,
+    UpdateStoryUseCase,
+)
 from julee.hcd.use_cases.queries.derive_personas import DerivePersonasUseCase
 from julee.hcd.use_cases.queries.get_persona import GetPersonaUseCase
-from julee.hcd.use_cases.story.create import CreateStoryUseCase
-from julee.hcd.use_cases.story.delete import DeleteStoryUseCase
-from julee.hcd.use_cases.story.get import GetStoryUseCase
-from julee.hcd.use_cases.story.list import ListStoriesUseCase
-from julee.hcd.use_cases.story.update import UpdateStoryUseCase
 
 
 def get_docs_root() -> Path:

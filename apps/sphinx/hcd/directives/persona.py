@@ -15,7 +15,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.hcd.entities.persona import Persona
-from julee.hcd.use_cases.persona.create import (
+from julee.hcd.use_cases.crud import (
     CreatePersonaRequest,
     CreatePersonaUseCase,
 )

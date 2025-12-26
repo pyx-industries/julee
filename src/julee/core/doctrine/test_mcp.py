@@ -123,8 +123,8 @@ class TestMcpFrameworkUsage:
             if not _calls_create_mcp_server(init_file):
                 violations.append(f"{app.slug}: does not call create_mcp_server()")
 
-        assert not violations, (
-            "MCP apps not using framework:\n" + "\n".join(f"  - {v}" for v in violations)
+        assert not violations, "MCP apps not using framework:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
 
 
@@ -153,9 +153,8 @@ class TestMcpDependencyInjection:
             if not _has_context_module(Path(app.path)):
                 violations.append(f"{app.slug}: missing context.py")
 
-        assert not violations, (
-            "MCP apps missing context module:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert not violations, "MCP apps missing context module:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
 
 

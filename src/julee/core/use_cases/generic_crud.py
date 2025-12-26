@@ -6,6 +6,10 @@ Subclass these to create doctrine-compliant CRUD use cases with minimal boilerpl
 All base classes are decorated with @use_case, so subclasses automatically
 receive protocol validation, logging, and error handling.
 
+Response classes auto-derive field names from entity types:
+    - GetResponse[SoftwareSystem] serializes as {"software_system": ...}
+    - ListResponse[Story] serializes as {"stories": [...]}
+
 Example:
     from julee.core.use_cases import generic_crud
     from julee.hcd.entities.story import Story
@@ -19,16 +23,110 @@ Example:
 """
 
 import inspect
+import re
 import types
-from typing import Any, Generic, TypeVar, get_args, get_origin, get_type_hints
+from typing import Any, ClassVar, Generic, TypeVar, get_args, get_origin, get_type_hints
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, Field, create_model, model_serializer
 
 from julee.core.decorators import use_case
 
 E = TypeVar("E", bound=BaseModel)
 R = TypeVar("R")
 Resp = TypeVar("Resp", bound=BaseModel)
+
+
+# =============================================================================
+# Auto-derived Field Names
+# =============================================================================
+
+
+def _to_snake_case(name: str) -> str:
+    """Convert CamelCase to snake_case."""
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def _pluralize(name: str) -> str:
+    """Simple English pluralization."""
+    if name.endswith("y") and len(name) > 1 and name[-2] not in "aeiou":
+        # Consonant + y -> ies (e.g., story -> stories)
+        return name[:-1] + "ies"
+    elif name.endswith("s") or name.endswith("x") or name.endswith("ch"):
+        return name + "es"
+    # Vowel + y -> ys (e.g., journey -> journeys)
+    return name + "s"
+
+
+def _get_entity_type_from_class(cls: type) -> type | None:
+    """Extract the entity type E from a Pydantic model with entity/entities field.
+
+    Uses Pydantic's model_fields which resolves generic type parameters.
+    """
+    # Check entity field (for singular responses)
+    if hasattr(cls, "model_fields") and "entity" in cls.model_fields:
+        annotation = cls.model_fields["entity"].annotation
+        # Handle Optional[E] -> extract E
+        origin = get_origin(annotation)
+        if origin is not None:
+            args = get_args(annotation)
+            if args:
+                # Get the first non-None type
+                for arg in args:
+                    if arg is not type(None) and isinstance(arg, type):
+                        return arg
+        elif isinstance(annotation, type):
+            return annotation
+
+    # Check entities field (for list responses)
+    if hasattr(cls, "model_fields") and "entities" in cls.model_fields:
+        annotation = cls.model_fields["entities"].annotation
+        origin = get_origin(annotation)
+        if origin is list:
+            args = get_args(annotation)
+            if args and isinstance(args[0], type):
+                return args[0]
+
+    return None
+
+
+class EntityFieldMixin:
+    """Mixin that provides auto-derived field name for entity responses.
+
+    Subclasses get:
+    - Dynamic attribute access: response.software_system (derived from SoftwareSystem)
+    - Custom serialization: {"software_system": ...} instead of {"entity": ...}
+    """
+
+    _entity_field_name: ClassVar[str | None] = None  # Cached field name
+    _is_list: ClassVar[bool] = False  # Whether this is a list response
+
+    @classmethod
+    def _get_entity_field_name(cls) -> str:
+        """Get the snake_case field name derived from entity type."""
+        if cls._entity_field_name:
+            return cls._entity_field_name
+
+        entity_type = _get_entity_type_from_class(cls)
+        if entity_type is None:
+            return "entities" if cls._is_list else "entity"
+
+        name = _to_snake_case(entity_type.__name__)
+        if cls._is_list:
+            name = _pluralize(name)
+
+        return name
+
+    def __getattr__(self, name: str) -> Any:
+        """Allow access via derived field name (e.g., response.software_system)."""
+        # Get expected field name
+        expected = self._get_entity_field_name()
+        if name == expected:
+            # Return the entity/entities from the actual field
+            if self._is_list:
+                return object.__getattribute__(self, "entities")
+            return object.__getattribute__(self, "entity")
+        raise AttributeError(f"{type(self).__name__!r} has no attribute {name!r}")
 
 
 # =============================================================================
@@ -49,13 +147,28 @@ class GetRequest(BaseModel):
     slug: str
 
 
-class GetResponse(BaseModel, Generic[E]):
+class GetResponse(EntityFieldMixin, BaseModel, Generic[E]):
     """Base response for get operations.
 
     Returns the entity or None if not found.
+    Auto-derives field name from entity type for serialization.
+
+    Example:
+        class GetSoftwareSystemResponse(GetResponse[SoftwareSystem]):
+            pass
+
+        response.software_system  # Works via __getattr__
+        response.model_dump()     # {"software_system": ...}
     """
 
     entity: E | None = None
+    _is_list: ClassVar[bool] = False
+
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Serialize with auto-derived field name."""
+        field_name = self._get_entity_field_name()
+        return {field_name: self.entity}
 
 
 @use_case
@@ -98,13 +211,33 @@ class ListRequest(BaseModel):
     pass
 
 
-class ListResponse(BaseModel, Generic[E]):
+class ListResponse(EntityFieldMixin, BaseModel, Generic[E]):
     """Base response for list operations.
 
-    Returns a list of entities.
+    Returns a list of entities with auto-derived field name.
+
+    Example:
+        class ListStoriesResponse(ListResponse[Story]):
+            pass
+
+        response.stories  # Works via __getattr__
+        response.count    # Number of entities
+        response.model_dump()  # {"stories": [...]}
     """
 
     entities: list[E] = []
+    _is_list: ClassVar[bool] = True
+
+    @property
+    def count(self) -> int:
+        """Number of entities in the response."""
+        return len(self.entities)
+
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Serialize with auto-derived field name (pluralized)."""
+        field_name = self._get_entity_field_name()
+        return {field_name: self.entities}
 
 
 @use_case
@@ -180,7 +313,9 @@ def extract_filter_params(repo_class: type) -> dict[str, tuple[type, Any]]:
         else:
             field_type = type_hint | None
 
-        default = param.default if param.default is not inspect.Parameter.empty else None
+        default = (
+            param.default if param.default is not inspect.Parameter.empty else None
+        )
         filters[name] = (field_type, Field(default=default))
 
     return filters
@@ -398,13 +533,27 @@ class CreateRequest(BaseModel):
     pass
 
 
-class CreateResponse(BaseModel, Generic[E]):
+class CreateResponse(EntityFieldMixin, BaseModel, Generic[E]):
     """Base response for create operations.
 
-    Returns the created entity.
+    Returns the created entity with auto-derived field name.
+
+    Example:
+        class CreateSoftwareSystemResponse(CreateResponse[SoftwareSystem]):
+            pass
+
+        response.software_system  # Works via __getattr__
+        response.model_dump()     # {"software_system": ...}
     """
 
     entity: E
+    _is_list: ClassVar[bool] = False
+
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Serialize with auto-derived field name."""
+        field_name = self._get_entity_field_name()
+        return {field_name: self.entity}
 
 
 @use_case
@@ -413,6 +562,7 @@ class CreateUseCase(Generic[E, R]):
 
     Class attributes:
         entity_cls: The entity class to create (required)
+        response_cls: Response class to use (default: CreateResponse)
 
     The entity class should implement `from_create_data(**kwargs)` class method.
     If not present, falls back to direct construction.
@@ -421,6 +571,7 @@ class CreateUseCase(Generic[E, R]):
     """
 
     entity_cls: type[E]
+    response_cls: type[Any] = CreateResponse
 
     def __init__(self, repo: R) -> None:
         self.repo = repo
@@ -432,7 +583,7 @@ class CreateUseCase(Generic[E, R]):
         else:
             entity = self.entity_cls(**data)
         await self.repo.save(entity)
-        return CreateResponse(entity=entity)
+        return self.response_cls(entity=entity)
 
 
 # =============================================================================
@@ -454,13 +605,34 @@ class UpdateRequest(BaseModel):
     slug: str
 
 
-class UpdateResponse(BaseModel, Generic[E]):
+class UpdateResponse(EntityFieldMixin, BaseModel, Generic[E]):
     """Base response for update operations.
 
     Returns the updated entity or None if not found.
+    Auto-derives field name from entity type for serialization.
+
+    Example:
+        class UpdateSoftwareSystemResponse(UpdateResponse[SoftwareSystem]):
+            pass
+
+        response.software_system  # Works via __getattr__
+        response.found            # True if entity was found
+        response.model_dump()     # {"software_system": ..., "found": ...}
     """
 
     entity: E | None = None
+    _is_list: ClassVar[bool] = False
+
+    @property
+    def found(self) -> bool:
+        """True if entity was found and updated."""
+        return self.entity is not None
+
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Serialize with auto-derived field name."""
+        field_name = self._get_entity_field_name()
+        return {field_name: self.entity, "found": self.found}
 
 
 @use_case
@@ -470,6 +642,7 @@ class UpdateUseCase(Generic[E, R]):
     Class attributes:
         id_field: Name of the identifier field on the request (default: "slug")
         update_fields: List of field names that can be updated (optional)
+        response_cls: Response class to use (default: UpdateResponse)
 
     The entity class should implement `apply_update(**kwargs)` method.
     If not present, falls back to model_copy(update=kwargs).
@@ -479,6 +652,7 @@ class UpdateUseCase(Generic[E, R]):
 
     id_field: str = "slug"
     update_fields: list[str] | None = None
+    response_cls: type[Any] = UpdateResponse
 
     def __init__(self, repo: R) -> None:
         self.repo = repo
@@ -487,7 +661,7 @@ class UpdateUseCase(Generic[E, R]):
         entity_id = getattr(request, self.id_field)
         entity = await self.repo.get(entity_id)
         if entity is None:
-            return UpdateResponse(entity=None)
+            return self.response_cls(entity=None)
 
         # Extract update data (exclude id field, exclude None values)
         data = request.model_dump(exclude={self.id_field}, exclude_none=True)
@@ -503,4 +677,4 @@ class UpdateUseCase(Generic[E, R]):
             updated = entity.model_copy(update=data)
 
         await self.repo.save(updated)
-        return UpdateResponse(entity=updated)
+        return self.response_cls(entity=updated)

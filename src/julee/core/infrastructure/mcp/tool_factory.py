@@ -6,7 +6,7 @@ Dynamically creates MCP tools from discovered use cases.
 import functools
 import inspect
 from collections.abc import Callable
-from typing import Any, get_type_hints
+from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.tools import Tool
@@ -44,9 +44,7 @@ def _create_tool_function(
         field_type = field_info.annotation
 
         # Determine default value
-        if field_info.default is not None and not isinstance(
-            field_info.default, type
-        ):
+        if field_info.default is not None and not isinstance(field_info.default, type):
             default = field_info.default
         elif field_info.default_factory is not None:
             # For factory defaults, mark as optional with None
@@ -198,7 +196,9 @@ def register_diagram_tool(
         # Filter kwargs to only include fields for this request type
         if hasattr(uc.request_cls, "model_fields"):
             valid_fields = set(uc.request_cls.model_fields.keys())
-            filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields and v is not None}
+            filtered_kwargs = {
+                k: v for k, v in kwargs.items() if k in valid_fields and v is not None
+            }
         else:
             filtered_kwargs = kwargs
 
@@ -224,9 +224,7 @@ def register_diagram_tool(
     diagram_fn.__signature__ = sig  # type: ignore
     diagram_fn.__doc__ = f"Generate a diagram. Types: {types_list}. See {slug}://"
     diagram_fn.__name__ = f"{slug}_diagram"
-    diagram_fn.__annotations__ = {
-        p.name: p.annotation for p in all_params.values()
-    }
+    diagram_fn.__annotations__ = {p.name: p.annotation for p in all_params.values()}
     diagram_fn.__annotations__["return"] = dict[str, Any]
 
     tool = Tool.from_function(

@@ -4,15 +4,18 @@ import pytest
 
 from julee.hcd.entities.journey import Journey, JourneyStep, StepType
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
-from julee.hcd.use_cases.journey.create import (
+from julee.hcd.use_cases.crud import (
     CreateJourneyRequest,
     CreateJourneyUseCase,
-    JourneyStepItem,
+    DeleteJourneyRequest,
+    DeleteJourneyUseCase,
+    GetJourneyRequest,
+    GetJourneyUseCase,
+    ListJourneysRequest,
+    ListJourneysUseCase,
+    UpdateJourneyRequest,
+    UpdateJourneyUseCase,
 )
-from julee.hcd.use_cases.journey.delete import DeleteJourneyRequest, DeleteJourneyUseCase
-from julee.hcd.use_cases.journey.get import GetJourneyRequest, GetJourneyUseCase
-from julee.hcd.use_cases.journey.list import ListJourneysRequest, ListJourneysUseCase
-from julee.hcd.use_cases.journey.update import UpdateJourneyRequest, UpdateJourneyUseCase
 
 
 class TestCreateJourneyUseCase:
@@ -43,16 +46,16 @@ class TestCreateJourneyUseCase:
             goal="Complete onboarding process",
             depends_on=["hr-approval"],
             steps=[
-                JourneyStepItem(
-                    step_type="story",
-                    ref="receive-welcome-email",
-                    description="Get welcome email",
-                ),
-                JourneyStepItem(
-                    step_type="story",
-                    ref="complete-training",
-                    description="Finish training modules",
-                ),
+                {
+                    "step_type": "story",
+                    "ref": "receive-welcome-email",
+                    "description": "Get welcome email",
+                },
+                {
+                    "step_type": "story",
+                    "ref": "complete-training",
+                    "description": "Finish training modules",
+                },
             ],
         )
 
@@ -265,16 +268,16 @@ class TestUpdateJourneyUseCase:
         request = UpdateJourneyRequest(
             slug="update-journey",
             steps=[
-                JourneyStepItem(
-                    step_type="story",
-                    ref="new-step-1",
-                    description="First new step",
-                ),
-                JourneyStepItem(
-                    step_type="story",
-                    ref="new-step-2",
-                    description="Second new step",
-                ),
+                {
+                    "step_type": "story",
+                    "ref": "new-step-1",
+                    "description": "First new step",
+                },
+                {
+                    "step_type": "story",
+                    "ref": "new-step-2",
+                    "description": "Second new step",
+                },
             ],
         )
 

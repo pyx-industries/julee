@@ -96,7 +96,8 @@ class FileEpicRepository(FileRepositoryMixin[Epic], EpicRepository):
         if contains_story is not None:
             story_normalized = normalize_name(contains_story)
             epics = [
-                e for e in epics
+                e
+                for e in epics
                 if any(normalize_name(ref) == story_normalized for ref in e.story_refs)
             ]
 

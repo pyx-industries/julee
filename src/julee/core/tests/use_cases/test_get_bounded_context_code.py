@@ -39,17 +39,20 @@ def create_bounded_context_files(tmp_path: Path, name: str) -> Path:
     # Create entities directory with entity
     entities_dir = ctx_dir / "entities"
     entities_dir.mkdir()
-    (entities_dir / "document.py").write_text('''
+    (entities_dir / "document.py").write_text(
+        '''
 class Document:
     """A document entity."""
     name: str
     content: str
-''')
+'''
+    )
 
     # Create use_cases directory with use case
     use_cases_dir = ctx_dir / "use_cases"
     use_cases_dir.mkdir()
-    (use_cases_dir / "create_document.py").write_text('''
+    (use_cases_dir / "create_document.py").write_text(
+        '''
 class CreateDocumentRequest:
     """Request for creating a document."""
     name: str
@@ -62,17 +65,20 @@ class CreateDocumentUseCase:
     """Use case for creating documents."""
     async def execute(self, request: CreateDocumentRequest) -> CreateDocumentResponse:
         pass
-''')
+'''
+    )
 
     # Create repositories directory
     repos_dir = ctx_dir / "repositories"
     repos_dir.mkdir()
-    (repos_dir / "document.py").write_text('''
+    (repos_dir / "document.py").write_text(
+        '''
 class DocumentRepository:
     """Repository protocol for documents."""
     async def save(self, document): pass
     async def get(self, id: str): pass
-''')
+'''
+    )
 
     return ctx_dir
 

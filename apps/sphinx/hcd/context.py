@@ -27,11 +27,13 @@ from julee.hcd.infrastructure.repositories.memory.integration import (
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
 from julee.hcd.infrastructure.repositories.memory.persona import MemoryPersonaRepository
 from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
-from julee.hcd.use_cases.accelerator.list import ListAcceleratorsUseCase
-from julee.hcd.use_cases.app.list import ListAppsUseCase
-from julee.hcd.use_cases.epic.list import ListEpicsUseCase
-from julee.hcd.use_cases.journey.list import ListJourneysUseCase
-from julee.hcd.use_cases.story.list import ListStoriesUseCase
+from julee.hcd.use_cases.crud import (
+    ListAcceleratorsUseCase,
+    ListAppsUseCase,
+    ListEpicsUseCase,
+    ListJourneysUseCase,
+    ListStoriesUseCase,
+)
 
 from .adapters import SyncRepositoryAdapter
 from .repositories import (

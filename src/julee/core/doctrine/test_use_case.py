@@ -13,16 +13,15 @@ from julee.core.doctrine_constants import (
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
+from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
+from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
+from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 # Generic/abstract base classes that don't require matching Request/Response
 GENERIC_BASE_CLASSES = {
     "FilterableListUseCase",  # Generic base for list use cases with filtering
 }
-
-from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
-from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
-from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
-from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 def _resolve_class(import_path: str, file_path: str, class_name: str) -> type | None:

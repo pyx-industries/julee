@@ -19,7 +19,7 @@ from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.journey import Journey, JourneyStep
-from julee.hcd.use_cases.journey.list import ListJourneysRequest
+from julee.hcd.use_cases.crud import ListJourneysRequest
 from julee.hcd.utils import (
     normalize_name,
     parse_csv_option,

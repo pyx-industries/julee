@@ -19,10 +19,11 @@ from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecificationStatus,
 )
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
-from julee.contrib.ceap.entities.knowledge_service_config import KnowledgeServiceConfig
+from julee.contrib.ceap.entities.knowledge_service_config import (
+    KnowledgeServiceConfig,
+    ServiceApi,
+)
 from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
-from julee.core.entities.content_stream import ContentStream
-from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.infrastructure.repositories.memory.assembly import (
     MemoryAssemblyRepository,
 )
@@ -46,6 +47,7 @@ from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
 )
+from julee.core.entities.content_stream import ContentStream
 
 pytestmark = pytest.mark.unit
 

@@ -10,21 +10,15 @@ from julee.hcd.entities.integration import (
 from julee.hcd.infrastructure.repositories.memory.integration import (
     MemoryIntegrationRepository,
 )
-from julee.hcd.use_cases.integration.create import (
+from julee.hcd.use_cases.crud import (
     CreateIntegrationRequest,
     CreateIntegrationUseCase,
-    ExternalDependencyItem,
-)
-from julee.hcd.use_cases.integration.delete import (
     DeleteIntegrationRequest,
     DeleteIntegrationUseCase,
-)
-from julee.hcd.use_cases.integration.get import GetIntegrationRequest, GetIntegrationUseCase
-from julee.hcd.use_cases.integration.list import (
+    GetIntegrationRequest,
+    GetIntegrationUseCase,
     ListIntegrationsRequest,
     ListIntegrationsUseCase,
-)
-from julee.hcd.use_cases.integration.update import (
     UpdateIntegrationRequest,
     UpdateIntegrationUseCase,
 )
@@ -57,11 +51,11 @@ class TestCreateIntegrationUseCase:
             description="Integration with Salesforce CRM",
             direction="inbound",
             depends_on=[
-                ExternalDependencyItem(
-                    name="Salesforce API",
-                    url="https://salesforce.com/api",
-                    description="External CRM system",
-                ),
+                {
+                    "name": "Salesforce API",
+                    "url": "https://salesforce.com/api",
+                    "description": "External CRM system",
+                },
             ],
         )
 
@@ -306,11 +300,11 @@ class TestUpdateIntegrationUseCase:
         request = UpdateIntegrationRequest(
             slug="update-integration",
             depends_on=[
-                ExternalDependencyItem(
-                    name="New Dependency",
-                    url="https://new.com",
-                    description="New external system",
-                ),
+                {
+                    "name": "New Dependency",
+                    "url": "https://new.com",
+                    "description": "New external system",
+                },
             ],
         )
 

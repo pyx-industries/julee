@@ -90,6 +90,51 @@ class Accelerator(BaseModel):
             raise ValueError("slug cannot be empty")
         return v.strip()
 
+    @classmethod
+    def from_create_data(cls, **data) -> "Accelerator":
+        """Create from CRUD request data (doctrine pattern for generic CRUD).
+
+        Handles:
+        - sources_from: list[dict] -> list[IntegrationReference]
+        - publishes_to: list[dict] -> list[IntegrationReference]
+        """
+        # Convert sources_from dicts to IntegrationReference objects
+        sources_from_raw = data.get("sources_from", [])
+        data["sources_from"] = [
+            IntegrationReference.from_dict(ref) if isinstance(ref, dict) else ref
+            for ref in sources_from_raw
+        ]
+
+        # Convert publishes_to dicts to IntegrationReference objects
+        publishes_to_raw = data.get("publishes_to", [])
+        data["publishes_to"] = [
+            IntegrationReference.from_dict(ref) if isinstance(ref, dict) else ref
+            for ref in publishes_to_raw
+        ]
+
+        return cls(**data)
+
+    def apply_update(self, **data) -> "Accelerator":
+        """Apply update data, converting dicts to proper objects.
+
+        Used by generic UpdateUseCase.
+        """
+        # Convert sources_from dicts to IntegrationReference objects
+        if "sources_from" in data:
+            data["sources_from"] = [
+                IntegrationReference.from_dict(ref) if isinstance(ref, dict) else ref
+                for ref in data["sources_from"]
+            ]
+
+        # Convert publishes_to dicts to IntegrationReference objects
+        if "publishes_to" in data:
+            data["publishes_to"] = [
+                IntegrationReference.from_dict(ref) if isinstance(ref, dict) else ref
+                for ref in data["publishes_to"]
+            ]
+
+        return self.model_copy(update=data)
+
     @property
     def display_title(self) -> str:
         """Get formatted title for display."""

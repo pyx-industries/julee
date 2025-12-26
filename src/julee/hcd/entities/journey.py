@@ -99,6 +99,25 @@ class JourneyStep(BaseModel):
         """Check if this is a phase step."""
         return self.step_type == StepType.PHASE
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "JourneyStep":
+        """Create from dict (for generic CRUD).
+
+        Args:
+            data: Dict with step_type, ref, description
+
+        Returns:
+            JourneyStep instance
+        """
+        step_type = data.get("step_type", StepType.STORY)
+        if isinstance(step_type, str):
+            step_type = StepType.from_string(step_type)
+        return cls(
+            step_type=step_type,
+            ref=data.get("ref", ""),
+            description=data.get("description", ""),
+        )
+
 
 class Journey(BaseModel):
     """User journey entity.
@@ -146,6 +165,36 @@ class Journey(BaseModel):
         """Ensure normalized fields are computed after init."""
         if not self.persona_normalized and self.persona:
             object.__setattr__(self, "persona_normalized", normalize_name(self.persona))
+
+    @classmethod
+    def from_create_data(cls, **data) -> "Journey":
+        """Create from CRUD request data (doctrine pattern for generic CRUD).
+
+        Handles:
+        - steps: list[dict] -> list[JourneyStep]
+        """
+        # Convert steps dicts to JourneyStep objects
+        steps_raw = data.get("steps", [])
+        data["steps"] = [
+            JourneyStep.from_dict(step) if isinstance(step, dict) else step
+            for step in steps_raw
+        ]
+
+        return cls(**data)
+
+    def apply_update(self, **data) -> "Journey":
+        """Apply update data, converting dicts to proper objects.
+
+        Used by generic UpdateUseCase.
+        """
+        # Convert steps dicts to JourneyStep objects
+        if "steps" in data:
+            data["steps"] = [
+                JourneyStep.from_dict(step) if isinstance(step, dict) else step
+                for step in data["steps"]
+            ]
+
+        return self.model_copy(update=data)
 
     def matches_persona(self, persona_name: str) -> bool:
         """Check if this journey matches the given persona (case-insensitive).

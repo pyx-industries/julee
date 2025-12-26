@@ -14,14 +14,18 @@ from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
 from julee.hcd.infrastructure.repositories.memory.epic import MemoryEpicRepository
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
 from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
-from julee.hcd.use_cases.accelerator.list import (
+from julee.hcd.use_cases.crud import (
     ListAcceleratorsRequest,
     ListAcceleratorsUseCase,
+    ListAppsRequest,
+    ListAppsUseCase,
+    ListEpicsRequest,
+    ListEpicsUseCase,
+    ListJourneysRequest,
+    ListJourneysUseCase,
+    ListStoriesRequest,
+    ListStoriesUseCase,
 )
-from julee.hcd.use_cases.app.list import ListAppsRequest, ListAppsUseCase
-from julee.hcd.use_cases.epic.list import ListEpicsRequest, ListEpicsUseCase
-from julee.hcd.use_cases.journey.list import ListJourneysRequest, ListJourneysUseCase
-from julee.hcd.use_cases.story.list import ListStoriesRequest, ListStoriesUseCase
 
 
 class TestListStoriesFilters:
@@ -75,9 +79,7 @@ class TestListStoriesFilters:
         """Should filter stories by app slug."""
         use_case = ListStoriesUseCase(repo)
 
-        response = await use_case.execute(
-            ListStoriesRequest(app_slug="staff-portal")
-        )
+        response = await use_case.execute(ListStoriesRequest(app_slug="staff-portal"))
 
         assert response.count == 2
         assert all(s.app_slug == "staff-portal" for s in response.stories)
@@ -87,9 +89,7 @@ class TestListStoriesFilters:
         """Should filter stories by persona."""
         use_case = ListStoriesUseCase(repo)
 
-        response = await use_case.execute(
-            ListStoriesRequest(persona="Field Worker")
-        )
+        response = await use_case.execute(ListStoriesRequest(persona="Field Worker"))
 
         assert response.count == 1
         assert response.stories[0].persona == "Field Worker"
@@ -175,9 +175,7 @@ class TestListAcceleratorsFilters:
         """Should filter accelerators by status."""
         use_case = ListAcceleratorsUseCase(repo)
 
-        response = await use_case.execute(
-            ListAcceleratorsRequest(status="active")
-        )
+        response = await use_case.execute(ListAcceleratorsRequest(status="active"))
 
         assert response.count == 2
         assert all(a.status == "active" for a in response.accelerators)
@@ -187,9 +185,7 @@ class TestListAcceleratorsFilters:
         """Should filter accelerators by deprecated status."""
         use_case = ListAcceleratorsUseCase(repo)
 
-        response = await use_case.execute(
-            ListAcceleratorsRequest(status="deprecated")
-        )
+        response = await use_case.execute(ListAcceleratorsRequest(status="deprecated"))
 
         assert response.count == 1
         assert response.accelerators[0].slug == "legacy"
@@ -228,9 +224,7 @@ class TestListEpicsFilters:
         """Should filter to epics with stories."""
         use_case = ListEpicsUseCase(repo)
 
-        response = await use_case.execute(
-            ListEpicsRequest(has_stories=True)
-        )
+        response = await use_case.execute(ListEpicsRequest(has_stories=True))
 
         assert response.count == 2
         assert all(e.story_refs for e in response.epics)
@@ -240,9 +234,7 @@ class TestListEpicsFilters:
         """Should filter to epics without stories."""
         use_case = ListEpicsUseCase(repo)
 
-        response = await use_case.execute(
-            ListEpicsRequest(has_stories=False)
-        )
+        response = await use_case.execute(ListEpicsRequest(has_stories=False))
 
         assert response.count == 1
         assert response.epics[0].slug == "future"
@@ -252,9 +244,7 @@ class TestListEpicsFilters:
         """Should filter to epics containing a specific story."""
         use_case = ListEpicsUseCase(repo)
 
-        response = await use_case.execute(
-            ListEpicsRequest(contains_story="Upload Doc")
-        )
+        response = await use_case.execute(ListEpicsRequest(contains_story="Upload Doc"))
 
         assert response.count == 1
         assert response.epics[0].slug == "onboarding"
@@ -275,10 +265,26 @@ class TestListAppsFilters:
     @pytest.fixture
     def apps(self) -> list[App]:
         from julee.hcd.entities.app import AppType
+
         return [
-            App(slug="portal", name="Staff Portal", app_type=AppType.STAFF, accelerators=["ceap"]),
-            App(slug="mobile", name="Mobile App", app_type=AppType.EXTERNAL, accelerators=["vocab"]),
-            App(slug="admin", name="Admin Panel", app_type=AppType.STAFF, accelerators=["ceap", "vocab"]),
+            App(
+                slug="portal",
+                name="Staff Portal",
+                app_type=AppType.STAFF,
+                accelerators=["ceap"],
+            ),
+            App(
+                slug="mobile",
+                name="Mobile App",
+                app_type=AppType.EXTERNAL,
+                accelerators=["vocab"],
+            ),
+            App(
+                slug="admin",
+                name="Admin Panel",
+                app_type=AppType.STAFF,
+                accelerators=["ceap", "vocab"],
+            ),
         ]
 
     @pytest.fixture
@@ -302,11 +308,10 @@ class TestListAppsFilters:
     async def test_filter_by_type(self, repo):
         """Should filter apps by type."""
         from julee.hcd.entities.app import AppType
+
         use_case = ListAppsUseCase(repo)
 
-        response = await use_case.execute(
-            ListAppsRequest(app_type="staff")
-        )
+        response = await use_case.execute(ListAppsRequest(app_type="staff"))
 
         assert response.count == 2
         assert all(a.app_type == AppType.STAFF for a in response.apps)
@@ -316,9 +321,7 @@ class TestListAppsFilters:
         """Should filter apps by accelerator."""
         use_case = ListAppsUseCase(repo)
 
-        response = await use_case.execute(
-            ListAppsRequest(has_accelerator="ceap")
-        )
+        response = await use_case.execute(ListAppsRequest(has_accelerator="ceap"))
 
         assert response.count == 2
         slugs = {a.slug for a in response.apps}
