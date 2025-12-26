@@ -41,9 +41,7 @@ class SemanticEvaluationService(Protocol):
     to make external calls (e.g., to an AI service).
     """
 
-    async def evaluate_class_docstring(
-        self, class_info: ClassInfo
-    ) -> EvaluationResult:
+    async def evaluate_class_docstring(self, class_info: ClassInfo) -> EvaluationResult:
         """Evaluate if a class docstring adequately describes its purpose.
 
         A good docstring should:
@@ -98,9 +96,7 @@ class SemanticEvaluationService(Protocol):
         """
         ...
 
-    async def evaluate_class_naming(
-        self, class_info: ClassInfo
-    ) -> EvaluationResult:
+    async def evaluate_class_naming(self, class_info: ClassInfo) -> EvaluationResult:
         """Evaluate if a class name is meaningful and appropriate.
 
         Good class names should:
@@ -117,9 +113,7 @@ class SemanticEvaluationService(Protocol):
         """
         ...
 
-    async def evaluate_method_naming(
-        self, method_info: MethodInfo
-    ) -> EvaluationResult:
+    async def evaluate_method_naming(self, method_info: MethodInfo) -> EvaluationResult:
         """Evaluate if a method name is meaningful and appropriate.
 
         Good method names should:
@@ -136,9 +130,7 @@ class SemanticEvaluationService(Protocol):
         """
         ...
 
-    async def evaluate_field_naming(
-        self, field_info: FieldInfo
-    ) -> EvaluationResult:
+    async def evaluate_field_naming(self, field_info: FieldInfo) -> EvaluationResult:
         """Evaluate if a field name is meaningful and appropriate.
 
         Good field names should:

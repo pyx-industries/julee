@@ -313,9 +313,7 @@ class CreateContainerUseCase:
     def __init__(self, repo: ContainerRepository) -> None:
         self.repo = repo
 
-    async def execute(
-        self, request: CreateContainerRequest
-    ) -> CreateContainerResponse:
+    async def execute(self, request: CreateContainerRequest) -> CreateContainerResponse:
         entity = Container(
             slug=request.slug,
             name=request.name,
@@ -359,9 +357,7 @@ class UpdateContainerUseCase:
     def __init__(self, repo: ContainerRepository) -> None:
         self.repo = repo
 
-    async def execute(
-        self, request: UpdateContainerRequest
-    ) -> UpdateContainerResponse:
+    async def execute(self, request: UpdateContainerRequest) -> UpdateContainerResponse:
         existing = await self.repo.get(request.slug)
         if not existing:
             return UpdateContainerResponse(entity=None)
@@ -505,9 +501,7 @@ class CreateComponentUseCase:
     def __init__(self, repo: ComponentRepository) -> None:
         self.repo = repo
 
-    async def execute(
-        self, request: CreateComponentRequest
-    ) -> CreateComponentResponse:
+    async def execute(self, request: CreateComponentRequest) -> CreateComponentResponse:
         entity = Component(
             slug=request.slug,
             name=request.name,
@@ -555,9 +549,7 @@ class UpdateComponentUseCase:
     def __init__(self, repo: ComponentRepository) -> None:
         self.repo = repo
 
-    async def execute(
-        self, request: UpdateComponentRequest
-    ) -> UpdateComponentResponse:
+    async def execute(self, request: UpdateComponentRequest) -> UpdateComponentResponse:
         existing = await self.repo.get(request.slug)
         if not existing:
             return UpdateComponentResponse(entity=None)

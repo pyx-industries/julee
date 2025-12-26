@@ -11,6 +11,11 @@ from julee.core.doctrine_constants import (
     APP_BC_ORGANIZATION_EXCLUDES,
     APPS_ROOT,
 )
+from julee.core.entities.application import (
+    Application,
+    AppStructuralMarkers,
+    AppType,
+)
 
 # Structural directories that indicate app internals, not BC organization
 _STRUCTURAL_SUBDIRS = frozenset(
@@ -32,11 +37,6 @@ _STRUCTURAL_SUBDIRS = frozenset(
         "utils",
         "lib",
     }
-)
-from julee.core.entities.application import (
-    Application,
-    AppStructuralMarkers,
-    AppType,
 )
 
 __all__ = ["FilesystemApplicationRepository"]
