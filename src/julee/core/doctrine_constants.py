@@ -555,7 +555,44 @@ architectural locations. These directories have their own discovery
 mechanisms (FilesystemApplicationRepository, etc.) and must not be
 treated as bounded contexts.
 
-Directories like 'util', 'docs', 'tests' are NOT reserved because they
-naturally fail the bounded context structural check (no entities/ or
-use_cases/ subdirectory). Reserving them would be redundant.
+The 'tests' directory is NOT reserved because it naturally fails the
+bounded context structural check (no entities/ or use_cases/).
 """
+
+
+# =============================================================================
+# TEST ORGANIZATION
+# =============================================================================
+# Doctrine for test structure and pytest discoverability.
+
+TESTS_ROOT: Final[str] = "tests"
+"""Standard directory name for tests within a bounded context."""
+
+TEST_FILE_PATTERN: Final[str] = "test_*.py"
+"""Pytest-discoverable test file naming pattern."""
+
+TEST_CLASS_PREFIX: Final[str] = "Test"
+"""Pytest-discoverable test class naming prefix."""
+
+TEST_FUNCTION_PREFIX: Final[str] = "test_"
+"""Pytest-discoverable test function naming prefix."""
+
+TEST_MARKERS: Final[frozenset[str]] = frozenset(
+    {
+        "unit",
+        "integration",
+        "e2e",
+    }
+)
+"""Standard pytest markers for test classification.
+
+- unit: Fast, isolated tests (default, no external dependencies)
+- integration: Tests requiring external dependencies (databases, APIs)
+- e2e: End-to-end tests (full stack, slowest)
+"""
+
+TEST_CONFTEST: Final[str] = "conftest.py"
+"""Pytest fixture configuration file name."""
+
+TEST_INIT: Final[str] = "__init__.py"
+"""Package marker required for test directories."""

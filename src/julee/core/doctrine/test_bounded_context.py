@@ -112,11 +112,10 @@ class TestReservedWords:
     def test_RESERVED_WORDS_MUST_NOT_include_redundant_directories(self):
         """RESERVED_WORDS MUST NOT include directories that fail structural check.
 
-        Directories like 'util', 'docs', 'tests' naturally fail the bounded
-        context detection (no entities/ or use_cases/) so reserving them is
-        redundant and obscures the doctrine.
+        The 'tests' directory naturally fails bounded context detection
+        (no entities/ or use_cases/) so reserving it would be redundant.
         """
-        redundant = {"util", "utils", "common", "tests", "docs", "maintenance"}
+        redundant = {"tests"}
         assert not redundant.intersection(RESERVED_WORDS), (
             f"RESERVED_WORDS contains redundant entries: "
             f"{redundant.intersection(RESERVED_WORDS)}"

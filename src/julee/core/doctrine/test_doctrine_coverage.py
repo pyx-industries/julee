@@ -28,6 +28,13 @@ SUPPORTING_MODELS = {
     "pipeline_router",
 }
 
+# Meta-doctrine tests that aren't about specific entities.
+# These define organizational/structural rules rather than entity doctrine.
+META_DOCTRINE_TESTS = {
+    "test_doctrine_coverage",  # This test file itself
+    "test_tests",  # Test organization doctrine (not an entity)
+}
+
 
 class TestDoctrineCoverage:
     """Ensure every entity has doctrine tests and vice versa."""
@@ -46,11 +53,11 @@ class TestDoctrineCoverage:
             if not f.name.startswith("_") and f.stem not in SUPPORTING_MODELS
         }
 
-        # Find all doctrine test files
+        # Find all doctrine test files (excluding meta-doctrine tests)
         doctrine_entities = {
             f.stem.replace("test_", "")
             for f in DOCTRINE_DIR.glob("test_*.py")
-            if f.stem != "test_doctrine_coverage"
+            if f.stem not in META_DOCTRINE_TESTS
         }
 
         # Check coverage
@@ -64,11 +71,12 @@ class TestDoctrineCoverage:
 
         This ensures we don't have orphan doctrine tests. If a doctrine test
         exists, there should be a corresponding entity file in domain/models/.
+        Meta-doctrine tests (about organization, not entities) are excluded.
         """
         doctrine_entities = {
             f.stem.replace("test_", "")
             for f in DOCTRINE_DIR.glob("test_*.py")
-            if f.stem != "test_doctrine_coverage"
+            if f.stem not in META_DOCTRINE_TESTS
         }
 
         # All possible entity file names (including supporting models)
