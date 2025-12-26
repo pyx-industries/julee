@@ -14,17 +14,21 @@ from julee.core.decorators import (
 )
 
 
-# Test fixtures
+# Test fixtures (not test classes - tell pytest to skip collection)
 class TestRequest(BaseModel):
+    __test__ = False
     value: str
 
 
 class TestResponse(BaseModel):
+    __test__ = False
     result: str
 
 
 @runtime_checkable
 class TestRepository(Protocol):
+    __test__ = False  # Tell pytest this isn't a test class
+
     async def get(self, id: str) -> str | None: ...
 
 
