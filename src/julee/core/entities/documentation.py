@@ -30,9 +30,7 @@ class DocumentationStructuralMarkers(BaseModel):
         default=False, description="Has Sphinx conf.py configuration"
     )
     has_makefile: bool = Field(default=False, description="Has Makefile for building")
-    has_index_rst: bool = Field(
-        default=False, description="Has index.rst entry point"
-    )
+    has_index_rst: bool = Field(default=False, description="Has index.rst entry point")
 
     # Build infrastructure
     has_make_html_target: bool = Field(
@@ -46,9 +44,7 @@ class DocumentationStructuralMarkers(BaseModel):
     has_static: bool = Field(
         default=False, description="Has _static directory for assets"
     )
-    has_templates: bool = Field(
-        default=False, description="Has _templates directory"
-    )
+    has_templates: bool = Field(default=False, description="Has _templates directory")
 
 
 class Documentation(BaseModel):

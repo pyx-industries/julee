@@ -9,12 +9,10 @@ from pathlib import Path
 from julee.core.doctrine_constants import (
     APPS_ROOT,
     CONTRIB_DIR,
-    DEPLOYMENTS_ROOT,
     SEARCH_ROOT,
 )
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
-from julee.core.entities.deployment import Deployment
 from julee.core.entities.solution import Solution
 from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
@@ -55,9 +53,7 @@ class FilesystemSolutionRepository:
         self.project_root = project_root
         self._cache: Solution | None = None
 
-    def _discover_bc_embedded_apps(
-        self, bc: BoundedContext
-    ) -> list[Application]:
+    def _discover_bc_embedded_apps(self, bc: BoundedContext) -> list[Application]:
         """Discover applications embedded within a bounded context.
 
         Some BCs (especially in contrib/) contain reference applications

@@ -323,7 +323,9 @@ class TestTemporalWorkerAppStructure:
         """Temporal Worker applications MUST be discoverable."""
         apps = await app_repo.list_by_type(AppType.TEMPORAL_WORKER)
 
-        assert len(apps) > 0, "No Temporal Worker applications found - detector may be broken"
+        assert (
+            len(apps) > 0
+        ), "No Temporal Worker applications found - detector may be broken"
 
     @pytest.mark.asyncio
     async def test_temporal_worker_apps_with_pipelines_MUST_have_marker(
@@ -340,7 +342,8 @@ class TestTemporalWorkerAppStructure:
         """
         solution = await solution_repo.get()
         worker_apps = [
-            app for app in solution.all_applications
+            app
+            for app in solution.all_applications
             if app.app_type == AppType.TEMPORAL_WORKER
         ]
 
@@ -349,5 +352,6 @@ class TestTemporalWorkerAppStructure:
 
         assert len(apps_with_pipelines) > 0, (
             "At least one TEMPORAL-WORKER app MUST have local pipelines. "
-            "Found workers: " + ", ".join(f"{app.slug}@{app.path}" for app in worker_apps)
+            "Found workers: "
+            + ", ".join(f"{app.slug}@{app.path}" for app in worker_apps)
         )

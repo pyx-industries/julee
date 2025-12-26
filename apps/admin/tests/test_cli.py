@@ -122,7 +122,7 @@ class TestCommandExecution:
         """doctrine list must return doctrine areas."""
         result = runner.invoke(cli, ["doctrine", "list"])
         assert result.exit_code == 0, f"Failed: {result.output}"
-        assert "Doctrine Areas:" in result.output
+        assert "Core Doctrine:" in result.output
 
     def test_doctrine_show(self, runner: CliRunner) -> None:
         """doctrine show must display rules."""

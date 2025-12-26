@@ -14,6 +14,7 @@ import logging
 from typing import Any
 
 from julee.contrib.ceap.use_cases.initialize_system_data import (
+    InitializeSystemDataRequest,
     InitializeSystemDataUseCase,
 )
 
@@ -128,7 +129,7 @@ class SystemInitializer:
         try:
             self.logger.debug("Starting task: %s", task_name)
 
-            await self.initialize_system_data_use_case.execute()
+            await self.initialize_system_data_use_case.execute(InitializeSystemDataRequest())
 
             results["tasks_completed"].append(task_name)
             results["metadata"][task_name] = {

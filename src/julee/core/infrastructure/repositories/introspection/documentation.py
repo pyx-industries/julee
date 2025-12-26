@@ -57,7 +57,10 @@ class FilesystemDocumentationRepository:
             if re.search(r"^html\s*:", content, re.MULTILINE):
                 return True
             # Look for Sphinx catch-all pattern '%: Makefile' with sphinx-build -M
-            if re.search(r"^%:\s*Makefile", content, re.MULTILINE) and "sphinx-build" in content:
+            if (
+                re.search(r"^%:\s*Makefile", content, re.MULTILINE)
+                and "sphinx-build" in content
+            ):
                 return True
             return False
         except OSError:
@@ -71,7 +74,9 @@ class FilesystemDocumentationRepository:
         try:
             content = conf_py_path.read_text()
             # Look for: project = "name" or project = 'name'
-            match = re.search(r"^project\s*=\s*['\"]([^'\"]+)['\"]", content, re.MULTILINE)
+            match = re.search(
+                r"^project\s*=\s*['\"]([^'\"]+)['\"]", content, re.MULTILINE
+            )
             return match.group(1) if match else None
         except OSError:
             return None

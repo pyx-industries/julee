@@ -20,7 +20,6 @@ from julee.core.infrastructure.repositories.introspection import (
     FilesystemSolutionRepository,
 )
 
-
 # =============================================================================
 # DOCTRINE: Deployment Discovery
 # =============================================================================
@@ -124,9 +123,9 @@ class TestDeploymentTypes:
         deployments = await deployment_repo.list_all()
 
         for dep in deployments:
-            assert dep.deployment_type is not None, (
-                f"Deployment '{dep.slug}' MUST have a type"
-            )
+            assert (
+                dep.deployment_type is not None
+            ), f"Deployment '{dep.slug}' MUST have a type"
             # Verify it's a valid enum value
             assert dep.deployment_type.value in [
                 "DOCKER-COMPOSE",
@@ -160,6 +159,6 @@ class TestDeploymentDependencies:
 
         for dep in deployments:
             # application_refs should be a list (possibly empty)
-            assert isinstance(dep.application_refs, list), (
-                f"Deployment '{dep.slug}' application_refs MUST be a list"
-            )
+            assert isinstance(
+                dep.application_refs, list
+            ), f"Deployment '{dep.slug}' application_refs MUST be a list"

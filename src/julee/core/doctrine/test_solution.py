@@ -32,7 +32,6 @@ from julee.core.infrastructure.repositories.introspection import (
     FilesystemSolutionRepository,
 )
 
-
 # =============================================================================
 # DOCTRINE: Solution Discovery
 # =============================================================================
@@ -212,9 +211,9 @@ class TestNestedSolutions:
         solution = await solution_repo.get()
 
         for nested in solution.nested_solutions:
-            assert nested.is_nested is True, (
-                f"Nested solution '{nested.name}' MUST have is_nested=True"
-            )
+            assert (
+                nested.is_nested is True
+            ), f"Nested solution '{nested.name}' MUST have is_nested=True"
 
     @pytest.mark.asyncio
     async def test_nested_solution_MUST_reference_parent(
@@ -253,9 +252,9 @@ class TestSolutionLookup:
         for nested in solution.nested_solutions:
             for bc in nested.bounded_contexts:
                 found = solution.get_bounded_context(bc.slug)
-                assert found is not None, (
-                    f"get_bounded_context('{bc.slug}') MUST find BC in nested solution"
-                )
+                assert (
+                    found is not None
+                ), f"get_bounded_context('{bc.slug}') MUST find BC in nested solution"
                 assert found.slug == bc.slug
 
     @pytest.mark.asyncio
@@ -273,9 +272,9 @@ class TestSolutionLookup:
         for nested in solution.nested_solutions:
             for app in nested.applications:
                 found = solution.get_application(app.slug)
-                assert found is not None, (
-                    f"get_application('{app.slug}') MUST find app in nested solution"
-                )
+                assert (
+                    found is not None
+                ), f"get_application('{app.slug}') MUST find app in nested solution"
                 assert found.slug == app.slug
 
 
@@ -299,9 +298,9 @@ class TestSolutionDocumentation:
         """A solution MUST have a docs/ directory."""
         solution = await solution_repo.get()
 
-        assert solution.documentation is not None, (
-            "Solution MUST have documentation (docs/ directory)"
-        )
+        assert (
+            solution.documentation is not None
+        ), "Solution MUST have documentation (docs/ directory)"
 
     @pytest.mark.asyncio
     async def test_documentation_MUST_have_sphinx_conf_py(
@@ -311,9 +310,9 @@ class TestSolutionDocumentation:
         solution = await solution_repo.get()
 
         assert solution.documentation is not None, "Solution MUST have documentation"
-        assert solution.documentation.markers.has_conf_py, (
-            "docs/ MUST have conf.py (Sphinx configuration)"
-        )
+        assert (
+            solution.documentation.markers.has_conf_py
+        ), "docs/ MUST have conf.py (Sphinx configuration)"
 
     @pytest.mark.asyncio
     async def test_documentation_MUST_have_makefile(
@@ -323,9 +322,7 @@ class TestSolutionDocumentation:
         solution = await solution_repo.get()
 
         assert solution.documentation is not None, "Solution MUST have documentation"
-        assert solution.documentation.markers.has_makefile, (
-            "docs/ MUST have Makefile"
-        )
+        assert solution.documentation.markers.has_makefile, "docs/ MUST have Makefile"
 
     @pytest.mark.asyncio
     async def test_documentation_MUST_support_make_html(
@@ -335,9 +332,9 @@ class TestSolutionDocumentation:
         solution = await solution_repo.get()
 
         assert solution.documentation is not None, "Solution MUST have documentation"
-        assert solution.documentation.markers.has_make_html_target, (
-            "docs/Makefile MUST have 'html' target (build with 'make html')"
-        )
+        assert (
+            solution.documentation.markers.has_make_html_target
+        ), "docs/Makefile MUST have 'html' target (build with 'make html')"
 
     @pytest.mark.asyncio
     async def test_documentation_MUST_be_buildable(
@@ -350,6 +347,6 @@ class TestSolutionDocumentation:
         solution = await solution_repo.get()
 
         assert solution.documentation is not None, "Solution MUST have documentation"
-        assert solution.documentation.is_buildable, (
-            "Documentation MUST be buildable (Makefile with 'html' target)"
-        )
+        assert (
+            solution.documentation.is_buildable
+        ), "Documentation MUST be buildable (Makefile with 'html' target)"
