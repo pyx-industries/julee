@@ -13,30 +13,36 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from julee.contrib.ceap.entities import (
-    Assembly,
+from julee.contrib.ceap.entities.assembly import Assembly, AssemblyStatus
+from julee.contrib.ceap.entities.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
-    AssemblyStatus,
-    ContentStream,
-    Document,
-    DocumentStatus,
-    KnowledgeServiceConfig,
-    KnowledgeServiceQuery,
 )
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.knowledge_service_config import KnowledgeServiceConfig
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.core.entities.content_stream import ContentStream
 from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
-from julee.contrib.ceap.infrastructure.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory.assembly import (
     MemoryAssemblyRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.assembly_specification import (
     MemoryAssemblySpecificationRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.document import (
     MemoryDocumentRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
 )
-from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.memory.knowledge_service import (
     MemoryKnowledgeService,
 )
 from julee.contrib.ceap.services.knowledge_service import QueryResult
-from julee.contrib.ceap.use_cases import (
+from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
 )

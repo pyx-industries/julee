@@ -18,7 +18,7 @@ from julee.contrib.ceap.entities.knowledge_service_config import (
 from julee.contrib.ceap.infrastructure.services.knowledge_service import (
     ensure_knowledge_service,
 )
-from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.knowledge_service import (
     AnthropicKnowledgeService,
 )
 from julee.contrib.ceap.infrastructure.services.knowledge_service.factory import (

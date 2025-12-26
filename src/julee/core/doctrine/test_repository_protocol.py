@@ -10,10 +10,10 @@ from julee.core.doctrine_constants import (
     PROTOCOL_BASES,
     REPOSITORY_SUFFIX,
 )
-from julee.core.use_cases import (
-    ListCodeArtifactsRequest,
+from julee.core.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsUseCase,
 )
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 class TestRepositoryProtocolNaming:

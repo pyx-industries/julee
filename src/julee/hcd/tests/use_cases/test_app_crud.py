@@ -4,18 +4,11 @@ import pytest
 
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
-from julee.hcd.use_cases.app import (
-    CreateAppRequest,
-    CreateAppUseCase,
-    DeleteAppRequest,
-    DeleteAppUseCase,
-    GetAppRequest,
-    GetAppUseCase,
-    ListAppsRequest,
-    ListAppsUseCase,
-    UpdateAppRequest,
-    UpdateAppUseCase,
-)
+from julee.hcd.use_cases.app.create import CreateAppRequest, CreateAppUseCase
+from julee.hcd.use_cases.app.delete import DeleteAppRequest, DeleteAppUseCase
+from julee.hcd.use_cases.app.get import GetAppRequest, GetAppUseCase
+from julee.hcd.use_cases.app.list import ListAppsRequest, ListAppsUseCase
+from julee.hcd.use_cases.app.update import UpdateAppRequest, UpdateAppUseCase
 
 
 class TestCreateAppUseCase:

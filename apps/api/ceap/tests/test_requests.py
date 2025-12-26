@@ -10,10 +10,8 @@ behavior (like field copying and conversion methods) functions as expected.
 import pytest
 from pydantic import ValidationError
 
-from julee.contrib.ceap.entities import (
-    AssemblySpecification,
-    KnowledgeServiceQuery,
-)
+from julee.contrib.ceap.entities.assembly_specification import AssemblySpecification
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 from julee.contrib.ceap.use_cases.crud import (
     CreateAssemblySpecificationRequest,
     CreateKnowledgeServiceQueryRequest,

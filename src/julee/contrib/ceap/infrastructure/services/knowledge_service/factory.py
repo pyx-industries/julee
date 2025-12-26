@@ -19,7 +19,7 @@ from julee.contrib.ceap.services.knowledge_service import (
     QueryResult,
 )
 
-from .anthropic import AnthropicKnowledgeService
+from .anthropic.knowledge_service import AnthropicKnowledgeService
 
 logger = logging.getLogger(__name__)
 

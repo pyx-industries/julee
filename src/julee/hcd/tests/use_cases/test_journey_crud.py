@@ -4,19 +4,15 @@ import pytest
 
 from julee.hcd.entities.journey import Journey, JourneyStep, StepType
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
-from julee.hcd.use_cases.journey import (
+from julee.hcd.use_cases.journey.create import (
     CreateJourneyRequest,
     CreateJourneyUseCase,
-    DeleteJourneyRequest,
-    DeleteJourneyUseCase,
-    GetJourneyRequest,
-    GetJourneyUseCase,
     JourneyStepItem,
-    ListJourneysRequest,
-    ListJourneysUseCase,
-    UpdateJourneyRequest,
-    UpdateJourneyUseCase,
 )
+from julee.hcd.use_cases.journey.delete import DeleteJourneyRequest, DeleteJourneyUseCase
+from julee.hcd.use_cases.journey.get import GetJourneyRequest, GetJourneyUseCase
+from julee.hcd.use_cases.journey.list import ListJourneysRequest, ListJourneysUseCase
+from julee.hcd.use_cases.journey.update import UpdateJourneyRequest, UpdateJourneyUseCase
 
 
 class TestCreateJourneyUseCase:

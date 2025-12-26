@@ -19,19 +19,19 @@ import jsonschema
 import multihash
 from pydantic import BaseModel, Field
 
-from julee.contrib.ceap.entities import (
-    Assembly,
-    AssemblySpecification,
-    AssemblyStatus,
-    Document,
-    DocumentStatus,
-    KnowledgeServiceQuery,
-)
-from julee.contrib.ceap.repositories import (
-    AssemblyRepository,
+from julee.contrib.ceap.entities.assembly import Assembly, AssemblyStatus
+from julee.contrib.ceap.entities.assembly_specification import AssemblySpecification
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.contrib.ceap.repositories.assembly import AssemblyRepository
+from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
-    DocumentRepository,
+)
+from julee.contrib.ceap.repositories.document import DocumentRepository
+from julee.contrib.ceap.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
+)
+from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService

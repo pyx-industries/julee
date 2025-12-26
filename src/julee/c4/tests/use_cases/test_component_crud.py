@@ -6,7 +6,7 @@ from julee.c4.entities.component import Component
 from julee.c4.infrastructure.repositories.memory.component import (
     MemoryComponentRepository,
 )
-from julee.c4.use_cases.component import (
+from julee.c4.use_cases.crud import (
     CreateComponentRequest,
     CreateComponentUseCase,
     DeleteComponentRequest,

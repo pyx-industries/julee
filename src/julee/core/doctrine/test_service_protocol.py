@@ -26,11 +26,11 @@ from julee.core.doctrine_constants import (
     SERVICE_SUFFIX,
 )
 from julee.core.parsers.ast import parse_python_classes
-from julee.core.use_cases import (
-    ListCodeArtifactsRequest,
-    ListEntitiesUseCase,
+from julee.core.use_cases.code_artifact.list_entities import ListEntitiesUseCase
+from julee.core.use_cases.code_artifact.list_service_protocols import (
     ListServiceProtocolsUseCase,
 )
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 class TestServiceProtocolNaming:

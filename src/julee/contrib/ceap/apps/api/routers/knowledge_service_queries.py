@@ -9,7 +9,7 @@ from fastapi_pagination import Page, paginate
 from julee.contrib.ceap.apps.api.dependencies import (
     get_knowledge_service_query_repository,
 )
-from julee.contrib.ceap.entities import KnowledgeServiceQuery
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
 from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )

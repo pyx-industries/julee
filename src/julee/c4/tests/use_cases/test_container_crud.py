@@ -9,7 +9,7 @@ from julee.c4.entities.container import (
 from julee.c4.infrastructure.repositories.memory.container import (
     MemoryContainerRepository,
 )
-from julee.c4.use_cases.container import (
+from julee.c4.use_cases.crud import (
     CreateContainerRequest,
     CreateContainerUseCase,
     DeleteContainerRequest,

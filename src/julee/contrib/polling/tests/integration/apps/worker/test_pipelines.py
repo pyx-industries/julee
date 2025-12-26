@@ -25,7 +25,7 @@ from julee.contrib.polling.entities.polling_config import (
     PollingProtocol,
     PollingResult,
 )
-from julee.contrib.polling.use_cases import NewDataDetectionRequest
+from julee.contrib.polling.use_cases.new_data_detection import NewDataDetectionRequest
 
 pytestmark = pytest.mark.integration
 

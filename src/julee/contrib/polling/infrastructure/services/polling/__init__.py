@@ -9,5 +9,3 @@ into Temporal workflows. Import directly from specific modules:
 
 - from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService
 """
-
-__all__ = []

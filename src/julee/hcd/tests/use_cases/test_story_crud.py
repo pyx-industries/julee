@@ -4,18 +4,11 @@ import pytest
 
 from julee.hcd.entities.story import Story
 from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
-from julee.hcd.use_cases.story import (
-    CreateStoryRequest,
-    CreateStoryUseCase,
-    DeleteStoryRequest,
-    DeleteStoryUseCase,
-    GetStoryRequest,
-    GetStoryUseCase,
-    ListStoriesRequest,
-    ListStoriesUseCase,
-    UpdateStoryRequest,
-    UpdateStoryUseCase,
-)
+from julee.hcd.use_cases.story.create import CreateStoryRequest, CreateStoryUseCase
+from julee.hcd.use_cases.story.delete import DeleteStoryRequest, DeleteStoryUseCase
+from julee.hcd.use_cases.story.get import GetStoryRequest, GetStoryUseCase
+from julee.hcd.use_cases.story.list import ListStoriesRequest, ListStoriesUseCase
+from julee.hcd.use_cases.story.update import UpdateStoryRequest, UpdateStoryUseCase
 
 
 class TestCreateStoryUseCase:

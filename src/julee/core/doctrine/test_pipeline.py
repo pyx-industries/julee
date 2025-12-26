@@ -16,10 +16,8 @@ from textwrap import dedent
 import pytest
 
 from julee.core.parsers.ast import parse_pipelines_from_file
-from julee.core.use_cases import (
-    ListCodeArtifactsRequest,
-    ListPipelinesUseCase,
-)
+from julee.core.use_cases.code_artifact.list_pipelines import ListPipelinesUseCase
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 def create_pipeline_file(tmp_path: Path, content: str) -> Path:

@@ -7,10 +7,8 @@ The assertions enforce them.
 import pytest
 
 from julee.core.doctrine_constants import ENTITY_FORBIDDEN_SUFFIXES
-from julee.core.use_cases import (
-    ListCodeArtifactsRequest,
-    ListEntitiesUseCase,
-)
+from julee.core.use_cases.code_artifact.list_entities import ListEntitiesUseCase
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 # Meta-entities in core that describe what Request/Response/UseCase ARE.
 # These are exempt from the forbidden suffix rule because they're describing

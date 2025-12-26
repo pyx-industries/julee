@@ -28,7 +28,7 @@ The canonical structure is:
 
 import pytest
 
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.solution import (
     FilesystemSolutionRepository,
 )
 

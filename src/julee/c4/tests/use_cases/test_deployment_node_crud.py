@@ -9,7 +9,7 @@ from julee.c4.entities.deployment_node import (
 from julee.c4.infrastructure.repositories.memory.deployment_node import (
     MemoryDeploymentNodeRepository,
 )
-from julee.c4.use_cases.deployment_node import (
+from julee.c4.use_cases.crud import (
     CreateDeploymentNodeRequest,
     CreateDeploymentNodeUseCase,
     DeleteDeploymentNodeRequest,

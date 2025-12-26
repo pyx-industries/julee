@@ -19,15 +19,15 @@ from temporalio import workflow
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
-from julee.contrib.polling.use_cases import (
+from julee.contrib.polling.use_cases.new_data_detection import (
     NewDataDetectionRequest,
     NewDataDetectionResponse,
     NewDataDetectionUseCase,
 )
 from julee.core.entities.pipeline_dispatch import PipelineDispatchItem
-from julee.core.infrastructure.pipeline_routing import (
+from julee.core.infrastructure.pipeline_routing.config import pipeline_routing_registry
+from julee.core.infrastructure.pipeline_routing.transformer import (
     RegistryPipelineRequestTransformer,
-    pipeline_routing_registry,
 )
 from julee.core.use_cases.pipeline_route_response import (
     PipelineRouteResponseRequest,

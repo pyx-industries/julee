@@ -16,7 +16,7 @@ from julee.core.doctrine_constants import (
     TEST_MARKERS,
     TESTS_ROOT,
 )
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
 

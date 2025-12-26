@@ -8,11 +8,19 @@ from julee.core.doctrine_constants import (
     ENTITIES_PATH,
     USE_CASES_PATH,
 )
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
+)
+from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
+)
+from julee.core.infrastructure.repositories.introspection.deployment import (
     FilesystemDeploymentRepository,
+)
+from julee.core.infrastructure.repositories.introspection.documentation import (
     FilesystemDocumentationRepository,
+)
+from julee.core.infrastructure.repositories.introspection.solution import (
     FilesystemSolutionRepository,
 )
 

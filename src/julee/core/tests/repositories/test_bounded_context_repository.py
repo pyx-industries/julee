@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from julee.core.doctrine_constants import RESERVED_WORDS, VIEWPOINT_SLUGS
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
 

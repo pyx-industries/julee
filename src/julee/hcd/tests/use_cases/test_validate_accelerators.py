@@ -10,7 +10,7 @@ from julee.hcd.infrastructure.repositories.memory.accelerator import (
 from julee.hcd.infrastructure.repositories.memory.code_info import (
     MemoryCodeInfoRepository,
 )
-from julee.hcd.use_cases.queries import (
+from julee.hcd.use_cases.queries.validate_accelerators import (
     ValidateAcceleratorsRequest,
     ValidateAcceleratorsUseCase,
 )

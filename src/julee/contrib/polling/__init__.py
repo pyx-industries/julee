@@ -33,20 +33,3 @@ Note: All imports must be explicit to avoid import chains that can pull
 non-deterministic code into Temporal workflows. Import directly from
 the specific modules you need rather than using this convenience module.
 """
-
-# No re-exports to avoid import chains that pull non-deterministic code
-# into Temporal workflows. Import from specific submodules instead:
-#
-# Entities:
-# - from julee.contrib.polling.entities.polling_config import PollingConfig, PollingProtocol, PollingResult
-#
-# Services (protocols):
-# - from julee.contrib.polling.services.poller import PollerService
-#
-# Infrastructure:
-# - from julee.contrib.polling.infrastructure.services.polling.http import HttpPollerService
-# - from julee.contrib.polling.infrastructure.temporal.manager import PollingManager
-# - from julee.contrib.polling.infrastructure.temporal.proxies import WorkflowPollerServiceProxy
-# - from julee.contrib.polling.infrastructure.temporal.activities import TemporalPollerService
-
-__all__ = []

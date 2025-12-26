@@ -8,5 +8,3 @@ into Temporal workflows. Import directly from specific modules:
 
 - from julee.contrib.polling.entities.polling_config import PollingConfig, PollingProtocol, PollingResult
 """
-
-__all__ = []

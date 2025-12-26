@@ -13,31 +13,36 @@ from unittest.mock import AsyncMock
 import pytest
 from pydantic import ValidationError
 
-from julee.contrib.ceap.entities import (
-    ContentStream,
-    Document,
-    DocumentStatus,
-    KnowledgeServiceConfig,
-    KnowledgeServiceQuery,
-)
+from julee.contrib.ceap.entities.document import Document, DocumentStatus
+from julee.contrib.ceap.entities.knowledge_service_config import KnowledgeServiceConfig
+from julee.contrib.ceap.entities.knowledge_service_query import KnowledgeServiceQuery
+from julee.core.entities.content_stream import ContentStream
 from julee.contrib.ceap.entities.document_policy_validation import (
     DocumentPolicyValidation,
     DocumentPolicyValidationStatus,
 )
 from julee.contrib.ceap.entities.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.entities.policy import Policy, PolicyStatus
-from julee.contrib.ceap.infrastructure.repositories.memory import (
-    MemoryDocumentPolicyValidationRepository,
+from julee.contrib.ceap.infrastructure.repositories.memory.document import (
     MemoryDocumentRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.document_policy_validation import (
+    MemoryDocumentPolicyValidationRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_config import (
     MemoryKnowledgeServiceConfigRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory.policy import (
     MemoryPolicyRepository,
 )
-from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service.memory.knowledge_service import (
     MemoryKnowledgeService,
 )
 from julee.contrib.ceap.services.knowledge_service import QueryResult
-from julee.contrib.ceap.use_cases import (
+from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentRequest,
     ValidateDocumentUseCase,
 )

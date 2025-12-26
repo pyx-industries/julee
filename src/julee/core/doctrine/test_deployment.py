@@ -15,8 +15,10 @@ Doctrine:
 
 import pytest
 
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.deployment import (
     FilesystemDeploymentRepository,
+)
+from julee.core.infrastructure.repositories.introspection.solution import (
     FilesystemSolutionRepository,
 )
 

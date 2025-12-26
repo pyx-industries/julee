@@ -10,16 +10,21 @@ from julee.hcd.entities.integration import (
 from julee.hcd.infrastructure.repositories.memory.integration import (
     MemoryIntegrationRepository,
 )
-from julee.hcd.use_cases.integration import (
+from julee.hcd.use_cases.integration.create import (
     CreateIntegrationRequest,
     CreateIntegrationUseCase,
+    ExternalDependencyItem,
+)
+from julee.hcd.use_cases.integration.delete import (
     DeleteIntegrationRequest,
     DeleteIntegrationUseCase,
-    ExternalDependencyItem,
-    GetIntegrationRequest,
-    GetIntegrationUseCase,
+)
+from julee.hcd.use_cases.integration.get import GetIntegrationRequest, GetIntegrationUseCase
+from julee.hcd.use_cases.integration.list import (
     ListIntegrationsRequest,
     ListIntegrationsUseCase,
+)
+from julee.hcd.use_cases.integration.update import (
     UpdateIntegrationRequest,
     UpdateIntegrationUseCase,
 )

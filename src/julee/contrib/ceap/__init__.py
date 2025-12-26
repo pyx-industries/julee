@@ -7,7 +7,3 @@ and use cases for:
 - Policy validation and enforcement
 - Knowledge service integration
 """
-
-__all__ = [
-    "domain",
-]

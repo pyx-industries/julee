@@ -9,7 +9,7 @@ from julee.c4.entities.relationship import (
 from julee.c4.infrastructure.repositories.memory.relationship import (
     MemoryRelationshipRepository,
 )
-from julee.c4.use_cases.relationship import (
+from julee.c4.use_cases.crud import (
     CreateRelationshipRequest,
     CreateRelationshipUseCase,
     DeleteRelationshipRequest,

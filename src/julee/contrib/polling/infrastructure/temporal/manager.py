@@ -23,7 +23,7 @@ from temporalio.client import (
 )
 
 from julee.contrib.polling.entities.polling_config import PollingConfig
-from julee.contrib.polling.use_cases import NewDataDetectionRequest
+from julee.contrib.polling.use_cases.new_data_detection import NewDataDetectionRequest
 
 logger = logging.getLogger(__name__)
 

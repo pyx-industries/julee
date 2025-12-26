@@ -3,7 +3,7 @@
 import pytest
 
 from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
-from julee.core.use_cases import (
+from julee.core.use_cases.bounded_context.list import (
     ListBoundedContextsRequest,
     ListBoundedContextsResponse,
     ListBoundedContextsUseCase,

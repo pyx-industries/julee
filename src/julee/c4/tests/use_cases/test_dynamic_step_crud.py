@@ -7,7 +7,7 @@ from julee.c4.entities.relationship import ElementType
 from julee.c4.infrastructure.repositories.memory.dynamic_step import (
     MemoryDynamicStepRepository,
 )
-from julee.c4.use_cases.dynamic_step import (
+from julee.c4.use_cases.crud import (
     CreateDynamicStepRequest,
     CreateDynamicStepUseCase,
     DeleteDynamicStepRequest,

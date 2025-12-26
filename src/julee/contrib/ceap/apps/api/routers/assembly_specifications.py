@@ -13,7 +13,7 @@ from fastapi_pagination import Page, paginate
 from julee.contrib.ceap.apps.api.dependencies import (
     get_assembly_specification_repository,
 )
-from julee.contrib.ceap.entities import AssemblySpecification
+from julee.contrib.ceap.entities.assembly_specification import AssemblySpecification
 from julee.contrib.ceap.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )

@@ -16,10 +16,10 @@ from julee.core.doctrine_constants import (
     SEARCH_ROOT,
     VIEWPOINT_SLUGS,
 )
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
-from julee.core.use_cases import (
+from julee.core.use_cases.bounded_context.list import (
     ListBoundedContextsRequest,
     ListBoundedContextsUseCase,
 )

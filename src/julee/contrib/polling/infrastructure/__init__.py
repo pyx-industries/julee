@@ -12,5 +12,3 @@ into Temporal workflows. Import directly from specific modules:
 - from julee.contrib.polling.infrastructure.temporal.proxies import WorkflowPollerServiceProxy
 - from julee.contrib.polling.infrastructure.temporal.activities import TemporalPollerService
 """
-
-__all__ = []

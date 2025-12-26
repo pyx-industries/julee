@@ -9,16 +9,24 @@ from julee.hcd.entities.accelerator import (
 from julee.hcd.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
-from julee.hcd.use_cases.accelerator import (
+from julee.hcd.use_cases.accelerator.create import (
     CreateAcceleratorRequest,
     CreateAcceleratorUseCase,
+    IntegrationReferenceItem,
+)
+from julee.hcd.use_cases.accelerator.delete import (
     DeleteAcceleratorRequest,
     DeleteAcceleratorUseCase,
+)
+from julee.hcd.use_cases.accelerator.get import (
     GetAcceleratorRequest,
     GetAcceleratorUseCase,
-    IntegrationReferenceItem,
+)
+from julee.hcd.use_cases.accelerator.list import (
     ListAcceleratorsRequest,
     ListAcceleratorsUseCase,
+)
+from julee.hcd.use_cases.accelerator.update import (
     UpdateAcceleratorRequest,
     UpdateAcceleratorUseCase,
 )

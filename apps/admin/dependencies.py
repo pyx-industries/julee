@@ -9,19 +9,21 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
-from julee.core.use_cases import (
-    GetBoundedContextUseCase,
-    ListBoundedContextsUseCase,
-    ListEntitiesUseCase,
+from julee.core.use_cases.bounded_context.get import GetBoundedContextUseCase
+from julee.core.use_cases.bounded_context.list import ListBoundedContextsUseCase
+from julee.core.use_cases.code_artifact.list_entities import ListEntitiesUseCase
+from julee.core.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsUseCase,
-    ListRequestsUseCase,
-    ListResponsesUseCase,
-    ListServiceProtocolsUseCase,
-    ListUseCasesUseCase,
 )
+from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
+from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
+from julee.core.use_cases.code_artifact.list_service_protocols import (
+    ListServiceProtocolsUseCase,
+)
+from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
 
 PROJECT_ROOT_MARKERS = ("pyproject.toml", "setup.py", ".git")
 

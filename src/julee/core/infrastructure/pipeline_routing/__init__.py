@@ -16,22 +16,3 @@ Example:
     pipeline_routing_registry.register_routes(my_routes)
     pipeline_routing_registry.register_transformer("MyResponse", "MyRequest", my_transform_fn)
 """
-
-from julee.core.infrastructure.pipeline_routing.config import (
-    PipelineRoutingRegistry,
-    pipeline_routing_registry,
-)
-from julee.core.infrastructure.pipeline_routing.transformer import (
-    RegistryPipelineRequestTransformer,
-)
-
-__all__ = [
-    "PipelineRoutingRegistry",
-    "RegistryPipelineRequestTransformer",
-    "pipeline_routing_registry",
-]
-
-# Backwards-compatible aliases
-RoutingRegistry = PipelineRoutingRegistry
-routing_registry = pipeline_routing_registry
-RegistryRequestTransformer = RegistryPipelineRequestTransformer

@@ -33,17 +33,27 @@ from julee.c4.infrastructure.repositories.memory.relationship import (
 from julee.c4.infrastructure.repositories.memory.software_system import (
     MemorySoftwareSystemRepository,
 )
-from julee.c4.use_cases.diagrams import (
+from julee.c4.use_cases.diagrams.component_diagram import (
     GetComponentDiagramRequest,
     GetComponentDiagramUseCase,
+)
+from julee.c4.use_cases.diagrams.container_diagram import (
     GetContainerDiagramRequest,
     GetContainerDiagramUseCase,
+)
+from julee.c4.use_cases.diagrams.deployment_diagram import (
     GetDeploymentDiagramRequest,
     GetDeploymentDiagramUseCase,
+)
+from julee.c4.use_cases.diagrams.dynamic_diagram import (
     GetDynamicDiagramRequest,
     GetDynamicDiagramUseCase,
+)
+from julee.c4.use_cases.diagrams.system_context import (
     GetSystemContextDiagramRequest,
     GetSystemContextDiagramUseCase,
+)
+from julee.c4.use_cases.diagrams.system_landscape import (
     GetSystemLandscapeDiagramRequest,
     GetSystemLandscapeDiagramUseCase,
 )

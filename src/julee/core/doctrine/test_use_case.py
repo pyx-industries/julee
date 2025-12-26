@@ -14,12 +14,10 @@ from julee.core.doctrine_constants import (
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
-from julee.core.use_cases import (
-    ListCodeArtifactsRequest,
-    ListRequestsUseCase,
-    ListResponsesUseCase,
-    ListUseCasesUseCase,
-)
+from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
+from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
+from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
+from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 def _resolve_class(import_path: str, file_path: str, class_name: str) -> type | None:

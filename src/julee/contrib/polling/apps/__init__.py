@@ -13,5 +13,3 @@ into Temporal workflows. Import directly from specific modules:
 
 - from julee.contrib.polling.apps.worker.pipelines import NewDataDetectionPipeline
 """
-
-__all__ = []

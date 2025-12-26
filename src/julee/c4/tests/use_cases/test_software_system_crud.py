@@ -9,7 +9,7 @@ from julee.c4.entities.software_system import (
 from julee.c4.infrastructure.repositories.memory.software_system import (
     MemorySoftwareSystemRepository,
 )
-from julee.c4.use_cases.software_system import (
+from julee.c4.use_cases.crud import (
     CreateSoftwareSystemRequest,
     CreateSoftwareSystemUseCase,
     DeleteSoftwareSystemRequest,

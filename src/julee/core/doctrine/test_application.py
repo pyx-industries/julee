@@ -25,8 +25,10 @@ import pytest
 
 from julee.core.doctrine_constants import USE_CASE_SUFFIX
 from julee.core.entities.application import AppType
-from julee.core.infrastructure.repositories.introspection import (
+from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
+)
+from julee.core.infrastructure.repositories.introspection.solution import (
     FilesystemSolutionRepository,
 )
 
