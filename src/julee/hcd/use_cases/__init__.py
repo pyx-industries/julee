@@ -2,7 +2,12 @@
 
 Business logic for cross-referencing, deriving entities, and CRUD operations.
 
-Import directly from submodules:
-    from julee.hcd.use_cases.story import CreateStoryUseCase, CreateStoryRequest
-    from julee.hcd.use_cases.persona import ListPersonasUseCase
+Submodules:
+    crud - Generic CRUD use cases for all HCD entities
+    queries/ - Query use cases (derive_personas, get_persona, validate_accelerators)
+
+Functions:
+    derive_personas - Persona derivation from stories/epics
+    resolve_*_references - Cross-entity reference resolution
+    suggestions - Suggestion computation
 """
