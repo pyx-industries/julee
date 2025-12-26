@@ -7,9 +7,15 @@ Applications are deployable/runnable compositions that depend on one or more
 bounded contexts. They live in {solution}/apps/ and are classified by type:
 REST-API, MCP, SPHINX-EXTENSION, TEMPORAL-WORKER, CLI.
 
-App-type-specific doctrine:
+App Type Doctrine (applies to all apps of a given type):
 - REST-API: All endpoints MUST map to exactly one use case
 - REST-API: Endpoints MUST use Request/Response objects of their use case
+- CLI: CLI apps MUST have a commands/ directory
+- CLI: CLI apps MUST use Click for command definitions
+- MCP: MCP apps MUST have a tools/ directory
+- TEMPORAL-WORKER: Worker apps MUST have pipelines
+
+App Instance Doctrine lives in apps/{app}/doctrine/ and is additive.
 """
 
 import ast
@@ -21,6 +27,7 @@ from julee.core.doctrine_constants import USE_CASE_SUFFIX
 from julee.core.entities.application import AppType
 from julee.core.infrastructure.repositories.introspection import (
     FilesystemApplicationRepository,
+    FilesystemSolutionRepository,
 )
 
 
@@ -231,3 +238,116 @@ class TestRestApiEndpointRequestResponse:
         # 2. The UseCase's Request class
         # 3. Whether they match (or one wraps the other)
         pass
+
+
+# =============================================================================
+# CLI APP TYPE DOCTRINE
+# =============================================================================
+
+
+class TestCliAppStructure:
+    """Doctrine about CLI application structure."""
+
+    @pytest.mark.asyncio
+    async def test_cli_apps_exist(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """CLI applications MUST be discoverable."""
+        apps = await app_repo.list_by_type(AppType.CLI)
+
+        assert len(apps) > 0, "No CLI applications found - detector may be broken"
+
+    @pytest.mark.asyncio
+    async def test_cli_apps_MUST_have_commands_directory(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """CLI applications MUST have a commands/ directory.
+
+        Doctrine: CLI apps organize their commands in a commands/ subdirectory.
+        Each command module defines Click commands that expose use cases.
+        """
+        apps = await app_repo.list_by_type(AppType.CLI)
+
+        for app in apps:
+            assert (
+                app.markers.has_commands
+            ), f"CLI application '{app.slug}' MUST have commands/ directory"
+
+
+# =============================================================================
+# MCP APP TYPE DOCTRINE
+# =============================================================================
+
+
+class TestMcpAppStructure:
+    """Doctrine about MCP application structure."""
+
+    @pytest.mark.asyncio
+    async def test_mcp_apps_exist(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """MCP applications MUST be discoverable."""
+        apps = await app_repo.list_by_type(AppType.MCP)
+
+        assert len(apps) > 0, "No MCP applications found - detector may be broken"
+
+    @pytest.mark.asyncio
+    async def test_mcp_apps_MUST_have_tools_directory(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """MCP applications MUST have a tools/ directory.
+
+        Doctrine: MCP apps expose their capabilities through tools/ which
+        define the MCP tool interface for AI assistants.
+        """
+        apps = await app_repo.list_by_type(AppType.MCP)
+
+        for app in apps:
+            assert (
+                app.markers.has_tools
+            ), f"MCP application '{app.slug}' MUST have tools/ directory"
+
+
+# =============================================================================
+# TEMPORAL WORKER APP TYPE DOCTRINE
+# =============================================================================
+
+
+class TestTemporalWorkerAppStructure:
+    """Doctrine about Temporal Worker application structure."""
+
+    @pytest.mark.asyncio
+    async def test_temporal_worker_apps_exist(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """Temporal Worker applications MUST be discoverable."""
+        apps = await app_repo.list_by_type(AppType.TEMPORAL_WORKER)
+
+        assert len(apps) > 0, "No Temporal Worker applications found - detector may be broken"
+
+    @pytest.mark.asyncio
+    async def test_temporal_worker_apps_with_pipelines_MUST_have_marker(
+        self, solution_repo: FilesystemSolutionRepository
+    ) -> None:
+        """Temporal Worker applications with local pipelines MUST have the marker.
+
+        Doctrine: Worker apps that define their own pipelines (not composite
+        workers) MUST have has_pipelines=True. This verifies the marker
+        detection is working correctly for apps with pipelines/ or pipelines.py.
+
+        Composite workers (that import pipelines from other TEMPORAL-WORKER apps)
+        MAY have has_pipelines=False - they are detected via temporalio imports.
+        """
+        solution = await solution_repo.get()
+        worker_apps = [
+            app for app in solution.all_applications
+            if app.app_type == AppType.TEMPORAL_WORKER
+        ]
+
+        # At least one worker should have local pipelines
+        apps_with_pipelines = [app for app in worker_apps if app.markers.has_pipelines]
+
+        assert len(apps_with_pipelines) > 0, (
+            "At least one TEMPORAL-WORKER app MUST have local pipelines. "
+            "Found workers: " + ", ".join(f"{app.slug}@{app.path}" for app in worker_apps)
+        )
