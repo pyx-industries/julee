@@ -16,6 +16,9 @@ from julee.core.use_cases.bounded_context.get import GetBoundedContextUseCase
 from julee.core.use_cases.bounded_context.list import ListBoundedContextsUseCase
 
 # Code artifact use cases
+from julee.core.use_cases.code_artifact.get_bounded_context_code import (
+    GetBoundedContextCodeUseCase,
+)
 from julee.core.use_cases.code_artifact.list_entities import ListEntitiesUseCase
 from julee.core.use_cases.code_artifact.list_pipelines import ListPipelinesUseCase
 from julee.core.use_cases.code_artifact.list_repository_protocols import (
@@ -68,6 +71,11 @@ def get_list_bounded_contexts_use_case() -> ListBoundedContextsUseCase:
 # =============================================================================
 # Code Artifact Use-Case Factories
 # =============================================================================
+
+
+def get_get_bounded_context_code_use_case() -> GetBoundedContextCodeUseCase:
+    """Get GetBoundedContextCodeUseCase with repository dependency."""
+    return GetBoundedContextCodeUseCase(get_bounded_context_repository())
 
 
 def get_list_entities_use_case() -> ListEntitiesUseCase:
