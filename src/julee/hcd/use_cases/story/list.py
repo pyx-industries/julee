@@ -1,31 +1,31 @@
-"""List stories use case with co-located request/response."""
+"""List stories use case using FilterableListUseCase."""
 
 from pydantic import BaseModel, Field
 
-from julee.core.decorators import use_case
+from julee.core.use_cases.generic_crud import (
+    FilterableListUseCase,
+    make_list_request,
+)
 from julee.hcd.entities.story import Story
 from julee.hcd.repositories.story import StoryRepository
 
-
-class ListStoriesRequest(BaseModel):
-    """Request for listing stories with optional filters.
-
-    All filters are optional. When multiple filters are specified,
-    they are combined with AND logic.
-    """
-
-    app_slug: str | None = Field(
-        default=None, description="Filter to stories for this application"
-    )
-    persona: str | None = Field(
-        default=None, description="Filter to stories for this persona"
-    )
+# Dynamic request from repository's list_filtered signature
+ListStoriesRequest = make_list_request("ListStoriesRequest", StoryRepository)
 
 
 class ListStoriesResponse(BaseModel):
-    """Response from listing stories."""
+    """Response from listing stories.
 
-    stories: list[Story]
+    Uses validation_alias to accept 'entities' from generic CRUD infrastructure
+    while serializing as 'stories' for API consumers.
+    """
+
+    stories: list[Story] = Field(default=[], validation_alias="entities")
+
+    @property
+    def entities(self) -> list[Story]:
+        """Alias for generic list operations."""
+        return self.stories
 
     @property
     def count(self) -> int:
@@ -33,26 +33,28 @@ class ListStoriesResponse(BaseModel):
         return len(self.stories)
 
     def grouped_by_persona(self) -> dict[str, list[Story]]:
-        """Group stories by persona name."""
+        """Group stories by persona."""
         result: dict[str, list[Story]] = {}
         for story in self.stories:
-            result.setdefault(story.persona, []).append(story)
+            persona = story.persona or "unknown"
+            result.setdefault(persona, []).append(story)
         return result
 
     def grouped_by_app(self) -> dict[str, list[Story]]:
-        """Group stories by app slug."""
+        """Group stories by app."""
         result: dict[str, list[Story]] = {}
         for story in self.stories:
-            result.setdefault(story.app_slug, []).append(story)
+            app = story.app_slug or "unknown"
+            result.setdefault(app, []).append(story)
         return result
 
 
-@use_case
-class ListStoriesUseCase:
+class ListStoriesUseCase(FilterableListUseCase[Story, StoryRepository]):
     """List stories with optional filtering.
 
-    Supports filtering by application and/or persona. When no filters
-    are provided, returns all stories.
+    Filters are derived from StoryRepository.list_filtered() signature:
+    - app_slug: Filter to stories for this application
+    - persona: Filter to stories for this persona
 
     Examples:
         # All stories
@@ -71,30 +73,8 @@ class ListStoriesUseCase:
         ))
     """
 
+    response_cls = ListStoriesResponse
+
     def __init__(self, story_repo: StoryRepository) -> None:
-        """Initialize with repository dependency.
-
-        Args:
-            story_repo: Story repository instance
-        """
-        self.story_repo = story_repo
-
-    async def execute(self, request: ListStoriesRequest) -> ListStoriesResponse:
-        """List stories with optional filtering.
-
-        Args:
-            request: List request with optional app_slug and persona filters
-
-        Returns:
-            Response containing filtered list of stories
-        """
-        stories = await self.story_repo.list_all()
-
-        # Apply filters
-        if request.app_slug:
-            stories = [s for s in stories if s.matches_app(request.app_slug)]
-
-        if request.persona:
-            stories = [s for s in stories if s.matches_persona(request.persona)]
-
-        return ListStoriesResponse(stories=stories)
+        """Initialize with repository dependency."""
+        super().__init__(story_repo)

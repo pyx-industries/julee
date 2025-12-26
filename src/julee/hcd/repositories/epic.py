@@ -60,3 +60,23 @@ class EpicRepository(BaseRepository[Epic], Protocol):
             Set of story titles (normalized)
         """
         ...
+
+    async def list_filtered(
+        self,
+        contains_story: str | None = None,
+        has_stories: bool | None = None,
+    ) -> list[Epic]:
+        """List epics matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            contains_story: Filter to epics containing this story title
+            has_stories: Filter to epics with (True) or without (False) stories
+
+        Returns:
+            List of epics matching all provided filters
+        """
+        ...

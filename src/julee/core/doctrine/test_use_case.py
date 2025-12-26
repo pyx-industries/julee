@@ -13,6 +13,12 @@ from julee.core.doctrine_constants import (
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
+
+# Generic/abstract base classes that don't require matching Request/Response
+GENERIC_BASE_CLASSES = {
+    "FilterableListUseCase",  # Generic base for list use cases with filtering
+}
+
 from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
 from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
 from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
@@ -158,6 +164,9 @@ class TestUseCaseStructure:
         for artifact in uc_response.artifacts:
             name = artifact.artifact.name
             ctx = artifact.bounded_context
+            # Skip generic base classes
+            if name in GENERIC_BASE_CLASSES:
+                continue
             if name.endswith(USE_CASE_SUFFIX):
                 prefix = name[:-suffix_len]
                 expected_request = f"{prefix}{REQUEST_SUFFIX}"
@@ -195,6 +204,9 @@ class TestUseCaseStructure:
         for artifact in uc_response.artifacts:
             name = artifact.artifact.name
             ctx = artifact.bounded_context
+            # Skip generic base classes
+            if name in GENERIC_BASE_CLASSES:
+                continue
             if name.endswith(USE_CASE_SUFFIX):
                 prefix = name[:-suffix_len]
                 expected_response = f"{prefix}{RESPONSE_SUFFIX}"
