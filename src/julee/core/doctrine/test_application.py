@@ -12,7 +12,7 @@ App Type Doctrine (applies to all apps of a given type):
 - REST-API: Endpoints MUST use Request/Response objects of their use case
 - CLI: CLI apps MUST have a commands/ directory
 - CLI: CLI apps MUST use Click for command definitions
-- MCP: MCP apps MUST have a tools/ directory
+- MCP: MCP apps MUST use the julee MCP framework (see test_mcp.py)
 - TEMPORAL-WORKER: Worker apps MUST have pipelines
 
 App Instance Doctrine lives in apps/{app}/doctrine/ and is additive.
@@ -279,6 +279,7 @@ class TestCliAppStructure:
 # =============================================================================
 # MCP APP TYPE DOCTRINE
 # =============================================================================
+# Full MCP doctrine is in test_mcp.py. This section verifies basic detection.
 
 
 class TestMcpAppStructure:
@@ -294,20 +295,20 @@ class TestMcpAppStructure:
         assert len(apps) > 0, "No MCP applications found - detector may be broken"
 
     @pytest.mark.asyncio
-    async def test_mcp_apps_MUST_have_tools_directory(
+    async def test_mcp_apps_MUST_use_mcp_framework(
         self, app_repo: FilesystemApplicationRepository
     ) -> None:
-        """MCP applications MUST have a tools/ directory.
+        """MCP applications MUST use the julee MCP framework.
 
-        Doctrine: MCP apps expose their capabilities through tools/ which
-        define the MCP tool interface for AI assistants.
+        Doctrine: MCP apps MUST use create_mcp_server() from the framework.
+        See test_mcp.py for full MCP doctrine.
         """
         apps = await app_repo.list_by_type(AppType.MCP)
 
         for app in apps:
             assert (
                 app.markers.has_tools
-            ), f"MCP application '{app.slug}' MUST have tools/ directory"
+            ), f"MCP application '{app.slug}' MUST use MCP framework"
 
 
 # =============================================================================

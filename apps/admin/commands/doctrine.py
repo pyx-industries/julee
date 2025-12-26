@@ -33,7 +33,7 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
     """
     import asyncio
 
-    from julee.core.infrastructure.repositories.introspection import (
+    from julee.core.infrastructure.repositories.introspection.solution import (
         FilesystemSolutionRepository,
     )
 

@@ -5,6 +5,7 @@ This is a read-only repository - applications are defined by
 the filesystem, not created through this repository.
 """
 
+import ast
 from pathlib import Path
 
 from julee.core.doctrine_constants import (
@@ -106,6 +107,29 @@ class FilesystemApplicationRepository:
                 pass
         return False
 
+    def _uses_mcp_framework(self, path: Path) -> bool:
+        """Detect if app uses the julee MCP framework.
+
+        Checks __init__.py for create_mcp_server import from
+        julee.core.infrastructure.mcp, which indicates the app
+        uses the doctrine-compliant MCP framework.
+        """
+        init_py = path / "__init__.py"
+        if not init_py.exists():
+            return False
+
+        try:
+            source = init_py.read_text()
+            tree = ast.parse(source, filename=str(init_py))
+        except (SyntaxError, OSError):
+            return False
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                if node.module and "julee.core.infrastructure.mcp" in node.module:
+                    return True
+        return False
+
     def _detect_bc_organization(self, path: Path) -> bool:
         """Detect if app uses bounded-context-based organization.
 
@@ -145,7 +169,8 @@ class FilesystemApplicationRepository:
                 if subdir.is_dir() and subdir.name not in APP_BC_ORGANIZATION_EXCLUDES
             ),
             has_routers=check_fn(path, "routers"),
-            has_tools=check_fn(path, "tools"),
+            # MCP: detect both legacy tools/ dir and new framework usage
+            has_tools=check_fn(path, "tools") or self._uses_mcp_framework(path),
             has_directives=check_fn(path, "directives"),
             has_pipelines=check_fn(path, "pipelines")
             or (path / "pipelines.py").exists()
