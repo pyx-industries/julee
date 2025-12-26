@@ -3,7 +3,6 @@
 Commands for listing and inspecting bounded contexts in a Julee solution.
 """
 
-import asyncio
 from pathlib import Path
 
 import click
@@ -49,7 +48,7 @@ def list_contexts(verbose: bool) -> None:
     """List all bounded contexts in the solution."""
     use_case = get_list_bounded_contexts_use_case()
     request = ListBoundedContextsRequest()
-    response = asyncio.run(use_case.execute(request))
+    response = use_case.execute_sync(request)
 
     if not response.bounded_contexts:
         click.echo("No bounded contexts found.")
@@ -75,7 +74,7 @@ def show_context(slug: str) -> None:
     """Show details for a specific bounded context."""
     use_case = get_get_bounded_context_use_case()
     request = GetBoundedContextRequest(slug=slug)
-    response = asyncio.run(use_case.execute(request))
+    response = use_case.execute_sync(request)
 
     if response.bounded_context is None:
         click.echo(f"Bounded context '{slug}' not found.", err=True)

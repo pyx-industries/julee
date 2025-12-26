@@ -4,7 +4,6 @@ Commands for listing and inspecting code artifacts (entities, use cases,
 repository protocols, service protocols, requests, responses) in a Julee solution.
 """
 
-import asyncio
 from pathlib import Path
 
 import click
@@ -50,7 +49,7 @@ def _list_artifacts(
     """Generic artifact listing logic."""
     use_case = use_case_factory()
     request = ListCodeArtifactsRequest(bounded_context=context)
-    response = asyncio.run(use_case.execute(request))
+    response = use_case.execute_sync(request)
 
     if not response.artifacts:
         click.echo(f"No {artifact_type} found.")
@@ -74,7 +73,7 @@ def _show_artifact(
     """Generic artifact show logic."""
     use_case = use_case_factory()
     request = ListCodeArtifactsRequest(bounded_context=context)
-    response = asyncio.run(use_case.execute(request))
+    response = use_case.execute_sync(request)
 
     # Find matching artifact(s)
     matches = [a for a in response.artifacts if a.artifact.name == name]
@@ -196,7 +195,7 @@ def show_use_case(name: str, context: str | None) -> None:
     # Get use case
     use_case = get_list_use_cases_use_case()
     request = ListCodeArtifactsRequest(bounded_context=context)
-    response = asyncio.run(use_case.execute(request))
+    response = use_case.execute_sync(request)
 
     matches = [a for a in response.artifacts if a.artifact.name == name]
 
@@ -221,7 +220,7 @@ def show_use_case(name: str, context: str | None) -> None:
         # Look up request in the same context
         req_use_case = get_list_requests_use_case()
         req_request = ListCodeArtifactsRequest(bounded_context=use_case_artifact.bounded_context)
-        req_response = asyncio.run(req_use_case.execute(req_request))
+        req_response = req_use_case.execute_sync(req_request)
         req_artifact = _find_artifact_by_name(
             req_response.artifacts, req_name, use_case_artifact.bounded_context
         )
@@ -230,7 +229,7 @@ def show_use_case(name: str, context: str | None) -> None:
         # Look up response in the same context
         resp_use_case = get_list_responses_use_case()
         resp_request = ListCodeArtifactsRequest(bounded_context=use_case_artifact.bounded_context)
-        resp_response = asyncio.run(resp_use_case.execute(resp_request))
+        resp_response = resp_use_case.execute_sync(resp_request)
         resp_artifact = _find_artifact_by_name(
             resp_response.artifacts, resp_name, use_case_artifact.bounded_context
         )
