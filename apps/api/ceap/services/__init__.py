@@ -1,20 +1,18 @@
 """
 API services package for the julee CEAP system.
 
-This package contains service layer components that orchestrate use cases
-and provide higher-level application services. Services in this package
+This package contains application-layer components that orchestrate use cases
+and coordinate startup/runtime concerns. Components in this package
 act as facades between the API layer and the domain layer, coordinating
 multiple use cases and handling cross-cutting concerns.
 
-Services follow clean architecture principles:
-- Orchestrate domain use cases
-- Handle application-level concerns
-- Provide simplified interfaces for controllers
-- Maintain separation between API and domain layers
+Note: These are application-layer orchestrators, not domain services.
+Domain services (which transform between 2+ entity types) live in
+{bc}/services/ directories within bounded contexts.
 """
 
-from .system_initialization import SystemInitializationService
+from .system_initialization import SystemInitializer
 
 __all__ = [
-    "SystemInitializationService",
+    "SystemInitializer",
 ]

@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from apps.api.ceap.services.system_initialization import (
-        SystemInitializationService,
+        SystemInitializer,
     )
 
 from fastapi import Depends
@@ -217,18 +217,18 @@ class StartupDependenciesProvider:
         minio_client = await self.container.get_minio_client()
         return MinioAssemblySpecificationRepository(client=minio_client)
 
-    async def get_system_initialization_service(
+    async def get_system_initializer(
         self,
-    ) -> "SystemInitializationService":
-        """Get fully configured system initialization service."""
+    ) -> "SystemInitializer":
+        """Get fully configured system initializer."""
         from apps.api.ceap.services.system_initialization import (
-            SystemInitializationService,
+            SystemInitializer,
         )
         from julee.contrib.ceap.use_cases.initialize_system_data import (
             InitializeSystemDataUseCase,
         )
 
-        self.logger.debug("Creating system initialization service")
+        self.logger.debug("Creating system initializer")
 
         # Create repositories and use case
         config_repo = await self.get_knowledge_service_config_repository()
@@ -239,8 +239,8 @@ class StartupDependenciesProvider:
             config_repo, document_repo, query_repo, assembly_spec_repo
         )
 
-        # Create and return service
-        return SystemInitializationService(use_case)
+        # Create and return initializer
+        return SystemInitializer(use_case)
 
 
 # Global startup dependencies provider

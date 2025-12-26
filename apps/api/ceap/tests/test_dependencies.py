@@ -72,48 +72,48 @@ class TestStartupDependenciesProvider:
         # implementation details, but we can verify the method completed
 
     @pytest.mark.asyncio
-    async def test_get_system_initialization_service(
+    async def test_get_system_initializer(
         self,
         startup_provider: StartupDependenciesProvider,
         mock_container: AsyncMock,
         mock_minio_client: MagicMock,
     ) -> None:
-        """Test getting system initialization service."""
+        """Test getting system initializer."""
         # Setup mock
         mock_container.get_minio_client.return_value = mock_minio_client
 
-        # Get service
-        service = await startup_provider.get_system_initialization_service()
+        # Get initializer
+        initializer = await startup_provider.get_system_initializer()
 
-        # Verify service was created
-        assert service is not None
-        assert hasattr(service, "initialize")
+        # Verify initializer was created
+        assert initializer is not None
+        assert hasattr(initializer, "initialize")
 
         # Verify container was called to create dependencies
-        # The service may need multiple minio clients for different repos
+        # The initializer may need multiple minio clients for different repos
         assert mock_container.get_minio_client.call_count >= 1
 
     @pytest.mark.asyncio
-    async def test_get_system_initialization_service_creates_full_chain(
+    async def test_get_system_initializer_creates_full_chain(
         self,
         startup_provider: StartupDependenciesProvider,
         mock_container: AsyncMock,
         mock_minio_client: MagicMock,
     ) -> None:
-        """Test that service creation builds the complete dependency chain."""
+        """Test that initializer creation builds the complete dependency chain."""
         # Setup mock
         mock_container.get_minio_client.return_value = mock_minio_client
 
-        # Get service
-        service = await startup_provider.get_system_initialization_service()
+        # Get initializer
+        initializer = await startup_provider.get_system_initializer()
 
-        # Verify the service has the expected structure
-        assert service is not None
-        assert hasattr(service, "initialize_system_data_use_case")
-        assert service.initialize_system_data_use_case is not None
+        # Verify the initializer has the expected structure
+        assert initializer is not None
+        assert hasattr(initializer, "initialize_system_data_use_case")
+        assert initializer.initialize_system_data_use_case is not None
 
         # Verify the use case has the repositories
-        use_case = service.initialize_system_data_use_case
+        use_case = initializer.initialize_system_data_use_case
         assert hasattr(use_case, "config_repo")
         assert use_case.config_repo is not None
         assert hasattr(use_case, "document_repo")
@@ -171,13 +171,13 @@ class TestStartupDependenciesIntegration:
         # This should work without throwing errors
         # (though it might fail if Minio isn't available, which is expected)
         try:
-            service = await provider.get_system_initialization_service()
-            assert service is not None
+            initializer = await provider.get_system_initializer()
+            assert initializer is not None
 
-            # Verify the service has the expected methods
-            assert hasattr(service, "initialize")
-            assert hasattr(service, "get_initialization_status")
-            assert hasattr(service, "reinitialize")
+            # Verify the initializer has the expected methods
+            assert hasattr(initializer, "initialize")
+            assert hasattr(initializer, "get_initialization_status")
+            assert hasattr(initializer, "reinitialize")
 
         except Exception as e:
             # In test environments, Minio might not be available
@@ -214,28 +214,28 @@ class TestStartupDependenciesProviderEdgeCases:
         assert mock_container.get_minio_client.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_service_creation_isolation(
+    async def test_initializer_creation_isolation(
         self,
         startup_provider: StartupDependenciesProvider,
         mock_container: AsyncMock,
         mock_minio_client: MagicMock,
     ) -> None:
-        """Test that service creation doesn't interfere with operations."""
+        """Test that initializer creation doesn't interfere with operations."""
         # Setup mock
         mock_container.get_minio_client.return_value = mock_minio_client
 
         # Get repository first
         repo = await startup_provider.get_knowledge_service_config_repository()
 
-        # Then get service
-        service = await startup_provider.get_system_initialization_service()
+        # Then get initializer
+        initializer = await startup_provider.get_system_initializer()
 
         # Both should be valid
         assert repo is not None
-        assert service is not None
+        assert initializer is not None
 
         # Container should have been called multiple times:
-        # 1 for direct repo call + 4 for service (config + document + query +
+        # 1 for direct repo call + 4 for initializer (config + document + query +
         # assembly spec repos)
         assert mock_container.get_minio_client.call_count == 5
 

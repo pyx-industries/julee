@@ -1,11 +1,11 @@
 """
-System Initialization Service for the julee CEAP system.
+System Initializer for the julee CEAP system.
 
-This module provides the service layer for system initialization,
-orchestrating the use cases needed to ensure required system data
+This module provides system initialization orchestration,
+coordinating the use cases needed to ensure required system data
 exists on application startup.
 
-The service acts as a facade between the API layer and domain use cases,
+The initializer acts as a facade between the API layer and domain use cases,
 handling application-level concerns while delegating business logic
 to the appropriate use cases.
 """
@@ -20,15 +20,15 @@ from julee.contrib.ceap.use_cases.initialize_system_data import (
 logger = logging.getLogger(__name__)
 
 
-class SystemInitializationService:
+class SystemInitializer:
     """
-    Service for orchestrating system initialization on application startup.
+    Orchestrates system initialization on application startup.
 
-    This service coordinates the execution of use cases needed to initialize
+    Coordinates the execution of use cases needed to initialize
     required system data, such as knowledge service configurations and
     other essential data needed for the application to function properly.
 
-    The service provides error handling, logging, and coordination between
+    Provides error handling, logging, and coordination between
     multiple initialization tasks while keeping the business logic in
     the domain use cases.
     """
@@ -37,14 +37,14 @@ class SystemInitializationService:
         self,
         initialize_system_data_use_case: InitializeSystemDataUseCase,
     ) -> None:
-        """Initialize the service with required use cases.
+        """Initialize with required use cases.
 
         Args:
             initialize_system_data_use_case: Use case for initializing
                 system data
         """
         self.initialize_system_data_use_case = initialize_system_data_use_case
-        self.logger = logging.getLogger("SystemInitializationService")
+        self.logger = logging.getLogger("SystemInitializer")
 
     async def initialize(self) -> dict[str, Any]:
         """
