@@ -86,7 +86,9 @@ def _validate_type(
     if origin_type is None:
         _validate_simple_type(value, expected_type, context_name)
     else:
-        _validate_generic_type(value, expected_type, origin_type, type_args, context_name)
+        _validate_generic_type(
+            value, expected_type, origin_type, type_args, context_name
+        )
 
 
 def _validate_simple_type(value: Any, expected_type: Any, context_name: str) -> None:
@@ -135,7 +137,9 @@ def _validate_generic_type(
     elif origin_type is Union:
         for union_type in type_args:
             try:
-                _validate_type(value, union_type, context_name, allow_none=union_type is type(None))
+                _validate_type(
+                    value, union_type, context_name, allow_none=union_type is type(None)
+                )
                 return
             except TypeValidationError:
                 continue
@@ -437,7 +441,7 @@ def use_case(cls: type[T]) -> type[T]:
     if not hasattr(cls, "execute"):
         raise UseCaseConfigurationError(f"{cls.__name__} must have an execute() method")
 
-    execute_method = getattr(cls, "execute")
+    execute_method = cls.execute
     if not callable(execute_method):
         raise UseCaseConfigurationError(f"{cls.__name__}.execute must be callable")
 
@@ -456,7 +460,7 @@ def use_case(cls: type[T]) -> type[T]:
     # Only wrap if execute is defined on this class (not inherited and already wrapped)
     if "execute" in cls.__dict__:
         wrapped_execute = _wrap_execute_method(cls, execute_method)
-        setattr(cls, "execute", wrapped_execute)
+        cls.execute = wrapped_execute
 
     # Mark the class as a use case for doctrine verification
     cls._is_use_case = True  # type: ignore[attr-defined]

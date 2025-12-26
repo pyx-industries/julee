@@ -4,24 +4,21 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 """
 
-import configparser
 from pathlib import Path
 
 import pytest
 
-from julee.core.doctrine.conftest import PROJECT_ROOT
 from julee.core.doctrine_constants import (
     SEARCH_ROOT,
-    TESTS_ROOT,
     TEST_CONFTEST,
     TEST_FILE_PATTERN,
     TEST_INIT,
     TEST_MARKERS,
+    TESTS_ROOT,
 )
 from julee.core.infrastructure.repositories.introspection import (
     FilesystemBoundedContextRepository,
 )
-
 
 # =============================================================================
 # DOCTRINE: Bounded Context Tests
@@ -48,9 +45,9 @@ class TestBoundedContextTestStructure:
             if not tests_path.is_dir():
                 missing_tests.append(ctx.slug)
 
-        assert not missing_tests, (
-            f"Bounded contexts missing {TESTS_ROOT}/: {missing_tests}"
-        )
+        assert (
+            not missing_tests
+        ), f"Bounded contexts missing {TESTS_ROOT}/: {missing_tests}"
 
     @pytest.mark.asyncio
     async def test_tests_directory_MUST_have_init_py(
@@ -71,9 +68,9 @@ class TestBoundedContextTestStructure:
                 if not init_path.exists():
                     missing_init.append(ctx.slug)
 
-        assert not missing_init, (
-            f"Bounded contexts with tests/ missing {TEST_INIT}: {missing_init}"
-        )
+        assert (
+            not missing_init
+        ), f"Bounded contexts with tests/ missing {TEST_INIT}: {missing_init}"
 
     @pytest.mark.asyncio
     async def test_test_files_MUST_follow_naming_convention(
@@ -101,9 +98,9 @@ class TestBoundedContextTestStructure:
                     if not py_file.name.startswith("test_"):
                         non_compliant.append(f"{ctx.slug}: {py_file.name}")
 
-        assert not non_compliant, (
-            f"Test files not following {TEST_FILE_PATTERN}: {non_compliant}"
-        )
+        assert (
+            not non_compliant
+        ), f"Test files not following {TEST_FILE_PATTERN}: {non_compliant}"
 
 
 # =============================================================================
@@ -133,9 +130,9 @@ class TestSolutionTestConfiguration:
 
         # Read the raw file and check for pytest section
         content = pyproject.read_text()
-        assert "[tool.pytest.ini_options]" in content, (
-            "pyproject.toml MUST have [tool.pytest.ini_options] section"
-        )
+        assert (
+            "[tool.pytest.ini_options]" in content
+        ), "pyproject.toml MUST have [tool.pytest.ini_options] section"
 
     def test_pytest_config_MUST_specify_testpaths(self, project_root: Path):
         """Pytest configuration MUST specify testpaths for discoverability.
@@ -147,13 +144,9 @@ class TestSolutionTestConfiguration:
         content = pyproject.read_text()
 
         # Check for testpaths in pytest config
-        assert "testpaths" in content, (
-            "pytest config MUST specify testpaths"
-        )
+        assert "testpaths" in content, "pytest config MUST specify testpaths"
         # Verify it includes the source root
-        assert SEARCH_ROOT in content, (
-            f"testpaths MUST include '{SEARCH_ROOT}'"
-        )
+        assert SEARCH_ROOT in content, f"testpaths MUST include '{SEARCH_ROOT}'"
 
     def test_pytest_config_MUST_define_standard_markers(self, project_root: Path):
         """Pytest configuration MUST define standard test markers.
@@ -169,13 +162,9 @@ class TestSolutionTestConfiguration:
 
         # Check for standard markers
         for marker in TEST_MARKERS:
-            assert marker in content, (
-                f"pytest config MUST define '{marker}' marker"
-            )
+            assert marker in content, f"pytest config MUST define '{marker}' marker"
 
-    def test_integration_tests_MUST_be_excluded_by_default(
-        self, project_root: Path
-    ):
+    def test_integration_tests_MUST_be_excluded_by_default(self, project_root: Path):
         """Integration tests MUST be excluded from default test runs.
 
         Integration tests are slower and require external dependencies.
@@ -185,9 +174,9 @@ class TestSolutionTestConfiguration:
         content = pyproject.read_text()
 
         # Check that addopts excludes integration tests
-        assert "not integration" in content, (
-            "pytest addopts MUST exclude integration tests by default"
-        )
+        assert (
+            "not integration" in content
+        ), "pytest addopts MUST exclude integration tests by default"
 
 
 # =============================================================================
@@ -206,15 +195,11 @@ class TestDoctrineTestLocation:
         regular unit tests.
         """
         doctrine_path = project_root / SEARCH_ROOT / "core" / "doctrine"
-        assert doctrine_path.is_dir(), (
-            "Doctrine tests MUST live in core/doctrine/"
-        )
+        assert doctrine_path.is_dir(), "Doctrine tests MUST live in core/doctrine/"
 
         # Verify doctrine tests exist
         doctrine_tests = list(doctrine_path.glob("test_*.py"))
-        assert len(doctrine_tests) > 0, (
-            "core/doctrine/ MUST contain doctrine tests"
-        )
+        assert len(doctrine_tests) > 0, "core/doctrine/ MUST contain doctrine tests"
 
     def test_doctrine_MUST_have_conftest(self, project_root: Path):
         """The doctrine directory MUST have a conftest.py for shared fixtures.
@@ -223,6 +208,4 @@ class TestDoctrineTestLocation:
         for reuse across all doctrine tests.
         """
         conftest = project_root / SEARCH_ROOT / "core" / "doctrine" / TEST_CONFTEST
-        assert conftest.exists(), (
-            "core/doctrine/ MUST have conftest.py"
-        )
+        assert conftest.exists(), "core/doctrine/ MUST have conftest.py"

@@ -317,7 +317,7 @@ class TestGenericBaseClass:
         class DerivedUseCase(BaseUseCase):
             pass
 
-        uc = DerivedUseCase(ValidRepository())
+        _uc = DerivedUseCase(ValidRepository())
         assert is_use_case(DerivedUseCase)
 
     @pytest.mark.asyncio
