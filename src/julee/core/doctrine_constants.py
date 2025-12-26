@@ -343,38 +343,8 @@ Contexts under {SEARCH_ROOT}/contrib/ are marked is_contrib=True.
 # NOTE: Nested solutions (like contrib/) are NOT reserved words. They are
 # solution containers that hold bounded contexts and follow the same doctrine.
 
-RESERVED_STRUCTURAL: Final[frozenset[str]] = frozenset(
-    {
-        "docs",  # Documentation
-        "deployment",  # Deployment configuration (legacy singular form)
-        "deployments",  # Deployment configurations (canonical plural form)
-    }
-)
-"""Structural directories that are not bounded contexts.
-
-These directories have special meaning in the project layout but don't
-contain domain logic.
-"""
-
-RESERVED_COMMON: Final[frozenset[str]] = frozenset(
-    {
-        "util",  # Utilities
-        "utils",  # Utilities (alternative spelling)
-        "common",  # Common code
-        "tests",  # Test directories
-        "maintenance",  # Developer tooling (release scripts, etc.)
-    }
-)
-"""Common utility directories that are not bounded contexts.
-
-These are typical names for shared/utility code that shouldn't be
-treated as bounded contexts because they lack domain identity.
-
-NOTE: 'core' is NOT reserved - it's a foundational bounded context.
-"""
-
-RESERVED_WORDS: Final[frozenset[str]] = RESERVED_STRUCTURAL | RESERVED_COMMON
-"""All reserved words: union of structural and common."""
+# RESERVED_WORDS is defined at the end of the file after all constants are available.
+# See bottom of file for the definition.
 
 
 # =============================================================================
@@ -539,4 +509,33 @@ DEPLOYMENT_TYPE_MARKERS: Final[dict[str, tuple[str, ...]]] = {
 
 Each deployment type has characteristic files or directories. Detection
 uses these to classify deployments.
+"""
+
+
+# =============================================================================
+# RESERVED WORDS (derived from doctrine constants)
+# =============================================================================
+# Reserved words are derived from doctrine constants, not hardcoded.
+# A directory is reserved if it has special architectural meaning defined
+# by other doctrine constants. Common utility names (util, docs, tests, etc.)
+# are NOT reserved because they fail the structural check anyway
+# (no entities/ or use_cases/ directory).
+
+RESERVED_WORDS: Final[frozenset[str]] = frozenset(
+    {
+        APPS_ROOT,  # "apps" - application layer, has its own discovery
+        DEPLOYMENTS_ROOT,  # "deployments" - deployment configurations
+        LAYER_DEPLOYMENT,  # "deployment" - legacy singular form
+    }
+)
+"""Directory names that are NOT bounded contexts.
+
+Reserved words are derived from doctrine constants that define special
+architectural locations. These directories have their own discovery
+mechanisms (FilesystemApplicationRepository, etc.) and must not be
+treated as bounded contexts.
+
+Directories like 'util', 'docs', 'tests' are NOT reserved because they
+naturally fail the bounded context structural check (no entities/ or
+use_cases/ subdirectory). Reserving them would be redundant.
 """

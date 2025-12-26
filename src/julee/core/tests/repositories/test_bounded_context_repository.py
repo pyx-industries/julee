@@ -105,15 +105,15 @@ class TestExclusions:
     async def test_excludes_reserved_words(self, tmp_path: Path):
         """Should exclude directories with reserved names.
 
-        Note: 'core' and 'contrib' are NOT reserved - they are a BC and
-        nested solution respectively. Only utility directories like
-        'utils', 'common', 'tests' are reserved.
+        Reserved words are derived from doctrine constants - these have
+        special architectural meaning and their own discovery mechanisms.
         """
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing")
 
         # Create reserved word directories with BC structure
-        for reserved in ["utils", "common", "tests"]:
+        # These should be excluded even if they have entities/use_cases
+        for reserved in RESERVED_WORDS:
             create_bounded_context(search_root, reserved)
 
         repo = FilesystemBoundedContextRepository(tmp_path)
@@ -394,21 +394,32 @@ class TestCaching:
 class TestReservedWordsConfiguration:
     """Tests verifying reserved words configuration."""
 
-    def test_reserved_words_includes_structural(self):
-        """Reserved words should include structural directories.
+    def test_reserved_words_derived_from_doctrine_constants(self):
+        """Reserved words should be derived from doctrine constants.
 
-        Note: 'contrib' is NOT reserved - it's a nested solution container.
+        Reserved words have special architectural meaning defined by
+        doctrine constants like APPS_ROOT and DEPLOYMENTS_ROOT.
         """
-        for word in ["docs", "deployment"]:
-            assert word in RESERVED_WORDS, f"{word} should be reserved"
+        from julee.core.doctrine_constants import (
+            APPS_ROOT,
+            DEPLOYMENTS_ROOT,
+            LAYER_DEPLOYMENT,
+        )
 
-    def test_reserved_words_includes_common(self):
-        """Reserved words should include common utility directories.
+        assert APPS_ROOT in RESERVED_WORDS
+        assert DEPLOYMENTS_ROOT in RESERVED_WORDS
+        assert LAYER_DEPLOYMENT in RESERVED_WORDS
 
-        Note: 'core' is NOT reserved - it's a foundational bounded context.
+    def test_reserved_words_not_redundant(self):
+        """Reserved words should NOT include directories that fail structural check.
+
+        Utility directories (util, docs, tests) naturally fail the bounded
+        context structural check (no entities/ or use_cases/) so reserving
+        them is redundant.
         """
-        for word in ["util", "utils", "common", "tests"]:
-            assert word in RESERVED_WORDS, f"{word} should be reserved"
+        redundant = {"util", "utils", "common", "tests", "docs", "maintenance"}
+        intersection = redundant.intersection(RESERVED_WORDS)
+        assert not intersection, f"Redundant reserved words: {intersection}"
 
     def test_core_is_not_reserved(self):
         """'core' should NOT be reserved - it's a bounded context."""
