@@ -35,7 +35,10 @@ from julee.contrib.ceap.repositories import (
     KnowledgeServiceQueryRepository,
 )
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService
-from julee.util.validation import ensure_repository_protocol, validate_parameter_types
+from julee.core.decorators import use_case
+from julee.core.infrastructure.temporal.validation.type_guards import (
+    validate_parameter_types,
+)
 
 from .decorators import try_use_case_step
 
@@ -59,6 +62,7 @@ class ExtractAssembleDataRequest(BaseModel):
 logger = logging.getLogger(__name__)
 
 
+@use_case
 class ExtractAssembleDataUseCase:
     """
     Use case for extracting and assembling documents according to
@@ -119,33 +123,16 @@ class ExtractAssembleDataUseCase:
             Temporal workflow execution). The use case doesn't know or care
             which - it just calls the methods defined in the protocols.
 
-            Repositories are validated at construction time to catch
-            configuration errors early in the application lifecycle.
+            Repository protocols are validated automatically by @use_case.
 
         """
-        # Validate at construction time for early error detection
-        self.document_repo = ensure_repository_protocol(
-            document_repo,
-            DocumentRepository,  # type: ignore[type-abstract]
-        )
+        self.document_repo = document_repo
         self.knowledge_service = knowledge_service
         self.now_fn = now_fn
-        self.assembly_repo = ensure_repository_protocol(
-            assembly_repo,
-            AssemblyRepository,  # type: ignore[type-abstract]
-        )
-        self.assembly_specification_repo = ensure_repository_protocol(
-            assembly_specification_repo,
-            AssemblySpecificationRepository,  # type: ignore[type-abstract]
-        )
-        self.knowledge_service_query_repo = ensure_repository_protocol(
-            knowledge_service_query_repo,
-            KnowledgeServiceQueryRepository,  # type: ignore[type-abstract]
-        )
-        self.knowledge_service_config_repo = ensure_repository_protocol(
-            knowledge_service_config_repo,
-            KnowledgeServiceConfigRepository,  # type: ignore[type-abstract]
-        )
+        self.assembly_repo = assembly_repo
+        self.assembly_specification_repo = assembly_specification_repo
+        self.knowledge_service_query_repo = knowledge_service_query_repo
+        self.knowledge_service_config_repo = knowledge_service_config_repo
 
     async def execute(
         self,

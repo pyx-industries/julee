@@ -32,6 +32,7 @@ from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_que
     MemoryKnowledgeServiceQueryRepository,
 )
 from julee.contrib.ceap.use_cases.initialize_system_data import (
+    InitializeSystemDataRequest,
     InitializeSystemDataUseCase,
 )
 
@@ -123,7 +124,7 @@ class TestInitializeSystemDataUseCase:
     ) -> None:
         """Test successful execution creates configs from fixture."""
         # Execute use case
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify all configs were created
         saved_configs = await memory_config_repository.list_all()
@@ -159,7 +160,7 @@ class TestInitializeSystemDataUseCase:
         await memory_config_repository.save(sample_anthropic_config)
 
         # Execute use case
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify only the existing config is in the repository (no duplicates)
         all_configs = await memory_config_repository.list_all()
@@ -179,7 +180,7 @@ class TestInitializeSystemDataUseCase:
         await memory_config_repository.save(sample_anthropic_config)
 
         # Execute use case
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify all configs from fixture exist (including pre-existing one)
         final_configs = await memory_config_repository.list_all()
@@ -211,7 +212,7 @@ class TestInitializeSystemDataUseCase:
     ) -> None:
         """Test that created configs have correct values from fixture."""
         # Execute use case
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Get all saved configs
         saved_configs = await memory_config_repository.list_all()
@@ -246,12 +247,12 @@ class TestInitializeSystemDataUseCase:
     ) -> None:
         """Test that running the use case multiple times is safe."""
         # First run - configs don't exist, get created
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
         first_run_configs = await memory_config_repository.list_all()
         first_run_count = len(first_run_configs)
 
         # Second run - configs now exist, should not create duplicates
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
         second_run_configs = await memory_config_repository.list_all()
         second_run_count = len(second_run_configs)
 
@@ -301,7 +302,7 @@ class TestInitializeSystemDataUseCase:
         )
 
         # Execute the use case to initialize configs
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify configs were created
         saved_configs = await memory_config_repository.list_all()
@@ -422,7 +423,7 @@ class TestInitializeSystemDataUseCaseIntegration:
         # Setup - repository starts empty
 
         # Execute initialization
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify all configs were created
         saved_configs = await memory_config_repository.list_all()
@@ -446,7 +447,7 @@ class TestInitializeSystemDataUseCaseIntegration:
         await memory_config_repository.save(sample_anthropic_config)
 
         # Execute initialization
-        await use_case.execute()
+        await use_case.execute(InitializeSystemDataRequest())
 
         # Verify configs exist and no duplicates were created
         final_configs = await memory_config_repository.list_all()
