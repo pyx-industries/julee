@@ -72,6 +72,49 @@ class Story(BaseModel):
             self.app_normalized = normalize_name(self.app_slug)
 
     @classmethod
+    def from_create_data(
+        cls,
+        feature_title: str,
+        persona: str,
+        app_slug: str,
+        i_want: str = "do something",
+        so_that: str = "achieve a goal",
+        file_path: str = "",
+        abs_path: str = "",
+        gherkin_snippet: str = "",
+        **kwargs,
+    ) -> "Story":
+        """Create a Story from request data (doctrine pattern for generic CRUD).
+
+        Generates slug from app_slug + feature_title. Validates via entity validators.
+
+        Args:
+            feature_title: The Feature: line content
+            persona: The "As a" actor
+            app_slug: Application slug (from directory structure)
+            i_want: The "I want to" action
+            so_that: The "So that" benefit
+            file_path: Relative path to .feature file
+            abs_path: Absolute path to .feature file
+            gherkin_snippet: The story header text
+            **kwargs: Ignored (allows extra fields from request)
+
+        Returns:
+            A new Story instance
+        """
+        return cls(
+            slug=f"{app_slug}--{slugify(feature_title)}",
+            feature_title=feature_title,
+            persona=persona,
+            i_want=i_want,
+            so_that=so_that,
+            app_slug=app_slug,
+            file_path=file_path,
+            abs_path=abs_path,
+            gherkin_snippet=gherkin_snippet,
+        )
+
+    @classmethod
     def from_feature_file(
         cls,
         feature_title: str,
@@ -98,14 +141,12 @@ class Story(BaseModel):
         Returns:
             A new Story instance
         """
-        # Include app_slug in slug to avoid collisions between apps
-        return cls(
-            slug=f"{app_slug}--{slugify(feature_title)}",
+        return cls.from_create_data(
             feature_title=feature_title,
             persona=persona,
+            app_slug=app_slug,
             i_want=i_want,
             so_that=so_that,
-            app_slug=app_slug,
             file_path=file_path,
             abs_path=abs_path,
             gherkin_snippet=gherkin_snippet,
