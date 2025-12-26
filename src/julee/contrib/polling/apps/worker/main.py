@@ -29,7 +29,7 @@ from julee.contrib.polling.infrastructure.temporal.activities import (
 from julee.core.infrastructure.temporal.activities import (
     collect_activities_from_instances,
 )
-from julee.util.repos.temporal.data_converter import temporal_data_converter
+from julee.core.infrastructure.temporal.data_converter import temporal_data_converter
 
 from . import TASK_QUEUE, get_workflow_classes
 

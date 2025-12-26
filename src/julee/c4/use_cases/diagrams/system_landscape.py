@@ -12,6 +12,7 @@ from julee.c4.entities.diagrams import SystemLandscapeDiagram
 from julee.c4.entities.relationship import ElementType, Relationship
 from julee.c4.repositories.relationship import RelationshipRepository
 from julee.c4.repositories.software_system import SoftwareSystemRepository
+from julee.core.decorators import use_case
 
 
 class GetSystemLandscapeDiagramRequest(BaseModel):
@@ -28,6 +29,7 @@ class GetSystemLandscapeDiagramResponse(BaseModel):
     diagram: SystemLandscapeDiagram
 
 
+@use_case
 class GetSystemLandscapeDiagramUseCase:
     """Use case for computing a system landscape diagram.
 

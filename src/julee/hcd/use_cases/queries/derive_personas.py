@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel
 
 from julee.hcd.entities.persona import Persona
+from julee.core.decorators import use_case
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
@@ -37,6 +38,7 @@ class DerivePersonasResponse(BaseModel):
     personas: list[Persona]
 
 
+@use_case
 class DerivePersonasUseCase:
     """Use case for deriving and merging personas.
 

@@ -36,7 +36,7 @@ from julee.contrib.ceap.repositories import (
     PolicyRepository,
 )
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService
-from julee.util.validation import ensure_repository_protocol
+from julee.core.decorators import use_case
 
 from .decorators import try_use_case_step
 
@@ -55,6 +55,7 @@ class ValidateDocumentRequest(BaseModel):
 logger = logging.getLogger(__name__)
 
 
+@use_case
 class ValidateDocumentUseCase:
     """
     Use case for validating documents against policies.
@@ -115,32 +116,15 @@ class ValidateDocumentUseCase:
             Temporal workflow execution). The use case doesn't know or care
             which - it just calls the methods defined in the protocols.
 
-            Repositories are validated at construction time to catch
-            configuration errors early in the application lifecycle.
+            Repository protocols are validated automatically by @use_case.
 
         """
-        # Validate at construction time for early error detection
-        self.document_repo = ensure_repository_protocol(
-            document_repo,
-            DocumentRepository,  # type: ignore[type-abstract]
-        )
+        self.document_repo = document_repo
         self.knowledge_service = knowledge_service
-        self.knowledge_service_query_repo = ensure_repository_protocol(
-            knowledge_service_query_repo,
-            KnowledgeServiceQueryRepository,  # type: ignore[type-abstract]
-        )
-        self.knowledge_service_config_repo = ensure_repository_protocol(
-            knowledge_service_config_repo,
-            KnowledgeServiceConfigRepository,  # type: ignore[type-abstract]
-        )
-        self.policy_repo = ensure_repository_protocol(
-            policy_repo,
-            PolicyRepository,  # type: ignore[type-abstract]
-        )
-        self.document_policy_validation_repo = ensure_repository_protocol(
-            document_policy_validation_repo,
-            DocumentPolicyValidationRepository,  # type: ignore[type-abstract]
-        )
+        self.knowledge_service_query_repo = knowledge_service_query_repo
+        self.knowledge_service_config_repo = knowledge_service_config_repo
+        self.policy_repo = policy_repo
+        self.document_policy_validation_repo = document_policy_validation_repo
         self.now_fn = now_fn
 
     async def execute(

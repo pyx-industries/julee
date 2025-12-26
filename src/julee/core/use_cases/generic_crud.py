@@ -3,18 +3,17 @@
 Provides base classes for Get, List, Delete, Create, and Update operations.
 Subclass these to create doctrine-compliant CRUD use cases with minimal boilerplate.
 
+All base classes are decorated with @use_case, so subclasses automatically
+receive protocol validation, logging, and error handling.
+
 Example:
     from julee.core.use_cases import generic_crud
     from julee.hcd.entities.story import Story
     from julee.hcd.repositories.story import StoryRepository
 
-    class GetStoryRequest(generic_crud.GetRequest): pass
-    class GetStoryResponse(generic_crud.GetResponse[Story]): pass
     class GetStoryUseCase(generic_crud.GetUseCase[Story, StoryRepository]):
         '''Get a story by slug.'''
 
-    class ListStoriesRequest(generic_crud.ListRequest): pass
-    class ListStoriesResponse(generic_crud.ListResponse[Story]): pass
     class ListStoriesUseCase(generic_crud.ListUseCase[Story, StoryRepository]):
         '''List all stories.'''
 """
@@ -22,6 +21,8 @@ Example:
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
+
+from julee.core.decorators import use_case
 
 E = TypeVar("E", bound=BaseModel)
 R = TypeVar("R")
@@ -55,6 +56,7 @@ class GetResponse(BaseModel, Generic[E]):
     entity: E | None = None
 
 
+@use_case
 class GetUseCase(Generic[E, R]):
     """Base use case for getting an entity by identifier.
 
@@ -103,6 +105,7 @@ class ListResponse(BaseModel, Generic[E]):
     entities: list[E] = []
 
 
+@use_case
 class ListUseCase(Generic[E, R]):
     """Base use case for listing entities.
 
@@ -157,6 +160,7 @@ class PaginatedListResponse(BaseModel, Generic[E]):
         return self.offset + len(self.entities) < self.total
 
 
+@use_case
 class PaginatedListUseCase(Generic[E, R]):
     """Base use case for paginated listing.
 
@@ -214,6 +218,7 @@ class DeleteResponse(BaseModel):
     deleted: bool = False
 
 
+@use_case
 class DeleteUseCase(Generic[E, R]):
     """Base use case for deleting an entity by identifier.
 
@@ -263,6 +268,7 @@ class CreateResponse(BaseModel, Generic[E]):
     entity: E
 
 
+@use_case
 class CreateUseCase(Generic[E, R]):
     """Base use case for creating an entity.
 
@@ -318,6 +324,7 @@ class UpdateResponse(BaseModel, Generic[E]):
     entity: E | None = None
 
 
+@use_case
 class UpdateUseCase(Generic[E, R]):
     """Base use case for updating an entity.
 

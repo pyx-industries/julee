@@ -5,6 +5,7 @@ Use case for listing domain entities across bounded contexts.
 
 from pathlib import Path
 
+from julee.core.decorators import use_case
 from julee.core.parsers.ast import parse_bounded_context
 from julee.core.repositories.bounded_context import BoundedContextRepository
 
@@ -23,6 +24,7 @@ class ListEntitiesResponse(ListCodeArtifactsResponse):
     """Response from listing entities."""
 
 
+@use_case
 class ListEntitiesUseCase:
     """Use case for listing domain entities."""
 

@@ -14,6 +14,7 @@ from julee.c4.entities.software_system import SoftwareSystem
 from julee.c4.repositories.container import ContainerRepository
 from julee.c4.repositories.relationship import RelationshipRepository
 from julee.c4.repositories.software_system import SoftwareSystemRepository
+from julee.core.decorators import use_case
 
 
 class GetContainerDiagramRequest(BaseModel):
@@ -31,6 +32,7 @@ class GetContainerDiagramResponse(BaseModel):
     diagram: ContainerDiagram | None
 
 
+@use_case
 class GetContainerDiagramUseCase:
     """Use case for computing a container diagram.
 

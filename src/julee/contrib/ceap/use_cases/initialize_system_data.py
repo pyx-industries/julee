@@ -42,6 +42,7 @@ from julee.contrib.ceap.repositories.knowledge_service_config import (
 from julee.contrib.ceap.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
+from julee.core.decorators import use_case
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class InitializeSystemDataRequest(BaseModel):
     pass
 
 
+@use_case
 class InitializeSystemDataUseCase:
     """
     Use case for initializing required system data on application startup.

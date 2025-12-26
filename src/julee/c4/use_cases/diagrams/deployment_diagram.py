@@ -13,6 +13,7 @@ from julee.c4.entities.diagrams import DeploymentDiagram
 from julee.c4.repositories.container import ContainerRepository
 from julee.c4.repositories.deployment_node import DeploymentNodeRepository
 from julee.c4.repositories.relationship import RelationshipRepository
+from julee.core.decorators import use_case
 
 
 class GetDeploymentDiagramRequest(BaseModel):
@@ -30,6 +31,7 @@ class GetDeploymentDiagramResponse(BaseModel):
     diagram: DeploymentDiagram
 
 
+@use_case
 class GetDeploymentDiagramUseCase:
     """Use case for computing a deployment diagram.
 

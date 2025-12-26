@@ -32,7 +32,7 @@ from julee.contrib.polling.infrastructure.temporal.activities import (
     TemporalPollerService,
 )
 from julee.core.infrastructure.repositories.minio.client import MinioClient
-from julee.util.repos.temporal.data_converter import temporal_data_converter
+from julee.core.infrastructure.temporal.data_converter import temporal_data_converter
 
 logger = logging.getLogger(__name__)
 

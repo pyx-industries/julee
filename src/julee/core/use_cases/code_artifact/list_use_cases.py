@@ -5,6 +5,7 @@ Use case for listing use case classes across bounded contexts.
 
 from pathlib import Path
 
+from julee.core.decorators import use_case
 from julee.core.parsers.ast import parse_bounded_context
 from julee.core.repositories.bounded_context import BoundedContextRepository
 
@@ -23,6 +24,7 @@ class ListUseCasesResponse(ListCodeArtifactsResponse):
     """Response from listing use cases."""
 
 
+@use_case
 class ListUseCasesUseCase:
     """Use case for listing use case classes."""
 

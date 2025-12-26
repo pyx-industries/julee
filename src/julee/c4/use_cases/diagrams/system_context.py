@@ -13,6 +13,7 @@ from julee.c4.entities.relationship import ElementType
 from julee.c4.entities.software_system import SoftwareSystem
 from julee.c4.repositories.relationship import RelationshipRepository
 from julee.c4.repositories.software_system import SoftwareSystemRepository
+from julee.core.decorators import use_case
 
 
 class GetSystemContextDiagramRequest(BaseModel):
@@ -30,6 +31,7 @@ class GetSystemContextDiagramResponse(BaseModel):
     diagram: SystemContextDiagram | None
 
 
+@use_case
 class GetSystemContextDiagramUseCase:
     """Use case for computing a system context diagram.
 

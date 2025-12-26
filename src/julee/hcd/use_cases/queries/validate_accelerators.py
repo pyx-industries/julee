@@ -10,6 +10,7 @@ with discovered bounded contexts (from src/ directory scanning) to identify:
 
 from pydantic import BaseModel
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.accelerator import AcceleratorValidationIssue
 from julee.hcd.repositories.accelerator import AcceleratorRepository
 from julee.hcd.repositories.code_info import CodeInfoRepository
@@ -42,6 +43,7 @@ class ValidateAcceleratorsResponse(BaseModel):
         return len(self.issues) == 0
 
 
+@use_case
 class ValidateAcceleratorsUseCase:
     """Use case for validating accelerators against discovered code.
 

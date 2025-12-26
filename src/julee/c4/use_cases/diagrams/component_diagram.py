@@ -16,6 +16,7 @@ from julee.c4.repositories.component import ComponentRepository
 from julee.c4.repositories.container import ContainerRepository
 from julee.c4.repositories.relationship import RelationshipRepository
 from julee.c4.repositories.software_system import SoftwareSystemRepository
+from julee.core.decorators import use_case
 
 
 class GetComponentDiagramRequest(BaseModel):
@@ -33,6 +34,7 @@ class GetComponentDiagramResponse(BaseModel):
     diagram: ComponentDiagram | None
 
 
+@use_case
 class GetComponentDiagramUseCase:
     """Use case for computing a component diagram.
 

@@ -17,6 +17,7 @@ from julee.c4.repositories.component import ComponentRepository
 from julee.c4.repositories.container import ContainerRepository
 from julee.c4.repositories.dynamic_step import DynamicStepRepository
 from julee.c4.repositories.software_system import SoftwareSystemRepository
+from julee.core.decorators import use_case
 
 
 class GetDynamicDiagramRequest(BaseModel):
@@ -34,6 +35,7 @@ class GetDynamicDiagramResponse(BaseModel):
     diagram: DynamicDiagram | None
 
 
+@use_case
 class GetDynamicDiagramUseCase:
     """Use case for computing a dynamic diagram.
 

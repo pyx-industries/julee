@@ -5,6 +5,7 @@ Use case for listing all bounded contexts discovered in a codebase.
 
 from pydantic import BaseModel
 
+from julee.core.decorators import use_case
 from julee.core.entities.bounded_context import BoundedContext
 from julee.core.repositories.bounded_context import BoundedContextRepository
 
@@ -24,6 +25,7 @@ class ListBoundedContextsResponse(BaseModel):
     bounded_contexts: list[BoundedContext]
 
 
+@use_case
 class ListBoundedContextsUseCase:
     """Use case for listing all bounded contexts.
 

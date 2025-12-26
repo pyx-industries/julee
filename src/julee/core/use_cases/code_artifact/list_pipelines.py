@@ -5,6 +5,7 @@ Use case for listing pipelines across bounded contexts.
 
 from pathlib import Path
 
+from julee.core.decorators import use_case
 from julee.core.parsers.ast import parse_pipelines_from_bounded_context
 from julee.core.repositories.bounded_context import BoundedContextRepository
 
@@ -15,6 +16,7 @@ class ListPipelinesRequest(ListCodeArtifactsRequest):
     """Request for listing pipelines."""
 
 
+@use_case
 class ListPipelinesUseCase:
     """Use case for listing pipelines.
 

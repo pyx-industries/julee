@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.persona import Persona
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.repositories.story import StoryRepository
@@ -32,6 +33,7 @@ class GetPersonaResponse(BaseModel):
     persona: Persona | None
 
 
+@use_case
 class GetPersonaUseCase:
     """Use case for getting a persona by name.
 

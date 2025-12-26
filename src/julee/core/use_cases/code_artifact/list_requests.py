@@ -5,6 +5,7 @@ Use case for listing request classes across bounded contexts.
 
 from pathlib import Path
 
+from julee.core.decorators import use_case
 from julee.core.parsers.ast import parse_bounded_context
 from julee.core.repositories.bounded_context import BoundedContextRepository
 
@@ -23,6 +24,7 @@ class ListRequestsResponse(ListCodeArtifactsResponse):
     """Response from listing request classes."""
 
 
+@use_case
 class ListRequestsUseCase:
     """Use case for listing request classes."""
 

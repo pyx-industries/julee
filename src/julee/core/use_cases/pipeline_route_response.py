@@ -12,6 +12,7 @@ See: docs/architecture/proposals/pipeline_router_design.md
 
 from pydantic import BaseModel, Field
 
+from julee.core.decorators import use_case
 from julee.core.repositories.pipeline_route import PipelineRouteRepository
 from julee.core.services.pipeline_request_transformer import (
     PipelineRequestTransformer,
@@ -63,6 +64,7 @@ class PipelineRouteResponseResponse(BaseModel):
 RouteResponseResponse = PipelineRouteResponseResponse
 
 
+@use_case
 class PipelineRouteResponseUseCase:
     """Route a response to downstream pipelines.
 

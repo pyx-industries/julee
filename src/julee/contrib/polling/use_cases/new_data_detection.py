@@ -25,6 +25,7 @@ from julee.contrib.polling.entities.polling_config import (
     PollingConfig,
     PollingProtocol,
 )
+from julee.core.decorators import use_case
 
 if TYPE_CHECKING:
     from julee.contrib.polling.services.poller import PollerService
@@ -182,6 +183,7 @@ class NewDataDetectionResponse(BaseModel):
 # =============================================================================
 
 
+@use_case
 class NewDataDetectionUseCase:
     """Detect new data at a polled endpoint.
 
