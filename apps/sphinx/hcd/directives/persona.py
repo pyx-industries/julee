@@ -15,6 +15,10 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.hcd.entities.persona import Persona
+from julee.hcd.use_cases.persona.create import (
+    CreatePersonaRequest,
+    CreatePersonaUseCase,
+)
 from julee.hcd.use_cases.derive_personas import (
     derive_personas,
     derive_personas_by_app_type,
@@ -97,8 +101,8 @@ class DefinePersonaDirective(HCDDirective):
         contrib_slugs = parse_csv_option(self.options.get("uses-contrib", ""))
         context = "\n".join(self.content).strip()
 
-        # Create persona entity
-        persona = Persona(
+        # Create persona via use case
+        request = CreatePersonaRequest(
             slug=slug,
             name=name,
             goals=goals,
@@ -110,9 +114,9 @@ class DefinePersonaDirective(HCDDirective):
             context=context,
             docname=docname,
         )
-
-        # Add to repository
-        self.hcd_context.persona_repo.save(persona)
+        use_case = CreatePersonaUseCase(self.hcd_context.persona_repo.async_repo)
+        response = use_case.execute_sync(request)
+        persona = response.persona
 
         # Build output nodes
         result_nodes = []

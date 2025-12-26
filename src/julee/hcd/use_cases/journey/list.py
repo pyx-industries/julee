@@ -1,15 +1,23 @@
 """List journeys use case with co-located request/response."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.journey import Journey
 from julee.hcd.repositories.journey import JourneyRepository
+from julee.hcd.utils import normalize_name
 
 
 class ListJourneysRequest(BaseModel):
-    """Request for listing journeys."""
+    """Request for listing journeys with optional filters.
 
-    pass
+    All filters are optional. When multiple filters are specified,
+    they are combined with AND logic.
+    """
+
+    contains_story: str | None = Field(
+        default=None, description="Filter to journeys containing this story title"
+    )
 
 
 class ListJourneysResponse(BaseModel):
@@ -17,11 +25,27 @@ class ListJourneysResponse(BaseModel):
 
     journeys: list[Journey]
 
+    @property
+    def count(self) -> int:
+        """Number of journeys returned."""
+        return len(self.journeys)
 
+
+@use_case
 class ListJourneysUseCase:
-    """Use case for listing all journeys.
+    """List journeys with optional filtering.
 
-    .. usecase-documentation:: julee.hcd.domain.use_cases.journey.list:ListJourneysUseCase
+    Supports filtering by story association. When no filters
+    are provided, returns all journeys.
+
+    Examples:
+        # All journeys
+        response = use_case.execute(ListJourneysRequest())
+
+        # Journeys containing a specific story
+        response = use_case.execute(ListJourneysRequest(
+            contains_story="Upload Scheme Documentation"
+        ))
     """
 
     def __init__(self, journey_repo: JourneyRepository) -> None:
@@ -33,13 +57,25 @@ class ListJourneysUseCase:
         self.journey_repo = journey_repo
 
     async def execute(self, request: ListJourneysRequest) -> ListJourneysResponse:
-        """List all journeys.
+        """List journeys with optional filtering.
 
         Args:
-            request: List request (extensible for future filtering)
+            request: List request with optional story filter
 
         Returns:
-            Response containing list of all journeys
+            Response containing filtered list of journeys
         """
         journeys = await self.journey_repo.list_all()
+
+        # Apply contains_story filter
+        if request.contains_story:
+            story_normalized = normalize_name(request.contains_story)
+            journeys = [
+                j for j in journeys
+                if any(
+                    step.is_story and normalize_name(step.ref) == story_normalized
+                    for step in j.steps
+                )
+            ]
+
         return ListJourneysResponse(journeys=journeys)

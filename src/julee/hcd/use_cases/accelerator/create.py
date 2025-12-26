@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.repositories.accelerator import AcceleratorRepository
 
@@ -18,19 +19,23 @@ class IntegrationReferenceItem(BaseModel):
 
 
 class CreateAcceleratorRequest(BaseModel):
-    """Request model for creating an accelerator.
-
-    Fields excluded from client control:
-    - docname: Set when persisted
-    """
+    """Request model for creating an accelerator."""
 
     slug: str = Field(description="URL-safe identifier")
+    name: str = Field(default="", description="Display name")
     status: str = Field(default="", description="Development status")
     milestone: str | None = Field(default=None, description="Target milestone")
     acceptance: str | None = Field(
         default=None, description="Acceptance criteria description"
     )
     objective: str = Field(default="", description="Business objective/description")
+    domain_concepts: list[str] = Field(
+        default_factory=list, description="Domain concepts this accelerator handles"
+    )
+    bounded_context_path: str = Field(
+        default="", description="Path to bounded context source code"
+    )
+    technology: str = Field(default="Python", description="Technology stack")
     sources_from: list[IntegrationReferenceItem] = Field(
         default_factory=list, description="Integrations this accelerator reads from"
     )
@@ -43,6 +48,7 @@ class CreateAcceleratorRequest(BaseModel):
     depends_on: list[str] = Field(
         default_factory=list, description="Other accelerators this one depends on"
     )
+    docname: str = Field(default="", description="RST document where defined")
 
     @field_validator("slug")
     @classmethod
@@ -53,15 +59,19 @@ class CreateAcceleratorRequest(BaseModel):
         """Convert to Accelerator."""
         return Accelerator(
             slug=self.slug,
+            name=self.name,
             status=self.status,
             milestone=self.milestone,
             acceptance=self.acceptance,
             objective=self.objective,
+            domain_concepts=self.domain_concepts,
+            bounded_context_path=self.bounded_context_path,
+            technology=self.technology,
             sources_from=[s.to_domain_model() for s in self.sources_from],
             feeds_into=self.feeds_into,
             publishes_to=[p.to_domain_model() for p in self.publishes_to],
             depends_on=self.depends_on,
-            docname="",
+            docname=self.docname,
         )
 
 
@@ -71,6 +81,7 @@ class CreateAcceleratorResponse(BaseModel):
     accelerator: Accelerator
 
 
+@use_case
 class CreateAcceleratorUseCase:
     """Use case for creating an accelerator.
 

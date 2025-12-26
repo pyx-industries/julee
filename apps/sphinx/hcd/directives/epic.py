@@ -12,6 +12,7 @@ from docutils import nodes
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.epic import Epic
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
+from julee.hcd.use_cases.epic.create import CreateEpicRequest, CreateEpicUseCase
 from julee.hcd.utils import normalize_name
 
 from .base import HCDDirective
@@ -49,16 +50,16 @@ class DefineEpicDirective(HCDDirective):
         docname = self.env.docname
         description = "\n".join(self.content).strip()
 
-        # Create and register the epic entity
-        epic = Epic(
+        # Create epic via use case
+        request = CreateEpicRequest(
             slug=epic_slug,
             description=description,
             story_refs=[],  # Will be populated by epic-story
             docname=docname,
         )
-
-        # Add to repository
-        self.hcd_context.epic_repo.save(epic)
+        use_case = CreateEpicUseCase(self.hcd_context.epic_repo.async_repo)
+        response = use_case.execute_sync(request)
+        epic = response.epic
 
         # Track current epic in environment for epic-story
         if not hasattr(self.env, "epic_current"):

@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.persona import Persona
 from julee.hcd.repositories.persona import PersonaRepository
 
@@ -24,6 +25,16 @@ class CreatePersonaRequest(BaseModel):
         default_factory=list, description="JTBD framework items"
     )
     context: str = Field(default="", description="Background and situational context")
+    app_slugs: list[str] = Field(
+        default_factory=list, description="Apps this persona uses"
+    )
+    accelerator_slugs: list[str] = Field(
+        default_factory=list, description="Accelerators this persona uses"
+    )
+    contrib_slugs: list[str] = Field(
+        default_factory=list, description="Contrib modules this persona uses"
+    )
+    docname: str = Field(default="", description="RST document where defined")
 
     @field_validator("slug")
     @classmethod
@@ -37,16 +48,19 @@ class CreatePersonaRequest(BaseModel):
     def validate_name(cls, v: str) -> str:
         return Persona.validate_name(v)
 
-    def to_domain_model(self, docname: str = "") -> Persona:
-        """Convert to Persona."""
-        return Persona.from_definition(
+    def to_domain_model(self) -> Persona:
+        """Convert request to Persona domain entity."""
+        return Persona(
             slug=self.slug,
             name=self.name,
             goals=self.goals,
             frustrations=self.frustrations,
             jobs_to_be_done=self.jobs_to_be_done,
             context=self.context,
-            docname=docname,
+            app_slugs=self.app_slugs,
+            accelerator_slugs=self.accelerator_slugs,
+            contrib_slugs=self.contrib_slugs,
+            docname=self.docname,
         )
 
 
@@ -56,6 +70,7 @@ class CreatePersonaResponse(BaseModel):
     persona: Persona
 
 
+@use_case
 class CreatePersonaUseCase:
     """Use case for creating a persona.
 

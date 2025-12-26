@@ -16,6 +16,11 @@ from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+from julee.hcd.use_cases.accelerator.create import (
+    CreateAcceleratorRequest,
+    CreateAcceleratorUseCase,
+    IntegrationReferenceItem,
+)
 from julee.hcd.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
     get_fed_by_accelerators,
@@ -115,8 +120,8 @@ class DefineAcceleratorDirective(HCDDirective):
         feeds_into = parse_list_option(self.options.get("feeds-into", ""))
         objective = "\n".join(self.content).strip()
 
-        # Create accelerator entity
-        accelerator = Accelerator(
+        # Create accelerator via use case
+        request = CreateAcceleratorRequest(
             slug=slug,
             name=name,
             status=status,
@@ -127,13 +132,13 @@ class DefineAcceleratorDirective(HCDDirective):
             bounded_context_path=bounded_context_path,
             technology=technology,
             sources_from=[
-                IntegrationReference(
+                IntegrationReferenceItem(
                     slug=s["slug"], description=s.get("description") or ""
                 )
                 for s in sources_from
             ],
             publishes_to=[
-                IntegrationReference(
+                IntegrationReferenceItem(
                     slug=p["slug"], description=p.get("description") or ""
                 )
                 for p in publishes_to
@@ -142,9 +147,11 @@ class DefineAcceleratorDirective(HCDDirective):
             feeds_into=feeds_into,
             docname=docname,
         )
-
-        # Add to repository
-        self.hcd_context.accelerator_repo.save(accelerator)
+        use_case = CreateAcceleratorUseCase(
+            self.hcd_context.accelerator_repo.async_repo
+        )
+        response = use_case.execute_sync(request)
+        accelerator = response.accelerator
 
         # Track documented accelerators
         if not hasattr(self.env, "documented_accelerators"):

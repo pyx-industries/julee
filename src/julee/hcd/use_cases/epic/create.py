@@ -2,16 +2,13 @@
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import use_case
 from julee.hcd.entities.epic import Epic
 from julee.hcd.repositories.epic import EpicRepository
 
 
 class CreateEpicRequest(BaseModel):
-    """Request model for creating an epic.
-
-    Fields excluded from client control:
-    - docname: Set when persisted
-    """
+    """Request model for creating an epic."""
 
     slug: str = Field(description="URL-safe identifier")
     description: str = Field(
@@ -20,6 +17,7 @@ class CreateEpicRequest(BaseModel):
     story_refs: list[str] = Field(
         default_factory=list, description="List of story feature titles in this epic"
     )
+    docname: str = Field(default="", description="RST document where defined")
 
     @field_validator("slug")
     @classmethod
@@ -32,7 +30,7 @@ class CreateEpicRequest(BaseModel):
             slug=self.slug,
             description=self.description,
             story_refs=self.story_refs,
-            docname="",
+            docname=self.docname,
         )
 
 
@@ -42,6 +40,7 @@ class CreateEpicResponse(BaseModel):
     epic: Epic
 
 
+@use_case
 class CreateEpicUseCase:
     """Use case for creating an epic.
 
