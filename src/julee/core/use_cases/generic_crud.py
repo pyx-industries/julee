@@ -678,3 +678,357 @@ class UpdateUseCase(Generic[E, R]):
 
         await self.repo.save(updated)
         return self.response_cls(entity=updated)
+
+
+# =============================================================================
+# CRUD GENERATOR
+# =============================================================================
+
+
+def generate(
+    entity: type,
+    repository: type,
+    *,
+    filters: list[str] | None = None,
+    id_field: str = "slug",
+    delete: bool = True,
+    update: bool = True,
+    create: bool = True,
+) -> None:
+    """Generate CRUD use cases, requests, and responses for an entity.
+
+    Injects generated classes into the calling module's namespace.
+    This eliminates boilerplate while preserving the public API.
+
+    Generated classes follow naming conventions:
+        Get{Entity}UseCase, Get{Entity}Request, Get{Entity}Response
+        List{Entities}UseCase, List{Entities}Request, List{Entities}Response
+        Delete{Entity}UseCase, Delete{Entity}Request, Delete{Entity}Response
+        Create{Entity}UseCase, Create{Entity}Request, Create{Entity}Response
+        Update{Entity}UseCase, Update{Entity}Request, Update{Entity}Response
+
+    Args:
+        entity: The entity class (e.g., Story, Epic)
+        repository: The repository class (e.g., StoryRepository)
+        filters: List of filter field names for List operation
+        id_field: Name of the identifier field (default: "slug")
+        delete: Whether to generate Delete classes (default: True)
+        update: Whether to generate Update classes (default: True)
+        create: Whether to generate Create classes (default: True)
+
+    Example:
+        from julee.core.use_cases import generic_crud
+
+        generic_crud.generate(Story, StoryRepository, filters=["app_slug", "persona"])
+
+        # Now these are available in the module:
+        # GetStoryUseCase, GetStoryRequest, GetStoryResponse
+        # ListStoriesUseCase, ListStoriesRequest, ListStoriesResponse
+        # DeleteStoryUseCase, DeleteStoryRequest, DeleteStoryResponse
+        # CreateStoryUseCase, CreateStoryRequest, CreateStoryResponse
+        # UpdateStoryUseCase, UpdateStoryRequest, UpdateStoryResponse
+    """
+    import inspect
+
+    caller_globals = inspect.currentframe().f_back.f_globals
+
+    name = entity.__name__  # "Story"
+    plural = _pluralize(name)  # "Stories"
+
+    # -------------------------------------------------------------------------
+    # GET
+    # -------------------------------------------------------------------------
+    get_request_cls = _make_request(f"Get{name}Request", GetRequest, id_field)
+    get_response_cls = _make_response(f"Get{name}Response", GetResponse, entity)
+    get_use_case_cls = _make_use_case(
+        f"Get{name}UseCase",
+        GetUseCase,
+        entity,
+        repository,
+        response_cls=get_response_cls,
+        id_field=id_field,
+    )
+
+    caller_globals[f"Get{name}Request"] = get_request_cls
+    caller_globals[f"Get{name}Response"] = get_response_cls
+    caller_globals[f"Get{name}UseCase"] = get_use_case_cls
+
+    # -------------------------------------------------------------------------
+    # LIST
+    # -------------------------------------------------------------------------
+    list_request_cls = _make_list_request(f"List{plural}Request", filters)
+    list_response_cls = _make_response(f"List{plural}Response", ListResponse, entity)
+
+    if filters:
+        list_use_case_cls = _make_use_case(
+            f"List{plural}UseCase",
+            FilterableListUseCase,
+            entity,
+            repository,
+            response_cls=list_response_cls,
+        )
+    else:
+        list_use_case_cls = _make_use_case(
+            f"List{plural}UseCase",
+            ListUseCase,
+            entity,
+            repository,
+            response_cls=list_response_cls,
+        )
+
+    caller_globals[f"List{plural}Request"] = list_request_cls
+    caller_globals[f"List{plural}Response"] = list_response_cls
+    caller_globals[f"List{plural}UseCase"] = list_use_case_cls
+
+    # -------------------------------------------------------------------------
+    # DELETE
+    # -------------------------------------------------------------------------
+    if delete:
+        delete_request_cls = _make_request(f"Delete{name}Request", DeleteRequest, id_field)
+        delete_response_cls = type(f"Delete{name}Response", (DeleteResponse,), {})
+        delete_use_case_cls = _make_use_case(
+            f"Delete{name}UseCase",
+            DeleteUseCase,
+            entity,
+            repository,
+            id_field=id_field,
+        )
+
+        caller_globals[f"Delete{name}Request"] = delete_request_cls
+        caller_globals[f"Delete{name}Response"] = delete_response_cls
+        caller_globals[f"Delete{name}UseCase"] = delete_use_case_cls
+
+    # -------------------------------------------------------------------------
+    # CREATE
+    # -------------------------------------------------------------------------
+    if create:
+        # Basic create request - BC can subclass or replace with custom
+        create_request_cls = _make_create_request(f"Create{name}Request", entity, id_field)
+        create_response_cls = _make_response(
+            f"Create{name}Response", CreateResponse, entity
+        )
+        create_use_case_cls = _make_use_case(
+            f"Create{name}UseCase",
+            CreateUseCase,
+            entity,
+            repository,
+            response_cls=create_response_cls,
+            entity_cls=entity,
+        )
+
+        caller_globals[f"Create{name}Request"] = create_request_cls
+        caller_globals[f"Create{name}Response"] = create_response_cls
+        caller_globals[f"Create{name}UseCase"] = create_use_case_cls
+
+    # -------------------------------------------------------------------------
+    # UPDATE
+    # -------------------------------------------------------------------------
+    if update:
+        update_request_cls = _make_update_request(f"Update{name}Request", entity, id_field)
+        update_response_cls = _make_response(
+            f"Update{name}Response", UpdateResponse, entity
+        )
+        update_use_case_cls = _make_use_case(
+            f"Update{name}UseCase",
+            UpdateUseCase,
+            entity,
+            repository,
+            response_cls=update_response_cls,
+            id_field=id_field,
+        )
+
+        caller_globals[f"Update{name}Request"] = update_request_cls
+        caller_globals[f"Update{name}Response"] = update_response_cls
+        caller_globals[f"Update{name}UseCase"] = update_use_case_cls
+
+
+def _make_request(name: str, base: type, id_field: str) -> type:
+    """Create a request class with id field."""
+    if id_field == "slug":
+        # Base already has slug, just subclass
+        return type(name, (base,), {"__doc__": f"{name.replace('Request', '')} request."})
+    else:
+        # Need custom id field
+        return create_model(
+            name,
+            __base__=BaseModel,
+            **{id_field: (str, Field(description=f"{id_field} identifier"))},
+        )
+
+
+def _make_list_request(name: str, filters: list[str] | None) -> type:
+    """Create a list request class with optional filter fields."""
+    if not filters:
+        return type(name, (ListRequest,), {"__doc__": "List request."})
+
+    # Build filter fields - all optional strings
+    fields = {
+        f: (str | None, Field(default=None, description=f"Filter by {f}"))
+        for f in filters
+    }
+    return create_model(name, __base__=ListRequest, **fields)
+
+
+def _make_response(name: str, base: type, entity: type) -> type:
+    """Create a response class parameterized with entity type."""
+    # Use types.new_class for generic base class inheritance
+    def exec_body(ns: dict) -> None:
+        ns["__doc__"] = f"{entity.__name__} response."
+
+    return types.new_class(name, (base[entity],), exec_body=exec_body)
+
+
+def _make_use_case(
+    name: str,
+    base: type,
+    entity: type,
+    repository: type,
+    *,
+    response_cls: type | None = None,
+    id_field: str = "slug",
+    entity_cls: type | None = None,
+) -> type:
+    """Create a use case class with proper generic binding."""
+    attrs: dict[str, Any] = {"__doc__": f"{name.replace('UseCase', '')} use case."}
+
+    if response_cls is not None:
+        attrs["response_cls"] = response_cls
+    if id_field != "slug":
+        attrs["id_field"] = id_field
+    if entity_cls is not None:
+        attrs["entity_cls"] = entity_cls
+
+    # Use types.new_class for generic base class inheritance
+    def exec_body(ns: dict) -> None:
+        ns.update(attrs)
+
+    return types.new_class(name, (base[entity, repository],), exec_body=exec_body)
+
+
+def _is_excluded_field(field_name: str, field_info: Any) -> bool:
+    """Check if a field should be excluded from generated requests.
+
+    Exclusion patterns (conventions that entities should follow):
+    - Fields ending with '_normalized': Computed/derived fields
+    - Fields ending with '_rst': RST round-trip fields (document structure)
+    - Fields with exclude=True in Field() json_schema_extra
+    """
+    # Pattern: *_normalized fields are computed
+    if field_name.endswith("_normalized"):
+        return True
+
+    # Pattern: *_rst fields are for RST round-trip
+    if field_name.endswith("_rst"):
+        return True
+
+    # Explicit exclusion via Field(json_schema_extra={"exclude_from_crud": True})
+    if field_info.json_schema_extra:
+        extra = field_info.json_schema_extra
+        if isinstance(extra, dict) and extra.get("exclude_from_crud"):
+            return True
+
+    return False
+
+
+def _make_create_request_from_fields(name: str, entity: type) -> type:
+    """Create a Create request by introspecting entity fields.
+
+    Exclusion patterns:
+    - *_normalized: Computed/derived fields
+    - *_rst: RST round-trip fields
+    - Fields with json_schema_extra={"exclude_from_crud": True}
+    """
+    fields: dict[str, tuple[type, Any]] = {}
+
+    for field_name, field_info in entity.model_fields.items():
+        if _is_excluded_field(field_name, field_info):
+            continue
+
+        annotation = field_info.annotation
+
+        if field_info.is_required():
+            # Required field
+            fields[field_name] = (annotation, Field(...))
+        elif field_info.default_factory is not None:
+            # Field with default_factory (e.g., list, dict)
+            fields[field_name] = (annotation, Field(default_factory=field_info.default_factory))
+        elif field_info.default is not None:
+            # Field with default value
+            fields[field_name] = (annotation, Field(default=field_info.default))
+        else:
+            # Optional field with None default
+            fields[field_name] = (annotation, Field(default=None))
+
+    return create_model(name, __base__=CreateRequest, **fields)
+
+
+def _make_create_request(name: str, entity: type, id_field: str) -> type:
+    """Create a Create request by introspecting entity's from_create_data or fields.
+
+    If entity has from_create_data() class method with explicit params, uses its signature.
+    Otherwise falls back to entity fields with exclusion patterns.
+    """
+    # Prefer from_create_data signature if available and has explicit params
+    if hasattr(entity, "from_create_data"):
+        try:
+            hints = get_type_hints(entity.from_create_data)
+        except Exception:
+            hints = {}
+
+        fields: dict[str, tuple[type, Any]] = {}
+        sig = inspect.signature(entity.from_create_data)
+        for param_name, param in sig.parameters.items():
+            if param_name in ("cls", "self"):
+                continue
+            # Skip *args and **kwargs
+            if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                continue
+
+            type_hint = hints.get(param_name, str)
+            default = param.default
+
+            if default is inspect.Parameter.empty:
+                # Required parameter
+                fields[param_name] = (type_hint, Field(...))
+            else:
+                # Optional with default
+                fields[param_name] = (type_hint, Field(default=default))
+
+        # If from_create_data has explicit params, use them
+        if fields:
+            return create_model(name, __base__=CreateRequest, **fields)
+
+    # Fallback: introspect entity fields
+    return _make_create_request_from_fields(name, entity)
+
+
+def _make_update_request(name: str, entity: type, id_field: str) -> type:
+    """Create an Update request by introspecting entity fields.
+
+    All fields are optional (for partial updates) except the id field.
+    Uses same exclusion patterns as _make_create_request.
+    """
+    fields: dict[str, tuple[type, Any]] = {}
+
+    # Always include id field as required
+    fields[id_field] = (str, Field(..., description=f"{id_field} identifier"))
+
+    for field_name, field_info in entity.model_fields.items():
+        if field_name == id_field:
+            continue  # Already added
+        if _is_excluded_field(field_name, field_info):
+            continue
+
+        annotation = field_info.annotation
+        # Make all update fields optional
+        origin = get_origin(annotation)
+        if origin is None:
+            # Simple type - make optional
+            optional_type = annotation | None
+        else:
+            # Already complex type (list, etc.) - wrap in Optional
+            optional_type = annotation | None
+
+        fields[field_name] = (optional_type, Field(default=None))
+
+    return create_model(name, __base__=BaseModel, **fields)

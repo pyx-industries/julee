@@ -98,14 +98,43 @@ class DynamicStep(BaseModel):
         return f"{slugify(sequence_name)}-step-{step_number}"
 
     @classmethod
-    def from_create_data(cls, **data) -> "DynamicStep":
+    def from_create_data(
+        cls,
+        sequence_name: str,
+        step_number: int,
+        source_type: ElementType,
+        source_slug: str,
+        destination_type: ElementType,
+        destination_slug: str,
+        slug: str = "",
+        description: str = "",
+        technology: str = "",
+        return_value: str = "",
+        is_async: bool = False,
+        docname: str = "",
+    ) -> "DynamicStep":
         """Create entity from request data, auto-generating slug if empty.
 
         Used by generic CRUD CreateUseCase to support auto-slug generation.
+        The slug parameter is optional - if empty, it's generated from
+        sequence_name and step_number.
         """
-        if not data.get("slug"):
-            data["slug"] = cls.generate_slug(data["sequence_name"], data["step_number"])
-        return cls(**data)
+        if not slug:
+            slug = cls.generate_slug(sequence_name, step_number)
+        return cls(
+            slug=slug,
+            sequence_name=sequence_name,
+            step_number=step_number,
+            source_type=source_type,
+            source_slug=source_slug,
+            destination_type=destination_type,
+            destination_slug=destination_slug,
+            description=description,
+            technology=technology,
+            return_value=return_value,
+            is_async=is_async,
+            docname=docname,
+        )
 
     def involves_element(self, element_type: ElementType, element_slug: str) -> bool:
         """Check if step involves a specific element."""
