@@ -1,8 +1,45 @@
 """Sphinx Core Doctrine Extension.
 
-Provides Sphinx directives for reflexive documentation - rendering
-core entity docstrings and introspecting module structure to generate
-documentation as projections rather than parallel content.
+Provides Sphinx directives for code-outward documentation - generating
+documentation from code rather than maintaining parallel RST content.
+
+Information Architecture Pattern
+--------------------------------
+The julee framework provides the information architecture (vocabulary,
+structure, relationships). Solutions provide the content (their specific
+entities, use cases, bounded contexts).
+
+This extension enables that pattern by:
+
+1. **Rendering docstrings as documentation** - Entity docstrings in
+   ``julee.core.entities`` define concepts; autodoc renders them.
+
+2. **Introspecting modules to generate catalogs** - The ``entity-catalog``,
+   ``repository-catalog``, and ``usecase-catalog`` directives discover
+   what exists in a solution and render it automatically.
+
+3. **Projecting solution content through framework lenses** - The framework
+   defines WHAT to show (entities, use cases, protocols); solutions provide
+   the actual instances to display.
+
+Recursive Linking Pattern
+-------------------------
+Documentation forms a navigable dependency graph::
+
+    Concept (julee.core.entities.*)
+      → lists interfaces (solution's {bc}/repositories/, {bc}/services/)
+        → links to implementations ({bc}/infrastructure/)
+          → links to applications using them (via DI containers)
+
+Directives Provided
+-------------------
+- ``core-concept`` - Render a core entity's docstring as documentation
+- ``doctrine-constant`` - Render doctrine constants and their values
+- ``entity-catalog`` - List all entities in the solution by bounded context
+- ``repository-catalog`` - List all repository protocols in the solution
+- ``usecase-catalog`` - List all use cases in the solution
+- ``solution-structure`` - Show the solution's overall structure
+- ``bounded-context-list`` - List all bounded contexts in the solution
 """
 
 from sphinx.util import logging

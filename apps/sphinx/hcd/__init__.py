@@ -1,7 +1,56 @@
 """Sphinx HCD (Human-Centered Design) Extension.
 
-Provides Sphinx directives for documenting Julee-based solutions
-using Human-Centered Design patterns.
+Provides Sphinx directives for documenting Julee solutions through the
+Human-Centered Design viewpoint - projecting solution content in terms
+of personas, journeys, stories, and apps.
+
+HCD as a Viewpoint
+------------------
+The HCD extension is one of three viewpoint projections in julee:
+
+- ``julee.hcd`` → Human-Centered Design viewpoint (this extension)
+- ``julee.c4`` → Architecture viewpoint
+- ``julee.core`` → Technical Manual viewpoint
+
+Each viewpoint projects the SAME solution content through a different lens.
+A Story defined in HCD terms links to the UseCase that enables it and the
+App that contains it. The viewpoints are interconnected, not siloed.
+
+Two Documentation Modes
+-----------------------
+**Framework documentation** screams software engineering - its bounded
+contexts ARE the viewpoints (HCD, C4, Core) because the framework's domain
+is software engineering methodology.
+
+**Solution documentation** screams its business domain - bounded contexts
+like "Henchmen Management" or "Very Large Kites" appear at root level,
+with viewpoints projecting their content through HCD/C4/Core lenses.
+
+Hub Pages
+---------
+HCD entities form hub pages that link outward to related content:
+
+- **Persona** → journeys they take, apps they use, stories about them
+- **Journey** → steps, epics involved, personas taking them
+- **Epic** → stories within, personas served, journeys containing
+- **Story** → features, use cases enabling, apps containing
+- **App** → features, accelerators powering, personas using
+- **Accelerator** → use cases, entities, apps depending on it
+
+Directives Provided
+-------------------
+Define directives: ``define-persona``, ``define-journey``, ``define-epic``,
+``define-app``, ``define-accelerator``, ``define-integration``, ``define-contrib``
+
+Index directives: ``persona-index``, ``journey-index``, ``epic-index``,
+``story-index``, ``app-index``, ``accelerator-index``, ``integration-index``,
+``contrib-index``
+
+Relationship directives: ``journeys-for-persona``, ``epics-for-persona``,
+``apps-for-persona``, ``stories``, ``accelerators-for-app``, etc.
+
+Diagram directives: ``persona-diagram``, ``journey-dependency-graph``,
+``accelerator-dependency-diagram``, ``entity-diagram``, ``c4-container-diagram``
 """
 
 from sphinx.util import logging
