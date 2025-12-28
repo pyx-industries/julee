@@ -85,6 +85,9 @@ class Integration(BaseModel):
     manifest_path: str = ""
     name_normalized: str = ""
 
+    # Solution scoping
+    solution_slug: str = ""
+
     # Document structure (RST round-trip)
     page_title: str = ""
     preamble_rst: str = ""

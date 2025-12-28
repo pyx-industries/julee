@@ -120,6 +120,7 @@ class DefinePersonaDirective(HCDDirective):
             contrib_slugs=contrib_slugs,
             context=context,
             docname=docname,
+            solution_slug=self.solution_slug,
         )
         use_case = CreatePersonaUseCase(self.hcd_context.persona_repo.async_repo)
         response = use_case.execute_sync(request)

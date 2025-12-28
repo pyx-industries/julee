@@ -91,6 +91,7 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         contains_story: str | None = None,
         has_stories: bool | None = None,
     ) -> list[Epic]:
@@ -98,22 +99,26 @@ class MemoryEpicRepository(MemoryRepositoryMixin[Epic], EpicRepository):
 
         Uses AND logic when multiple filters are provided.
         """
-        epics = list(self.storage.values())
+        results = list(self.storage.values())
+
+        # Filter by solution
+        if solution_slug is not None:
+            results = [e for e in results if e.solution_slug == solution_slug]
 
         # Filter by story reference
         if contains_story is not None:
             story_normalized = normalize_name(contains_story)
-            epics = [
+            results = [
                 e
-                for e in epics
+                for e in results
                 if any(normalize_name(ref) == story_normalized for ref in e.story_refs)
             ]
 
         # Filter by has_stories
         if has_stories is not None:
             if has_stories:
-                epics = [e for e in epics if e.story_refs]
+                results = [e for e in results if e.story_refs]
             else:
-                epics = [e for e in epics if not e.story_refs]
+                results = [e for e in results if not e.story_refs]
 
-        return epics
+        return results

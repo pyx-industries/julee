@@ -39,6 +39,11 @@ class HCDDirective(SphinxDirective):
         return get_config()
 
     @property
+    def solution_slug(self) -> str:
+        """Get the current solution slug for entity scoping."""
+        return self.hcd_config.solution_slug
+
+    @property
     def docname(self) -> str:
         """Get the current document name."""
         return self.env.docname

@@ -133,25 +133,31 @@ class MemoryJourneyRepository(MemoryRepositoryMixin[Journey], JourneyRepository)
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         persona: str | None = None,
         contains_story: str | None = None,
     ) -> list[Journey]:
         """List journeys matching filters.
 
-        Delegates to optimized get_by_* methods when possible.
         Uses AND logic when multiple filters are provided.
         """
-        # No filters - return all
-        if persona is None and contains_story is None:
-            return await self.list_all()
+        results = list(self.storage.values())
 
-        # Single filter - use optimized methods
-        if persona and not contains_story:
-            return await self.get_by_persona(persona)
-        if contains_story and not persona:
-            return await self.get_with_story_ref(contains_story)
+        # Filter by solution
+        if solution_slug is not None:
+            results = [j for j in results if j.solution_slug == solution_slug]
 
-        # Multiple filters - intersect results
-        by_persona = {j.slug for j in await self.get_by_persona(persona)}
-        by_story = await self.get_with_story_ref(contains_story)
-        return [j for j in by_story if j.slug in by_persona]
+        # Filter by persona
+        if persona is not None:
+            persona_normalized = normalize_name(persona)
+            results = [j for j in results if j.persona_normalized == persona_normalized]
+
+        # Filter by story reference
+        if contains_story is not None:
+            story_normalized = normalize_name(contains_story)
+            results = [
+                j for j in results
+                if any(normalize_name(ref) == story_normalized for ref in j.get_story_refs())
+            ]
+
+        return results

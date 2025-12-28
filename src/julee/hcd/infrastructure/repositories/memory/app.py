@@ -88,6 +88,7 @@ class MemoryAppRepository(MemoryRepositoryMixin[App], AppRepository):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         app_type: str | None = None,
         has_accelerator: str | None = None,
     ) -> list[App]:
@@ -95,15 +96,19 @@ class MemoryAppRepository(MemoryRepositoryMixin[App], AppRepository):
 
         Uses AND logic when multiple filters are provided.
         """
-        apps = list(self.storage.values())
+        results = list(self.storage.values())
+
+        # Filter by solution
+        if solution_slug is not None:
+            results = [a for a in results if a.solution_slug == solution_slug]
 
         # Filter by app type
         if app_type is not None:
             target_type = AppType.from_string(app_type)
-            apps = [a for a in apps if a.app_type == target_type]
+            results = [a for a in results if a.app_type == target_type]
 
         # Filter by accelerator
         if has_accelerator is not None:
-            apps = [a for a in apps if has_accelerator in a.accelerators]
+            results = [a for a in results if has_accelerator in a.accelerators]
 
-        return apps
+        return results

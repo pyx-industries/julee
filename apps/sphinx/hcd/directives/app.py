@@ -19,6 +19,13 @@ from ..node_builders import (
     problematic_paragraph,
 )
 from julee.hcd.entities.app import App, AppInterface, AppType
+from julee.hcd.use_cases.crud import (
+    GetAppRequest,
+    ListAppsRequest,
+    ListEpicsRequest,
+    ListJourneysRequest,
+    ListStoriesRequest,
+)
 from julee.hcd.use_cases.resolve_app_references import (
     get_epics_for_app,
     get_journeys_for_app,
@@ -87,7 +94,10 @@ class DefineAppDirective(HCDDirective):
         description = "\n".join(self.content).strip()
 
         # Get existing app from YAML manifest (if any)
-        existing_app = self.hcd_context.app_repo.get(app_slug)
+        app_response = self.hcd_context.get_app.execute_sync(
+            GetAppRequest(slug=app_slug)
+        )
+        existing_app = app_response.app
 
         if existing_app:
             # Update existing app with directive fields
@@ -119,6 +129,7 @@ class DefineAppDirective(HCDDirective):
                 interface=AppInterface.from_string(interface_str) if interface_str else AppInterface.UNKNOWN,
                 technology=technology,
                 docname=docname,
+                solution_slug=self.solution_slug,
             )
             self.hcd_context.app_repo.save(app)
 
@@ -171,17 +182,28 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    # Get app from repository
-    app = hcd_context.app_repo.get(app_slug)
+    # Get app via use case
+    app_response = hcd_context.get_app.execute_sync(GetAppRequest(slug=app_slug))
+    app = app_response.app
     if not app:
         return [problematic_paragraph(f"App '{app_slug}' not found in apps/")]
 
-    # Get all entities for cross-references
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
-    all_journeys = hcd_context.journey_repo.list_all()
+    # Get all entities for cross-references via use cases
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    epics_response = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    )
+    journeys_response = hcd_context.list_journeys.execute_sync(
+        ListJourneysRequest(solution_slug=solution)
+    )
+    all_stories = stories_response.stories
+    all_epics = epics_response.epics
+    all_journeys = journeys_response.journeys
 
     result_nodes = []
 
@@ -255,7 +277,14 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
 
 def build_app_index(docname: str, hcd_context):
     """Build the app index grouped by interface."""
-    all_apps = hcd_context.app_repo.list_all()
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
+    apps_response = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    )
+    all_apps = apps_response.apps
 
     if not all_apps:
         return [empty_result_paragraph("No apps defined")]
@@ -311,12 +340,23 @@ def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
     persona_normalized = normalize_name(persona_arg)
 
-    all_apps = hcd_context.app_repo.list_all()
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
+    # Get entities via use cases
+    apps_response = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    )
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    epics_response = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    )
+    all_apps = apps_response.apps
+    all_stories = stories_response.stories
+    all_epics = epics_response.epics
 
     # Derive personas
     personas = derive_personas(all_stories, all_epics)

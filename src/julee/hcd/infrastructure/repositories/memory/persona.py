@@ -89,3 +89,19 @@ class MemoryPersonaRepository(MemoryRepositoryMixin[Persona], PersonaRepository)
     async def list_slugs(self) -> set[str]:
         """List all persona slugs."""
         return self._list_slugs()
+
+    async def list_filtered(
+        self,
+        solution_slug: str | None = None,
+    ) -> list[Persona]:
+        """List personas matching filters.
+
+        Uses AND logic when multiple filters are provided.
+        """
+        results = list(self.storage.values())
+
+        # Filter by solution
+        if solution_slug is not None:
+            results = [p for p in results if p.solution_slug == solution_slug]
+
+        return results

@@ -147,6 +147,7 @@ class DefineAcceleratorDirective(HCDDirective):
             depends_on=depends_on,
             feeds_into=feeds_into,
             docname=docname,
+            solution_slug=self.solution_slug,
         )
         use_case = get_create_accelerator_use_case(self.hcd_context)
         response = use_case.execute_sync(request)

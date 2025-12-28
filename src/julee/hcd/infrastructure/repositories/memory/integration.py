@@ -104,3 +104,19 @@ class MemoryIntegrationRepository(
     async def list_slugs(self) -> set[str]:
         """List all integration slugs."""
         return self._list_slugs()
+
+    async def list_filtered(
+        self,
+        solution_slug: str | None = None,
+    ) -> list[Integration]:
+        """List integrations matching filters.
+
+        Uses AND logic when multiple filters are provided.
+        """
+        results = list(self.storage.values())
+
+        # Filter by solution
+        if solution_slug is not None:
+            results = [i for i in results if i.solution_slug == solution_slug]
+
+        return results

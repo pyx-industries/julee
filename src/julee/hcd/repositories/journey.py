@@ -107,6 +107,7 @@ class JourneyRepository(BaseRepository[Journey], Protocol):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         persona: str | None = None,
         contains_story: str | None = None,
     ) -> list[Journey]:
@@ -117,6 +118,7 @@ class JourneyRepository(BaseRepository[Journey], Protocol):
         should use AND logic when multiple filters are provided.
 
         Args:
+            solution_slug: Filter to journeys for this solution
             persona: Filter to journeys for this persona
             contains_story: Filter to journeys containing this story title
 

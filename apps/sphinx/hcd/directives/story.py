@@ -18,7 +18,12 @@ from julee.hcd.use_cases.resolve_story_references import (
     get_epics_for_story,
     get_journeys_for_story,
 )
-from julee.hcd.use_cases.crud import ListStoriesRequest
+from julee.hcd.use_cases.crud import (
+    ListAppsRequest,
+    ListEpicsRequest,
+    ListJourneysRequest,
+    ListStoriesRequest,
+)
 from julee.hcd.utils import normalize_name, slugify
 
 from .base import HCDDirective, make_deprecated_directive
@@ -47,10 +52,11 @@ class StoryAppDirective(HCDDirective):
 
     def run(self):
         app_arg = self.arguments[0]
+        solution = self.solution_slug
 
         # Get stories using filtered use case
         response = self.hcd_context.list_stories.execute_sync(
-            ListStoriesRequest(app_slug=app_arg)
+            ListStoriesRequest(app_slug=app_arg, solution_slug=solution)
         )
         stories = response.stories
 
@@ -58,8 +64,10 @@ class StoryAppDirective(HCDDirective):
             return self.empty_result(f"No stories found for application '{app_arg}'")
 
         # Get known apps and personas for validation
-        all_apps = self.hcd_context.app_repo.list_all()
-        known_apps = {normalize_name(a.name) for a in all_apps}
+        apps_response = self.hcd_context.list_apps.execute_sync(
+            ListAppsRequest(solution_slug=solution)
+        )
+        known_apps = {normalize_name(a.name) for a in apps_response.apps}
 
         # Group stories by persona
         by_persona: dict[str, list[Story]] = defaultdict(list)
@@ -72,7 +80,7 @@ class StoryAppDirective(HCDDirective):
         persona_count = len(by_persona)
         total_stories = len(stories)
         app_display = app_arg.replace("-", " ").title()
-        app_valid = app_normalized in known_apps
+        app_valid = normalize_name(app_arg) in known_apps
 
         intro_para = nodes.paragraph()
         intro_para += nodes.Text("The ")
@@ -158,10 +166,11 @@ class StoryListForPersonaDirective(HCDDirective):
 
     def run(self):
         persona_arg = self.arguments[0]
+        solution = self.solution_slug
 
         # Get stories using filtered use case
         response = self.hcd_context.list_stories.execute_sync(
-            ListStoriesRequest(persona=persona_arg)
+            ListStoriesRequest(persona=persona_arg, solution_slug=solution)
         )
         stories = response.stories
 
@@ -169,8 +178,10 @@ class StoryListForPersonaDirective(HCDDirective):
             return self.empty_result(f"No stories found for persona '{persona_arg}'")
 
         # Get known apps for validation
-        all_apps = self.hcd_context.app_repo.list_all()
-        known_apps = {normalize_name(a.name) for a in all_apps}
+        apps_response = self.hcd_context.list_apps.execute_sync(
+            ListAppsRequest(solution_slug=solution)
+        )
+        known_apps = {normalize_name(a.name) for a in apps_response.apps}
 
         story_list = nodes.bullet_list()
 
@@ -208,10 +219,11 @@ class StoryListForAppDirective(HCDDirective):
 
     def run(self):
         app_arg = self.arguments[0]
+        solution = self.solution_slug
 
         # Get stories using filtered use case
         response = self.hcd_context.list_stories.execute_sync(
-            ListStoriesRequest(app_slug=app_arg)
+            ListStoriesRequest(app_slug=app_arg, solution_slug=solution)
         )
         stories = response.stories
 
@@ -279,7 +291,11 @@ class StoryIndexDirective(HCDDirective):
     """
 
     def run(self):
-        all_stories = self.hcd_context.story_repo.list_all()
+        solution = self.solution_slug
+        stories_response = self.hcd_context.list_stories.execute_sync(
+            ListStoriesRequest(solution_slug=solution)
+        )
+        all_stories = stories_response.stories
 
         if not all_stories:
             return self.empty_result("No Gherkin stories found")
@@ -329,13 +345,19 @@ class StoriesDirective(HCDDirective):
         if not feature_names:
             return self.empty_result("No stories specified")
 
+        solution = self.solution_slug
+
         # Get all stories for lookup
-        all_stories = self.hcd_context.story_repo.list_all()
-        story_lookup = {normalize_name(s.feature_title): s for s in all_stories}
+        stories_response = self.hcd_context.list_stories.execute_sync(
+            ListStoriesRequest(solution_slug=solution)
+        )
+        story_lookup = {normalize_name(s.feature_title): s for s in stories_response.stories}
 
         # Get known apps for validation
-        all_apps = self.hcd_context.app_repo.list_all()
-        known_apps = {normalize_name(a.name) for a in all_apps}
+        apps_response = self.hcd_context.list_apps.execute_sync(
+            ListAppsRequest(solution_slug=solution)
+        )
+        known_apps = {normalize_name(a.name) for a in apps_response.apps}
 
         # Look up stories
         stories = []
@@ -462,6 +484,7 @@ def build_story_seealso(story, env, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
     links = []
 
@@ -487,26 +510,32 @@ def build_story_seealso(story, env, docname: str, hcd_context):
         links.append(("App", app_slug.replace("-", " ").title(), app_path))
 
     # Get story entity for use cases
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
-    all_journeys = hcd_context.journey_repo.list_all()
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    epics_response = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    )
+    journeys_response = hcd_context.list_journeys.execute_sync(
+        ListJourneysRequest(solution_slug=solution)
+    )
 
     story_entity = None
-    for s in all_stories:
+    for s in stories_response.stories:
         if normalize_name(s.feature_title) == normalize_name(feature_title):
             story_entity = s
             break
 
     if story_entity:
         # Epic links via use case
-        epics = get_epics_for_story(story_entity, all_epics)
+        epics = get_epics_for_story(story_entity, epics_response.epics)
         for epic in epics:
             epic_title = epic.slug.replace("-", " ").title()
             epic_path = f"{prefix}{config.get_doc_path('epics')}/{epic.slug}.html"
             links.append(("Epic", epic_title, epic_path))
 
         # Journey links via use case
-        journeys = get_journeys_for_story(story_entity, all_journeys)
+        journeys = get_journeys_for_story(story_entity, journeys_response.journeys)
         for journey in journeys:
             journey_title = journey.slug.replace("-", " ").title()
             journey_path = (

@@ -33,6 +33,9 @@ class Persona(BaseModel):
     epic_slugs: list[str] = Field(default_factory=list)
     docname: str = ""
 
+    # Solution scoping
+    solution_slug: str = ""
+
     # Document structure (RST round-trip)
     page_title: str = ""
     preamble_rst: str = ""

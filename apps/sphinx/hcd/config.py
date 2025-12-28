@@ -62,6 +62,10 @@ class SphinxHCDConfig(BaseModel):
         default="memory",
         description="Repository backend: 'memory' (default) or 'rst'",
     )
+    solution_slug: str | None = Field(
+        default=None,
+        description="Solution slug for scoping entities. Auto-detected from project if not set.",
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -194,6 +198,21 @@ class HCDConfig:
             True if repository_backend is "rst"
         """
         return self.repository_backend == "rst"
+
+    @property
+    def solution_slug(self) -> str:
+        """Get the solution slug for scoping entities.
+
+        Returns explicit config value if set, otherwise auto-detects from
+        project directory name.
+
+        Returns:
+            Solution slug string
+        """
+        if self._model.solution_slug:
+            return self._model.solution_slug
+        # Auto-detect from project directory name
+        return self._project_root.name
 
     def get_rst_dir(self, entity_type: str) -> Path:
         """Get the RST directory for an entity type.

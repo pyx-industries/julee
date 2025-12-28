@@ -42,6 +42,7 @@ class StoryRepository(BaseRepository[Story], Protocol):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         app_slug: str | None = None,
         persona: str | None = None,
     ) -> list[Story]:
@@ -52,6 +53,7 @@ class StoryRepository(BaseRepository[Story], Protocol):
         should use AND logic when multiple filters are provided.
 
         Args:
+            solution_slug: Filter to stories for this solution
             app_slug: Filter to stories for this application
             persona: Filter to stories for this persona
 

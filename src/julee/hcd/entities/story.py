@@ -27,6 +27,9 @@ class Story(BaseModel):
     abs_path: str = ""
     gherkin_snippet: str = ""
 
+    # Solution scoping
+    solution_slug: str = ""
+
     # Document structure (RST round-trip)
     page_title: str = ""
     preamble_rst: str = ""

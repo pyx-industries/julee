@@ -69,6 +69,7 @@ class AppRepository(BaseRepository[App], Protocol):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         app_type: str | None = None,
         has_accelerator: str | None = None,
     ) -> list[App]:
@@ -79,6 +80,7 @@ class AppRepository(BaseRepository[App], Protocol):
         should use AND logic when multiple filters are provided.
 
         Args:
+            solution_slug: Filter to apps for this solution
             app_type: Filter to apps of this type (staff, external, member-tool, etc.)
             has_accelerator: Filter to apps that expose this accelerator
 

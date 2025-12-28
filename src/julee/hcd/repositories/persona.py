@@ -67,3 +67,21 @@ class PersonaRepository(BaseRepository[Persona], Protocol):
             Number of personas removed
         """
         ...
+
+    async def list_filtered(
+        self,
+        solution_slug: str | None = None,
+    ) -> list[Persona]:
+        """List personas matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            solution_slug: Filter to personas for this solution
+
+        Returns:
+            List of personas matching all provided filters
+        """
+        ...

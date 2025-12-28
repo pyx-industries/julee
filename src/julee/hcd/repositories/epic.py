@@ -63,6 +63,7 @@ class EpicRepository(BaseRepository[Epic], Protocol):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         contains_story: str | None = None,
         has_stories: bool | None = None,
     ) -> list[Epic]:
@@ -73,6 +74,7 @@ class EpicRepository(BaseRepository[Epic], Protocol):
         should use AND logic when multiple filters are provided.
 
         Args:
+            solution_slug: Filter to epics for this solution
             contains_story: Filter to epics containing this story title
             has_stories: Filter to epics with (True) or without (False) stories
 

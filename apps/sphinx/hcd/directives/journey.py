@@ -26,7 +26,12 @@ from ..node_builders import (
     problematic_paragraph,
 )
 from julee.hcd.entities.journey import Journey, JourneyStep
-from julee.hcd.use_cases.crud import ListJourneysRequest
+from julee.hcd.use_cases.crud import (
+    GetJourneyRequest,
+    ListAppsRequest,
+    ListJourneysRequest,
+    ListStoriesRequest,
+)
 from julee.hcd.utils import (
     normalize_name,
     parse_csv_option,
@@ -98,6 +103,7 @@ class DefineJourneyDirective(HCDDirective):
             postconditions=postconditions,
             steps=[],  # Will be populated by step directives
             docname=docname,
+            solution_slug=self.solution_slug,
         )
 
         # Add to repository
@@ -170,7 +176,10 @@ class StepStoryDirective(HCDDirective):
         journey_slug = journey_current.get(docname)
 
         if journey_slug:
-            journey = self.hcd_context.journey_repo.get(journey_slug)
+            journey_response = self.hcd_context.get_journey.execute_sync(
+                GetJourneyRequest(slug=journey_slug)
+            )
+            journey = journey_response.journey
             if journey:
                 step = JourneyStep.story(story_title)
                 journey.steps.append(step)
@@ -196,7 +205,10 @@ class StepEpicDirective(HCDDirective):
         journey_slug = journey_current.get(docname)
 
         if journey_slug:
-            journey = self.hcd_context.journey_repo.get(journey_slug)
+            journey_response = self.hcd_context.get_journey.execute_sync(
+                GetJourneyRequest(slug=journey_slug)
+            )
+            journey = journey_response.journey
             if journey:
                 step = JourneyStep.epic(epic_slug)
                 journey.steps.append(step)
@@ -227,7 +239,10 @@ class StepPhaseDirective(HCDDirective):
         journey_slug = journey_current.get(docname)
 
         if journey_slug:
-            journey = self.hcd_context.journey_repo.get(journey_slug)
+            journey_response = self.hcd_context.get_journey.execute_sync(
+                GetJourneyRequest(slug=journey_slug)
+            )
+            journey = journey_response.journey
             if journey:
                 step = JourneyStep.phase(phase_title, description)
                 journey.steps.append(step)
@@ -244,7 +259,11 @@ class JourneyIndexDirective(HCDDirective):
     """
 
     def run(self):
-        all_journeys = self.hcd_context.journey_repo.list_all()
+        solution = self.solution_slug
+        journeys_response = self.hcd_context.list_journeys.execute_sync(
+            ListJourneysRequest(solution_slug=solution)
+        )
+        all_journeys = journeys_response.journeys
 
         if not all_journeys:
             return self.empty_result("No journeys defined")
@@ -299,10 +318,11 @@ class JourneysForPersonaDirective(HCDDirective):
 
     def run(self):
         persona_arg = self.arguments[0]
+        solution = self.solution_slug
 
         # Get journeys using filtered use case
         response = self.hcd_context.list_journeys.execute_sync(
-            ListJourneysRequest(persona=persona_arg)
+            ListJourneysRequest(persona=persona_arg, solution_slug=solution)
         )
         journeys = response.journeys
 
@@ -326,9 +346,15 @@ def build_story_node(story_title: str, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
-    all_stories = hcd_context.story_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
-    known_apps = {normalize_name(a.name) for a in all_apps}
+    solution = config.solution_slug
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    apps_response = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    )
+    all_stories = stories_response.stories
+    known_apps = {normalize_name(a.name) for a in apps_response.apps}
     prefix = path_to_root(docname)
 
     # Find the story
@@ -464,6 +490,11 @@ def make_labelled_list(
     term: str, items: list, hcd_context, docname: str = None, item_type: str = "text"
 ):
     """Create a labelled bullet list with term as heading."""
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
+
     container = nodes.container()
 
     term_para = nodes.paragraph()
@@ -471,8 +502,10 @@ def make_labelled_list(
     container += term_para
 
     bullet_list = nodes.bullet_list()
-    all_journeys = hcd_context.journey_repo.list_all()
-    journey_slugs = {j.slug for j in all_journeys}
+    journeys_response = hcd_context.list_journeys.execute_sync(
+        ListJourneysRequest(solution_slug=solution)
+    )
+    journey_slugs = {j.slug for j in journeys_response.journeys}
 
     for item in items:
         list_item = nodes.list_item()
@@ -513,18 +546,24 @@ def clear_journey_state(app, env, docname):
 
 def process_journey_steps(app, doctree):
     """Replace journey steps placeholder with rendered steps."""
+    from ..config import get_config
     from ..context import get_hcd_context
 
     env = app.env
     docname = env.docname
     hcd_context = get_hcd_context(app)
+    config = get_config()
+    solution = config.solution_slug
     journey_current = getattr(env, "journey_current", {})
 
     journey_slug = journey_current.get(docname)
     if not journey_slug:
         return
 
-    journey = hcd_context.journey_repo.get(journey_slug)
+    journey_response = hcd_context.get_journey.execute_sync(
+        GetJourneyRequest(slug=journey_slug)
+    )
+    journey = journey_response.journey
     if not journey:
         return
 
@@ -559,8 +598,10 @@ def process_journey_steps(app, doctree):
         )
 
     # Add depended-on-by (inferred)
-    all_journeys = hcd_context.journey_repo.list_all()
-    depended_on_by = [j.slug for j in all_journeys if journey_slug in j.depends_on]
+    journeys_response = hcd_context.list_journeys.execute_sync(
+        ListJourneysRequest(solution_slug=solution)
+    )
+    depended_on_by = [j.slug for j in journeys_response.journeys if journey_slug in j.depends_on]
     if depended_on_by:
         doctree += make_labelled_list(
             "Depended On By",
@@ -573,12 +614,19 @@ def process_journey_steps(app, doctree):
 
 def build_dependency_graph_node(env, hcd_context):
     """Build the PlantUML node for the journey dependency graph."""
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
         return empty_result_paragraph("PlantUML extension not available")
 
-    all_journeys = hcd_context.journey_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    journeys_response = hcd_context.list_journeys.execute_sync(
+        ListJourneysRequest(solution_slug=solution)
+    )
+    all_journeys = journeys_response.journeys
 
     if not all_journeys:
         return empty_result_paragraph("No journeys defined")

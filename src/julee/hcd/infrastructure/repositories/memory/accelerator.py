@@ -123,15 +123,22 @@ class MemoryAcceleratorRepository(
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         status: str | None = None,
     ) -> list[Accelerator]:
         """List accelerators matching filters.
 
-        Delegates to optimized get_by_status when filtering by status.
+        Uses AND logic when multiple filters are provided.
         """
-        # No filters - return all
-        if status is None:
-            return await self.list_all()
+        results = list(self.storage.values())
+
+        # Filter by solution
+        if solution_slug is not None:
+            results = [a for a in results if a.solution_slug == solution_slug]
 
         # Filter by status
-        return await self.get_by_status(status)
+        if status is not None:
+            status_normalized = status.lower().strip()
+            results = [a for a in results if a.status_normalized == status_normalized]
+
+        return results

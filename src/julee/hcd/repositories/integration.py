@@ -77,3 +77,21 @@ class IntegrationRepository(BaseRepository[Integration], Protocol):
             List of integrations that have this dependency
         """
         ...
+
+    async def list_filtered(
+        self,
+        solution_slug: str | None = None,
+    ) -> list[Integration]:
+        """List integrations matching filters.
+
+        Filter parameters declared here are automatically surfaced as
+        FastAPI query params via make_list_request(). Implementations
+        should use AND logic when multiple filters are provided.
+
+        Args:
+            solution_slug: Filter to integrations for this solution
+
+        Returns:
+            List of integrations matching all provided filters
+        """
+        ...

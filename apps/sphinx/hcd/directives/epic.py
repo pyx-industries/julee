@@ -17,7 +17,13 @@ from ..node_builders import (
     titled_bullet_list,
 )
 from julee.hcd.entities.epic import Epic
-from julee.hcd.use_cases.crud import CreateEpicRequest
+from julee.hcd.use_cases.crud import (
+    CreateEpicRequest,
+    GetEpicRequest,
+    ListAppsRequest,
+    ListEpicsRequest,
+    ListStoriesRequest,
+)
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
 from julee.hcd.utils import normalize_name
 
@@ -56,6 +62,7 @@ class DefineEpicDirective(HCDDirective):
         epic_slug = self.arguments[0]
         docname = self.env.docname
         description = "\n".join(self.content).strip()
+        solution = self.solution_slug
 
         # Create epic via use case
         request = CreateEpicRequest(
@@ -63,6 +70,7 @@ class DefineEpicDirective(HCDDirective):
             description=description,
             story_refs=[],  # Will be populated by epic-story
             docname=docname,
+            solution_slug=solution,
         )
         use_case = get_create_epic_use_case(self.hcd_context)
         response = use_case.execute_sync(request)
@@ -110,7 +118,10 @@ class EpicStoryDirective(HCDDirective):
 
         if epic_slug:
             # Get the epic from repository and update story_refs
-            epic = self.hcd_context.epic_repo.get(epic_slug)
+            epic_response = self.hcd_context.get_epic.execute_sync(
+                GetEpicRequest(slug=epic_slug)
+            )
+            epic = epic_response.epic
             if epic:
                 # Add story to epic's story_refs
                 if story_title not in epic.story_refs:
@@ -157,12 +168,18 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    # Get all stories
-    all_stories = hcd_context.story_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
-    known_apps = {normalize_name(a.name) for a in all_apps}
+    # Get all stories and apps via use cases
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    apps_response = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    )
+    all_stories = stories_response.stories
+    known_apps = {normalize_name(a.name) for a in apps_response.apps}
 
     # Find stories referenced by this epic
     stories_data = []
@@ -247,12 +264,22 @@ def build_epic_index(env, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    all_epics = hcd_context.epic_repo.list_all()
-    all_stories = hcd_context.story_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
-    known_apps = {normalize_name(a.name) for a in all_apps}
+    # Get all entities via use cases
+    epics_response = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    )
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    apps_response = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    )
+    all_epics = epics_response.epics
+    all_stories = stories_response.stories
+    known_apps = {normalize_name(a.name) for a in apps_response.apps}
 
     if not all_epics:
         return [empty_result_paragraph("No epics defined")]
@@ -330,10 +357,18 @@ def build_epics_for_persona(env, docname: str, persona_arg: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
+    # Get entities via use cases
+    stories_response = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    )
+    epics_response = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    )
+    all_stories = stories_response.stories
+    all_epics = epics_response.epics
 
     # Derive personas to get their epic associations
     personas = derive_personas(all_stories, all_epics)
@@ -392,7 +427,8 @@ def process_epic_placeholders(app, doctree, docname):
     # Process epic stories placeholder
     epic_slug = epic_current.get(docname)
     if epic_slug:
-        epic = hcd_context.epic_repo.get(epic_slug)
+        epic_response = hcd_context.get_epic.execute_sync(GetEpicRequest(slug=epic_slug))
+        epic = epic_response.epic
         if epic:
             for node in doctree.traverse(nodes.container):
                 if "epic-stories-placeholder" in node.get("classes", []):

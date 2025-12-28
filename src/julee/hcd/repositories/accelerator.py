@@ -99,6 +99,7 @@ class AcceleratorRepository(BaseRepository[Accelerator], Protocol):
 
     async def list_filtered(
         self,
+        solution_slug: str | None = None,
         status: str | None = None,
     ) -> list[Accelerator]:
         """List accelerators matching filters.
@@ -108,6 +109,7 @@ class AcceleratorRepository(BaseRepository[Accelerator], Protocol):
         should use AND logic when multiple filters are provided.
 
         Args:
+            solution_slug: Filter to accelerators for this solution
             status: Filter to accelerators with this status
 
         Returns:

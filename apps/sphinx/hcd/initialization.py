@@ -62,8 +62,10 @@ def _load_stories(context: HCDContext, config) -> None:
         logger.info(f"Features directory not found: {features_dir}")
         return
 
+    solution_slug = config.solution_slug
     stories = scan_feature_directory(features_dir, config.project_root)
     for story in stories:
+        story.solution_slug = solution_slug
         context.story_repo.save(story)
 
     logger.info(f"Loaded {len(stories)} stories from feature files")
@@ -76,8 +78,10 @@ def _load_apps(context: HCDContext, config) -> None:
         logger.info(f"Applications directory not found: {apps_dir}")
         return
 
+    solution_slug = config.solution_slug
     apps = scan_app_manifests(apps_dir)
     for app in apps:
+        app.solution_slug = solution_slug
         context.app_repo.save(app)
 
     logger.info(f"Loaded {len(apps)} apps from manifests")
@@ -90,8 +94,10 @@ def _load_integrations(context: HCDContext, config) -> None:
         logger.info(f"Integrations directory not found: {integrations_dir}")
         return
 
+    solution_slug = config.solution_slug
     integrations = scan_integration_manifests(integrations_dir)
     for integration in integrations:
+        integration.solution_slug = solution_slug
         context.integration_repo.save(integration)
 
     logger.info(f"Loaded {len(integrations)} integrations from manifests")
