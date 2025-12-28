@@ -15,6 +15,7 @@ from apps.admin.dependencies import (
     find_project_root,
     get_list_doctrine_areas_use_case,
     get_list_doctrine_rules_use_case,
+    require_search_root,
 )
 from julee.core.entities.doctrine import DoctrineArea
 from julee.core.use_cases.doctrine.list import (
@@ -38,25 +39,22 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
     from julee.core.infrastructure.repositories.introspection.solution import (
         FilesystemSolutionRepository,
     )
-    from julee.core.use_cases.solution import GetSolutionRequest, GetSolutionUseCase
 
     # Use JULEE_TARGET if set (by verify command), otherwise find project root
     target = os.environ.get("JULEE_TARGET")
     project_root = Path(target) if target else find_project_root()
 
-    async def _discover():
-        repo = FilesystemSolutionRepository(project_root)
-        use_case = GetSolutionUseCase(repo)
-        response = await use_case.execute(GetSolutionRequest())
-        solution = response.solution
-        dirs = {}
-        for app in solution.all_applications:
-            doctrine_dir = Path(app.path) / "doctrine"
-            if doctrine_dir.exists():
-                dirs[app.slug] = doctrine_dir
-        return dirs
+    # Use sync discovery - the repository's internal _discover_solution is sync
+    search_root = require_search_root()
+    repo = FilesystemSolutionRepository(project_root, search_root)
+    solution = repo._discover_solution()
 
-    return asyncio.run(_discover())
+    dirs = {}
+    for app in solution.all_applications:
+        doctrine_dir = Path(app.path) / "doctrine"
+        if doctrine_dir.exists():
+            dirs[app.slug] = doctrine_dir
+    return dirs
 
 
 # =============================================================================

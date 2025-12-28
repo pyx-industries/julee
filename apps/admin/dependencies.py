@@ -9,6 +9,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
 )
@@ -78,13 +79,76 @@ def get_project_root() -> Path:
 
 
 @lru_cache
+def get_solution_config() -> SolutionPolicyConfig:
+    """Get the solution configuration from pyproject.toml.
+
+    Reads [tool.julee] configuration including search_root and docs_root.
+    Results are cached.
+
+    Returns:
+        SolutionPolicyConfig with parsed settings
+
+    Raises:
+        ValueError: If this is a julee solution but search_root is not configured
+    """
+    from julee.core.infrastructure.repositories.file.solution_config import (
+        FileSolutionConfigRepository,
+    )
+
+    repo = FileSolutionConfigRepository()
+    return repo.get_policy_config_sync(get_project_root())
+
+
+def require_search_root() -> str:
+    """Get the search_root, raising an error if not configured.
+
+    Returns:
+        The configured search_root path
+
+    Raises:
+        ValueError: If search_root is not configured in [tool.julee]
+    """
+    config = get_solution_config()
+    if config.search_root is None:
+        raise ValueError(
+            "search_root not configured in [tool.julee] section of pyproject.toml. "
+            "Add: search_root = \"src/your_package\""
+        )
+    return config.search_root
+
+
+def require_docs_root() -> str:
+    """Get the docs_root, raising an error if not configured.
+
+    Returns:
+        The configured docs_root path
+
+    Raises:
+        ValueError: If docs_root is not configured in [tool.julee]
+    """
+    config = get_solution_config()
+    if config.docs_root is None:
+        raise ValueError(
+            "docs_root not configured in [tool.julee] section of pyproject.toml. "
+            "Add: docs_root = \"docs\""
+        )
+    return config.docs_root
+
+
+@lru_cache
 def get_bounded_context_repository() -> FilesystemBoundedContextRepository:
     """Get the bounded context repository singleton.
 
     Returns:
         Repository for discovering bounded contexts in the filesystem
+
+    Raises:
+        ValueError: If search_root is not configured
     """
-    return FilesystemBoundedContextRepository(get_project_root())
+    return FilesystemBoundedContextRepository(
+        get_project_root(),
+        require_search_root(),
+    )
 
 
 # =============================================================================
@@ -180,8 +244,14 @@ def get_solution_repository() -> FilesystemSolutionRepository:
 
     Returns:
         Repository for discovering the solution structure
+
+    Raises:
+        ValueError: If search_root is not configured
     """
-    return FilesystemSolutionRepository(get_project_root())
+    return FilesystemSolutionRepository(
+        get_project_root(),
+        require_search_root(),
+    )
 
 
 @lru_cache
@@ -361,8 +431,11 @@ def get_docs_path() -> Path:
 
     Returns:
         Path to the docs directory
+
+    Raises:
+        ValueError: If docs_root is not configured
     """
-    return get_project_root() / "docs"
+    return get_project_root() / require_docs_root()
 
 
 @lru_cache

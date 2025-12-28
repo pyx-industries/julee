@@ -220,4 +220,6 @@ warn_required_dynamic_aliases = true
 
 [tool.julee]
 # julee is itself a julee solution
+search_root = "src/julee"
+docs_root = "docs"
 skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal

@@ -9,7 +9,6 @@ from pathlib import Path
 from julee.core.doctrine_constants import (
     APPS_ROOT,
     CONTRIB_DIR,
-    SEARCH_ROOT,
 )
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
@@ -34,7 +33,7 @@ class FilesystemSolutionRepository:
     """Repository that discovers solutions by scanning filesystem.
 
     A solution consists of:
-    - Bounded contexts at {solution}/src/julee/ (or configured search root)
+    - Bounded contexts at {solution}/{search_root}/ (e.g., src/myapp/)
     - Applications at {solution}/apps/
     - Deployments at {solution}/deployments/
     - Nested solutions (like contrib/) which may contain their own BCs and apps
@@ -44,13 +43,16 @@ class FilesystemSolutionRepository:
     build a complete Solution graph.
     """
 
-    def __init__(self, project_root: Path) -> None:
+    def __init__(self, project_root: Path, search_root: str) -> None:
         """Initialize repository.
 
         Args:
             project_root: Root directory of the solution
+            search_root: Root directory for bounded context discovery,
+                relative to project_root (e.g., "src/myapp").
         """
         self.project_root = project_root
+        self.search_root = search_root
         self._cache: Solution | None = None
 
     def _discover_bc_embedded_apps(self, bc: BoundedContext) -> list[Application]:
@@ -80,8 +82,10 @@ class FilesystemSolutionRepository:
         BCs within the nested solution may have their own apps/.
         """
         # Discover BCs within the nested solution
-        # We need to look directly in the nested solution path, not src/julee/
-        bc_repo = FilesystemBoundedContextRepository(self.project_root)
+        # We need to look directly in the nested solution path, not the main search_root
+        bc_repo = FilesystemBoundedContextRepository(
+            self.project_root, self.search_root
+        )
 
         # Get BCs that are marked as contrib (they're in the nested solution)
         # This is a bit of a workaround - we filter by is_contrib
@@ -110,7 +114,9 @@ class FilesystemSolutionRepository:
     def _discover_solution(self) -> Solution:
         """Discover the complete solution structure."""
         # Discover top-level bounded contexts (non-contrib)
-        bc_repo = FilesystemBoundedContextRepository(self.project_root)
+        bc_repo = FilesystemBoundedContextRepository(
+            self.project_root, self.search_root
+        )
         all_bcs = bc_repo._discover_all()
         top_level_bcs = [bc for bc in all_bcs if not bc.is_contrib]
 
@@ -128,7 +134,7 @@ class FilesystemSolutionRepository:
 
         # Discover nested solutions (contrib/)
         nested_solutions: list[Solution] = []
-        contrib_path = self.project_root / SEARCH_ROOT / CONTRIB_DIR
+        contrib_path = self.project_root / self.search_root / CONTRIB_DIR
         if contrib_path.exists() and contrib_path.is_dir():
             nested_solution = self._discover_nested_solution(
                 contrib_path,

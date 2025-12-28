@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.infrastructure.repositories.file.solution_config import (
+    FileSolutionConfigRepository,
+)
 from julee.core.infrastructure.repositories.introspection.application import (
     FilesystemApplicationRepository,
 )
@@ -47,6 +50,25 @@ def _find_project_root() -> Path:
 PROJECT_ROOT = _find_project_root()
 
 
+def _get_search_root(project_root: Path) -> str:
+    """Get search_root from pyproject.toml [tool.julee] config.
+
+    Raises:
+        ValueError: If search_root is not configured
+    """
+    repo = FileSolutionConfigRepository()
+    config = repo.get_policy_config_sync(project_root)
+    if config.search_root is None:
+        raise ValueError(
+            f"search_root not configured in [tool.julee] section of "
+            f"{project_root}/pyproject.toml. Add: search_root = \"src/your_package\""
+        )
+    return config.search_root
+
+
+SEARCH_ROOT = _get_search_root(PROJECT_ROOT)
+
+
 @pytest.fixture(scope="session")
 def project_root() -> Path:
     """Project root path."""
@@ -56,7 +78,7 @@ def project_root() -> Path:
 @pytest.fixture(scope="session")
 def repo() -> FilesystemBoundedContextRepository:
     """Repository pointing at target codebase."""
-    return FilesystemBoundedContextRepository(PROJECT_ROOT)
+    return FilesystemBoundedContextRepository(PROJECT_ROOT, SEARCH_ROOT)
 
 
 @pytest.fixture(scope="session")
@@ -68,7 +90,7 @@ def app_repo() -> FilesystemApplicationRepository:
 @pytest.fixture(scope="session")
 def solution_repo() -> FilesystemSolutionRepository:
     """Solution repository pointing at target codebase."""
-    return FilesystemSolutionRepository(PROJECT_ROOT)
+    return FilesystemSolutionRepository(PROJECT_ROOT, SEARCH_ROOT)
 
 
 @pytest.fixture(scope="session")

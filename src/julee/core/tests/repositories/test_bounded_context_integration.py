@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine_constants import SEARCH_ROOT
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
@@ -26,7 +27,7 @@ class TestJuleeCodebaseDiscovery:
     @pytest.fixture
     def repo(self, project_root: Path) -> FilesystemBoundedContextRepository:
         """Create repository for julee codebase."""
-        return FilesystemBoundedContextRepository(project_root)
+        return FilesystemBoundedContextRepository(project_root, SEARCH_ROOT)
 
     @pytest.mark.asyncio
     async def test_discovers_expected_bounded_contexts(self, repo):

@@ -13,8 +13,10 @@ from julee.core.entities.policy import SolutionPolicyConfig
 class FileSolutionConfigRepository:
     """Reads solution configuration from pyproject.toml."""
 
-    async def get_policy_config(self, solution_root: Path) -> SolutionPolicyConfig:
+    def get_policy_config_sync(self, solution_root: Path) -> SolutionPolicyConfig:
         """Read policy configuration from [tool.julee] in pyproject.toml.
+
+        Synchronous version for CLI and test fixture usage.
 
         Args:
             solution_root: Path to the solution root directory
@@ -42,4 +44,19 @@ class FileSolutionConfigRepository:
             is_julee_solution=True,
             policies=tuple(tool_julee.get("policies", [])),
             skip_policies=tuple(tool_julee.get("skip_policies", [])),
+            search_root=tool_julee.get("search_root"),
+            docs_root=tool_julee.get("docs_root"),
         )
+
+    async def get_policy_config(self, solution_root: Path) -> SolutionPolicyConfig:
+        """Read policy configuration from [tool.julee] in pyproject.toml.
+
+        Async version for use case compatibility.
+
+        Args:
+            solution_root: Path to the solution root directory
+
+        Returns:
+            SolutionPolicyConfig with parsed settings, or defaults if not found
+        """
+        return self.get_policy_config_sync(solution_root)

@@ -14,7 +14,6 @@ from julee.core.doctrine_constants import (
     ENTITIES_PATH,
     REPOSITORIES_PATH,
     RESERVED_WORDS,
-    SEARCH_ROOT,
     SERVICES_PATH,
     USE_CASES_PATH,
     VIEWPOINT_SLUGS,
@@ -95,13 +94,20 @@ class FilesystemBoundedContextRepository:
     or the legacy domain/{models,repositories,services,use_cases} pattern.
     """
 
-    def __init__(self, project_root: Path) -> None:
+    def __init__(
+        self,
+        project_root: Path,
+        search_root: str,
+    ) -> None:
         """Initialize repository.
 
         Args:
             project_root: Root directory of the project
+            search_root: Root directory for bounded context discovery,
+                relative to project_root (e.g., "src/myapp").
         """
         self.project_root = project_root
+        self.search_root = search_root
         self._cache: list[BoundedContext] | None = None
 
     def _is_python_package(self, path: Path) -> bool:
@@ -182,7 +188,7 @@ class FilesystemBoundedContextRepository:
 
     def _discover_all(self) -> list[BoundedContext]:
         """Discover all bounded contexts."""
-        search_path = self.project_root / SEARCH_ROOT
+        search_path = self.project_root / self.search_root
 
         top_level = self._discover_in_directory(search_path)
 

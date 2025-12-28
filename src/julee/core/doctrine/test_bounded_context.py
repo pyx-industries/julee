@@ -40,7 +40,7 @@ class TestBoundedContextStructure:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid", layers=[ENTITIES_PATH])
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -55,7 +55,7 @@ class TestBoundedContextStructure:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -78,7 +78,7 @@ class TestReservedWords:
         root = create_solution(tmp_path)
         create_bounded_context(root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -144,7 +144,7 @@ class TestImportPaths:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -175,7 +175,7 @@ class TestViewpoints:
         root = create_solution(tmp_path)
         create_bounded_context(root, "hcd")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -203,7 +203,7 @@ class TestContrib:
         (contrib / "__init__.py").touch()
         create_bounded_context(contrib, "mymodule")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -217,7 +217,7 @@ class TestContrib:
         root = create_solution(tmp_path)
         create_bounded_context(root, "toplevel")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -275,7 +275,7 @@ class TestSolutionExhaustiveness:
         pending_relocation = {"util"}
 
         # Get discovered bounded contexts
-        repo = FilesystemBoundedContextRepository(project_root)
+        repo = FilesystemBoundedContextRepository(project_root, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
         discovered_slugs = {ctx.slug for ctx in response.bounded_contexts}
@@ -334,7 +334,7 @@ class TestSolutionExhaustiveness:
             pytest.skip("No contrib directory")
 
         # Get discovered bounded contexts in contrib
-        repo = FilesystemBoundedContextRepository(project_root)
+        repo = FilesystemBoundedContextRepository(project_root, SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
         contrib_slugs = {

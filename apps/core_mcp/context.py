@@ -7,6 +7,9 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from julee.core.infrastructure.repositories.file.solution_config import (
+    FileSolutionConfigRepository,
+)
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
@@ -32,13 +35,33 @@ from julee.core.use_cases.code_artifact.list_service_protocols import (
 from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
 
 
-def get_source_root() -> Path:
-    """Get the source root directory from environment.
+def get_project_root() -> Path:
+    """Get the project root directory from environment.
 
     Returns:
-        Path to the source root directory for introspection
+        Path to the project root directory for introspection
     """
-    return Path(os.getenv("CORE_SOURCE_ROOT", "src"))
+    return Path(os.getenv("CORE_SOURCE_ROOT", ".")).resolve()
+
+
+@lru_cache
+def get_search_root() -> str:
+    """Get the search_root from pyproject.toml config.
+
+    Returns:
+        The configured search_root path
+
+    Raises:
+        ValueError: If search_root is not configured
+    """
+    repo = FileSolutionConfigRepository()
+    config = repo.get_policy_config_sync(get_project_root())
+    if config.search_root is None:
+        raise ValueError(
+            "search_root not configured in [tool.julee] section of pyproject.toml. "
+            'Add: search_root = "src/your_package"'
+        )
+    return config.search_root
 
 
 # =============================================================================
@@ -49,8 +72,7 @@ def get_source_root() -> Path:
 @lru_cache
 def get_bounded_context_repository() -> FilesystemBoundedContextRepository:
     """Get the bounded context repository singleton."""
-    source_root = get_source_root()
-    return FilesystemBoundedContextRepository(source_root)
+    return FilesystemBoundedContextRepository(get_project_root(), get_search_root())
 
 
 # =============================================================================

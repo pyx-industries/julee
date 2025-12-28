@@ -87,6 +87,15 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     Read from [tool.julee] in pyproject.toml. Presence of this section
     declares the project as a "julee solution" which inherits framework-default
     policies.
+
+    Structure configuration allows solutions to customize where bounded contexts
+    and documentation are located:
+
+    ```toml
+    [tool.julee]
+    search_root = "src/acme"  # Where to find bounded contexts
+    docs_root = "docs"        # Where to find documentation
+    ```
     """
 
     is_julee_solution: bool = Field(
@@ -100,4 +109,14 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     skip_policies: tuple[str, ...] = Field(
         default_factory=tuple,
         description="Explicitly skipped policy slugs (framework defaults)",
+    )
+    search_root: str | None = Field(
+        default=None,
+        description="Root directory for bounded context discovery (relative to project root). "
+        "Required for introspection features.",
+    )
+    docs_root: str | None = Field(
+        default=None,
+        description="Root directory for documentation (relative to project root). "
+        "Required for HCD features.",
     )
