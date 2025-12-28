@@ -18,13 +18,6 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    make_link,
-    make_strong_link,
-    problematic_paragraph,
-)
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.use_cases.crud import (
     CreateJourneyRequest,
@@ -39,6 +32,11 @@ from julee.hcd.utils import (
     parse_list_option,
 )
 
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    make_link,
+)
 from .base import HCDDirective
 
 

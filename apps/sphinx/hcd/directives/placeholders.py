@@ -4,7 +4,8 @@ Provides a base placeholder class and registry for centralized
 placeholder resolution during the doctree-resolved phase.
 """
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from docutils import nodes
 

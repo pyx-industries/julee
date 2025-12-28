@@ -10,12 +10,6 @@ Provides directives for defining and cross-referencing epics:
 from docutils import nodes
 
 from apps.sphinx.shared import path_to_root
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    make_link,
-    titled_bullet_list,
-)
 from julee.hcd.entities.epic import Epic
 from julee.hcd.use_cases.crud import (
     CreateEpicRequest,
@@ -28,6 +22,11 @@ from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_p
 from julee.hcd.utils import normalize_name
 
 from ..dependencies import get_create_epic_use_case
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    make_link,
+)
 from .base import HCDDirective
 
 

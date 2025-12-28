@@ -77,8 +77,6 @@ def setup(app):
         AcceleratorDependencyDiagramPlaceholder,
         AcceleratorEntityListDirective,
         AcceleratorEntityListPlaceholder,
-        AcceleratorIndexDirective,
-        AcceleratorIndexPlaceholder,
         AcceleratorListDirective,
         AcceleratorListPlaceholder,
         AcceleratorsForAppDirective,
@@ -86,8 +84,6 @@ def setup(app):
         AcceleratorStatusDirective,
         AcceleratorUseCaseListDirective,
         AcceleratorUseCaseListPlaceholder,
-        AppIndexDirective,
-        AppIndexPlaceholder,
         AppListByInterfaceDirective,
         AppListByInterfacePlaceholder,
         AppsForPersonaDirective,
@@ -113,8 +109,6 @@ def setup(app):
         DependentAcceleratorsPlaceholder,
         EntityDiagramDirective,
         EntityDiagramPlaceholder,
-        EpicIndexDirective,
-        EpicIndexPlaceholder,
         EpicsForPersonaDirective,
         EpicsForPersonaPlaceholder,
         EpicStoryDirective,
@@ -124,8 +118,6 @@ def setup(app):
         GherkinStoriesForPersonaDirective,
         GherkinStoriesIndexDirective,
         GherkinStoryDirective,
-        IntegrationIndexDirective,
-        IntegrationIndexPlaceholder,
         JourneyDependencyGraphDirective,
         JourneyDependencyGraphPlaceholder,
         JourneyIndexDirective,
@@ -135,8 +127,6 @@ def setup(app):
         PersonaDiagramPlaceholder,
         PersonaIndexDiagramDirective,
         PersonaIndexDiagramPlaceholder,
-        PersonaIndexDirective,
-        PersonaIndexPlaceholder,
         StepEpicDirective,
         StepPhaseDirective,
         StepStoryDirective,
@@ -198,25 +188,31 @@ def setup(app):
     app.add_directive("journeys-for-persona", JourneysForPersonaDirective)
     app.add_node(JourneyDependencyGraphPlaceholder)
 
-    # Register epic directives
+    # Register epic directives (epic-index uses generated directive)
+    from .generated_directives import GeneratedEpicIndexDirective
+
     app.add_directive("define-epic", DefineEpicDirective)
     app.add_directive("epic-story", EpicStoryDirective)
-    app.add_directive("epic-index", EpicIndexDirective)
+    app.add_directive("epic-index", GeneratedEpicIndexDirective)  # Using generated
     app.add_directive("epics-for-persona", EpicsForPersonaDirective)
-    app.add_node(EpicIndexPlaceholder)
+    app.add_node(GeneratedEpicIndexDirective.placeholder_class)
     app.add_node(EpicsForPersonaPlaceholder)
 
-    # Register app directives
+    # Register app directives (app-index uses generated directive)
+    from .generated_directives import GeneratedAppIndexDirective
+
     app.add_directive("define-app", DefineAppDirective)
-    app.add_directive("app-index", AppIndexDirective)
+    app.add_directive("app-index", GeneratedAppIndexDirective)  # Using generated
     app.add_directive("apps-for-persona", AppsForPersonaDirective)
     app.add_node(DefineAppPlaceholder)
-    app.add_node(AppIndexPlaceholder)
+    app.add_node(GeneratedAppIndexDirective.placeholder_class)
     app.add_node(AppsForPersonaPlaceholder)
 
-    # Register accelerator directives
+    # Register accelerator directives (accelerator-index uses generated directive)
+    from .generated_directives import GeneratedAcceleratorIndexDirective
+
     app.add_directive("define-accelerator", DefineAcceleratorDirective)
-    app.add_directive("accelerator-index", AcceleratorIndexDirective)
+    app.add_directive("accelerator-index", GeneratedAcceleratorIndexDirective)  # Using generated
     app.add_directive("accelerators-for-app", AcceleratorsForAppDirective)
     app.add_directive("dependent-accelerators", DependentAcceleratorsDirective)
     app.add_directive(
@@ -224,23 +220,27 @@ def setup(app):
     )
     app.add_directive("accelerator-status", AcceleratorStatusDirective)
     app.add_node(DefineAcceleratorPlaceholder)
-    app.add_node(AcceleratorIndexPlaceholder)
+    app.add_node(GeneratedAcceleratorIndexDirective.placeholder_class)
     app.add_node(AcceleratorsForAppPlaceholder)
     app.add_node(DependentAcceleratorsPlaceholder)
     app.add_node(AcceleratorDependencyDiagramPlaceholder)
 
-    # Register integration directives
+    # Register integration directives (integration-index uses generated directive)
+    from .generated_directives import GeneratedIntegrationIndexDirective
+
     app.add_directive("define-integration", DefineIntegrationDirective)
-    app.add_directive("integration-index", IntegrationIndexDirective)
+    app.add_directive("integration-index", GeneratedIntegrationIndexDirective)  # Using generated
     app.add_node(DefineIntegrationPlaceholder)
-    app.add_node(IntegrationIndexPlaceholder)
+    app.add_node(GeneratedIntegrationIndexDirective.placeholder_class)
 
     # Register persona directives
+    from .generated_directives import GeneratedPersonaIndexDirective
+
     app.add_directive("define-persona", DefinePersonaDirective)
-    app.add_directive("persona-index", PersonaIndexDirective)
+    app.add_directive("persona-index", GeneratedPersonaIndexDirective)  # Using generated
     app.add_directive("persona-diagram", PersonaDiagramDirective)
     app.add_directive("persona-index-diagram", PersonaIndexDiagramDirective)
-    app.add_node(PersonaIndexPlaceholder)
+    app.add_node(GeneratedPersonaIndexDirective.placeholder_class)
     app.add_node(PersonaDiagramPlaceholder)
     app.add_node(PersonaIndexDiagramPlaceholder)
 

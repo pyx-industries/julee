@@ -303,3 +303,73 @@ def make_placeholder_processor(
             node.replace_self(replacement)
 
     return process_placeholders
+
+
+def generate_index_directive_from_build_fn(
+    entity_name: str,
+    build_function: Callable[[str, Ctx], list[nodes.Node]],
+    context_getter: Callable[[Any], Ctx],
+    *,
+    option_spec: dict[str, Any] | None = None,
+    env_getter: Callable[[Any], Any] | None = None,
+) -> type[SphinxDirective]:
+    """Generate an index directive using a custom build function.
+
+    For complex indexes that need custom rendering logic beyond templates.
+    The build function receives docname and context, returns docutils nodes.
+
+    Args:
+        entity_name: Entity name for directive naming (e.g., "Epic")
+        build_function: Function(docname, context, **options) -> list[nodes.Node]
+        context_getter: Function(app) -> domain context
+        option_spec: Optional directive options
+        env_getter: Optional function(app) -> env (for build functions that need it)
+
+    Returns:
+        Generated directive class with placeholder pattern
+    """
+    slug = _to_snake_case(entity_name)
+
+    default_option_spec = {
+        "format": directives.unchanged,
+    }
+    final_option_spec = {**default_option_spec, **(option_spec or {})}
+
+    # Create placeholder class
+    placeholder_cls = type(
+        f"{entity_name}IndexPlaceholder",
+        (nodes.General, nodes.Element),
+        {"__doc__": f"Placeholder for {slug}-index directive."},
+    )
+
+    class GeneratedIndexDirective(SphinxDirective):
+        __doc__ = f"Render index of all {slug}s."
+        option_spec = final_option_spec
+
+        placeholder_class = placeholder_cls
+
+        def run(self):
+            node = placeholder_cls()
+            node["options"] = dict(self.options)
+            node["docname"] = self.env.docname
+            return [node]
+
+        @staticmethod
+        def resolve_placeholder(
+            node: nodes.Element,
+            app: Any,
+        ) -> list[nodes.Node]:
+            """Resolve placeholder to actual content."""
+            ctx = context_getter(app)
+            docname = node["docname"]
+            options = node["options"]
+
+            # Call build function with appropriate args
+            if env_getter:
+                env = env_getter(app)
+                return build_function(env, docname, ctx, **options)
+            else:
+                return build_function(docname, ctx, **options)
+
+    GeneratedIndexDirective.__name__ = f"{entity_name}IndexDirective"
+    return GeneratedIndexDirective

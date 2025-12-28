@@ -1,6 +1,5 @@
 """Tests for placeholder infrastructure."""
 
-import pytest
 from docutils import nodes
 
 from apps.sphinx.hcd.directives.placeholders import (

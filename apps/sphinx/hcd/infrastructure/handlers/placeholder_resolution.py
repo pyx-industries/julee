@@ -30,21 +30,22 @@ class AppPlaceholderHandler:
     ) -> None:
         """Process app placeholders."""
         from ...directives.app import (
-            AppIndexPlaceholder,
             AppsForPersonaPlaceholder,
             DefineAppPlaceholder,
             build_app_content,
-            build_app_index,
             build_apps_for_persona,
         )
+        from ...generated_directives import GeneratedAppIndexDirective
 
         for node in doctree.traverse(DefineAppPlaceholder):
             app_slug = node["app_slug"]
             content = build_app_content(app_slug, docname, context)
             node.replace_self(content)
 
-        for node in doctree.traverse(AppIndexPlaceholder):
-            content = build_app_index(docname, context)
+        # Process app-index using generated directive
+        placeholder_cls = GeneratedAppIndexDirective.placeholder_class
+        for node in doctree.traverse(placeholder_cls):
+            content = GeneratedAppIndexDirective.resolve_placeholder(node, app)
             node.replace_self(content)
 
         for node in doctree.traverse(AppsForPersonaPlaceholder):
@@ -67,12 +68,11 @@ class EpicPlaceholderHandler:
     ) -> None:
         """Process epic placeholders."""
         from ...directives.epic import (
-            EpicIndexPlaceholder,
             EpicsForPersonaPlaceholder,
-            build_epic_index,
             build_epics_for_persona,
             render_epic_stories,
         )
+        from ...generated_directives import GeneratedEpicIndexDirective
 
         env = app.env
         epic_current = getattr(env, "epic_current", {})
@@ -95,10 +95,11 @@ class EpicPlaceholderHandler:
                             node.replace_self([])
                         break
 
-        # Process epic index placeholder
-        for node in doctree.traverse(EpicIndexPlaceholder):
-            index_node = build_epic_index(env, docname, context)
-            node.replace_self(index_node)
+        # Process epic-index using generated directive
+        placeholder_cls = GeneratedEpicIndexDirective.placeholder_class
+        for node in doctree.traverse(placeholder_cls):
+            content = GeneratedEpicIndexDirective.resolve_placeholder(node, app)
+            node.replace_self(content)
 
         # Process epics-for-persona placeholder
         for node in doctree.traverse(EpicsForPersonaPlaceholder):
@@ -122,23 +123,24 @@ class AcceleratorPlaceholderHandler:
         """Process accelerator placeholders."""
         from ...directives.accelerator import (
             AcceleratorDependencyDiagramPlaceholder,
-            AcceleratorIndexPlaceholder,
             AcceleratorsForAppPlaceholder,
             DefineAcceleratorPlaceholder,
             DependentAcceleratorsPlaceholder,
             build_accelerator_content,
-            build_accelerator_index,
             build_accelerators_for_app,
             build_dependency_diagram,
         )
+        from ...generated_directives import GeneratedAcceleratorIndexDirective
 
         for node in doctree.traverse(DefineAcceleratorPlaceholder):
             slug = node["accelerator_slug"]
             content = build_accelerator_content(slug, docname, context)
             node.replace_self(content)
 
-        for node in doctree.traverse(AcceleratorIndexPlaceholder):
-            content = build_accelerator_index(docname, context)
+        # Process accelerator-index using generated directive
+        placeholder_cls = GeneratedAcceleratorIndexDirective.placeholder_class
+        for node in doctree.traverse(placeholder_cls):
+            content = GeneratedAcceleratorIndexDirective.resolve_placeholder(node, app)
             node.replace_self(content)
 
         for node in doctree.traverse(AcceleratorsForAppPlaceholder):
@@ -172,18 +174,19 @@ class IntegrationPlaceholderHandler:
         """Process integration placeholders."""
         from ...directives.integration import (
             DefineIntegrationPlaceholder,
-            IntegrationIndexPlaceholder,
             build_integration_content,
-            build_integration_index,
         )
+        from ...generated_directives import GeneratedIntegrationIndexDirective
 
         for node in doctree.traverse(DefineIntegrationPlaceholder):
             slug = node["integration_slug"]
             content = build_integration_content(slug, docname, context)
             node.replace_self(content)
 
-        for node in doctree.traverse(IntegrationIndexPlaceholder):
-            content = build_integration_index(docname, context)
+        # Process integration-index using generated directive
+        placeholder_cls = GeneratedIntegrationIndexDirective.placeholder_class
+        for node in doctree.traverse(placeholder_cls):
+            content = GeneratedIntegrationIndexDirective.resolve_placeholder(node, app)
             node.replace_self(content)
 
 
@@ -203,14 +206,15 @@ class PersonaPlaceholderHandler:
         from ...directives.persona import (
             PersonaDiagramPlaceholder,
             PersonaIndexDiagramPlaceholder,
-            PersonaIndexPlaceholder,
             build_persona_diagram,
-            build_persona_index,
             build_persona_index_diagram,
         )
+        from ...generated_directives import GeneratedPersonaIndexDirective
 
-        for node in doctree.traverse(PersonaIndexPlaceholder):
-            content = build_persona_index(docname, context)
+        # Process persona-index using generated directive
+        placeholder_cls = GeneratedPersonaIndexDirective.placeholder_class
+        for node in doctree.traverse(placeholder_cls):
+            content = GeneratedPersonaIndexDirective.resolve_placeholder(node, app)
             node.replace_self(content)
 
         for node in doctree.traverse(PersonaDiagramPlaceholder):
@@ -387,3 +391,5 @@ class EntityDiagramPlaceholderHandler:
             slug = node["accelerator_slug"]
             content = build_entity_diagram(slug, docname, context)
             node.replace_self(content)
+
+

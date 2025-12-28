@@ -14,15 +14,15 @@ from collections import defaultdict
 from docutils import nodes
 
 from julee.hcd.entities.story import Story
-from julee.hcd.use_cases.resolve_story_references import (
-    get_epics_for_story,
-    get_journeys_for_story,
-)
 from julee.hcd.use_cases.crud import (
     ListAppsRequest,
     ListEpicsRequest,
     ListJourneysRequest,
     ListStoriesRequest,
+)
+from julee.hcd.use_cases.resolve_story_references import (
+    get_epics_for_story,
+    get_journeys_for_story,
 )
 from julee.hcd.utils import normalize_name, slugify
 

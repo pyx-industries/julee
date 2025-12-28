@@ -3,7 +3,6 @@
 import pytest
 
 from apps.sphinx.hcd.config import (
-    DocsStructureConfig,
     PathsConfig,
     SphinxHCDConfig,
     _parse_config,

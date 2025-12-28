@@ -1,6 +1,5 @@
 """Tests for placeholder resolution handlers."""
 
-import pytest
 
 
 class TestHandlerImports:

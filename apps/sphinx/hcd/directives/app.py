@@ -10,14 +10,6 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    grouped_bullet_lists,
-    link_list_paragraph,
-    metadata_paragraph,
-    problematic_paragraph,
-)
 from julee.hcd.entities.app import App, AppInterface, AppType
 from julee.hcd.use_cases.crud import (
     CreateAppRequest,
@@ -36,6 +28,14 @@ from julee.hcd.use_cases.resolve_app_references import (
 )
 from julee.hcd.utils import normalize_name, parse_csv_option, slugify
 
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    grouped_bullet_lists,
+    link_list_paragraph,
+    metadata_paragraph,
+    problematic_paragraph,
+)
 from .base import HCDDirective
 
 
@@ -174,8 +174,8 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
     """Build the content nodes for an app."""
     from sphinx.addnodes import seealso
 
-    from ..node_builders import make_link
     from ..config import get_config
+    from ..node_builders import make_link
 
     config = get_config()
     solution = config.solution_slug

@@ -1,0 +1,13 @@
+{# Persona index template - renders list of personas for documentation #}
+{% if not entities %}
+*No personas defined*
+{% elif format == 'summary' %}
+Human Centered Design identifies {{ entities | length }} `Personas <{{ ctx.doc_path('personas') }}/index.html>`_ that interact with the solution: {% for persona in entities %}{% if loop.index > 1 %}{% if loop.last %}, and {% else %}, {% endif %}{% endif %}`{{ persona.name }} <{{ ctx.doc_path('personas') }}/{{ persona.slug }}.html>`_{% endfor %}.
+{% else %}
+{% for persona in entities %}
+- **`{{ persona.name }} <{{ ctx.doc_path('personas') }}/{{ persona.slug }}.html>`_**
+{% if persona.context %}
+  {{ persona.context | first_sentence }}
+{% endif %}
+{% endfor %}
+{% endif %}

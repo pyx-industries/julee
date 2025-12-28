@@ -15,14 +15,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    link_list_paragraph,
-    metadata_paragraph,
-    problematic_paragraph,
-)
-from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.use_cases.crud import (
     CreateAcceleratorRequest,
     GetAcceleratorRequest,
@@ -31,8 +24,6 @@ from julee.hcd.use_cases.crud import (
     ListAppsRequest,
     ListIntegrationsRequest,
 )
-
-from ..dependencies import get_create_accelerator_use_case
 from julee.hcd.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
     get_fed_by_accelerators,
@@ -44,6 +35,14 @@ from julee.hcd.utils import (
     parse_list_option,
 )
 
+from ..dependencies import get_create_accelerator_use_case
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    link_list_paragraph,
+    metadata_paragraph,
+    problematic_paragraph,
+)
 from .base import HCDDirective
 
 

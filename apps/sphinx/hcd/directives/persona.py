@@ -14,14 +14,6 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    make_link,
-    make_strong_link,
-    titled_bullet_list,
-)
-from julee.hcd.entities.persona import Persona
 from julee.hcd.use_cases.crud import (
     CreatePersonaRequest,
     CreatePersonaUseCase,
@@ -37,6 +29,12 @@ from julee.hcd.use_cases.derive_personas import (
 )
 from julee.hcd.utils import normalize_name, parse_csv_option, parse_list_option, slugify
 
+from ..node_builders import (
+    empty_result_paragraph,
+    make_link,
+    make_strong_link,
+    titled_bullet_list,
+)
 from .base import HCDDirective
 
 
