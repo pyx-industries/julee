@@ -54,7 +54,7 @@ class UseCaseDocumentationDirective(SphinxDirective):
                 introspect_use_case,
                 resolve_use_case_class,
             )
-            from julee.core.templates import render_ssd
+            from julee.core.templates.rendering import render_ssd
 
             # Resolve and introspect the use case
             use_case_cls = resolve_use_case_class(module_class_path)

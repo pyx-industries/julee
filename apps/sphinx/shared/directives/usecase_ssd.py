@@ -53,7 +53,7 @@ class UseCaseSSDDirective(SphinxDirective):
             metadata = introspect_use_case(use_case_cls)
 
             # 3. Generate PlantUML via Jinja template
-            from julee.core.templates import render_ssd
+            from julee.core.templates.rendering import render_ssd
 
             puml_source = render_ssd(metadata, title=title)
 
