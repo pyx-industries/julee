@@ -46,18 +46,18 @@ class CreateStoryUseCase:
     def __init__(
         self,
         repo: StoryRepository,
-        orphan_story_handler: OrphanStoryHandler,  # service, injected via DI
+        orphan_story_handler: OrphanStoryHandler | None = None,  # optional for gradual adoption
     ):
         self.repo = repo
-        self.orphan_story_handler = orphan_story_handler
+        self._orphan_story_handler = orphan_story_handler
 
     async def execute(self, request: CreateStoryRequest) -> CreateStoryResponse:
         story = Story(...)
         await self.repo.save(story)
 
-        # Recognize domain condition, hand off to handler
-        if not story.epic_slug:
-            await self.orphan_story_handler.handle(story)
+        # Recognize domain condition, hand off to handler if configured
+        if not story.epic_slug and self._orphan_story_handler is not None:
+            await self._orphan_story_handler.handle(story)
 
         return CreateStoryResponse(story=story)
 ```
@@ -65,13 +65,13 @@ class CreateStoryUseCase:
 The use case's responsibility is:
 1. Do its job (create the story)
 2. Recognize domain conditions ("this story has no epic")
-3. Hand off to the appropriate handler
+3. Hand off to the appropriate handler (if configured)
 4. Done
 
 The handler's responsibility is:
-- Accept domain objects
+- Accept domain objects (or domain-relevant arguments)
 - Do whatever it needs to do
-- Return acknowledgement (or richer response if needed)
+- Return acknowledgement
 
 ### Principles
 
@@ -84,24 +84,71 @@ class OrphanStoryHandler(Protocol):
     """Handler for stories created without an epic assignment."""
 
     async def handle(self, story: Story) -> Acknowledgement:
-        """Handle an orphan story. Returns acknowledgement of receipt."""
+        """Handle an orphan story. Returns acknowledgement."""
         ...
 ```
 
 The use case declares its handler dependencies. The DI container wires them up at composition time.
 
-#### 2. Handlers Return Something
+#### 2. Optional Handlers Enable Gradual Adoption
 
-Handler calls are blocking - the use case needs to know the handoff succeeded. At minimum, handlers return `Acknowledgement` ("received, thanks"). If the use case needs more information, the handler returns a richer response.
+Handlers MAY be optional (`Handler | None = None`) to enable:
+- Use cases that work standalone without orchestration
+- Gradual migration from `next_action()` patterns
+- Testing without handler configuration
 
 ```python
-# Minimal: just acknowledge receipt
-ack = await self.orphan_story_handler.handle(story)
+def __init__(
+    self,
+    repo: StoryRepository,
+    orphan_handler: OrphanStoryHandler | None = None,  # optional
+):
+    self._orphan_handler = orphan_handler
 
-# Richer: handler returns useful information
-result = await self.validation_handler.handle(document)
-if result.requires_transformation:
+async def execute(self, request):
     ...
+    if condition and self._orphan_handler is not None:
+        await self._orphan_handler.handle(entity)
+```
+
+When orchestration is required (not optional), omit the `| None`.
+
+#### 3. Acknowledgement Semantics
+
+Handlers return `Acknowledgement` using radio communication semantics:
+
+- **Wilco** ("will comply"): Handler accepts and will process
+- **Roger** ("received"): Handler received but won't comply (with reason)
+
+```python
+class Acknowledgement(BaseModel):
+    will_comply: bool = True
+    errors: list[str] = []
+    warnings: list[str] = []
+    info: list[str] = []
+    debug: list[str] = []
+
+    @classmethod
+    def wilco(cls, **messages) -> Acknowledgement:
+        """Will comply - handler accepts the handoff."""
+        return cls(will_comply=True, **messages)
+
+    @classmethod
+    def roger(cls, reason: str, **messages) -> Acknowledgement:
+        """Received but won't comply - with explanation."""
+        return cls(will_comply=False, errors=[reason, *messages.get("errors", [])])
+```
+
+Usage:
+```python
+# Handler accepts
+return Acknowledgement.wilco()
+
+# Handler accepts with warnings
+return Acknowledgement.wilco(warnings=["Deprecated field used"])
+
+# Handler declines with reason
+return Acknowledgement.roger("Queue full, try again later")
 ```
 
 What happens after acknowledgement is the handler's business. It might:
@@ -113,7 +160,32 @@ What happens after acknowledgement is the handler's business. It might:
 
 The use case doesn't know or care.
 
-#### 3. Granularity Is a Business Decision
+#### 4. Handler Signatures Vary
+
+Handler protocols are not limited to single-entity signatures. The signature should match the domain context:
+
+```python
+# Single entity
+class OrphanStoryHandler(Protocol):
+    async def handle(self, story: Story) -> Acknowledgement: ...
+
+# Entity plus context
+class UnknownPersonaHandler(Protocol):
+    async def handle(self, story: Story, persona_name: str) -> Acknowledgement: ...
+
+# Cross-BC with primitives (no shared domain types)
+class NewDataHandler(Protocol):
+    async def handle(
+        self,
+        endpoint_id: str,
+        content: bytes,
+        content_hash: str,
+    ) -> Acknowledgement: ...
+```
+
+Cross-BC handlers use primitives because bounded contexts don't share domain types.
+
+#### 5. Granularity Is a Business Decision
 
 The framework supports both fine-grained and coarse-grained handlers:
 
@@ -128,7 +200,7 @@ story_post_create_handler: StoryPostCreateHandler
 
 This is a domain modelling decision, not an architectural constraint.
 
-#### 4. Cross-BC Coordination Is Composition
+#### 6. Cross-BC Coordination Is Composition
 
 When work in one bounded context should trigger work in another (e.g., Polling detects new data that should trigger CEAP document capture), this is wired at composition time by the solution provider.
 
@@ -138,7 +210,8 @@ The Polling module doesn't know CEAP exists. It's injected with a handler:
 class NewDataDetectionUseCase:
     def __init__(
         self,
-        new_data_handler: NewDataHandler,  # provided by solution
+        poller_service: PollerService,
+        new_data_handler: NewDataHandler | None = None,  # provided by solution
     ):
         ...
 ```
@@ -152,15 +225,15 @@ class CeapDocumentCaptureHandler(NewDataHandler):
     def __init__(self, capture_use_case: CaptureDocumentUseCase):
         self.capture_use_case = capture_use_case
 
-    async def handle(self, endpoint: Endpoint, content: bytes) -> Acknowledgement:
+    async def handle(self, endpoint_id, content, content_hash) -> Acknowledgement:
         request = CaptureDocumentRequest(...)
         await self.capture_use_case.execute(request)
-        return Acknowledgement(received=True)
+        return Acknowledgement.wilco()
 ```
 
 Cross-BC coordination is explicit and visible in the solution's composition root.
 
-#### 5. Use Case Responsibility Is Limited
+#### 7. Use Case Responsibility Is Limited
 
 The use case knows:
 - "If the egg has a green dot, I give it to the green-dotted-egg-handler"
@@ -174,16 +247,41 @@ The use case does NOT know:
 
 This is the "green-dotted-egg-handler" principle.
 
+### Directory Conventions
+
+Handler protocols and implementations follow consistent placement:
+
+```
+{bounded_context}/
+├── services/
+│   └── {entity}_handlers.py      # Handler protocols (e.g., story_handlers.py)
+└── infrastructure/
+    └── handlers/
+        ├── __init__.py
+        └── null_handlers.py      # Null implementations for testing
+```
+
+Example from HCD:
+```
+hcd/
+├── services/
+│   └── story_handlers.py         # OrphanStoryHandler, UnknownPersonaHandler protocols
+└── infrastructure/
+    └── handlers/
+        └── null_handlers.py      # NullOrphanStoryHandler, etc.
+```
+
 ## Consequences
 
 ### Positive
 
 1. **Single responsibility**: Use cases do one thing - their primary job plus condition recognition
 2. **Domain-level interfaces**: Handlers speak domain language, not use case DTOs
-3. **Testable in isolation**: Use cases can be tested with stub handlers
+3. **Testable in isolation**: Use cases can be tested with null handlers
 4. **Explicit composition**: Cross-BC workflows are visible in the composition root
 5. **Flexible orchestration**: Handlers can implement any pattern (immediate, queued, Temporal, etc.)
 6. **Reusable modules**: Contrib modules like Polling don't need to know about specific solutions
+7. **Gradual adoption**: Optional handlers allow incremental migration
 
 ### Negative
 
@@ -220,6 +318,17 @@ A dedicated orchestration layer that wraps use cases and decides what comes next
 Implement distributed sagas for cross-BC workflows.
 
 **Rejected for now**: Overkill for current needs. Handlers can implement saga-like patterns internally if needed. The framework doesn't need to mandate saga infrastructure.
+
+## Implementation
+
+Reference implementation exists in:
+
+- `julee/core/entities/acknowledgement.py` - Acknowledgement entity
+- `julee/core/services/handler.py` - Generic Handler protocol and documentation
+- `julee/hcd/services/story_handlers.py` - HCD handler protocols
+- `julee/hcd/infrastructure/handlers/null_handlers.py` - Null implementations
+- `julee/contrib/polling/services/new_data_handler.py` - Cross-BC handler protocol
+- `julee/contrib/polling/use_cases/new_data_detection.py` - Use case with optional handler
 
 ## References
 
