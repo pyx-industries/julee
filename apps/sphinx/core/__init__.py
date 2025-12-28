@@ -1,7 +1,37 @@
-"""Sphinx Core Doctrine Extension.
+"""Sphinx Core Doctrine Extension - Technical Manual Viewpoint.
 
 Provides Sphinx directives for code-outward documentation - generating
 documentation from code rather than maintaining parallel RST content.
+
+This is one of three viewpoint extensions in julee:
+
+- ``apps.sphinx.core`` - Technical Manual viewpoint (this extension)
+- ``apps.sphinx.hcd`` - Human-Centred Design viewpoint
+- ``apps.sphinx.c4`` - Architecture viewpoint
+
+Each viewpoint projects the SAME solution content through a different lens.
+
+Two Documentation Modes
+-----------------------
+**Framework documentation** screams software engineering::
+
+    /
+    ├── Core (julee.core)      ← BC: Clean Architecture concepts
+    ├── HCD (julee.hcd)        ← BC: Human-Centred Design concepts
+    ├── C4 (julee.c4)          ← BC: Architecture modeling concepts
+    └── API Reference
+
+**Solution documentation** screams the solution's domain::
+
+    /
+    ├── Henchmen and Minions   ← Solution BC (business capability)
+    ├── Very Large Kites       ← Solution BC
+    ├── Human Centred Design   ← Viewpoint (julee.hcd projection)
+    ├── Architecture           ← Viewpoint (julee.c4 projection)
+    └── Technical Manual       ← Viewpoint (julee.core projection)
+
+The framework BCs ARE the viewpoints because the framework's domain IS
+software engineering methodology.
 
 Information Architecture Pattern
 --------------------------------
@@ -14,9 +44,8 @@ This extension enables that pattern by:
 1. **Rendering docstrings as documentation** - Entity docstrings in
    ``julee.core.entities`` define concepts; autodoc renders them.
 
-2. **Introspecting modules to generate catalogs** - The ``entity-catalog``,
-   ``repository-catalog``, and ``usecase-catalog`` directives discover
-   what exists in a solution and render it automatically.
+2. **Introspecting modules to generate catalogs** - The catalog directives
+   discover what exists in a solution and render it automatically.
 
 3. **Projecting solution content through framework lenses** - The framework
    defines WHAT to show (entities, use cases, protocols); solutions provide
@@ -33,11 +62,20 @@ Documentation forms a navigable dependency graph::
 
 Directives Provided
 -------------------
+**Concept directives:**
+
 - ``core-concept`` - Render a core entity's docstring as documentation
 - ``doctrine-constant`` - Render doctrine constants and their values
+
+**Catalog directives** (introspect and list solution content):
+
 - ``entity-catalog`` - List all entities in the solution by bounded context
 - ``repository-catalog`` - List all repository protocols in the solution
+- ``service-protocol-catalog`` - List all service protocols in the solution
 - ``usecase-catalog`` - List all use cases in the solution
+
+**Solution structure directives:**
+
 - ``solution-structure`` - Show the solution's overall structure
 - ``solution-overview`` - Show solution name and description
 - ``bounded-context-list`` - List all bounded contexts in the solution

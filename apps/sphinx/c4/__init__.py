@@ -16,6 +16,16 @@ Each viewpoint projects the SAME solution content through a different lens.
 A Container defined in C4 terms links to the Accelerator that powers it
 and the Apps it serves. The viewpoints are interconnected, not siloed.
 
+Two Documentation Modes
+-----------------------
+**Framework documentation** screams software engineering - its bounded
+contexts ARE the viewpoints (HCD, C4, Core) because the framework's domain
+is software engineering methodology.
+
+**Solution documentation** screams its business domain - bounded contexts
+like "Henchmen Management" or "Very Large Kites" appear at root level,
+with viewpoints projecting their content through HCD/C4/Core lenses.
+
 C4 Model Levels
 ---------------
 The C4 model provides four levels of abstraction:
