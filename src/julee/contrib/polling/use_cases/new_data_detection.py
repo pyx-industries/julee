@@ -28,6 +28,7 @@ from julee.contrib.polling.entities.polling_config import (
 from julee.core.decorators import use_case
 
 if TYPE_CHECKING:
+    from julee.contrib.polling.services.new_data_handler import NewDataHandler
     from julee.contrib.polling.services.poller import PollerService
 
 logger = logging.getLogger(__name__)
@@ -191,21 +192,30 @@ class NewDataDetectionUseCase:
     1. Polls an endpoint using the provided poller service
     2. Computes a hash of the retrieved content
     3. Compares with previous hash to detect changes
-    4. Returns structured results for downstream routing
+    4. Hands off to new_data_handler if new data detected (optional)
+    5. Returns structured results for downstream routing
 
     Error Handling:
         Polling failures are captured in the response (error field)
         rather than raised as exceptions. This allows the pipeline
         to route to error handling workflows when needed.
+
+    Optional handler enables workflow orchestration - see ADR 003.
     """
 
-    def __init__(self, poller_service: PollerService) -> None:
+    def __init__(
+        self,
+        poller_service: PollerService,
+        new_data_handler: NewDataHandler | None = None,
+    ) -> None:
         """Initialize with dependencies.
 
         Args:
             poller_service: Service for polling endpoints
+            new_data_handler: Optional handler for when new data is detected
         """
         self._poller_service = poller_service
+        self._new_data_handler = new_data_handler
 
     async def execute(
         self, request: NewDataDetectionRequest
@@ -254,7 +264,7 @@ class NewDataDetectionUseCase:
                 },
             )
 
-            return NewDataDetectionResponse(
+            response = NewDataDetectionResponse(
                 success=polling_result.success,
                 content=polling_result.content,
                 content_hash=content_hash,
@@ -265,6 +275,16 @@ class NewDataDetectionUseCase:
                 is_first_poll=is_first_poll,
                 error=None,
             )
+
+            # Hand off to handler if new data detected and handler configured
+            if response.should_process and self._new_data_handler is not None:
+                await self._new_data_handler.handle(
+                    endpoint_id=request.endpoint_identifier,
+                    content=polling_result.content,
+                    content_hash=content_hash,
+                )
+
+            return response
 
         except Exception as e:
             logger.error(
