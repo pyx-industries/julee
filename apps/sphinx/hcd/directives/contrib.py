@@ -10,7 +10,11 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
-from julee.hcd.entities.contrib import ContribModule
+from julee.hcd.use_cases.crud import (
+    CreateContribModuleRequest,
+    GetContribModuleRequest,
+    ListContribModulesRequest,
+)
 
 from .base import HCDDirective
 
@@ -64,18 +68,17 @@ class DefineContribDirective(HCDDirective):
         code_path = self.options.get("path", "").strip()
         description = "\n".join(self.content).strip()
 
-        # Create contrib module entity
-        contrib = ContribModule(
+        # Create contrib module via use case
+        request = CreateContribModuleRequest(
             slug=slug,
             name=name,
             description=description,
             technology=technology,
             code_path=code_path,
             docname=docname,
+            solution_slug=self.solution_slug,
         )
-
-        # Add to repository
-        self.hcd_context.contrib_repo.save(contrib)
+        self.hcd_context.create_contrib.execute_sync(request)
 
         # Return placeholder - rendering in doctree-resolved
         node = DefineContribPlaceholder()
@@ -111,7 +114,10 @@ def build_contrib_content(slug: str, docname: str, hcd_context):
     """Build content nodes for a contrib module page."""
     from sphinx.addnodes import seealso
 
-    contrib = hcd_context.contrib_repo.get(slug)
+    response = hcd_context.get_contrib.execute_sync(
+        GetContribModuleRequest(slug=slug)
+    )
+    contrib = response.entity
     if not contrib:
         para = nodes.paragraph()
         para += nodes.problematic(text=f"Contrib module '{slug}' not found")
@@ -148,7 +154,13 @@ def build_contrib_content(slug: str, docname: str, hcd_context):
 
 def build_contrib_index(docname: str, hcd_context):
     """Build contrib module index."""
-    all_contribs = hcd_context.contrib_repo.list_all()
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
+    all_contribs = hcd_context.list_contribs.execute_sync(
+        ListContribModulesRequest(solution_slug=solution)
+    ).entities
 
     if not all_contribs:
         para = nodes.paragraph()
@@ -184,8 +196,14 @@ def build_contrib_index(docname: str, hcd_context):
 
 def build_contrib_list(docname: str, hcd_context):
     """Build simple bullet list of contrib modules."""
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
-    all_contribs = hcd_context.contrib_repo.list_all()
+    all_contribs = hcd_context.list_contribs.execute_sync(
+        ListContribModulesRequest(solution_slug=solution)
+    ).entities
 
     if not all_contribs:
         para = nodes.paragraph()

@@ -20,11 +20,13 @@ from ..node_builders import (
 )
 from julee.hcd.entities.app import App, AppInterface, AppType
 from julee.hcd.use_cases.crud import (
+    CreateAppRequest,
     GetAppRequest,
     ListAppsRequest,
     ListEpicsRequest,
     ListJourneysRequest,
     ListStoriesRequest,
+    UpdateAppRequest,
 )
 from julee.hcd.use_cases.resolve_app_references import (
     get_epics_for_app,
@@ -100,26 +102,20 @@ class DefineAppDirective(HCDDirective):
         existing_app = app_response.app
 
         if existing_app:
-            # Update existing app with directive fields
-            update_data = {}
-            if interface_str:
-                update_data["interface"] = AppInterface.from_string(interface_str)
-            if technology:
-                update_data["technology"] = technology
-            if accelerators:
-                update_data["accelerators"] = accelerators
-            if description:
-                update_data["description"] = description
-            if status:
-                update_data["status"] = status
-            update_data["docname"] = docname
-
-            if update_data:
-                updated = existing_app.model_copy(update=update_data)
-                self.hcd_context.app_repo.save(updated)
+            # Update existing app with directive fields via use case
+            update_request = UpdateAppRequest(
+                slug=app_slug,
+                interface=AppInterface.from_string(interface_str) if interface_str else None,
+                technology=technology if technology else None,
+                accelerators=accelerators if accelerators else None,
+                description=description if description else None,
+                status=status if status else None,
+                docname=docname,
+            )
+            self.hcd_context.update_app.execute_sync(update_request)
         else:
-            # Create new app from directive
-            app = App(
+            # Create new app from directive via use case
+            create_request = CreateAppRequest(
                 slug=app_slug,
                 name=app_slug.replace("-", " ").title(),
                 app_type=AppType.from_string(app_type_str) if app_type_str else AppType.UNKNOWN,
@@ -131,7 +127,7 @@ class DefineAppDirective(HCDDirective):
                 docname=docname,
                 solution_slug=self.solution_slug,
             )
-            self.hcd_context.app_repo.save(app)
+            self.hcd_context.create_app.execute_sync(create_request)
 
         # Track documented apps in environment (for validation)
         if not hasattr(self.env, "documented_apps"):

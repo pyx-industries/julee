@@ -22,6 +22,7 @@ class ContribModule(BaseModel):
     technology: str = "Python"
     docname: str = ""
     code_path: str = ""
+    solution_slug: str = ""
 
     @field_validator("slug", mode="before")
     @classmethod

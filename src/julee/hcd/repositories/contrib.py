@@ -18,6 +18,30 @@ class ContribRepository(BaseRepository[ContribModule], Protocol):
     via docname tracking.
     """
 
+    async def list_filtered(
+        self, solution_slug: str | None = None
+    ) -> list[ContribModule]:
+        """List contrib modules with optional solution filter.
+
+        Args:
+            solution_slug: Filter by solution (None = all solutions)
+
+        Returns:
+            List of matching contrib modules
+        """
+        ...
+
+    async def list_slugs(self, solution_slug: str | None = None) -> list[str]:
+        """List all contrib module slugs with optional solution filter.
+
+        Args:
+            solution_slug: Filter by solution (None = all solutions)
+
+        Returns:
+            List of matching slugs
+        """
+        ...
+
     async def get_by_docname(self, docname: str) -> list[ContribModule]:
         """Get all contrib modules defined in a specific document.
 

@@ -27,6 +27,7 @@ from ..node_builders import (
 )
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.use_cases.crud import (
+    CreateJourneyRequest,
     GetJourneyRequest,
     ListAppsRequest,
     ListJourneysRequest,
@@ -91,8 +92,8 @@ class DefineJourneyDirective(HCDDirective):
         postconditions = parse_list_option(self.options.get("postconditions", ""))
         goal = "\n".join(self.content).strip()
 
-        # Create and register journey entity
-        journey = Journey(
+        # Create and register journey via use case
+        request = CreateJourneyRequest(
             slug=journey_slug,
             persona=persona,
             intent=intent,
@@ -105,9 +106,7 @@ class DefineJourneyDirective(HCDDirective):
             docname=docname,
             solution_slug=self.solution_slug,
         )
-
-        # Add to repository
-        self.hcd_context.journey_repo.save(journey)
+        self.hcd_context.create_journey.execute_sync(request)
 
         # Track current journey in environment for step directives
         if not hasattr(self.env, "journey_current"):

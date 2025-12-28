@@ -43,6 +43,20 @@ class MemoryContribRepository(MemoryRepositoryMixin[ContribModule], ContribRepos
         """List all contrib modules."""
         return self._list_all_entities()
 
+    async def list_filtered(
+        self, solution_slug: str | None = None
+    ) -> list[ContribModule]:
+        """List contrib modules with optional solution filter."""
+        all_entities = self._list_all_entities()
+        if solution_slug is None:
+            return all_entities
+        return [e for e in all_entities if e.solution_slug == solution_slug]
+
+    async def list_slugs(self, solution_slug: str | None = None) -> list[str]:
+        """List all contrib module slugs with optional solution filter."""
+        entities = await self.list_filtered(solution_slug)
+        return [e.slug for e in entities]
+
     async def delete(self, entity_id: str) -> bool:
         """Delete a contrib module by slug."""
         return self._delete_entity(entity_id)

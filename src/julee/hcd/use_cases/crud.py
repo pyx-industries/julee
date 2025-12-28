@@ -182,3 +182,49 @@ generic_crud.generate(
 # =============================================================================
 
 generic_crud.generate(Integration, IntegrationRepository)
+
+
+# =============================================================================
+# ContribModule - simple CRUD
+# =============================================================================
+
+from julee.hcd.entities.contrib import ContribModule
+from julee.hcd.repositories.contrib import ContribRepository
+
+generic_crud.generate(ContribModule, ContribRepository)
+
+
+# =============================================================================
+# BoundedContextInfo (CodeInfo) - Get only (no create/update/delete/list)
+# Code info is populated via introspection, not CRUD operations
+# =============================================================================
+
+from pydantic import BaseModel
+
+from julee.core.decorators import use_case
+from julee.hcd.entities.code_info import BoundedContextInfo
+from julee.hcd.repositories.code_info import CodeInfoRepository
+
+
+class GetCodeInfoRequest(BaseModel):
+    """Request to get code info for a bounded context."""
+
+    slug: str
+
+
+class GetCodeInfoResponse(BaseModel):
+    """Response containing code info for a bounded context."""
+
+    code_info: BoundedContextInfo | None = None
+
+
+@use_case
+class GetCodeInfoUseCase:
+    """Get code introspection info for a bounded context by slug."""
+
+    def __init__(self, repo: CodeInfoRepository) -> None:
+        self.repo = repo
+
+    async def execute(self, request: GetCodeInfoRequest) -> GetCodeInfoResponse:
+        code_info = await self.repo.get(request.slug)
+        return GetCodeInfoResponse(code_info=code_info)

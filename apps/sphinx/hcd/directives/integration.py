@@ -12,6 +12,10 @@ import os
 from docutils import nodes
 
 from julee.hcd.entities.integration import Direction
+from julee.hcd.use_cases.crud import (
+    GetIntegrationRequest,
+    ListIntegrationsRequest,
+)
 
 from .base import HCDDirective
 
@@ -67,7 +71,10 @@ def build_integration_content(slug: str, docname: str, hcd_context):
     """Build content nodes for an integration page."""
     from sphinx.addnodes import seealso
 
-    integration = hcd_context.integration_repo.get(slug)
+    response = hcd_context.get_integration.execute_sync(
+        GetIntegrationRequest(slug=slug)
+    )
+    integration = response.integration
 
     if not integration:
         para = nodes.paragraph()
@@ -125,6 +132,8 @@ def build_integration_content(slug: str, docname: str, hcd_context):
 
 def build_integration_index(docname: str, hcd_context):
     """Build integration index with architecture diagram."""
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
@@ -132,7 +141,11 @@ def build_integration_index(docname: str, hcd_context):
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_integrations = hcd_context.integration_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_integrations = hcd_context.list_integrations.execute_sync(
+        ListIntegrationsRequest(solution_slug=solution)
+    ).integrations
 
     if not all_integrations:
         para = nodes.paragraph()

@@ -15,6 +15,12 @@ from docutils.parsers.rst import directives
 
 from julee.hcd.infrastructure.renderers import C4PlantUMLRenderer
 from julee.hcd.use_cases.c4_bridge import generate_c4_container_diagram
+from julee.hcd.use_cases.crud import (
+    ListAcceleratorsRequest,
+    ListAppsRequest,
+    ListContribModulesRequest,
+    ListPersonasRequest,
+)
 
 from .base import HCDDirective
 
@@ -123,6 +129,8 @@ def build_c4_container_diagram(
     Uses the C4 bridge use case for data generation and
     PlantUML renderer for diagram output.
     """
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
@@ -130,10 +138,20 @@ def build_c4_container_diagram(
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    all_apps = hcd_context.app_repo.list_all()
-    all_accelerators = hcd_context.accelerator_repo.list_all()
-    all_contribs = hcd_context.contrib_repo.list_all()
-    all_personas = hcd_context.persona_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_apps = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    ).apps
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
+    all_contribs = hcd_context.list_contribs.execute_sync(
+        ListContribModulesRequest(solution_slug=solution)
+    ).entities
+    all_personas = hcd_context.list_personas.execute_sync(
+        ListPersonasRequest(solution_slug=solution)
+    ).personas
 
     if not all_apps and not all_accelerators and not all_contribs:
         para = nodes.paragraph()
@@ -170,7 +188,13 @@ def build_app_list_by_interface(docname: str, hcd_context):
     """Build a simple bullet list of apps."""
     from apps.sphinx.shared import path_to_root
 
-    all_apps = hcd_context.app_repo.list_all()
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
+    all_apps = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    ).apps
     prefix = path_to_root(docname)
 
     if not all_apps:
@@ -206,7 +230,13 @@ def build_accelerator_list(docname: str, hcd_context):
     """Build a simple bullet list of accelerators."""
     from apps.sphinx.shared import path_to_root
 
-    all_accelerators = hcd_context.accelerator_repo.list_all()
+    from ..config import get_config
+
+    config = get_config()
+    solution = config.solution_slug
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
     prefix = path_to_root(docname)
 
     if not all_accelerators:

@@ -14,6 +14,8 @@ from pathlib import Path
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from julee.hcd.use_cases.crud import GetCodeInfoRequest
+
 from .base import HCDDirective
 
 logger = logging.getLogger(__name__)
@@ -173,8 +175,11 @@ def build_accelerator_code_links(
     prefix = path_to_root(docname)
     result_nodes = []
 
-    # Get code info from repository
-    code_info = hcd_context.code_info_repo.get(accelerator_slug)
+    # Get code info via use case
+    response = hcd_context.get_code_info.execute_sync(
+        GetCodeInfoRequest(slug=accelerator_slug)
+    )
+    code_info = response.code_info
 
     # Build autoapi base path
     autoapi_base = f"autoapi/julee/{accelerator_slug}"
@@ -421,8 +426,11 @@ def build_accelerator_entity_list(
     prefix = path_to_root(docname)
     docs_dir = Path(app.srcdir)
 
-    # Get code info from repository
-    code_info = hcd_context.code_info_repo.get(accelerator_slug)
+    # Get code info via use case
+    response = hcd_context.get_code_info.execute_sync(
+        GetCodeInfoRequest(slug=accelerator_slug)
+    )
+    code_info = response.code_info
 
     if not code_info or not code_info.entities:
         para = nodes.paragraph()
@@ -500,8 +508,11 @@ def build_accelerator_usecase_list(
     prefix = path_to_root(docname)
     docs_dir = Path(app.srcdir)
 
-    # Get code info from repository
-    code_info = hcd_context.code_info_repo.get(accelerator_slug)
+    # Get code info via use case
+    response = hcd_context.get_code_info.execute_sync(
+        GetCodeInfoRequest(slug=accelerator_slug)
+    )
+    code_info = response.code_info
 
     if not code_info or not code_info.use_cases:
         para = nodes.paragraph()
@@ -580,8 +591,11 @@ def build_entity_diagram(
         para += nodes.emphasis(text="PlantUML extension not available")
         return [para]
 
-    # Get code info from repository
-    code_info = hcd_context.code_info_repo.get(accelerator_slug)
+    # Get code info via use case
+    response = hcd_context.get_code_info.execute_sync(
+        GetCodeInfoRequest(slug=accelerator_slug)
+    )
+    code_info = response.code_info
 
     if not code_info or not code_info.entities:
         para = nodes.paragraph()
