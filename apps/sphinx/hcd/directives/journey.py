@@ -712,12 +712,5 @@ def build_dependency_graph_node(env, hcd_context):
     return puml_node
 
 
-def process_dependency_graph_placeholder(app, doctree, docname):
-    """Replace dependency graph placeholder with actual PlantUML node."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    for node in doctree.traverse(JourneyDependencyGraphPlaceholder):
-        puml_node = build_dependency_graph_node(app.env, hcd_context)
-        node.replace_self(puml_node)
+# NOTE: process_dependency_graph_placeholder removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via JourneyPlaceholderHandler

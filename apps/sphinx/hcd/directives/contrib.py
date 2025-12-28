@@ -235,24 +235,5 @@ def build_contrib_list(docname: str, hcd_context):
     return [bullet_list]
 
 
-def process_contrib_placeholders(app, doctree, docname):
-    """Replace contrib placeholders with rendered content."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    # Process define-contrib placeholders
-    for node in doctree.traverse(DefineContribPlaceholder):
-        slug = node["contrib_slug"]
-        content = build_contrib_content(slug, docname, hcd_context)
-        node.replace_self(content)
-
-    # Process contrib-index placeholders
-    for node in doctree.traverse(ContribIndexPlaceholder):
-        content = build_contrib_index(docname, hcd_context)
-        node.replace_self(content)
-
-    # Process contrib-list placeholders
-    for node in doctree.traverse(ContribListPlaceholder):
-        content = build_contrib_list(docname, hcd_context)
-        node.replace_self(content)
+# NOTE: process_contrib_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via ContribPlaceholderHandler

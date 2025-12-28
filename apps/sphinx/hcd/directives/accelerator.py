@@ -500,25 +500,5 @@ def clear_accelerator_state(app, env, docname):
     )
 
 
-def process_accelerator_placeholders(app, doctree, docname):
-    """Replace accelerator placeholders with rendered content."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    # Process define-accelerator placeholders
-    for node in doctree.traverse(DefineAcceleratorPlaceholder):
-        slug = node["accelerator_slug"]
-        content = build_accelerator_content(slug, docname, hcd_context)
-        node.replace_self(content)
-
-    # Process accelerators-for-app placeholders
-    for node in doctree.traverse(AcceleratorsForAppPlaceholder):
-        app_slug = node["app_slug"]
-        content = build_accelerators_for_app(app_slug, docname, hcd_context)
-        node.replace_self(content)
-
-    # Process accelerator-dependency-diagram placeholders
-    for node in doctree.traverse(AcceleratorDependencyDiagramPlaceholder):
-        content = build_dependency_diagram(docname, hcd_context)
-        node.replace_self(content)
+# NOTE: process_accelerator_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via AcceleratorPlaceholderHandler

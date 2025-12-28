@@ -14,14 +14,12 @@ from .accelerator import (
     DependentAcceleratorsDirective,
     DependentAcceleratorsPlaceholder,
     clear_accelerator_state,
-    process_accelerator_placeholders,
 )
 from .app import (
     AppsForPersonaDirective,
     AppsForPersonaPlaceholder,
     DefineAppDirective,
     DefineAppPlaceholder,
-    process_app_placeholders,
 )
 from .base import HCDDirective, make_deprecated_directive
 from .c4_bridge import (
@@ -31,7 +29,6 @@ from .c4_bridge import (
     AppListByInterfacePlaceholder,
     C4ContainerDiagramDirective,
     C4ContainerDiagramPlaceholder,
-    process_c4_bridge_placeholders,
 )
 from .code_links import (
     AcceleratorCodePlaceholder,
@@ -42,10 +39,6 @@ from .code_links import (
     EntityDiagramDirective,
     EntityDiagramPlaceholder,
     ListAcceleratorCodeDirective,
-    process_accelerator_code_placeholders,
-    process_accelerator_entity_list_placeholders,
-    process_accelerator_usecase_list_placeholders,
-    process_entity_diagram_placeholders,
 )
 from .contrib import (
     ContribIndexDirective,
@@ -54,7 +47,6 @@ from .contrib import (
     ContribListPlaceholder,
     DefineContribDirective,
     DefineContribPlaceholder,
-    process_contrib_placeholders,
 )
 from .epic import (
     DefineEpicDirective,
@@ -62,12 +54,10 @@ from .epic import (
     EpicsForPersonaPlaceholder,
     EpicStoryDirective,
     clear_epic_state,
-    process_epic_placeholders,
 )
 from .integration import (
     DefineIntegrationDirective,
     DefineIntegrationPlaceholder,
-    process_integration_placeholders,
 )
 from .journey import (
     DefineJourneyDirective,
@@ -79,7 +69,6 @@ from .journey import (
     StepPhaseDirective,
     StepStoryDirective,
     clear_journey_state,
-    process_dependency_graph_placeholder,
     process_journey_steps,
 )
 from .persona import (
@@ -88,7 +77,6 @@ from .persona import (
     PersonaDiagramPlaceholder,
     PersonaIndexDiagramDirective,
     PersonaIndexDiagramPlaceholder,
-    process_persona_placeholders,
 )
 from .story import (
     GherkinAppStoriesDirective,
@@ -138,20 +126,17 @@ __all__ = [
     "JourneysForPersonaDirective",
     "clear_journey_state",
     "process_journey_steps",
-    "process_dependency_graph_placeholder",
     # Epic directives
     "DefineEpicDirective",
     "EpicStoryDirective",
     "EpicsForPersonaDirective",
     "EpicsForPersonaPlaceholder",
     "clear_epic_state",
-    "process_epic_placeholders",
     # App directives
     "DefineAppDirective",
     "DefineAppPlaceholder",
     "AppsForPersonaDirective",
     "AppsForPersonaPlaceholder",
-    "process_app_placeholders",
     # Accelerator directives
     "DefineAcceleratorDirective",
     "DefineAcceleratorPlaceholder",
@@ -163,18 +148,15 @@ __all__ = [
     "AcceleratorDependencyDiagramPlaceholder",
     "AcceleratorStatusDirective",
     "clear_accelerator_state",
-    "process_accelerator_placeholders",
     # Integration directives
     "DefineIntegrationDirective",
     "DefineIntegrationPlaceholder",
-    "process_integration_placeholders",
     # Persona directives
     "DefinePersonaDirective",
     "PersonaDiagramDirective",
     "PersonaDiagramPlaceholder",
     "PersonaIndexDiagramDirective",
     "PersonaIndexDiagramPlaceholder",
-    "process_persona_placeholders",
     # C4 bridge directives
     "C4ContainerDiagramDirective",
     "C4ContainerDiagramPlaceholder",
@@ -182,7 +164,6 @@ __all__ = [
     "AppListByInterfacePlaceholder",
     "AcceleratorListDirective",
     "AcceleratorListPlaceholder",
-    "process_c4_bridge_placeholders",
     # Contrib directives
     "DefineContribDirective",
     "DefineContribPlaceholder",
@@ -190,20 +171,15 @@ __all__ = [
     "ContribIndexPlaceholder",
     "ContribListDirective",
     "ContribListPlaceholder",
-    "process_contrib_placeholders",
     # Code link directives
     "ListAcceleratorCodeDirective",
     "AcceleratorCodePlaceholder",
-    "process_accelerator_code_placeholders",
     # Entity diagram directives
     "EntityDiagramDirective",
     "EntityDiagramPlaceholder",
-    "process_entity_diagram_placeholders",
     # Accelerator entity/usecase list directives
     "AcceleratorEntityListDirective",
     "AcceleratorEntityListPlaceholder",
-    "process_accelerator_entity_list_placeholders",
     "AcceleratorUseCaseListDirective",
     "AcceleratorUseCaseListPlaceholder",
-    "process_accelerator_usecase_list_placeholders",
 ]

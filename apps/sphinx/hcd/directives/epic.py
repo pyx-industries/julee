@@ -395,38 +395,5 @@ def clear_epic_state(app, env, docname):
     )
 
 
-def process_epic_placeholders(app, doctree, docname):
-    """Replace epic placeholders with rendered content.
-
-    Note: This function is deprecated - placeholder handling now uses
-    handlers in infrastructure/handlers/placeholder_resolution.py.
-    Kept for backwards compatibility with any external code.
-    """
-    from ..context import get_hcd_context
-
-    env = app.env
-    hcd_context = get_hcd_context(app)
-    epic_current = getattr(env, "epic_current", {})
-
-    # Process epic stories placeholder
-    epic_slug = epic_current.get(docname)
-    if epic_slug:
-        epic_response = hcd_context.get_epic.execute_sync(GetEpicRequest(slug=epic_slug))
-        epic = epic_response.epic
-        if epic:
-            for node in doctree.traverse(nodes.container):
-                if "epic-stories-placeholder" in node.get("classes", []):
-                    stories_nodes = render_epic_stories(epic, docname, hcd_context)
-                    # Clear classes before replacing to avoid docutils warning
-                    node["classes"] = []
-                    if stories_nodes:
-                        node.replace_self(stories_nodes)
-                    else:
-                        node.replace_self([])
-                    break
-
-    # Process epics-for-persona placeholder
-    for node in doctree.traverse(EpicsForPersonaPlaceholder):
-        persona = node["persona"]
-        epics_node = build_epics_for_persona(env, docname, persona, hcd_context)
-        node.replace_self(epics_node)
+# NOTE: process_epic_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via EpicPlaceholderHandler

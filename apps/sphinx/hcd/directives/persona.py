@@ -614,25 +614,5 @@ def _build_persona_list(personas, docname: str, config) -> list[nodes.Node]:
     return [bullet_list]
 
 
-def process_persona_placeholders(app, doctree, docname):
-    """Replace persona placeholders with rendered content.
-
-    Note: This function is deprecated - placeholder handling now uses
-    handlers in infrastructure/handlers/placeholder_resolution.py.
-    Kept for backwards compatibility with any external code.
-    """
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    # Process persona-diagram placeholders
-    for node in doctree.traverse(PersonaDiagramPlaceholder):
-        persona = node["persona"]
-        content = build_persona_diagram(persona, docname, hcd_context)
-        node.replace_self(content)
-
-    # Process persona-index-diagram placeholders
-    for node in doctree.traverse(PersonaIndexDiagramPlaceholder):
-        group_type = node["group_type"]
-        content = build_persona_index_diagram(group_type, docname, hcd_context)
-        node.replace_self(content)
+# NOTE: process_persona_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via PersonaPlaceholderHandler

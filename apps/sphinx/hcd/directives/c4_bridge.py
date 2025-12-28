@@ -268,29 +268,5 @@ def build_accelerator_list(docname: str, hcd_context):
     return [bullet_list]
 
 
-def process_c4_bridge_placeholders(app, doctree, docname):
-    """Replace C4 bridge placeholders with rendered content."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    for node in doctree.traverse(C4ContainerDiagramPlaceholder):
-        content = build_c4_container_diagram(
-            docname,
-            hcd_context,
-            title=node["title"],
-            system_name=node["system_name"],
-            show_foundation=node["show_foundation"],
-            show_external=node["show_external"],
-            foundation_name=node["foundation_name"],
-            external_name=node["external_name"],
-        )
-        node.replace_self(content)
-
-    for node in doctree.traverse(AppListByInterfacePlaceholder):
-        content = build_app_list_by_interface(docname, hcd_context)
-        node.replace_self(content)
-
-    for node in doctree.traverse(AcceleratorListPlaceholder):
-        content = build_accelerator_list(docname, hcd_context)
-        node.replace_self(content)
+# NOTE: process_c4_bridge_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via C4BridgePlaceholderHandler

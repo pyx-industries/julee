@@ -365,20 +365,5 @@ def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
     ]
 
 
-def process_app_placeholders(app, doctree, docname):
-    """Replace app placeholders with rendered content."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    # Process define-app placeholders
-    for node in doctree.traverse(DefineAppPlaceholder):
-        app_slug = node["app_slug"]
-        content = build_app_content(app_slug, docname, hcd_context)
-        node.replace_self(content)
-
-    # Process apps-for-persona placeholders
-    for node in doctree.traverse(AppsForPersonaPlaceholder):
-        persona = node["persona"]
-        content = build_apps_for_persona(docname, persona, hcd_context)
-        node.replace_self(content)
+# NOTE: process_app_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via AppPlaceholderHandler

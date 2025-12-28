@@ -200,13 +200,5 @@ def build_integration_index(docname: str, hcd_context):
     return [node]
 
 
-def process_integration_placeholders(app, doctree, docname):
-    """Replace integration placeholders after all documents are read."""
-    from ..context import get_hcd_context
-
-    hcd_context = get_hcd_context(app)
-
-    for node in doctree.traverse(DefineIntegrationPlaceholder):
-        slug = node["integration_slug"]
-        content = build_integration_content(slug, docname, hcd_context)
-        node.replace_self(content)
+# NOTE: process_integration_placeholders removed - now handled by
+# infrastructure/handlers/placeholder_resolution.py via IntegrationPlaceholderHandler
