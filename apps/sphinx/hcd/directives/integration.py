@@ -26,12 +26,6 @@ class DefineIntegrationPlaceholder(nodes.General, nodes.Element):
     pass
 
 
-class IntegrationIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder node for integration-index, replaced at doctree-resolved."""
-
-    pass
-
-
 class DefineIntegrationDirective(HCDDirective):
     """Render integration info from YAML manifest.
 
@@ -53,18 +47,6 @@ class DefineIntegrationDirective(HCDDirective):
         node = DefineIntegrationPlaceholder()
         node["integration_slug"] = slug
         return [node]
-
-
-class IntegrationIndexDirective(HCDDirective):
-    """Generate integration index with architecture diagram.
-
-    Usage::
-
-        .. integration-index::
-    """
-
-    def run(self):
-        return [IntegrationIndexPlaceholder()]
 
 
 def build_integration_content(slug: str, docname: str, hcd_context):

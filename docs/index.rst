@@ -63,10 +63,6 @@ Documentation Contents
    :caption: Framework
 
    api/julee
-   api/julee.core
-   api/julee.hcd
-   api/julee.c4
-   api/julee.contrib
 
 .. toctree::
    :maxdepth: 2

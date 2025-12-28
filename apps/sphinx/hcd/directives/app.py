@@ -45,12 +45,6 @@ class DefineAppPlaceholder(nodes.General, nodes.Element):
     pass
 
 
-class AppIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder node for app-index, replaced at doctree-resolved."""
-
-    pass
-
-
 class AppsForPersonaPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for apps-for-persona, replaced at doctree-resolved."""
 
@@ -137,19 +131,6 @@ class DefineAppDirective(HCDDirective):
         # Return placeholder - rendering in doctree-resolved
         node = DefineAppPlaceholder()
         node["app_slug"] = app_slug
-        return [node]
-
-
-class AppIndexDirective(HCDDirective):
-    """Generate index tables grouped by app type.
-
-    Usage::
-
-        .. app-index::
-    """
-
-    def run(self):
-        node = AppIndexPlaceholder()
         return [node]
 
 

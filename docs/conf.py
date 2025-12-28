@@ -47,6 +47,7 @@ autodoc_mock_imports = [
     'minio',
     'anthropic',
     'mcp',
+    'fastmcp',
 ]
 
 # Autosummary configuration

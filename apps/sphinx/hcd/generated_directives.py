@@ -13,9 +13,14 @@ Each generated directive follows the same pattern:
 Simple indexes (persona) use templates for rendering.
 Complex indexes (epic, app, accelerator, integration) use existing build functions
 that have complex grouping logic, cross-entity queries, or PlantUML generation.
+
+IMPORTANT: Placeholder classes MUST be defined at module level for Sphinx
+to pickle them correctly during incremental builds.
 """
 
 from pathlib import Path
+
+from docutils import nodes
 
 from apps.sphinx.directive_factory import (
     generate_index_directive,
@@ -29,6 +34,40 @@ from julee.hcd.use_cases.crud import ListPersonasRequest
 
 from .config import get_config
 from .context import get_hcd_context
+
+
+# =============================================================================
+# Placeholder Classes (must be module-level for pickle serialization)
+# =============================================================================
+
+class GeneratedPersonaIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder for persona-index directive."""
+
+    pass
+
+
+class GeneratedEpicIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder for epic-index directive."""
+
+    pass
+
+
+class GeneratedAppIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder for app-index directive."""
+
+    pass
+
+
+class GeneratedAcceleratorIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder for accelerator-index directive."""
+
+    pass
+
+
+class GeneratedIntegrationIndexPlaceholder(nodes.General, nodes.Element):
+    """Placeholder for integration-index directive."""
+
+    pass
 
 # Template directory for HCD entities
 _HCD_TEMPLATE_DIR = Path(__file__).parent.parent.parent.parent / "src/julee/hcd/infrastructure/templates"
@@ -88,7 +127,7 @@ GeneratedPersonaIndexDirective = generate_index_directive(
     request_factory=_list_personas_request,
     rendering_service_getter=_get_rendering_service,
     context_getter=get_hcd_context,
-    use_placeholder=True,
+    placeholder_class=GeneratedPersonaIndexPlaceholder,
 )
 
 # Create placeholder processor for generated directive
@@ -112,6 +151,7 @@ GeneratedEpicIndexDirective = generate_index_directive_from_build_fn(
     entity_name="Epic",
     build_function=_build_epic_index_wrapper,
     context_getter=get_hcd_context,
+    placeholder_class=GeneratedEpicIndexPlaceholder,
     env_getter=_get_env,
 )
 
@@ -130,6 +170,7 @@ GeneratedAppIndexDirective = generate_index_directive_from_build_fn(
     entity_name="App",
     build_function=_build_app_index_wrapper,
     context_getter=get_hcd_context,
+    placeholder_class=GeneratedAppIndexPlaceholder,
 )
 
 
@@ -147,6 +188,7 @@ GeneratedAcceleratorIndexDirective = generate_index_directive_from_build_fn(
     entity_name="Accelerator",
     build_function=_build_accelerator_index_wrapper,
     context_getter=get_hcd_context,
+    placeholder_class=GeneratedAcceleratorIndexPlaceholder,
 )
 
 
@@ -164,4 +206,5 @@ GeneratedIntegrationIndexDirective = generate_index_directive_from_build_fn(
     entity_name="Integration",
     build_function=_build_integration_index_wrapper,
     context_getter=get_hcd_context,
+    placeholder_class=GeneratedIntegrationIndexPlaceholder,
 )

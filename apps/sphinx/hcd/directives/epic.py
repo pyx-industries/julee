@@ -30,12 +30,6 @@ from ..node_builders import (
 from .base import HCDDirective
 
 
-class EpicIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder node for epic index, replaced at doctree-resolved."""
-
-    pass
-
-
 class EpicsForPersonaPlaceholder(nodes.General, nodes.Element):
     """Placeholder node for epics-for-persona, replaced at doctree-resolved."""
 
@@ -128,20 +122,6 @@ class EpicStoryDirective(HCDDirective):
 
         # Return empty - rendering happens in doctree-resolved
         return []
-
-
-class EpicIndexDirective(HCDDirective):
-    """Render index of all epics.
-
-    Usage::
-
-        .. epic-index::
-    """
-
-    def run(self):
-        # Return placeholder - actual rendering in doctree-resolved
-        node = EpicIndexPlaceholder()
-        return [node]
 
 
 class EpicsForPersonaDirective(HCDDirective):
@@ -416,7 +396,12 @@ def clear_epic_state(app, env, docname):
 
 
 def process_epic_placeholders(app, doctree, docname):
-    """Replace epic placeholders with rendered content."""
+    """Replace epic placeholders with rendered content.
+
+    Note: This function is deprecated - placeholder handling now uses
+    handlers in infrastructure/handlers/placeholder_resolution.py.
+    Kept for backwards compatibility with any external code.
+    """
     from ..context import get_hcd_context
 
     env = app.env
@@ -439,11 +424,6 @@ def process_epic_placeholders(app, doctree, docname):
                     else:
                         node.replace_self([])
                     break
-
-    # Process epic index placeholder
-    for node in doctree.traverse(EpicIndexPlaceholder):
-        index_node = build_epic_index(env, docname, hcd_context)
-        node.replace_self(index_node)
 
     # Process epics-for-persona placeholder
     for node in doctree.traverse(EpicsForPersonaPlaceholder):

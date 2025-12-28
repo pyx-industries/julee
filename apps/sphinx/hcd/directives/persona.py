@@ -50,12 +50,6 @@ class PersonaIndexDiagramPlaceholder(nodes.General, nodes.Element):
     pass
 
 
-class PersonaIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder node for persona-index, replaced at doctree-resolved."""
-
-    pass
-
-
 class DefinePersonaDirective(HCDDirective):
     """Define a persona with HCD metadata.
 
@@ -156,31 +150,6 @@ class DefinePersonaDirective(HCDDirective):
     def _build_list_section(self, title: str, items: list[str]) -> list[nodes.Node]:
         """Build a titled bullet list section."""
         return titled_bullet_list(title, items)
-
-
-class PersonaIndexDirective(HCDDirective):
-    """Render index of all personas.
-
-    Usage::
-
-        .. persona-index::
-           :format: list
-
-    Options:
-        :format: Output format - "list" (bullet list with descriptions) or
-                 "summary" (single paragraph naming all personas). Default: list
-    """
-
-    option_spec = {
-        "format": directives.unchanged,
-    }
-
-    def run(self):
-        # Return placeholder - rendering in doctree-resolved
-        # so we can access all personas after all docs are read
-        node = PersonaIndexPlaceholder()
-        node["format"] = self.options.get("format", "list")
-        return [node]
 
 
 class PersonaDiagramDirective(HCDDirective):
@@ -646,16 +615,15 @@ def _build_persona_list(personas, docname: str, config) -> list[nodes.Node]:
 
 
 def process_persona_placeholders(app, doctree, docname):
-    """Replace persona placeholders with rendered content."""
+    """Replace persona placeholders with rendered content.
+
+    Note: This function is deprecated - placeholder handling now uses
+    handlers in infrastructure/handlers/placeholder_resolution.py.
+    Kept for backwards compatibility with any external code.
+    """
     from ..context import get_hcd_context
 
     hcd_context = get_hcd_context(app)
-
-    # Process persona-index placeholders
-    for node in doctree.traverse(PersonaIndexPlaceholder):
-        format_type = node.get("format", "list")
-        content = build_persona_index(docname, hcd_context, format=format_type)
-        node.replace_self(content)
 
     # Process persona-diagram placeholders
     for node in doctree.traverse(PersonaDiagramPlaceholder):

@@ -52,12 +52,6 @@ class DefineAcceleratorPlaceholder(nodes.General, nodes.Element):
     pass
 
 
-class AcceleratorIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder for accelerator-index, replaced at doctree-resolved."""
-
-    pass
-
-
 class AcceleratorsForAppPlaceholder(nodes.General, nodes.Element):
     """Placeholder for accelerators-for-app, replaced at doctree-resolved."""
 
@@ -168,18 +162,6 @@ class DefineAcceleratorDirective(HCDDirective):
         node = DefineAcceleratorPlaceholder()
         node["accelerator_slug"] = slug
         return [node]
-
-
-class AcceleratorIndexDirective(HCDDirective):
-    """Generate index table grouped by status.
-
-    Usage::
-
-        .. accelerator-index::
-    """
-
-    def run(self):
-        return [AcceleratorIndexPlaceholder()]
 
 
 class AcceleratorsForAppDirective(HCDDirective):

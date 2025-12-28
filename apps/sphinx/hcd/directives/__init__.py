@@ -96,8 +96,6 @@ from .persona import (
     PersonaDiagramPlaceholder,
     PersonaIndexDiagramDirective,
     PersonaIndexDiagramPlaceholder,
-    PersonaIndexDirective,
-    PersonaIndexPlaceholder,
     process_persona_placeholders,
 )
 from .story import (
@@ -188,8 +186,6 @@ __all__ = [
     "process_integration_placeholders",
     # Persona directives
     "DefinePersonaDirective",
-    "PersonaIndexDirective",
-    "PersonaIndexPlaceholder",
     "PersonaDiagramDirective",
     "PersonaDiagramPlaceholder",
     "PersonaIndexDiagramDirective",
