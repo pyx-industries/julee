@@ -3,42 +3,48 @@
 Commands for displaying architectural doctrine rules extracted from doctrine tests.
 The doctrine tests ARE the doctrine - this command extracts and displays them.
 
-Doctrine Hierarchy:
-1. Core Doctrine - framework-level rules (src/julee/core/doctrine/)
-2. App Type Doctrine - rules by app type, part of core (test_application.py)
-3. App Instance Doctrine - app-specific rules (apps/{app}/doctrine/)
-
-Each doctrine test file corresponds to an entity in domain/models/.
-The entity docstring is the definition; test docstrings are the rules.
+These commands are thin wrappers around julee.core use cases.
 """
 
-import ast
-from dataclasses import dataclass, field
+import asyncio
 from pathlib import Path
 
 import click
 
-# Project root
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+from apps.admin.dependencies import (
+    find_project_root,
+    get_list_doctrine_areas_use_case,
+    get_list_doctrine_rules_use_case,
+)
+from julee.core.entities.doctrine import DoctrineArea
+from julee.core.use_cases.list_doctrine_rules import (
+    ListDoctrineAreasRequest,
+    ListDoctrineRulesRequest,
+)
 
-# Core doctrine location - each test file maps to an entity in entities/
-DOCTRINE_DIR = PROJECT_ROOT / "src" / "julee" / "core" / "doctrine"
-MODELS_DIR = PROJECT_ROOT / "src" / "julee" / "core" / "entities"
+# Framework root (where doctrine tests live)
+JULEE_ROOT = Path(__file__).parent.parent.parent.parent
+DOCTRINE_DIR = JULEE_ROOT / "src" / "julee" / "core" / "doctrine"
 
 
 def _discover_app_doctrine_dirs() -> dict[str, Path]:
     """Discover all app doctrine directories using Solution introspection.
 
     Returns dict mapping app slug to doctrine directory path.
+    Uses JULEE_TARGET env var if set, otherwise falls back to find_project_root().
     """
-    import asyncio
+    import os
 
     from julee.core.infrastructure.repositories.introspection.solution import (
         FilesystemSolutionRepository,
     )
 
+    # Use JULEE_TARGET if set (by verify command), otherwise find project root
+    target = os.environ.get("JULEE_TARGET")
+    project_root = Path(target) if target else find_project_root()
+
     async def _discover():
-        repo = FilesystemSolutionRepository(PROJECT_ROOT)
+        repo = FilesystemSolutionRepository(project_root)
         solution = await repo.get()
         dirs = {}
         for app in solution.all_applications:
@@ -50,236 +56,41 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
     return asyncio.run(_discover())
 
 
-@dataclass
-class DoctrineRule:
-    """A single doctrine rule extracted from a test."""
-
-    statement: str
-    test_name: str
-    test_file: str
+# =============================================================================
+# Output Formatting
+# =============================================================================
 
 
-@dataclass
-class DoctrineCategory:
-    """A category of doctrine rules."""
-
-    name: str
-    description: str
-    rules: list[DoctrineRule]
-
-
-@dataclass
-class DoctrineArea:
-    """A doctrine area with definition and rules.
-
-    Each area corresponds to an entity in domain/models/.
-    The definition comes from the entity's docstring.
-    """
-
-    name: str
-    definition: str  # From entity docstring
-    categories: list[DoctrineCategory] = field(default_factory=list)
-
-    @property
-    def all_rules(self) -> list[DoctrineRule]:
-        """Get all rules from all categories."""
-        return [rule for cat in self.categories for rule in cat.rules]
-
-    @property
-    def rule_count(self) -> int:
-        """Get total number of rules."""
-        return sum(len(cat.rules) for cat in self.categories)
-
-
-def extract_entity_definition(entity_file: Path) -> str:
-    """Extract the definition from an entity file.
-
-    Looks for either:
-    1. The primary class docstring (if the file contains a class matching the filename)
-    2. The module docstring
-
-    Args:
-        entity_file: Path to a domain/models/*.py file
-
-    Returns:
-        The definition string, or empty string if not found
-    """
-    if not entity_file.exists():
-        return ""
-
-    try:
-        source = entity_file.read_text()
-        tree = ast.parse(source, filename=str(entity_file))
-    except (SyntaxError, OSError):
-        return ""
-
-    # First, try to find the primary class (name matches filename in PascalCase)
-    expected_class_name = "".join(
-        word.capitalize() for word in entity_file.stem.split("_")
-    )
-
-    for node in ast.iter_child_nodes(tree):
-        if isinstance(node, ast.ClassDef) and node.name == expected_class_name:
-            docstring = ast.get_docstring(node)
-            if docstring:
-                return docstring
-
-    # Fall back to module docstring
-    module_docstring = ast.get_docstring(tree)
-    return module_docstring or ""
-
-
-def extract_doctrine_from_file(file_path: Path) -> list[DoctrineCategory]:
-    """Extract doctrine rules from a test file.
-
-    Parses the AST to find test classes and methods, extracting their
-    docstrings as doctrine statements.
-
-    Args:
-        file_path: Path to a doctrine test file
-
-    Returns:
-        List of doctrine categories with their rules
-    """
-    try:
-        source = file_path.read_text()
-        tree = ast.parse(source, filename=str(file_path))
-    except (SyntaxError, OSError):
-        return []
-
-    categories = []
-
-    # Use iter_child_nodes to get top-level classes only
-    for node in ast.iter_child_nodes(tree):
-        if isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
-            # Get class docstring as category description
-            class_doc = ast.get_docstring(node) or ""
-            category_name = node.name[4:]  # Strip "Test" prefix
-
-            # Make name more readable
-            readable_name = ""
-            for char in category_name:
-                if char.isupper() and readable_name:
-                    readable_name += " "
-                readable_name += char
-
-            rules = []
-            for item in node.body:
-                # Handle both sync and async test methods
-                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith("test_"):
-                    doc = ast.get_docstring(item)
-                    if doc:
-                        rules.append(DoctrineRule(
-                            statement=doc,
-                            test_name=item.name,
-                            test_file=file_path.name,
-                        ))
-
-            if rules:
-                categories.append(DoctrineCategory(
-                    name=readable_name,
-                    description=class_doc,
-                    rules=rules,
-                ))
-
-    return categories
-
-
-def extract_all_doctrine_new(
-    doctrine_dir: Path, models_dir: Path
-) -> dict[str, DoctrineArea]:
-    """Extract all doctrine from the new doctrine/ directory structure.
-
-    Each test file in doctrine/ corresponds to an entity in domain/models/.
-    The entity docstring provides the definition.
-
-    Args:
-        doctrine_dir: Directory containing doctrine test files (doctrine/)
-        models_dir: Directory containing entity files (domain/models/)
-
-    Returns:
-        Dict mapping entity name to DoctrineArea
-    """
-    doctrine: dict[str, DoctrineArea] = {}
-
-    for test_file in sorted(doctrine_dir.glob("test_*.py")):
-        if test_file.stem == "test_doctrine_coverage":
-            continue  # Skip meta-test
-
-        # Extract entity name: test_bounded_context.py -> bounded_context
-        entity_name = test_file.stem.replace("test_", "")
-
-        # Get categories from test file
-        categories = extract_doctrine_from_file(test_file)
-        if not categories:
-            continue
-
-        # Get definition from corresponding entity file
-        entity_file = models_dir / f"{entity_name}.py"
-        definition = extract_entity_definition(entity_file)
-
-        # Make name more readable: bounded_context -> Bounded Context
-        display_name = entity_name.replace("_", " ").title()
-
-        doctrine[display_name] = DoctrineArea(
-            name=display_name,
-            definition=definition,
-            categories=categories,
-        )
-
-    return doctrine
-
-
-def format_doctrine_with_definitions(doctrine: dict[str, DoctrineArea]) -> str:
-    """Format doctrine with entity definitions.
-
-    Shows the entity definition followed by its rules.
-
-    Args:
-        doctrine: Dict mapping area name to DoctrineArea
-
-    Returns:
-        Formatted string
-    """
+def format_doctrine_brief(areas: list[DoctrineArea]) -> str:
+    """Format doctrine areas with brief rule listings."""
     lines = []
     lines.append("=" * 70)
     lines.append("ARCHITECTURAL DOCTRINE")
     lines.append("=" * 70)
     lines.append("")
 
-    for area_name, area in doctrine.items():
-        lines.append(f"{area_name}")
-        lines.append("-" * len(area_name))
+    for area in areas:
+        lines.append(f"{area.name}")
+        lines.append("-" * len(area.name))
 
-        # Show definition (first paragraph only for brevity)
+        # Show definition (first paragraph only)
         if area.definition:
-            # Get first paragraph
             paragraphs = area.definition.split("\n\n")
             first_para = paragraphs[0].strip()
             lines.append(first_para)
             lines.append("")
 
-        # Show rules
+        # Show rules (first line only)
         lines.append("Rules:")
         for rule in area.all_rules:
-            # Only show first line of docstring
-            first_line = rule.statement.split("\n")[0].strip()
-            lines.append(f"  - {first_line}")
-
+            lines.append(f"  - {rule.first_line}")
         lines.append("")
 
     return "\n".join(lines)
 
 
-def format_doctrine_verbose(doctrine: dict[str, DoctrineArea]) -> str:
-    """Format doctrine with full definitions and categorized rules.
-
-    Args:
-        doctrine: Dict mapping area name to DoctrineArea
-
-    Returns:
-        Formatted string
-    """
+def format_doctrine_verbose(areas: list[DoctrineArea]) -> str:
+    """Format doctrine with full definitions and categorized rules."""
     lines = []
     lines.append("=" * 70)
     lines.append("ARCHITECTURAL DOCTRINE")
@@ -292,9 +103,9 @@ def format_doctrine_verbose(doctrine: dict[str, DoctrineArea]) -> str:
     lines.append("docstrings state rules, assertions enforce them.")
     lines.append("")
 
-    for area_name, area in doctrine.items():
+    for area in areas:
         lines.append("-" * 70)
-        lines.append(f"{area_name.upper()}")
+        lines.append(f"{area.name.upper()}")
         lines.append("-" * 70)
         lines.append("")
 
@@ -313,13 +124,15 @@ def format_doctrine_verbose(doctrine: dict[str, DoctrineArea]) -> str:
             lines.append("")
 
             for rule in category.rules:
-                # Only show first line of docstring
-                first_line = rule.statement.split("\n")[0].strip()
-                lines.append(f"    - {first_line}")
-
+                lines.append(f"    - {rule.first_line}")
             lines.append("")
 
     return "\n".join(lines)
+
+
+# =============================================================================
+# CLI Commands
+# =============================================================================
 
 
 @click.group(name="doctrine")
@@ -340,30 +153,28 @@ def show_doctrine(verbose: bool, area: str | None) -> None:
     to an entity in entities/. The entity docstring provides the
     definition; test docstrings are the rules.
     """
-    if not DOCTRINE_DIR.exists():
-        click.echo(f"Doctrine tests directory not found: {DOCTRINE_DIR}", err=True)
-        raise SystemExit(1)
+    use_case = get_list_doctrine_areas_use_case()
+    response = asyncio.run(use_case.execute(ListDoctrineAreasRequest()))
 
-    doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
-
-    if not doctrine:
+    if not response.areas:
         click.echo("No doctrine tests found.")
         return
 
+    areas = response.areas
     if area:
         # Filter to specific area
         area_lower = area.lower()
-        filtered = {k: v for k, v in doctrine.items() if area_lower in k.lower()}
-        if not filtered:
+        areas = [a for a in areas if area_lower in a.name.lower()]
+        if not areas:
             click.echo(f"No doctrine found for area '{area}'")
-            click.echo(f"Available areas: {', '.join(doctrine.keys())}")
+            all_areas = [a.name for a in response.areas]
+            click.echo(f"Available areas: {', '.join(all_areas)}")
             raise SystemExit(1)
-        doctrine = filtered
 
     if verbose:
-        click.echo(format_doctrine_verbose(doctrine))
+        click.echo(format_doctrine_verbose(areas))
     else:
-        click.echo(format_doctrine_with_definitions(doctrine))
+        click.echo(format_doctrine_brief(areas))
 
 
 @doctrine_group.command(name="list")
@@ -385,15 +196,16 @@ def list_doctrine_areas(scope: str) -> None:
 
     # Core doctrine
     if scope in ("core", "all"):
-        if DOCTRINE_DIR.exists():
-            doctrine = extract_all_doctrine_new(DOCTRINE_DIR, MODELS_DIR)
-            if doctrine:
-                click.echo("Core Doctrine:")
-                click.echo("")
-                for area_name, area in doctrine.items():
-                    click.echo(f"  {area_name}: {area.rule_count} rules")
-                    total_rules += area.rule_count
-                click.echo("")
+        use_case = get_list_doctrine_areas_use_case()
+        response = asyncio.run(use_case.execute(ListDoctrineAreasRequest()))
+
+        if response.areas:
+            click.echo("Core Doctrine:")
+            click.echo("")
+            for area in response.areas:
+                click.echo(f"  {area.name}: {area.rule_count} rules")
+                total_rules += area.rule_count
+            click.echo("")
         else:
             click.echo(f"Core doctrine not found: {DOCTRINE_DIR}", err=True)
 
@@ -404,11 +216,24 @@ def list_doctrine_areas(scope: str) -> None:
             click.echo("App Instance Doctrine:")
             click.echo("")
             for app_slug, doctrine_dir in sorted(app_dirs.items()):
-                doctrine = extract_all_doctrine_new(doctrine_dir, doctrine_dir)
-                if doctrine:
-                    rule_count = sum(area.rule_count for area in doctrine.values())
-                    click.echo(f"  {app_slug}: {rule_count} rules")
-                    total_rules += rule_count
+                # Create a repo for this app's doctrine
+                from julee.core.infrastructure.repositories.introspection.doctrine import (
+                    FilesystemDoctrineRepository,
+                )
+                from julee.core.use_cases.list_doctrine_rules import (
+                    ListDoctrineAreasUseCase,
+                )
+
+                repo = FilesystemDoctrineRepository(
+                    doctrine_dir=doctrine_dir,
+                    entities_dir=doctrine_dir,  # Apps may not have separate entities
+                )
+                uc = ListDoctrineAreasUseCase(doctrine_repository=repo)
+                resp = asyncio.run(uc.execute(None))
+
+                if resp.areas:
+                    click.echo(f"  {app_slug}: {resp.total_rules} rules")
+                    total_rules += resp.total_rules
             click.echo("")
         elif scope == "apps":
             click.echo("No app instance doctrine found.")
@@ -462,10 +287,10 @@ def verify_doctrine(
     from apps.admin.commands.doctrine_plugin import run_doctrine_verification
     from apps.admin.templates import render_doctrine_verify
 
-    # Set JULEE_TARGET environment variable if target specified
-    if target:
-        os.environ["JULEE_TARGET"] = target
-        click.echo(f"Target: {target}\n")
+    # Set JULEE_TARGET environment variable - explicit target or current project
+    target_path = target if target else str(find_project_root())
+    os.environ["JULEE_TARGET"] = target_path
+    click.echo(f"Target: {target_path}\n")
 
     all_results: dict = {}
     final_exit_code = 0
@@ -476,7 +301,6 @@ def verify_doctrine(
             click.echo("Verifying core doctrine...\n")
             results, exit_code = run_doctrine_verification(DOCTRINE_DIR)
             if results:
-                # Prefix with "Core: " to distinguish
                 for k, v in results.items():
                     all_results[f"Core: {k}"] = v
             if exit_code != 0:
@@ -520,5 +344,4 @@ def verify_doctrine(
     output = render_doctrine_verify(all_results, verbose=verbose)
     click.echo(output)
 
-    # Exit with appropriate code
     raise SystemExit(final_exit_code)

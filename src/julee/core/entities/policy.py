@@ -24,66 +24,54 @@ skip_policies = ["temporal-pipelines"]  # Opt out of framework defaults
 ```
 """
 
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 
 
-@dataclass(frozen=True)
-class Policy:
+class Policy(BaseModel, frozen=True):
     """An adoptable strategic choice with compliance tests.
 
     Policies represent the "how" decisions in a julee solution. They are
     enforced only when adopted, either explicitly or through framework
     defaults.
-
-    Attributes:
-        slug: Unique identifier (e.g., "sphinx-documentation")
-        name: Human-readable name (e.g., "Sphinx Documentation")
-        description: What this policy requires and why
-        framework_default: If True, applies to all julee solutions by default
-        requires: Other policy slugs this policy depends on
-        test_module: Dotted path to the compliance test module
     """
 
-    slug: str
-    name: str
-    description: str
-    framework_default: bool = False
-    requires: tuple[str, ...] = field(default_factory=tuple)
-    test_module: str = ""
+    slug: str = Field(description="Unique identifier (e.g., 'sphinx-documentation')")
+    name: str = Field(description="Human-readable name")
+    description: str = Field(description="What this policy requires and why")
+    framework_default: bool = Field(
+        default=False,
+        description="If True, applies to all julee solutions by default",
+    )
+    requires: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Other policy slugs this policy depends on",
+    )
+    test_module: str = Field(
+        default="",
+        description="Dotted path to the compliance test module",
+    )
 
 
-@dataclass(frozen=True)
-class PolicyAdoption:
+class PolicyAdoption(BaseModel, frozen=True):
     """A solution's adoption of a policy.
 
     Tracks which policies a solution has adopted and how (explicit
     adoption, framework default, or dependency).
-
-    Attributes:
-        policy_slug: The policy being adopted
-        source: How this adoption came about
-        skipped: If True, explicitly opted out of a framework default
     """
 
-    policy_slug: str
-    source: str  # "explicit", "framework_default", "dependency"
-    skipped: bool = False
+    policy_slug: str = Field(description="The policy being adopted")
+    source: str = Field(description="How adopted: 'explicit', 'framework_default', 'dependency'")
+    skipped: bool = Field(default=False, description="If True, explicitly opted out")
 
 
-@dataclass(frozen=True)
-class PolicyVerificationResult:
-    """Result of verifying a policy's compliance.
+class PolicyVerificationResult(BaseModel, frozen=True):
+    """Result of verifying a policy's compliance."""
 
-    Attributes:
-        policy_slug: The policy that was verified
-        passed: Whether all compliance tests passed
-        violations: List of violation messages if any
-        skipped: If True, policy was not applicable (e.g., no Temporal usage)
-        skip_reason: Why the policy was skipped
-    """
-
-    policy_slug: str
-    passed: bool
-    violations: tuple[str, ...] = field(default_factory=tuple)
-    skipped: bool = False
-    skip_reason: str = ""
+    policy_slug: str = Field(description="The policy that was verified")
+    passed: bool = Field(description="Whether all compliance tests passed")
+    violations: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Violation messages if any",
+    )
+    skipped: bool = Field(default=False, description="If True, policy was not applicable")
+    skip_reason: str = Field(default="", description="Why the policy was skipped")

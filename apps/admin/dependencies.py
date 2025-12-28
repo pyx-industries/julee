@@ -202,3 +202,79 @@ def get_deployment_repository() -> FilesystemDeploymentRepository:
         Repository for discovering deployments in the solution
     """
     return FilesystemDeploymentRepository(get_project_root())
+
+
+# =============================================================================
+# Doctrine Use Cases
+# =============================================================================
+
+# Framework paths for doctrine tests and entity definitions
+_FRAMEWORK_ROOT = Path(__file__).parent.parent.parent
+_DOCTRINE_DIR = _FRAMEWORK_ROOT / "src" / "julee" / "core" / "doctrine"
+_ENTITIES_DIR = _FRAMEWORK_ROOT / "src" / "julee" / "core" / "entities"
+
+
+@lru_cache
+def get_doctrine_repository():
+    """Get the doctrine repository singleton.
+
+    Returns:
+        Repository for extracting doctrine rules from test files
+    """
+    from julee.core.infrastructure.repositories.introspection.doctrine import (
+        FilesystemDoctrineRepository,
+    )
+
+    return FilesystemDoctrineRepository(
+        doctrine_dir=_DOCTRINE_DIR,
+        entities_dir=_ENTITIES_DIR,
+    )
+
+
+def get_list_doctrine_areas_use_case():
+    """Get ListDoctrineAreasUseCase with repository dependency.
+
+    Returns:
+        Use case for listing doctrine areas
+    """
+    from julee.core.use_cases.list_doctrine_rules import ListDoctrineAreasUseCase
+
+    return ListDoctrineAreasUseCase(doctrine_repository=get_doctrine_repository())
+
+
+def get_list_doctrine_rules_use_case():
+    """Get ListDoctrineRulesUseCase with repository dependency.
+
+    Returns:
+        Use case for listing doctrine rules
+    """
+    from julee.core.use_cases.list_doctrine_rules import ListDoctrineRulesUseCase
+
+    return ListDoctrineRulesUseCase(doctrine_repository=get_doctrine_repository())
+
+
+def get_doctrine_verifier():
+    """Get the doctrine verifier service.
+
+    Returns:
+        Service for running doctrine verification tests
+    """
+    from julee.core.infrastructure.services.doctrine_verifier import (
+        PytestDoctrineVerifier,
+    )
+
+    return PytestDoctrineVerifier(
+        doctrine_dir=_DOCTRINE_DIR,
+        entities_dir=_ENTITIES_DIR,
+    )
+
+
+def get_verify_doctrine_use_case():
+    """Get VerifyDoctrineUseCase with verifier dependency.
+
+    Returns:
+        Use case for verifying doctrine compliance
+    """
+    from julee.core.use_cases.verify_doctrine import VerifyDoctrineUseCase
+
+    return VerifyDoctrineUseCase(doctrine_verifier=get_doctrine_verifier())

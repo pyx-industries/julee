@@ -86,13 +86,14 @@ def verify_policies(
         julee-admin policy verify --target /path/to/solution
     """
     from apps.admin.commands.doctrine_plugin import run_doctrine_verification
+    from apps.admin.dependencies import find_project_root
 
     from julee.core.policies import get_framework_default_policies, get_policy, list_policies
 
-    # Set JULEE_TARGET environment variable if target specified
-    if target:
-        os.environ["JULEE_TARGET"] = target
-        click.echo(f"Target: {target}\n")
+    # Set JULEE_TARGET environment variable - explicit target or current project
+    target_path = target if target else str(find_project_root())
+    os.environ["JULEE_TARGET"] = target_path
+    click.echo(f"Target: {target_path}\n")
 
     # Determine which policies to verify
     if verify_all:

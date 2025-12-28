@@ -22,6 +22,7 @@ SUPPORTING_MODELS = {
     "acknowledgement",  # Handler response type - infrastructure for workflow orchestration
     "code_info",  # Contains FieldInfo, MethodInfo, BoundedContextInfo - supporting models
     "content_stream",  # Pydantic IO stream wrapper - infrastructure utility
+    "doctrine",  # Meta-entity describing doctrine rules - validated by tests=doctrine pattern
     "documentation",  # Tested via sphinx-documentation policy
     "evaluation",  # Contains EvaluationResult - infrastructure for semantic evaluation
     "policy",  # Policy entity - tested via policies/ infrastructure, not doctrine

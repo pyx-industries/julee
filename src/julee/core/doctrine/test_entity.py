@@ -15,6 +15,13 @@ from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRe
 # the concept (for introspection/documentation), not being instances of the concept.
 META_ENTITIES = {"Request", "Response", "UseCase"}
 
+# Supporting entities that have special implementation patterns.
+# These are infrastructure utilities, not domain data models.
+# (Mirrors SUPPORTING_MODELS in test_doctrine_coverage.py)
+INFRASTRUCTURE_ENTITIES = {
+    "ContentStream",  # Pydantic custom field type for IO streams
+}
+
 
 class TestEntityNaming:
     """Doctrine about entity naming conventions."""
@@ -106,4 +113,60 @@ class TestEntityTypeAnnotations:
 
         assert not violations, "Entity fields missing type annotations:\n" + "\n".join(
             violations
+        )
+
+
+class TestEntityImplementation:
+    """Doctrine about entity implementation patterns."""
+
+    @pytest.mark.asyncio
+    async def test_all_entities_MUST_use_pydantic_BaseModel_or_Enum(self, repo):
+        """All entities MUST inherit from Pydantic BaseModel or Enum.
+
+        Data entities (classes with fields) MUST inherit from BaseModel, either:
+        - Directly (e.g., `class MyEntity(BaseModel)`)
+        - Via intermediate classes (e.g., ClassInfo -> BaseModel)
+
+        Pydantic provides automatic validation, serialization, type coercion,
+        and immutability (with frozen=True). Using dataclasses or plain classes
+        is not permitted - this ensures consistency across the codebase.
+
+        Enum subclasses are the exception: they represent constrained value
+        objects (choices from a fixed set), not data models with fields.
+        """
+        use_case = ListEntitiesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        # Canary: ensure we're actually scanning entities
+        assert len(response.artifacts) > 0, "No entities found - detector may be broken"
+
+        violations = []
+        for artifact in response.artifacts:
+            bases = artifact.artifact.bases
+            name = artifact.artifact.name
+
+            # Enums are value objects (constrained choices), not data models
+            is_enum = "Enum" in bases or any("Enum" in b for b in bases)
+            if is_enum:
+                continue
+
+            # ClassInfo subclasses inherit BaseModel indirectly - this is valid
+            inherits_classinfo = "ClassInfo" in bases
+            if inherits_classinfo:
+                continue
+
+            # Skip infrastructure entities with special patterns
+            if name in INFRASTRUCTURE_ENTITIES:
+                continue
+
+            # Check if BaseModel is in the inheritance chain
+            has_basemodel = any("BaseModel" in base for base in bases)
+            if not has_basemodel:
+                violations.append(
+                    f"{artifact.bounded_context}.{name}: "
+                    f"inherits from {bases or ['nothing']}, MUST inherit from BaseModel"
+                )
+
+        assert not violations, (
+            "Entities not using Pydantic BaseModel:\n" + "\n".join(violations)
         )
