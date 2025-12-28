@@ -512,11 +512,6 @@ def process_accelerator_placeholders(app, doctree, docname):
         content = build_accelerator_content(slug, docname, hcd_context)
         node.replace_self(content)
 
-    # Process accelerator-index placeholders
-    for node in doctree.traverse(AcceleratorIndexPlaceholder):
-        content = build_accelerator_index(docname, hcd_context)
-        node.replace_self(content)
-
     # Process accelerators-for-app placeholders
     for node in doctree.traverse(AcceleratorsForAppPlaceholder):
         app_slug = node["app_slug"]

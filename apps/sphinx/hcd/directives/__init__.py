@@ -6,8 +6,6 @@ Thin directive adapters that use domain models and repositories.
 from .accelerator import (
     AcceleratorDependencyDiagramDirective,
     AcceleratorDependencyDiagramPlaceholder,
-    AcceleratorIndexDirective,
-    AcceleratorIndexPlaceholder,
     AcceleratorsForAppDirective,
     AcceleratorsForAppPlaceholder,
     AcceleratorStatusDirective,
@@ -19,8 +17,6 @@ from .accelerator import (
     process_accelerator_placeholders,
 )
 from .app import (
-    AppIndexDirective,
-    AppIndexPlaceholder,
     AppsForPersonaDirective,
     AppsForPersonaPlaceholder,
     DefineAppDirective,
@@ -62,8 +58,6 @@ from .contrib import (
 )
 from .epic import (
     DefineEpicDirective,
-    EpicIndexDirective,
-    EpicIndexPlaceholder,
     EpicsForPersonaDirective,
     EpicsForPersonaPlaceholder,
     EpicStoryDirective,
@@ -73,8 +67,6 @@ from .epic import (
 from .integration import (
     DefineIntegrationDirective,
     DefineIntegrationPlaceholder,
-    IntegrationIndexDirective,
-    IntegrationIndexPlaceholder,
     process_integration_placeholders,
 )
 from .journey import (
@@ -150,8 +142,6 @@ __all__ = [
     # Epic directives
     "DefineEpicDirective",
     "EpicStoryDirective",
-    "EpicIndexDirective",
-    "EpicIndexPlaceholder",
     "EpicsForPersonaDirective",
     "EpicsForPersonaPlaceholder",
     "clear_epic_state",
@@ -159,16 +149,12 @@ __all__ = [
     # App directives
     "DefineAppDirective",
     "DefineAppPlaceholder",
-    "AppIndexDirective",
-    "AppIndexPlaceholder",
     "AppsForPersonaDirective",
     "AppsForPersonaPlaceholder",
     "process_app_placeholders",
     # Accelerator directives
     "DefineAcceleratorDirective",
     "DefineAcceleratorPlaceholder",
-    "AcceleratorIndexDirective",
-    "AcceleratorIndexPlaceholder",
     "AcceleratorsForAppDirective",
     "AcceleratorsForAppPlaceholder",
     "DependentAcceleratorsDirective",
@@ -181,8 +167,6 @@ __all__ = [
     # Integration directives
     "DefineIntegrationDirective",
     "DefineIntegrationPlaceholder",
-    "IntegrationIndexDirective",
-    "IntegrationIndexPlaceholder",
     "process_integration_placeholders",
     # Persona directives
     "DefinePersonaDirective",

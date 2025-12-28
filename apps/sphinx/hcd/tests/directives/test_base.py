@@ -83,53 +83,53 @@ class TestDirectiveImports:
         """Test epic directive imports."""
         from apps.sphinx.hcd.directives.epic import (
             DefineEpicDirective,
-            EpicIndexDirective,
             EpicsForPersonaDirective,
             EpicStoryDirective,
         )
+        from apps.sphinx.hcd.generated_directives import GeneratedEpicIndexDirective
 
         assert DefineEpicDirective is not None
-        assert EpicIndexDirective is not None
         assert EpicStoryDirective is not None
         assert EpicsForPersonaDirective is not None
+        assert GeneratedEpicIndexDirective is not None
 
     def test_app_directives_import(self) -> None:
         """Test app directive imports."""
         from apps.sphinx.hcd.directives.app import (
-            AppIndexDirective,
             AppsForPersonaDirective,
             DefineAppDirective,
         )
+        from apps.sphinx.hcd.generated_directives import GeneratedAppIndexDirective
 
         assert DefineAppDirective is not None
-        assert AppIndexDirective is not None
         assert AppsForPersonaDirective is not None
+        assert GeneratedAppIndexDirective is not None
 
     def test_accelerator_directives_import(self) -> None:
         """Test accelerator directive imports."""
         from apps.sphinx.hcd.directives.accelerator import (
             AcceleratorDependencyDiagramDirective,
-            AcceleratorIndexDirective,
             AcceleratorsForAppDirective,
             AcceleratorStatusDirective,
             DefineAcceleratorDirective,
         )
+        from apps.sphinx.hcd.generated_directives import GeneratedAcceleratorIndexDirective
 
         assert DefineAcceleratorDirective is not None
-        assert AcceleratorIndexDirective is not None
         assert AcceleratorsForAppDirective is not None
         assert AcceleratorDependencyDiagramDirective is not None
         assert AcceleratorStatusDirective is not None
+        assert GeneratedAcceleratorIndexDirective is not None
 
     def test_integration_directives_import(self) -> None:
         """Test integration directive imports."""
         from apps.sphinx.hcd.directives.integration import (
             DefineIntegrationDirective,
-            IntegrationIndexDirective,
         )
+        from apps.sphinx.hcd.generated_directives import GeneratedIntegrationIndexDirective
 
         assert DefineIntegrationDirective is not None
-        assert IntegrationIndexDirective is not None
+        assert GeneratedIntegrationIndexDirective is not None
 
     def test_persona_directives_import(self) -> None:
         """Test persona directive imports."""

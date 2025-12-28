@@ -377,11 +377,6 @@ def process_app_placeholders(app, doctree, docname):
         content = build_app_content(app_slug, docname, hcd_context)
         node.replace_self(content)
 
-    # Process app-index placeholders
-    for node in doctree.traverse(AppIndexPlaceholder):
-        content = build_app_index(docname, hcd_context)
-        node.replace_self(content)
-
     # Process apps-for-persona placeholders
     for node in doctree.traverse(AppsForPersonaPlaceholder):
         persona = node["persona"]
