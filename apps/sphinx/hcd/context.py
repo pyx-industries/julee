@@ -31,7 +31,9 @@ from julee.hcd.use_cases.crud import (
     # Create use cases
     CreateAppUseCase,
     CreateContribModuleUseCase,
+    CreateIntegrationUseCase,
     CreateJourneyUseCase,
+    CreateStoryUseCase,
     # Get use cases
     GetAcceleratorUseCase,
     GetAppUseCase,
@@ -51,6 +53,8 @@ from julee.hcd.use_cases.crud import (
     ListJourneysUseCase,
     ListPersonasUseCase,
     ListStoriesUseCase,
+    # Save use cases (for import operations)
+    SaveCodeInfoUseCase,
     # Update use cases
     UpdateAppUseCase,
 )
@@ -232,6 +236,21 @@ class HCDContext:
     def update_app(self) -> UpdateAppUseCase:
         """Get UpdateAppUseCase for updating apps."""
         return UpdateAppUseCase(self.app_repo.async_repo)  # type: ignore
+
+    @property
+    def create_story(self) -> CreateStoryUseCase:
+        """Get CreateStoryUseCase for creating stories."""
+        return CreateStoryUseCase(self.story_repo.async_repo)  # type: ignore
+
+    @property
+    def create_integration(self) -> CreateIntegrationUseCase:
+        """Get CreateIntegrationUseCase for creating integrations."""
+        return CreateIntegrationUseCase(self.integration_repo.async_repo)  # type: ignore
+
+    @property
+    def save_code_info(self) -> SaveCodeInfoUseCase:
+        """Get SaveCodeInfoUseCase for saving code info."""
+        return SaveCodeInfoUseCase(self.code_info_repo.async_repo)  # type: ignore
 
     def clear_all(self) -> None:
         """Clear all repositories.

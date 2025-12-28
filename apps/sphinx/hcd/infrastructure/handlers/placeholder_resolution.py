@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 from docutils import nodes
 
+from julee.hcd.use_cases.crud import GetEpicRequest
+
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
@@ -78,7 +80,10 @@ class EpicPlaceholderHandler:
         # Process epic stories placeholder
         epic_slug = epic_current.get(docname)
         if epic_slug:
-            epic = context.epic_repo.get(epic_slug)
+            epic_response = context.get_epic.execute_sync(
+                GetEpicRequest(slug=epic_slug)
+            )
+            epic = epic_response.epic
             if epic:
                 for node in doctree.traverse(nodes.container):
                     if "epic-stories-placeholder" in node.get("classes", []):

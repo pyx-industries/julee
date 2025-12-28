@@ -9,6 +9,12 @@ import logging
 from julee.core.parsers.ast import scan_bounded_contexts
 from julee.hcd.parsers.gherkin import scan_feature_directory
 from julee.hcd.parsers.yaml import scan_app_manifests, scan_integration_manifests
+from julee.hcd.use_cases.crud import (
+    CreateAppRequest,
+    CreateIntegrationRequest,
+    CreateStoryRequest,
+    SaveCodeInfoRequest,
+)
 
 from .config import get_config
 from .context import HCDContext, create_sphinx_env_context, set_hcd_context
@@ -66,7 +72,8 @@ def _load_stories(context: HCDContext, config) -> None:
     stories = scan_feature_directory(features_dir, config.project_root)
     for story in stories:
         story.solution_slug = solution_slug
-        context.story_repo.save(story)
+        request = CreateStoryRequest(**story.model_dump())
+        context.create_story.execute_sync(request)
 
     logger.info(f"Loaded {len(stories)} stories from feature files")
 
@@ -82,7 +89,8 @@ def _load_apps(context: HCDContext, config) -> None:
     apps = scan_app_manifests(apps_dir)
     for app in apps:
         app.solution_slug = solution_slug
-        context.app_repo.save(app)
+        request = CreateAppRequest(**app.model_dump())
+        context.create_app.execute_sync(request)
 
     logger.info(f"Loaded {len(apps)} apps from manifests")
 
@@ -98,7 +106,8 @@ def _load_integrations(context: HCDContext, config) -> None:
     integrations = scan_integration_manifests(integrations_dir)
     for integration in integrations:
         integration.solution_slug = solution_slug
-        context.integration_repo.save(integration)
+        request = CreateIntegrationRequest(**integration.model_dump())
+        context.create_integration.execute_sync(request)
 
     logger.info(f"Loaded {len(integrations)} integrations from manifests")
 
@@ -113,7 +122,8 @@ def _load_code_info(context: HCDContext, config) -> None:
     # Exclude 'shared' - it's foundation code, not an accelerator
     contexts = scan_bounded_contexts(src_dir, exclude=["shared"])
     for code_info in contexts:
-        context.code_info_repo.save(code_info)
+        request = SaveCodeInfoRequest(code_info=code_info)
+        context.save_code_info.execute_sync(request)
 
     logger.info(f"Loaded {len(contexts)} bounded contexts from source")
 

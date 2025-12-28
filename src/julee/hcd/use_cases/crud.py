@@ -228,3 +228,27 @@ class GetCodeInfoUseCase:
     async def execute(self, request: GetCodeInfoRequest) -> GetCodeInfoResponse:
         code_info = await self.repo.get(request.slug)
         return GetCodeInfoResponse(code_info=code_info)
+
+
+class SaveCodeInfoRequest(BaseModel):
+    """Request to save code info for a bounded context."""
+
+    code_info: BoundedContextInfo
+
+
+class SaveCodeInfoResponse(BaseModel):
+    """Response after saving code info."""
+
+    success: bool = True
+
+
+@use_case
+class SaveCodeInfoUseCase:
+    """Save code introspection info for a bounded context."""
+
+    def __init__(self, repo: CodeInfoRepository) -> None:
+        self.repo = repo
+
+    async def execute(self, request: SaveCodeInfoRequest) -> SaveCodeInfoResponse:
+        await self.repo.save(request.code_info)
+        return SaveCodeInfoResponse(success=True)

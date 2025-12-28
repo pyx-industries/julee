@@ -2,15 +2,62 @@
 
 These directives use the CoreContext to introspect bounded contexts
 and render entity, repository, and use case listings.
+
+Template-driven pattern:
+1. Directive calls use case to get data
+2. Data is passed to Jinja template
+3. Template renders RST
+4. RST is parsed to docutils nodes
+
+This separates data fetching (use cases) from presentation (templates).
 """
+
+from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from jinja2 import Environment, FileSystemLoader
 from sphinx.util.docutils import SphinxDirective
 
+from apps.sphinx.directive_factory import parse_rst_to_nodes
 from julee.core.entities.code_info import ClassInfo
+from julee.core.use_cases.code_artifact.list_entities import (
+    ListEntitiesRequest,
+    ListEntitiesUseCase,
+)
 
 from ..context import get_core_context
+
+# Template directory
+TEMPLATE_DIR = Path(__file__).parent.parent / "templates"
+
+# Jinja environment with filters
+_jinja_env: Environment | None = None
+
+
+def _get_jinja_env() -> Environment:
+    """Get or create the Jinja environment."""
+    global _jinja_env
+    if _jinja_env is None:
+        _jinja_env = Environment(
+            loader=FileSystemLoader(TEMPLATE_DIR),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        # Register filters
+        _jinja_env.filters["title_case"] = lambda s: s.replace("-", " ").replace("_", " ").title()
+        _jinja_env.filters["first_sentence"] = _first_sentence
+    return _jinja_env
+
+
+def _first_sentence(text: str) -> str:
+    """Extract first sentence from text."""
+    if not text:
+        return "(no description)"
+    for i, char in enumerate(text):
+        if char in ".!?" and (i + 1 >= len(text) or text[i + 1] in " \n"):
+            return text[: i + 1]
+    return text.split("\n")[0].strip() if text else "(no description)"
 
 
 def _get_summary(class_info: ClassInfo) -> str:
@@ -45,6 +92,11 @@ def _infer_entity_type(name: str) -> str | None:
 class EntityCatalogDirective(SphinxDirective):
     """List all entities in bounded context(s) with summaries.
 
+    Uses template-driven rendering:
+    1. Calls ListEntitiesUseCase to get entities
+    2. Passes response to entity_catalog.rst.jinja template
+    3. Template renders RST which is parsed to nodes
+
     Usage::
 
         .. entity-catalog:: julee.hcd
@@ -67,75 +119,32 @@ class EntityCatalogDirective(SphinxDirective):
 
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
+        import asyncio
+
         context = get_core_context(self.env.app)
 
-        if self.arguments:
-            # Single BC mode
-            module_path = self.arguments[0]
-            bc_info = context.get_bounded_context(module_path)
+        # Determine filter (single BC or all)
+        bc_filter = self.arguments[0] if self.arguments else None
 
-            if not bc_info or not bc_info.entities:
-                para = nodes.paragraph(text=f"No entities found in {module_path}")
-                return [para]
+        # Call use case
+        use_case = ListEntitiesUseCase(context.bc_repository)
+        request = ListEntitiesRequest(bounded_context=bc_filter)
 
-            return self._render_entities(bc_info.entities, module_path)
-        else:
-            # All BCs mode - list entities from all bounded contexts
-            return self._render_all_bcs(context)
+        async def execute():
+            return await use_case.execute(request)
 
-    def _render_all_bcs(self, context) -> list[nodes.Node]:
-        """Render entities from all bounded contexts."""
-        bounded_contexts = context.list_solution_bounded_contexts()
-        result = []
+        response = asyncio.run(execute())
 
-        for bc in bounded_contexts:
-            bc_info = context.get_bounded_context(f"julee.{bc.slug}")
-            if not bc_info or not bc_info.entities:
-                continue
+        # Render template
+        env = _get_jinja_env()
+        template = env.get_template("entity_catalog.rst.jinja")
+        rst_content = template.render(
+            artifacts=response.artifacts,
+            options=dict(self.options),
+        )
 
-            # BC heading
-            rubric = nodes.rubric(text=bc.display_name)
-            result.append(rubric)
-
-            # Entity list for this BC
-            result.extend(self._render_entities(bc_info.entities, f"julee.{bc.slug}"))
-
-        if not result:
-            para = nodes.paragraph()
-            para += nodes.emphasis(text="No entities found in solution.")
-            return [para]
-
-        return result
-
-    def _render_entities(self, entities, module_path: str) -> list[nodes.Node]:
-        """Render a list of entities."""
-        bullet_list = nodes.bullet_list()
-
-        for entity in entities:
-            item = nodes.list_item()
-            para = nodes.paragraph()
-
-            if "link-to-api" in self.options:
-                ref = nodes.reference(
-                    "",
-                    entity.name,
-                    refuri=f"#py-class-{module_path.replace('.', '-')}-{entity.name.lower()}",
-                    internal=True,
-                )
-                para += nodes.strong("", "", ref)
-            else:
-                para += nodes.strong(text=entity.name)
-
-            summary = _get_summary(entity)
-            para += nodes.Text(f" - {summary}")
-
-            if "show-fields" in self.options and entity.fields:
-                para += nodes.Text(f" ({len(entity.fields)} fields)")
-
-            item += para
-            bullet_list += item
-
-        return [bullet_list]
+        # Parse RST to nodes
+        return parse_rst_to_nodes(rst_content, self.env.docname)
 
 
 class RepositoryCatalogDirective(SphinxDirective):
