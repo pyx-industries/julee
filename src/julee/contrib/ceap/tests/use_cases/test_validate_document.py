@@ -48,6 +48,7 @@ from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentUseCase,
 )
 from julee.core.entities.content_stream import ContentStream
+from julee.core.services.clock import FixedClockService
 
 pytestmark = pytest.mark.unit
 
@@ -100,6 +101,11 @@ class TestValidateDocumentUseCase:
         return MemoryKnowledgeService(ks_config)
 
     @pytest.fixture
+    def clock_service(self) -> FixedClockService:
+        """Create a fixed clock service for testing."""
+        return FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+
+    @pytest.fixture
     def use_case(
         self,
         document_repo: MemoryDocumentRepository,
@@ -108,6 +114,7 @@ class TestValidateDocumentUseCase:
         policy_repo: MemoryPolicyRepository,
         document_policy_validation_repo: MemoryDocumentPolicyValidationRepository,
         knowledge_service: MemoryKnowledgeService,
+        clock_service: FixedClockService,
     ) -> ValidateDocumentUseCase:
         """Create ValidateDocumentUseCase with memory repository
         dependencies."""
@@ -118,7 +125,7 @@ class TestValidateDocumentUseCase:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=knowledge_service,
-            now_fn=lambda: datetime.now(timezone.utc),
+            clock_service=clock_service,
         )
 
     def _create_configured_use_case(
@@ -139,7 +146,7 @@ class TestValidateDocumentUseCase:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=memory_service,
-            now_fn=lambda: datetime.now(timezone.utc),
+            clock_service=FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)),
         )
 
     @pytest.mark.asyncio

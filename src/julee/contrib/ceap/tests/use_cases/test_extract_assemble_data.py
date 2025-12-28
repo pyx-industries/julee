@@ -48,6 +48,8 @@ from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataUseCase,
 )
 from julee.core.entities.content_stream import ContentStream
+from julee.core.services.clock import FixedClockService
+from julee.core.services.execution import FixedExecutionService
 
 pytestmark = pytest.mark.unit
 
@@ -136,6 +138,16 @@ class TestExtractAssembleDataUseCase:
         return memory_service
 
     @pytest.fixture
+    def clock_service(self) -> FixedClockService:
+        """Create a fixed clock service for testing."""
+        return FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+
+    @pytest.fixture
+    def execution_service(self) -> FixedExecutionService:
+        """Create a fixed execution service for testing."""
+        return FixedExecutionService("test-execution-123")
+
+    @pytest.fixture
     def use_case(
         self,
         document_repo: MemoryDocumentRepository,
@@ -144,6 +156,8 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         knowledge_service: MemoryKnowledgeService,
+        clock_service: FixedClockService,
+        execution_service: FixedExecutionService,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with memory repository
         dependencies."""
@@ -154,6 +168,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=knowledge_service,
+            clock_service=clock_service,
+            execution_service=execution_service,
         )
 
     @pytest.fixture
@@ -165,6 +181,8 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         configured_knowledge_service: MemoryKnowledgeService,
+        clock_service: FixedClockService,
+        execution_service: FixedExecutionService,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with configured knowledge service
         for full workflow tests."""
@@ -175,6 +193,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=configured_knowledge_service,
+            clock_service=clock_service,
+            execution_service=execution_service,
         )
 
     @pytest.mark.asyncio
@@ -192,7 +212,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id=document_id,
                     assembly_specification_id=assembly_specification_id,
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -225,7 +244,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id=document_id,
                     assembly_specification_id=assembly_specification_id,
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -252,7 +270,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id=document_id,
                     assembly_specification_id=assembly_specification_id,
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -347,7 +364,6 @@ class TestExtractAssembleDataUseCase:
             ExtractAssembleDataRequest(
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
-                workflow_id="test-workflow-success",
             )
         )
 
@@ -387,7 +403,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id="doc-123",
                     assembly_specification_id="nonexistent-spec",
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -417,7 +432,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id="nonexistent-doc",
                     assembly_specification_id="spec-123",
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -466,7 +480,6 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id="doc-123",
                     assembly_specification_id="spec-123",
-                    workflow_id="test-workflow-123",
                 )
             )
 
@@ -561,6 +574,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=memory_service,
+            clock_service=FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)),
+            execution_service=FixedExecutionService("test-execution-schema-fail"),
         )
 
         # Act & Assert
@@ -572,6 +587,5 @@ class TestExtractAssembleDataUseCase:
                 ExtractAssembleDataRequest(
                     document_id="doc-123",
                     assembly_specification_id="spec-123",
-                    workflow_id="test-workflow-123",
                 )
             )

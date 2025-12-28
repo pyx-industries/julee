@@ -11,11 +11,11 @@ import hashlib
 import io
 import json
 import logging
-from collections.abc import Callable
-from datetime import datetime
 
 import multihash
 from pydantic import BaseModel, Field
+
+from julee.core.services.clock import ClockService
 
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
 from julee.contrib.ceap.entities.document_policy_validation import (
@@ -101,7 +101,7 @@ class ValidateDocumentUseCase:
         policy_repo: PolicyRepository,
         document_policy_validation_repo: DocumentPolicyValidationRepository,
         knowledge_service: KnowledgeService,
-        now_fn: Callable[[], datetime],
+        clock_service: ClockService,
     ) -> None:
         """Initialize validate document use case.
 
@@ -116,8 +116,7 @@ class ValidateDocumentUseCase:
                 validation operations
             knowledge_service: Knowledge service instance for external
                 operations
-            now_fn: Function to get current time (e.g., workflow.now for
-                Temporal workflows)
+            clock_service: Service for obtaining current time
 
         .. note::
 
@@ -135,7 +134,7 @@ class ValidateDocumentUseCase:
         self.knowledge_service_config_repo = knowledge_service_config_repo
         self.policy_repo = policy_repo
         self.document_policy_validation_repo = document_policy_validation_repo
-        self.now_fn = now_fn
+        self.clock_service = clock_service
 
     async def execute(
         self, request: ValidateDocumentRequest
@@ -205,7 +204,7 @@ class ValidateDocumentUseCase:
             policy_id=policy_id,
             status=DocumentPolicyValidationStatus.PENDING,
             validation_scores=[],
-            started_at=self.now_fn(),
+            started_at=self.clock_service.now(),
         )
 
         await self.document_policy_validation_repo.save(validation)
@@ -268,7 +267,7 @@ class ValidateDocumentUseCase:
                     transformed_document_id=validation.transformed_document_id,
                     post_transform_validation_scores=validation.post_transform_validation_scores,
                     started_at=validation.started_at,
-                    completed_at=self.now_fn(),
+                    completed_at=self.clock_service.now(),
                     error_message=validation.error_message,
                     status=final_status,
                     passed=initial_passed,
@@ -359,7 +358,7 @@ class ValidateDocumentUseCase:
                 transformed_document_id=transformed_document.document_id,
                 post_transform_validation_scores=post_transform_validation_scores,
                 started_at=validation.started_at,
-                completed_at=self.now_fn(),
+                completed_at=self.clock_service.now(),
                 error_message=validation.error_message,
                 status=final_status,
                 passed=final_passed,
@@ -387,7 +386,7 @@ class ValidateDocumentUseCase:
             validation.status = DocumentPolicyValidationStatus.ERROR
             validation.error_message = str(e)
             validation.passed = False
-            validation.completed_at = self.now_fn()
+            validation.completed_at = self.clock_service.now()
             await self.document_policy_validation_repo.save(validation)
 
             logger.error(
@@ -719,8 +718,8 @@ class ValidateDocumentUseCase:
             content_multihash=proper_multihash,
             status=DocumentStatus.CAPTURED,
             content=ContentStream(transformed_stream),
-            created_at=self.now_fn(),
-            updated_at=self.now_fn(),
+            created_at=self.clock_service.now(),
+            updated_at=self.clock_service.now(),
         )
 
         # Save the transformed document

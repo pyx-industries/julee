@@ -37,7 +37,7 @@ class AssemblyFactory(Factory):
     assembly_id = Faker("uuid4")
     assembly_specification_id = Faker("uuid4")
     input_document_id = Faker("uuid4")
-    workflow_id = Faker("uuid4")
+    execution_id = Faker("uuid4")
 
     # Assembly process tracking
     status = AssemblyStatus.PENDING

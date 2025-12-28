@@ -10,14 +10,15 @@ instances following the Clean Architecture principles.
 import hashlib
 import json
 import logging
-from collections.abc import Callable
-from datetime import datetime, timezone
 from typing import Any
 
 import jsonpointer  # type: ignore
 import jsonschema
 import multihash
 from pydantic import BaseModel, Field
+
+from julee.core.services.clock import ClockService
+from julee.core.services.execution import ExecutionService
 
 from julee.contrib.ceap.entities.assembly import Assembly, AssemblyStatus
 from julee.contrib.ceap.entities.assembly_specification import AssemblySpecification
@@ -50,9 +51,6 @@ class ExtractAssembleDataRequest(BaseModel):
     document_id: str = Field(description="ID of the document to assemble")
     assembly_specification_id: str = Field(
         description="ID of the specification defining how to assemble"
-    )
-    workflow_id: str = Field(
-        description="Temporal workflow ID that creates this assembly"
     )
 
 
@@ -105,7 +103,8 @@ class ExtractAssembleDataUseCase:
         knowledge_service_query_repo: KnowledgeServiceQueryRepository,
         knowledge_service_config_repo: KnowledgeServiceConfigRepository,
         knowledge_service: KnowledgeService,
-        now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        clock_service: ClockService,
+        execution_service: ExecutionService,
     ) -> None:
         """Initialize extract and assemble data use case.
 
@@ -120,7 +119,8 @@ class ExtractAssembleDataUseCase:
                 configuration operations
             knowledge_service: Knowledge service instance for external
                 operations
-            now_fn: Function to get current time (for workflow compatibility)
+            clock_service: Service for obtaining current time
+            execution_service: Service for obtaining execution identity
 
         .. note::
 
@@ -134,7 +134,8 @@ class ExtractAssembleDataUseCase:
         """
         self.document_repo = document_repo
         self.knowledge_service = knowledge_service
-        self.now_fn = now_fn
+        self.clock_service = clock_service
+        self.execution_service = execution_service
         self.assembly_repo = assembly_repo
         self.assembly_specification_repo = assembly_specification_repo
         self.knowledge_service_query_repo = knowledge_service_query_repo
@@ -147,8 +148,7 @@ class ExtractAssembleDataUseCase:
         """Execute the use case.
 
         Args:
-            request: Request containing document_id, assembly_specification_id,
-                and workflow_id
+            request: Request containing document_id and assembly_specification_id
 
         Returns:
             Response containing the new Assembly with the assembled document
@@ -178,8 +178,7 @@ class ExtractAssembleDataUseCase:
         8. Adds the iteration to the assembly and returns it
 
         Args:
-            request: Request containing document_id, assembly_specification_id,
-                and workflow_id
+            request: Request containing document_id and assembly_specification_id
 
         Returns:
             New Assembly with the assembled document iteration
@@ -191,14 +190,14 @@ class ExtractAssembleDataUseCase:
         """
         document_id = request.document_id
         assembly_specification_id = request.assembly_specification_id
-        workflow_id = request.workflow_id
+        execution_id = self.execution_service.get_execution_id()
 
         logger.debug(
             "Starting data assembly use case",
             extra={
                 "document_id": document_id,
                 "assembly_specification_id": assembly_specification_id,
-                "workflow_id": workflow_id,
+                "execution_id": execution_id,
             },
         )
 
@@ -217,11 +216,11 @@ class ExtractAssembleDataUseCase:
             assembly_id=assembly_id,
             assembly_specification_id=assembly_specification_id,
             input_document_id=document_id,
-            workflow_id=workflow_id,
+            execution_id=execution_id,
             status=AssemblyStatus.IN_PROGRESS,
             assembled_document_id=None,
-            created_at=self.now_fn(),
-            updated_at=self.now_fn(),
+            created_at=self.clock_service.now(),
+            updated_at=self.clock_service.now(),
         )
         await self.assembly_repo.save(assembly)
 
@@ -623,8 +622,8 @@ text or markdown formatting."""
             content_multihash=self._calculate_multihash_from_content(content_bytes),
             status=DocumentStatus.ASSEMBLED,
             content_bytes=assembled_content,
-            created_at=self.now_fn(),
-            updated_at=self.now_fn(),
+            created_at=self.clock_service.now(),
+            updated_at=self.clock_service.now(),
         )
 
         # Save the document

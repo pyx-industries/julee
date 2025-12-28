@@ -46,8 +46,8 @@ class Assembly(BaseModel):
     input_document_id: str = Field(
         description="ID of the input document to assemble from"
     )
-    workflow_id: str = Field(
-        description="Temporal workflow ID that created this assembly"
+    execution_id: str = Field(
+        description="Execution context ID that created this assembly"
     )
 
     # Assembly process tracking
@@ -95,9 +95,9 @@ class Assembly(BaseModel):
             raise ValueError("Assembled document ID cannot be empty string")
         return v.strip() if v else None
 
-    @field_validator("workflow_id")
+    @field_validator("execution_id")
     @classmethod
-    def workflow_id_must_not_be_empty(cls, v: str) -> str:
+    def execution_id_must_not_be_empty(cls, v: str) -> str:
         if not v or not v.strip():
-            raise ValueError("Workflow ID cannot be empty")
+            raise ValueError("Execution ID cannot be empty")
         return v.strip()
