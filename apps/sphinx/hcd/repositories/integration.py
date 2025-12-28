@@ -1,15 +1,10 @@
 """Sphinx environment implementation of IntegrationRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.repositories.integration import IntegrationRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvIntegrationRepository(
@@ -21,13 +16,7 @@ class SphinxEnvIntegrationRepository(
     Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Integration"
-        self.entity_key = "integrations"
-        self.id_field = "slug"
-        self.entity_class = Integration
+    entity_class = Integration
 
     async def get_by_direction(self, direction: Direction) -> list[Integration]:
         """Get all integrations with a specific direction."""

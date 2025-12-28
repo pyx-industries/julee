@@ -1,14 +1,9 @@
 """Sphinx environment implementation of ContribRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.contrib import ContribModule
 from julee.hcd.repositories.contrib import ContribRepository
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvContribRepository(
@@ -20,13 +15,8 @@ class SphinxEnvContribRepository(
     Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "ContribModule"
-        self.entity_key = "contribs"
-        self.id_field = "slug"
-        self.entity_class = ContribModule
+    entity_class = ContribModule
+    entity_key = "contribs"  # Override: not "contribmodules"
 
     async def get_by_docname(self, docname: str) -> list[ContribModule]:
         """Get all contrib modules defined in a specific document."""

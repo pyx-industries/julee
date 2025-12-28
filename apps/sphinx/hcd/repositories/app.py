@@ -1,15 +1,10 @@
 """Sphinx environment implementation of AppRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.repositories.app import AppRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvAppRepository(SphinxEnvRepositoryMixin[App], AppRepository):
@@ -19,13 +14,7 @@ class SphinxEnvAppRepository(SphinxEnvRepositoryMixin[App], AppRepository):
     Data is serialized as dicts and merged via env-merge-info.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "App"
-        self.entity_key = "apps"
-        self.id_field = "slug"
-        self.entity_class = App
+    entity_class = App
 
     async def get_by_type(self, app_type: AppType) -> list[App]:
         """Get all apps of a specific type."""

@@ -1,14 +1,9 @@
 """Sphinx environment implementation of CodeInfoRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.code_info import BoundedContextInfo
 from julee.hcd.repositories.code_info import CodeInfoRepository
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvCodeInfoRepository(
@@ -20,13 +15,8 @@ class SphinxEnvCodeInfoRepository(
     parallel-safe Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "BoundedContextInfo"
-        self.entity_key = "code_info"
-        self.id_field = "slug"
-        self.entity_class = BoundedContextInfo
+    entity_class = BoundedContextInfo
+    entity_key = "code_info"  # Override: not "boundedcontextinfos"
 
     async def get_by_code_dir(self, code_dir: str) -> BoundedContextInfo | None:
         """Get bounded context info by its code directory name."""

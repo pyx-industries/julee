@@ -5,9 +5,11 @@ Sphinx's BuildEnvironment for parallel-safe builds.
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar
 
 from pydantic import BaseModel
+
+from .factory import derive_entity_config
 
 if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
@@ -24,30 +26,49 @@ class SphinxEnvRepositoryMixin(Generic[T]):
     This enables parallel builds since env is properly pickled between
     worker processes and merged back via env-merge-info event.
 
-    Subclasses must provide:
-    - self.env: BuildEnvironment reference
-    - self.entity_name: str (e.g., "Accelerator") for logging
-    - self.entity_key: str (e.g., "accelerators") storage key
-    - self.id_field: str (e.g., "slug") entity ID field name
-    - self.entity_class: type[T] the Pydantic model class
+    Subclasses must define entity_class as a class attribute. Other
+    configuration (entity_name, entity_key, id_field) is derived
+    automatically but can be overridden.
 
     Example:
         class SphinxEnvAcceleratorRepository(
             SphinxEnvRepositoryMixin[Accelerator], AcceleratorRepository
         ):
-            def __init__(self, env: BuildEnvironment) -> None:
-                self.env = env
-                self.entity_name = "Accelerator"
-                self.entity_key = "accelerators"
-                self.id_field = "slug"
-                self.entity_class = Accelerator
+            entity_class = Accelerator
+
+            # Optional: custom query methods
+            async def get_by_status(self, status: str) -> list[Accelerator]:
+                ...
     """
 
+    # Class attributes - entity_class must be defined by subclasses
+    entity_class: ClassVar[type[T]]
+    entity_name: ClassVar[str] = ""
+    entity_key: ClassVar[str] = ""
+    id_field: ClassVar[str] = "slug"
+
+    # Instance attribute
     env: "BuildEnvironment"
-    entity_name: str
-    entity_key: str
-    id_field: str
-    entity_class: type[T]
+
+    def __init__(self, env: "BuildEnvironment") -> None:
+        """Initialize with Sphinx build environment."""
+        self.env = env
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Configure entity metadata when subclass is created."""
+        super().__init_subclass__(**kwargs)
+
+        # Skip if entity_class not yet defined (intermediate classes)
+        if not hasattr(cls, "entity_class") or cls.entity_class is None:
+            return
+
+        # Derive config from entity_class if not explicitly set
+        config = derive_entity_config(cls.entity_class, cls.entity_key or None)
+
+        if not cls.entity_name:
+            cls.entity_name = config["entity_name"]
+        if not cls.entity_key:
+            cls.entity_key = config["entity_key"]
 
     def _get_storage(self) -> dict[str, dict[str, Any]]:
         """Get or create storage dict for this entity type.

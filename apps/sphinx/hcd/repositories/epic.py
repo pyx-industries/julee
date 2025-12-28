@@ -1,15 +1,10 @@
 """Sphinx environment implementation of EpicRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.epic import Epic
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvEpicRepository(SphinxEnvRepositoryMixin[Epic], EpicRepository):
@@ -18,13 +13,7 @@ class SphinxEnvEpicRepository(SphinxEnvRepositoryMixin[Epic], EpicRepository):
     Stores epics in env.hcd_storage["epics"] for parallel-safe Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Epic"
-        self.entity_key = "epics"
-        self.id_field = "slug"
-        self.entity_class = Epic
+    entity_class = Epic
 
     async def get_by_docname(self, docname: str) -> list[Epic]:
         """Get all epics defined in a specific document."""

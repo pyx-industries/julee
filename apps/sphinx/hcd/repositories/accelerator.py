@@ -1,14 +1,9 @@
 """Sphinx environment implementation of AcceleratorRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.repositories.accelerator import AcceleratorRepository
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvAcceleratorRepository(
@@ -20,13 +15,7 @@ class SphinxEnvAcceleratorRepository(
     Sphinx builds. Data is serialized as dicts and merged via env-merge-info.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Accelerator"
-        self.entity_key = "accelerators"
-        self.id_field = "slug"
-        self.entity_class = Accelerator
+    entity_class = Accelerator
 
     async def get_by_status(self, status: str) -> list[Accelerator]:
         """Get all accelerators with a specific status."""

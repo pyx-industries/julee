@@ -1,15 +1,10 @@
 """Sphinx environment implementation of PersonaRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.persona import Persona
 from julee.hcd.repositories.persona import PersonaRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvPersonaRepository(SphinxEnvRepositoryMixin[Persona], PersonaRepository):
@@ -19,13 +14,7 @@ class SphinxEnvPersonaRepository(SphinxEnvRepositoryMixin[Persona], PersonaRepos
     Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Persona"
-        self.entity_key = "personas"
-        self.id_field = "slug"
-        self.entity_class = Persona
+    entity_class = Persona
 
     async def get_by_name(self, name: str) -> Persona | None:
         """Get persona by display name (case-insensitive)."""

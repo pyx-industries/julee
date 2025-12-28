@@ -1,15 +1,10 @@
 """Sphinx environment implementation of StoryRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.story import Story
 from julee.hcd.repositories.story import StoryRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvStoryRepository(SphinxEnvRepositoryMixin[Story], StoryRepository):
@@ -19,13 +14,7 @@ class SphinxEnvStoryRepository(SphinxEnvRepositoryMixin[Story], StoryRepository)
     Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Story"
-        self.entity_key = "stories"
-        self.id_field = "slug"
-        self.entity_class = Story
+    entity_class = Story
 
     async def get_by_app(self, app_slug: str) -> list[Story]:
         """Get all stories for an application."""

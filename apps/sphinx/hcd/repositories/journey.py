@@ -1,15 +1,10 @@
 """Sphinx environment implementation of JourneyRepository."""
 
-from typing import TYPE_CHECKING
-
 from julee.hcd.entities.journey import Journey
 from julee.hcd.repositories.journey import JourneyRepository
 from julee.hcd.utils import normalize_name
 
 from .base import SphinxEnvRepositoryMixin
-
-if TYPE_CHECKING:
-    from sphinx.environment import BuildEnvironment
 
 
 class SphinxEnvJourneyRepository(SphinxEnvRepositoryMixin[Journey], JourneyRepository):
@@ -19,13 +14,7 @@ class SphinxEnvJourneyRepository(SphinxEnvRepositoryMixin[Journey], JourneyRepos
     Sphinx builds.
     """
 
-    def __init__(self, env: "BuildEnvironment") -> None:
-        """Initialize with Sphinx build environment."""
-        self.env = env
-        self.entity_name = "Journey"
-        self.entity_key = "journeys"
-        self.id_field = "slug"
-        self.entity_class = Journey
+    entity_class = Journey
 
     async def get_by_persona(self, persona: str) -> list[Journey]:
         """Get all journeys for a persona."""
