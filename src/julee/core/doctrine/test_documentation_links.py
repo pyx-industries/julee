@@ -115,7 +115,11 @@ class TestInternalLinks:
         assert not violations, (
             "Documentation has broken internal references:\n"
             + "\n".join(f"  - {v}" for v in violations[:20])  # Limit output
-            + (f"\n  ... and {len(violations) - 20} more" if len(violations) > 20 else "")
+            + (
+                f"\n  ... and {len(violations) - 20} more"
+                if len(violations) > 20
+                else ""
+            )
         )
 
 
@@ -123,9 +127,7 @@ class TestExternalLinks:
     """Doctrine about external documentation links."""
 
     @pytest.mark.slow
-    def test_docs_external_links_SHOULD_be_valid(
-        self, project_root: Path
-    ) -> None:
+    def test_docs_external_links_SHOULD_be_valid(self, project_root: Path) -> None:
         """Documentation external links SHOULD be valid.
 
         Doctrine: External URLs in documentation should resolve. Broken

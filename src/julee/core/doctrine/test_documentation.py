@@ -14,7 +14,6 @@ import pytest
 
 from julee.core.doctrine_constants import DOCS_ROOT
 
-
 # =============================================================================
 # DOCTRINE: Code-Outward Documentation
 # =============================================================================
@@ -137,10 +136,9 @@ class TestCodeOutwardDocumentation:
                         f"Contains {directive} - consider using autodoc directives"
                     )
 
-        assert not violations, (
-            "RST files MUST use autodoc for existing modules:\n"
-            + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "RST files MUST use autodoc for existing modules:\n" + "\n".join(violations)
 
 
 # =============================================================================

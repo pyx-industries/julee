@@ -40,9 +40,7 @@ class ListDeploymentsUseCase:
         """
         self.deployment_repo = deployment_repo
 
-    async def execute(
-        self, request: ListDeploymentsRequest
-    ) -> ListDeploymentsResponse:
+    async def execute(self, request: ListDeploymentsRequest) -> ListDeploymentsResponse:
         """List all deployments.
 
         Args:

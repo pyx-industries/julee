@@ -156,8 +156,12 @@ class MemoryJourneyRepository(MemoryRepositoryMixin[Journey], JourneyRepository)
         if contains_story is not None:
             story_normalized = normalize_name(contains_story)
             results = [
-                j for j in results
-                if any(normalize_name(ref) == story_normalized for ref in j.get_story_refs())
+                j
+                for j in results
+                if any(
+                    normalize_name(ref) == story_normalized
+                    for ref in j.get_story_refs()
+                )
             ]
 
         return results

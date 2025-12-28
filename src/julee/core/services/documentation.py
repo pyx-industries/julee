@@ -40,7 +40,9 @@ class DocumentationRenderingService(Protocol):
     format-specific concerns (e.g., Sphinx relative URIs).
     """
 
-    def get_documentation_config(self, bounded_context: BoundedContext) -> Documentation:
+    def get_documentation_config(
+        self, bounded_context: BoundedContext
+    ) -> Documentation:
         """Get documentation configuration for a bounded context.
 
         Args:

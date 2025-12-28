@@ -34,9 +34,7 @@ class GetDeploymentUseCase:
         """
         self.deployment_repo = deployment_repo
 
-    async def execute(
-        self, request: GetDeploymentRequest
-    ) -> GetDeploymentResponse:
+    async def execute(self, request: GetDeploymentRequest) -> GetDeploymentResponse:
         """Get a deployment by slug.
 
         Args:

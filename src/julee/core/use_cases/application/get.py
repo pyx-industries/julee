@@ -34,9 +34,7 @@ class GetApplicationUseCase:
         """
         self.application_repo = application_repo
 
-    async def execute(
-        self, request: GetApplicationRequest
-    ) -> GetApplicationResponse:
+    async def execute(self, request: GetApplicationRequest) -> GetApplicationResponse:
         """Get an application by slug.
 
         Args:

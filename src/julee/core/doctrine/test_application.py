@@ -454,7 +454,9 @@ def _extract_implementation_instantiations(file_path: Path) -> list[dict]:
 
     # Implementation class patterns (concrete, not protocols)
     impl_patterns = [
-        re.compile(r"^(Memory|File|Filesystem|Sqlite|Postgres|Redis|Http|Grpc)\w+(Repository|Service)$"),
+        re.compile(
+            r"^(Memory|File|Filesystem|Sqlite|Postgres|Redis|Http|Grpc)\w+(Repository|Service)$"
+        ),
         re.compile(r"^\w+(MemoryRepository|FileRepository|SqliteRepository)$"),
     ]
 
@@ -528,9 +530,10 @@ class TestAppDependencyRules:
                         f"imports from infrastructure ({imp['module']})"
                     )
 
-        assert not violations, (
-            "App business files MUST NOT import from BC infrastructure/:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert (
+            not violations
+        ), "App business files MUST NOT import from BC infrastructure/:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
 
     @pytest.mark.asyncio
@@ -569,7 +572,8 @@ class TestAppDependencyRules:
                         f"{inst['line']} - instantiates {inst['class']}"
                     )
 
-        assert not violations, (
-            "App business files MUST NOT instantiate implementations:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert (
+            not violations
+        ), "App business files MUST NOT instantiate implementations:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )

@@ -263,9 +263,10 @@ class TestSphinxDirectiveUseCasePattern:
                         f"{access['line']} - direct repo access: {access['call']}"
                     )
 
-        assert not violations, (
-            "Directive files MUST use use cases, not direct repo access:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert (
+            not violations
+        ), "Directive files MUST use use cases, not direct repo access:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
 
 
@@ -381,9 +382,10 @@ class TestSphinxDirectiveDeduplication:
                             f"also exists - remove the manual implementation"
                         )
 
-        assert not violations, (
-            "Generated directives MUST replace manual implementations:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert (
+            not violations
+        ), "Generated directives MUST replace manual implementations:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
 
     @pytest.mark.asyncio
@@ -426,7 +428,8 @@ class TestSphinxDirectiveDeduplication:
                             f"also exists - remove the manual implementation"
                         )
 
-        assert not violations, (
-            "Generated placeholders MUST replace manual implementations:\n"
-            + "\n".join(f"  - {v}" for v in violations)
+        assert (
+            not violations
+        ), "Generated placeholders MUST replace manual implementations:\n" + "\n".join(
+            f"  - {v}" for v in violations
         )
