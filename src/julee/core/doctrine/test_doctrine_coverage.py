@@ -18,6 +18,7 @@ DOCTRINE_DIR = Path(__file__).parent
 # - Infrastructure models (e.g., EvaluationResult is for semantic evaluation)
 # - Tested via consolidated doctrine tests (e.g., pipeline routing models)
 SUPPORTING_MODELS = {
+    "acknowledgement",  # Handler response type - infrastructure for workflow orchestration
     "code_info",  # Contains FieldInfo, MethodInfo, BoundedContextInfo - supporting models
     "content_stream",  # Pydantic IO stream wrapper - infrastructure utility
     "documentation",  # Tested via test_solution.py::TestSolutionDocumentation

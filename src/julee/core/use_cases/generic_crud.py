@@ -568,13 +568,16 @@ class CreateUseCase(Generic[E, R]):
     If not present, falls back to direct construction.
 
     The repository must have an async `save(entity)` method.
+
+    Optional handler parameter enables workflow orchestration - see ADR 003.
     """
 
     entity_cls: type[E]
     response_cls: type[Any] = CreateResponse
 
-    def __init__(self, repo: R) -> None:
+    def __init__(self, repo: R, post_create_handler: Any | None = None) -> None:
         self.repo = repo
+        self.post_create_handler = post_create_handler
 
     async def execute(self, request: CreateRequest) -> CreateResponse[E]:
         data = request.model_dump()
@@ -583,6 +586,10 @@ class CreateUseCase(Generic[E, R]):
         else:
             entity = self.entity_cls(**data)
         await self.repo.save(entity)
+
+        if self.post_create_handler is not None:
+            await self.post_create_handler.handle(entity)
+
         return self.response_cls(entity=entity)
 
 
@@ -648,14 +655,17 @@ class UpdateUseCase(Generic[E, R]):
     If not present, falls back to model_copy(update=kwargs).
 
     The repository must have async `get(id)` and `save(entity)` methods.
+
+    Optional handler parameter enables workflow orchestration - see ADR 003.
     """
 
     id_field: str = "slug"
     update_fields: list[str] | None = None
     response_cls: type[Any] = UpdateResponse
 
-    def __init__(self, repo: R) -> None:
+    def __init__(self, repo: R, post_update_handler: Any | None = None) -> None:
         self.repo = repo
+        self.post_update_handler = post_update_handler
 
     async def execute(self, request: UpdateRequest) -> UpdateResponse[E]:
         entity_id = getattr(request, self.id_field)
@@ -677,6 +687,10 @@ class UpdateUseCase(Generic[E, R]):
             updated = entity.model_copy(update=data)
 
         await self.repo.save(updated)
+
+        if self.post_update_handler is not None:
+            await self.post_update_handler.handle(updated)
+
         return self.response_cls(entity=updated)
 
 
