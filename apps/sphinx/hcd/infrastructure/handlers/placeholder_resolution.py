@@ -173,7 +173,7 @@ class IntegrationPlaceholderHandler:
         )
 
         for node in doctree.traverse(DefineIntegrationPlaceholder):
-            slug = node["slug"]
+            slug = node["integration_slug"]
             content = build_integration_content(slug, docname, context)
             node.replace_self(content)
 
@@ -265,7 +265,7 @@ class ContribPlaceholderHandler:
         )
 
         for node in doctree.traverse(DefineContribPlaceholder):
-            slug = node["slug"]
+            slug = node["contrib_slug"]
             content = build_contrib_content(slug, docname, context)
             node.replace_self(content)
 
