@@ -13,12 +13,16 @@ Julee is a framework—a vocabulary. You install Julee as a dependency in your p
 
 Use Julee when processes must be done correctly, may be complex or long-running, need compliance audit trails (responsible AI, algorithmic due-diligence), or depend on unreliable services that may fail, timeout, or be rate-limited.
 
+See :py:mod:`julee` to understand Julee's philosophy.
+
 Core Concepts
 ~~~~~~~~~~~~~
 
-- **Solutions** are applications built with Julee, organised around your bounded contexts
-- **Accelerators** are collections of pipelines that automate a business area while maintaining audit trails
-- **Pipelines** are use cases wrapped with Temporal, providing durability, reliability, observability, and supply chain provenance
+- :py:mod:`~julee.core.entities.solution` — Applications built with Julee, organised around bounded contexts
+- :py:mod:`~julee.core.entities.bounded_context` — Domain boundaries with entities, use cases, and interfaces
+- :py:mod:`~julee.core.entities.pipeline` — Use cases wrapped with Temporal for durability and auditability
+- :py:mod:`~julee.hcd.entities.accelerator` — Collections of pipelines that automate a business area
+- :py:mod:`~julee.core.entities.application` — Entry points (API, CLI, Worker, MCP) that expose capabilities
 
 Why Julee?
 ~~~~~~~~~~
@@ -39,12 +43,10 @@ Install Julee from `PyPI <https://pypi.org/project/julee/>`_::
 
 Julee applications require: `Temporal <https://temporal.io/>`_ (workflow orchestration), S3-compatible object storage (e.g. MinIO), PostgreSQL (for Temporal).
 
-See :py:mod:`julee` to understand Julee's philosophy, or :doc:`architecture/solutions/index` to learn how to structure your application.
-
 Example Application
 -------------------
 
-This repository includes a reference application that demonstrates how to build with Julee. The example implements a meeting minutes extraction system using the CEAP contrib module and shows:
+This repository includes a reference application that demonstrates how to build with Julee. The example implements a meeting minutes extraction system using the :py:mod:`CEAP contrib module <julee.contrib.ceap>` and shows:
 
 - How to structure a Julee application
 - Workflow implementation patterns
@@ -55,6 +57,16 @@ The example is deployable with Docker Compose—run ``docker compose up --build`
 
 Documentation Contents
 ----------------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Framework
+
+   api/julee
+   api/julee.core
+   api/julee.hcd
+   api/julee.c4
+   api/julee.contrib
 
 .. toctree::
    :maxdepth: 2
@@ -76,16 +88,16 @@ Documentation Contents
    domain/index
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API Reference
-
-   api/index
-
-.. toctree::
    :maxdepth: 1
    :caption: Contributing
 
    contributing
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Full API Reference
+
+   api/index
 
 Indices and tables
 ==================
