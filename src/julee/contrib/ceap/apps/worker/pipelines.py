@@ -32,6 +32,8 @@ from julee.contrib.ceap.infrastructure.temporal.repositories.proxies import (
 from julee.contrib.ceap.infrastructure.temporal.services.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
+from julee.core.infrastructure.temporal.clock import TemporalClockService
+from julee.core.infrastructure.temporal.execution import TemporalExecutionService
 from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
@@ -119,7 +121,8 @@ class ExtractAssemblePipeline:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=knowledge_service,
-            now_fn=workflow.now,
+            clock_service=TemporalClockService(),
+            execution_service=TemporalExecutionService(),
         )
 
         self.current_step = "executing_use_case"
@@ -138,7 +141,7 @@ class ExtractAssemblePipeline:
             "input_document_id": assembly.input_document_id,
             "assembled_document_id": assembly.assembled_document_id,
             "status": assembly.status.value,
-            "workflow_id": assembly.workflow_id,
+            "execution_id": assembly.execution_id,
         }
 
         # Route to downstream pipelines
@@ -273,7 +276,7 @@ class ValidateDocumentPipeline:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=knowledge_service,
-            now_fn=workflow.now,
+            clock_service=TemporalClockService(),
         )
 
         self.current_step = "executing_use_case"

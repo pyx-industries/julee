@@ -89,10 +89,10 @@ async def start_extract_assemble_workflow(
         )
 
         # Pipeline now takes a dict request (doctrine-compliant pattern)
+        # Note: execution_id is injected by TemporalExecutionService, not the request
         pipeline_request = {
             "document_id": request.document_id,
             "assembly_specification_id": request.assembly_specification_id,
-            "workflow_id": workflow_id,
         }
         handle = await temporal_client.start_workflow(
             ExtractAssemblePipeline.run,
