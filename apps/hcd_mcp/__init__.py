@@ -4,7 +4,7 @@ Human-Centered Design MCP server built with the julee MCP framework.
 """
 
 from julee import hcd
-from julee.core.infrastructure.mcp import create_mcp_server
+from julee.core.infrastructure.mcp.factory import create_mcp_server
 
 from . import context
 

@@ -4,7 +4,7 @@ C4 Architecture Model MCP server built with the julee MCP framework.
 """
 
 from julee import c4
-from julee.core.infrastructure.mcp import create_mcp_server
+from julee.core.infrastructure.mcp.factory import create_mcp_server
 
 from . import context
 
