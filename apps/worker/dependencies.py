@@ -34,6 +34,8 @@ from julee.contrib.polling.infrastructure.temporal.activities import (
 from julee.core.infrastructure.repositories.minio.client import MinioClient
 from julee.core.infrastructure.temporal.data_converter import temporal_data_converter
 
+from .handlers.polling_to_ceap import CeapDocumentCaptureHandler
+
 logger = logging.getLogger(__name__)
 
 
@@ -189,3 +191,23 @@ class WorkerDependencyContainer:
             self.create_ceap_activity_instances() +
             self.create_polling_activity_instances()
         )
+
+    # =========================================================================
+    # Cross-BC Handlers
+    # =========================================================================
+
+    def get_polling_new_data_handler(self) -> CeapDocumentCaptureHandler:
+        """Get handler for polling new data detection.
+
+        Returns a handler that bridges Polling→CEAP. When polling detects
+        new data, this handler captures it as a CEAP document.
+
+        See ADR 003 for the handler pattern.
+        """
+        if "polling_new_data_handler" not in self._instances:
+            minio = self.get_minio_client()
+            document_repo = TemporalMinioDocumentRepository(client=minio)
+            self._instances["polling_new_data_handler"] = CeapDocumentCaptureHandler(
+                document_repo=document_repo,
+            )
+        return self._instances["polling_new_data_handler"]
