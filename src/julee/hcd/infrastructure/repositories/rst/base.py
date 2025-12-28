@@ -6,7 +6,7 @@ RST files are treated as a database backend with lossless round-trip support.
 
 import logging
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel
 
@@ -23,6 +23,15 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
+@runtime_checkable
+class EntityHandler(Protocol[T]):
+    """Protocol for entity lifecycle handlers."""
+
+    async def handle(self, entity: T) -> None:
+        """Handle an entity lifecycle event."""
+        ...
+
+
 class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
     """Mixin for RST file-backed repositories.
 
@@ -36,20 +45,35 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
     - self.entity_type: str for template selection (e.g., 'journey')
     - self.directive_name: str for parsing (e.g., 'define-journey')
     - self._build_entity(): method to build entity from parsed data
+
+    Optional handler support:
+    - post_save_handler: Called after entity is saved to file
+    - post_delete_handler: Called after entity is deleted
     """
 
     base_dir: Path
     entity_type: str
     directive_name: str
+    post_save_handler: EntityHandler[T] | None = None
+    post_delete_handler: EntityHandler[T] | None = None
 
-    def __init__(self, base_dir: Path) -> None:
-        """Initialize with base directory.
+    def __init__(
+        self,
+        base_dir: Path,
+        post_save_handler: EntityHandler[T] | None = None,
+        post_delete_handler: EntityHandler[T] | None = None,
+    ) -> None:
+        """Initialize with base directory and optional handlers.
 
         Args:
             base_dir: Directory containing RST files
+            post_save_handler: Handler called after entity is saved
+            post_delete_handler: Handler called after entity is deleted
         """
         self.base_dir = base_dir
         self.storage: dict[str, T] = {}
+        self.post_save_handler = post_save_handler
+        self.post_delete_handler = post_delete_handler
         self._load_all_files()
 
     # -------------------------------------------------------------------------
@@ -159,6 +183,10 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
         # Write to RST file
         self._write_file(entity)
 
+        # Call post-save handler if configured
+        if self.post_save_handler:
+            await self.post_save_handler.handle(entity)
+
     def _write_file(self, entity: T) -> None:
         """Write entity to RST file.
 
@@ -181,6 +209,9 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
         Returns:
             True if deleted, False if not found
         """
+        # Get entity before deletion for handler
+        entity = self.storage.get(entity_id)
+
         # Delete from memory (using protected helper)
         result = self._delete_entity(entity_id)
 
@@ -189,6 +220,10 @@ class RstRepositoryMixin(MemoryRepositoryMixin[T], Generic[T]):
             if path.exists():
                 path.unlink()
                 logger.debug(f"Deleted {self.entity_name} file {path}")
+
+            # Call post-delete handler if configured
+            if self.post_delete_handler and entity:
+                await self.post_delete_handler.handle(entity)
 
         return result
 

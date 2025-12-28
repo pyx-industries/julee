@@ -24,13 +24,20 @@ class RstAcceleratorRepository(RstRepositoryMixin[Accelerator], AcceleratorRepos
     entity_type = "accelerator"
     directive_name = "define-accelerator"
 
-    def __init__(self, base_dir: Path) -> None:
+    def __init__(
+        self,
+        base_dir: Path,
+        post_save_handler=None,
+        post_delete_handler=None,
+    ) -> None:
         """Initialize with base directory.
 
         Args:
             base_dir: Directory containing accelerator RST files
+            post_save_handler: Handler called after entity is saved
+            post_delete_handler: Handler called after entity is deleted
         """
-        super().__init__(base_dir)
+        super().__init__(base_dir, post_save_handler, post_delete_handler)
 
     def _build_entity(
         self,
