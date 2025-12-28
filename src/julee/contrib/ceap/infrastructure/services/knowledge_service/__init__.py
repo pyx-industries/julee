@@ -7,16 +7,10 @@ creating configured knowledge service instances.
 
 import logging
 
-from julee.contrib.ceap.services.knowledge_service import (
-    FileRegistrationResult,
-    KnowledgeService,
-    QueryResult,
-)
-
 logger = logging.getLogger(__name__)
 
 
-def ensure_knowledge_service(service: object) -> KnowledgeService:
+def ensure_knowledge_service(service: object):
     """Ensure an object satisfies the KnowledgeService protocol.
 
     Args:
@@ -29,6 +23,8 @@ def ensure_knowledge_service(service: object) -> KnowledgeService:
     Raises:
         TypeError: If the service doesn't satisfy the protocol
     """
+    from julee.contrib.ceap.services.knowledge_service import KnowledgeService
+
     if not isinstance(service, KnowledgeService):
         raise TypeError(
             f"Service {type(service).__name__} does not satisfy "
@@ -39,8 +35,5 @@ def ensure_knowledge_service(service: object) -> KnowledgeService:
 
 
 __all__ = [
-    "KnowledgeService",
     "ensure_knowledge_service",
-    "QueryResult",
-    "FileRegistrationResult",
 ]
