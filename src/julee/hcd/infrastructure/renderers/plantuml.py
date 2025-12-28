@@ -42,7 +42,9 @@ class C4PlantUMLRenderer:
         # Render containers grouped by type
         container_types = ["app", "accelerator", "contrib", "foundation"]
         for ctype in container_types:
-            typed_containers = [c for c in diagram.containers if c.container_type == ctype]
+            typed_containers = [
+                c for c in diagram.containers if c.container_type == ctype
+            ]
             for container in typed_containers:
                 lines.append(
                     f'   Container({container.id}, "{container.name}", '

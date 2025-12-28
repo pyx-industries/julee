@@ -146,7 +146,9 @@ class TestValidateDocumentUseCase:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=memory_service,
-            clock_service=FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)),
+            clock_service=FixedClockService(
+                datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+            ),
         )
 
     @pytest.mark.asyncio

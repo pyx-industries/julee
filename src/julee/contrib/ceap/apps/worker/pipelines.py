@@ -32,8 +32,6 @@ from julee.contrib.ceap.infrastructure.temporal.repositories.proxies import (
 from julee.contrib.ceap.infrastructure.temporal.services.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
-from julee.core.infrastructure.temporal.clock import TemporalClockService
-from julee.core.infrastructure.temporal.execution import TemporalExecutionService
 from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataRequest,
     ExtractAssembleDataUseCase,
@@ -43,6 +41,8 @@ from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentUseCase,
 )
 from julee.core.entities.pipeline_dispatch import PipelineDispatchItem
+from julee.core.infrastructure.temporal.clock import TemporalClockService
+from julee.core.infrastructure.temporal.execution import TemporalExecutionService
 
 
 @workflow.defn

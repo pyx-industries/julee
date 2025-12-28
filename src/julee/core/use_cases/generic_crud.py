@@ -798,7 +798,9 @@ def generate(
     # DELETE
     # -------------------------------------------------------------------------
     if delete:
-        delete_request_cls = _make_request(f"Delete{name}Request", DeleteRequest, id_field)
+        delete_request_cls = _make_request(
+            f"Delete{name}Request", DeleteRequest, id_field
+        )
         delete_response_cls = type(f"Delete{name}Response", (DeleteResponse,), {})
         delete_use_case_cls = _make_use_case(
             f"Delete{name}UseCase",
@@ -817,7 +819,9 @@ def generate(
     # -------------------------------------------------------------------------
     if create:
         # Basic create request - BC can subclass or replace with custom
-        create_request_cls = _make_create_request(f"Create{name}Request", entity, id_field)
+        create_request_cls = _make_create_request(
+            f"Create{name}Request", entity, id_field
+        )
         create_response_cls = _make_response(
             f"Create{name}Response", CreateResponse, entity
         )
@@ -838,7 +842,9 @@ def generate(
     # UPDATE
     # -------------------------------------------------------------------------
     if update:
-        update_request_cls = _make_update_request(f"Update{name}Request", entity, id_field)
+        update_request_cls = _make_update_request(
+            f"Update{name}Request", entity, id_field
+        )
         update_response_cls = _make_response(
             f"Update{name}Response", UpdateResponse, entity
         )
@@ -860,7 +866,9 @@ def _make_request(name: str, base: type, id_field: str) -> type:
     """Create a request class with id field."""
     if id_field == "slug":
         # Base already has slug, just subclass
-        return type(name, (base,), {"__doc__": f"{name.replace('Request', '')} request."})
+        return type(
+            name, (base,), {"__doc__": f"{name.replace('Request', '')} request."}
+        )
     else:
         # Need custom id field
         return create_model(
@@ -885,6 +893,7 @@ def _make_list_request(name: str, filters: list[str] | None) -> type:
 
 def _make_response(name: str, base: type, entity: type) -> type:
     """Create a response class parameterized with entity type."""
+
     # Use types.new_class for generic base class inheritance
     def exec_body(ns: dict) -> None:
         ns["__doc__"] = f"{entity.__name__} response."
@@ -965,7 +974,10 @@ def _make_create_request_from_fields(name: str, entity: type) -> type:
             fields[field_name] = (annotation, Field(...))
         elif field_info.default_factory is not None:
             # Field with default_factory (e.g., list, dict)
-            fields[field_name] = (annotation, Field(default_factory=field_info.default_factory))
+            fields[field_name] = (
+                annotation,
+                Field(default_factory=field_info.default_factory),
+            )
         elif field_info.default is not None:
             # Field with default value
             fields[field_name] = (annotation, Field(default=field_info.default))
@@ -995,7 +1007,10 @@ def _make_create_request(name: str, entity: type, id_field: str) -> type:
             if param_name in ("cls", "self"):
                 continue
             # Skip *args and **kwargs
-            if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+            if param.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD,
+            ):
                 continue
 
             type_hint = hints.get(param_name, str)

@@ -574,7 +574,9 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=memory_service,
-            clock_service=FixedClockService(datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)),
+            clock_service=FixedClockService(
+                datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+            ),
             execution_service=FixedExecutionService("test-execution-schema-fail"),
         )
 

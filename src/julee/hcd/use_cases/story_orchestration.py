@@ -24,7 +24,9 @@ class StoryCondition(BaseModel):
 
     condition: str = Field(description="Condition type identifier")
     story_slug: str = Field(description="The story's slug")
-    details: dict = Field(default_factory=dict, description="Condition-specific details")
+    details: dict = Field(
+        default_factory=dict, description="Condition-specific details"
+    )
 
 
 class StoryOrchestrationResponse(BaseModel):
@@ -101,9 +103,7 @@ class StoryOrchestrationUseCase:
 
         # Condition 2: Orphan story (not in any epic)
         epics = await self._epic_repo.list_all()
-        story_in_epic = any(
-            story.feature_title in epic.story_refs for epic in epics
-        )
+        story_in_epic = any(story.feature_title in epic.story_refs for epic in epics)
         if not story_in_epic:
             conditions.append(
                 StoryCondition(

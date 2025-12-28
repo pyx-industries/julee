@@ -3,8 +3,9 @@
 Reads [tool.julee] configuration from pyproject.toml.
 """
 
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 from julee.core.entities.policy import SolutionPolicyConfig
 

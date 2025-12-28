@@ -167,6 +167,6 @@ class TestEntityImplementation:
                     f"inherits from {bases or ['nothing']}, MUST inherit from BaseModel"
                 )
 
-        assert not violations, (
-            "Entities not using Pydantic BaseModel:\n" + "\n".join(violations)
+        assert not violations, "Entities not using Pydantic BaseModel:\n" + "\n".join(
+            violations
         )

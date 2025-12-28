@@ -149,7 +149,9 @@ class TestJourneyOrchestrationUseCase:
 
         # Verify: Unknown persona detected
         assert response.has_unknown_persona
-        condition = next(c for c in response.conditions if c.condition == "unknown_persona")
+        condition = next(
+            c for c in response.conditions if c.condition == "unknown_persona"
+        )
         assert condition.journey_slug == "user-onboarding"
         assert condition.details["persona_name"] == "Customer"
 
@@ -171,7 +173,9 @@ class TestJourneyOrchestrationUseCase:
 
         # Verify: Empty journey detected
         assert response.has_empty_journey
-        condition = next(c for c in response.conditions if c.condition == "empty_journey")
+        condition = next(
+            c for c in response.conditions if c.condition == "empty_journey"
+        )
         assert condition.journey_slug == "empty-journey"
 
     @pytest.mark.asyncio
@@ -196,7 +200,9 @@ class TestJourneyOrchestrationUseCase:
 
         # Verify: Unknown story refs detected
         assert response.has_unknown_story_refs
-        condition = next(c for c in response.conditions if c.condition == "unknown_story_refs")
+        condition = next(
+            c for c in response.conditions if c.condition == "unknown_story_refs"
+        )
         assert condition.details["unknown_refs"] == ["User Registration"]
 
     @pytest.mark.asyncio
@@ -228,7 +234,9 @@ class TestJourneyOrchestrationUseCase:
 
         # Verify: Unknown epic refs detected
         assert response.has_unknown_epic_refs
-        condition = next(c for c in response.conditions if c.condition == "unknown_epic_refs")
+        condition = next(
+            c for c in response.conditions if c.condition == "unknown_epic_refs"
+        )
         assert condition.details["unknown_refs"] == ["authentication"]
 
     @pytest.mark.asyncio

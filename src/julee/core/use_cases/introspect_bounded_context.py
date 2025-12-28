@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from julee.core.decorators import use_case
-from julee.core.entities.code_info import BoundedContextInfo, ClassInfo
+from julee.core.entities.code_info import BoundedContextInfo
 from julee.core.services.code_introspection import CodeIntrospectionService
 
 

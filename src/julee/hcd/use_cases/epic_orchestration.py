@@ -24,7 +24,9 @@ class EpicCondition(BaseModel):
 
     condition: str = Field(description="Condition type identifier")
     epic_slug: str = Field(description="The epic's slug")
-    details: dict = Field(default_factory=dict, description="Condition-specific details")
+    details: dict = Field(
+        default_factory=dict, description="Condition-specific details"
+    )
 
 
 class EpicOrchestrationResponse(BaseModel):

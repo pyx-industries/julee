@@ -60,7 +60,9 @@ class PolicyAdoption(BaseModel, frozen=True):
     """
 
     policy_slug: str = Field(description="The policy being adopted")
-    source: str = Field(description="How adopted: 'explicit', 'framework_default', 'dependency'")
+    source: str = Field(
+        description="How adopted: 'explicit', 'framework_default', 'dependency'"
+    )
     skipped: bool = Field(default=False, description="If True, explicitly opted out")
 
 
@@ -73,7 +75,9 @@ class PolicyVerificationResult(BaseModel, frozen=True):
         default_factory=tuple,
         description="Violation messages if any",
     )
-    skipped: bool = Field(default=False, description="If True, policy was not applicable")
+    skipped: bool = Field(
+        default=False, description="If True, policy was not applicable"
+    )
     skip_reason: str = Field(default="", description="Why the policy was skipped")
 
 

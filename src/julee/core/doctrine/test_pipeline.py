@@ -13,8 +13,6 @@ See: docs/architecture/solutions/pipelines.rst
 from pathlib import Path
 from textwrap import dedent
 
-import pytest
-
 from julee.core.parsers.ast import parse_pipelines_from_file
 
 

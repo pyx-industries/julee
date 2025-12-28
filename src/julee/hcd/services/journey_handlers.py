@@ -29,7 +29,9 @@ class UnknownJourneyStoryRefHandler(Protocol):
     The handler decides what to do: warn, suggest corrections, etc.
     """
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Handle a journey with unknown story references."""
         ...
 
@@ -41,7 +43,9 @@ class UnknownJourneyEpicRefHandler(Protocol):
     The handler decides what to do: warn, suggest corrections, etc.
     """
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Handle a journey with unknown epic references."""
         ...
 

@@ -274,5 +274,3 @@ class TestSolutionLookup:
                     found is not None
                 ), f"get_application('{app.slug}') MUST find app in nested solution"
                 assert found.slug == app.slug
-
-

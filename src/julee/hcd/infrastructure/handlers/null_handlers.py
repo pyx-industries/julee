@@ -78,7 +78,9 @@ class NullUnknownJourneyPersonaHandler:
 class NullUnknownJourneyStoryRefHandler:
     """Null handler for unknown journey story refs. Acknowledges without action."""
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Accept the journey without taking any action."""
         return Acknowledgement.wilco()
 
@@ -86,7 +88,9 @@ class NullUnknownJourneyStoryRefHandler:
 class NullUnknownJourneyEpicRefHandler:
     """Null handler for unknown journey epic refs. Acknowledges without action."""
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Accept the journey without taking any action."""
         return Acknowledgement.wilco()
 
@@ -227,7 +231,9 @@ class LoggingUnknownJourneyPersonaHandler:
             },
         )
         return Acknowledgement.wilco(
-            warnings=[f"Journey '{journey.slug}' references unknown persona '{persona_name}'"],
+            warnings=[
+                f"Journey '{journey.slug}' references unknown persona '{persona_name}'"
+            ],
         )
 
 
@@ -238,7 +244,9 @@ class LoggingUnknownJourneyStoryRefHandler:
     logging infrastructure.
     """
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Log the unknown story refs condition."""
         logger.warning(
             "Unknown story references in journey",
@@ -249,7 +257,9 @@ class LoggingUnknownJourneyStoryRefHandler:
         )
         refs_str = ", ".join(f"'{r}'" for r in unknown_refs)
         return Acknowledgement.wilco(
-            warnings=[f"Journey '{journey.slug}' references unknown stories: {refs_str}"],
+            warnings=[
+                f"Journey '{journey.slug}' references unknown stories: {refs_str}"
+            ],
         )
 
 
@@ -260,7 +270,9 @@ class LoggingUnknownJourneyEpicRefHandler:
     logging infrastructure.
     """
 
-    async def handle(self, journey: Journey, unknown_refs: list[str]) -> Acknowledgement:
+    async def handle(
+        self, journey: Journey, unknown_refs: list[str]
+    ) -> Acknowledgement:
         """Log the unknown epic refs condition."""
         logger.warning(
             "Unknown epic references in journey",

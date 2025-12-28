@@ -76,10 +76,11 @@ class PytestDoctrineVerifier:
         sys.stderr = StringIO()
 
         try:
-            exit_code = pytest.main(
+            pytest.main(
                 [
                     str(test_path),
-                    "-o", "addopts=",  # Clear default addopts
+                    "-o",
+                    "addopts=",  # Clear default addopts
                     "--tb=short",
                     "-q",
                 ],
@@ -125,7 +126,9 @@ class _DoctrineResultCollector:
                 class_name = item.cls.__name__
 
                 # Make category name readable
-                category_name = class_name[4:] if class_name.startswith("Test") else class_name
+                category_name = (
+                    class_name[4:] if class_name.startswith("Test") else class_name
+                )
                 readable_category = ""
                 for char in category_name:
                     if char.isupper() and readable_category:
@@ -133,7 +136,11 @@ class _DoctrineResultCollector:
                     readable_category += char
 
                 # Get area name from filename
-                area_slug = filename.replace("test_", "").replace("_doctrine.py", "").replace(".py", "")
+                area_slug = (
+                    filename.replace("test_", "")
+                    .replace("_doctrine.py", "")
+                    .replace(".py", "")
+                )
                 area_name = area_slug.replace("_", " ").title()
 
                 # Extract test docstring

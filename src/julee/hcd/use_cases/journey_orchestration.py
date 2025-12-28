@@ -28,7 +28,9 @@ class JourneyCondition(BaseModel):
 
     condition: str = Field(description="Condition type identifier")
     journey_slug: str = Field(description="The journey's slug")
-    details: dict = Field(default_factory=dict, description="Condition-specific details")
+    details: dict = Field(
+        default_factory=dict, description="Condition-specific details"
+    )
 
 
 class JourneyOrchestrationResponse(BaseModel):

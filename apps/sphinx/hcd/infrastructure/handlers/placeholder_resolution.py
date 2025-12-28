@@ -120,6 +120,7 @@ class AcceleratorPlaceholderHandler:
             AcceleratorIndexPlaceholder,
             AcceleratorsForAppPlaceholder,
             DefineAcceleratorPlaceholder,
+            DependentAcceleratorsPlaceholder,
             build_accelerator_content,
             build_accelerator_index,
             build_accelerators_for_app,
@@ -144,6 +145,12 @@ class AcceleratorPlaceholderHandler:
             content = build_dependency_diagram(docname, context)
             node.replace_self(content)
 
+        for node in doctree.traverse(DependentAcceleratorsPlaceholder):
+            # Not yet implemented - render a placeholder message
+            para = nodes.paragraph()
+            para += nodes.emphasis(text="Dependent accelerators list not yet implemented")
+            node.replace_self([para])
+
 
 class IntegrationPlaceholderHandler:
     """Handler for integration-related placeholders."""
@@ -159,19 +166,19 @@ class IntegrationPlaceholderHandler:
     ) -> None:
         """Process integration placeholders."""
         from ...directives.integration import (
-            DependentAcceleratorsPlaceholder,
+            DefineIntegrationPlaceholder,
             IntegrationIndexPlaceholder,
-            build_dependent_accelerators,
+            build_integration_content,
             build_integration_index,
         )
 
-        for node in doctree.traverse(IntegrationIndexPlaceholder):
-            content = build_integration_index(docname, context)
+        for node in doctree.traverse(DefineIntegrationPlaceholder):
+            slug = node["slug"]
+            content = build_integration_content(slug, docname, context)
             node.replace_self(content)
 
-        for node in doctree.traverse(DependentAcceleratorsPlaceholder):
-            integration_slug = node["integration_slug"]
-            content = build_dependent_accelerators(integration_slug, docname, context)
+        for node in doctree.traverse(IntegrationIndexPlaceholder):
+            content = build_integration_index(docname, context)
             node.replace_self(content)
 
 
@@ -189,20 +196,13 @@ class PersonaPlaceholderHandler:
     ) -> None:
         """Process persona placeholders."""
         from ...directives.persona import (
-            DefinePersonaPlaceholder,
             PersonaDiagramPlaceholder,
             PersonaIndexDiagramPlaceholder,
             PersonaIndexPlaceholder,
-            build_persona_content,
             build_persona_diagram,
             build_persona_index,
             build_persona_index_diagram,
         )
-
-        for node in doctree.traverse(DefinePersonaPlaceholder):
-            persona_slug = node["persona_slug"]
-            content = build_persona_content(persona_slug, docname, context)
-            node.replace_self(content)
 
         for node in doctree.traverse(PersonaIndexPlaceholder):
             content = build_persona_index(docname, context)
@@ -214,7 +214,8 @@ class PersonaPlaceholderHandler:
             node.replace_self(content)
 
         for node in doctree.traverse(PersonaIndexDiagramPlaceholder):
-            content = build_persona_index_diagram(docname, context)
+            group_type = node["group_type"]
+            content = build_persona_index_diagram(group_type, docname, context)
             node.replace_self(content)
 
 
@@ -233,11 +234,11 @@ class JourneyPlaceholderHandler:
         """Process journey dependency graph placeholder."""
         from ...directives.journey import (
             JourneyDependencyGraphPlaceholder,
-            build_journey_dependency_graph,
+            build_dependency_graph_node,
         )
 
         for node in doctree.traverse(JourneyDependencyGraphPlaceholder):
-            content = build_journey_dependency_graph(docname, context)
+            content = build_dependency_graph_node(app.env, context)
             node.replace_self(content)
 
 
@@ -256,9 +257,11 @@ class ContribPlaceholderHandler:
         """Process contrib placeholders."""
         from ...directives.contrib import (
             ContribIndexPlaceholder,
+            ContribListPlaceholder,
             DefineContribPlaceholder,
             build_contrib_content,
             build_contrib_index,
+            build_contrib_list,
         )
 
         for node in doctree.traverse(DefineContribPlaceholder):
@@ -268,6 +271,10 @@ class ContribPlaceholderHandler:
 
         for node in doctree.traverse(ContribIndexPlaceholder):
             content = build_contrib_index(docname, context)
+            node.replace_self(content)
+
+        for node in doctree.traverse(ContribListPlaceholder):
+            content = build_contrib_list(docname, context)
             node.replace_self(content)
 
 
@@ -285,12 +292,33 @@ class C4BridgePlaceholderHandler:
     ) -> None:
         """Process C4 bridge placeholders."""
         from ...directives.c4_bridge import (
+            AcceleratorListPlaceholder,
+            AppListByInterfacePlaceholder,
             C4ContainerDiagramPlaceholder,
+            build_accelerator_list,
+            build_app_list_by_interface,
             build_c4_container_diagram,
         )
 
         for node in doctree.traverse(C4ContainerDiagramPlaceholder):
-            content = build_c4_container_diagram(app, docname, context)
+            content = build_c4_container_diagram(
+                docname,
+                context,
+                title=node["title"],
+                system_name=node["system_name"],
+                show_foundation=node["show_foundation"],
+                show_external=node["show_external"],
+                foundation_name=node["foundation_name"],
+                external_name=node["external_name"],
+            )
+            node.replace_self(content)
+
+        for node in doctree.traverse(AppListByInterfacePlaceholder):
+            content = build_app_list_by_interface(docname, context)
+            node.replace_self(content)
+
+        for node in doctree.traverse(AcceleratorListPlaceholder):
+            content = build_accelerator_list(docname, context)
             node.replace_self(content)
 
 
@@ -311,24 +339,24 @@ class CodeLinksPlaceholderHandler:
             AcceleratorCodePlaceholder,
             AcceleratorEntityListPlaceholder,
             AcceleratorUseCaseListPlaceholder,
-            build_accelerator_code,
+            build_accelerator_code_links,
             build_accelerator_entity_list,
             build_accelerator_usecase_list,
         )
 
         for node in doctree.traverse(AcceleratorCodePlaceholder):
             slug = node["accelerator_slug"]
-            content = build_accelerator_code(slug, docname, context)
+            content = build_accelerator_code_links(slug, docname, app, context)
             node.replace_self(content)
 
         for node in doctree.traverse(AcceleratorEntityListPlaceholder):
             slug = node["accelerator_slug"]
-            content = build_accelerator_entity_list(slug, docname, context)
+            content = build_accelerator_entity_list(slug, docname, app, context)
             node.replace_self(content)
 
         for node in doctree.traverse(AcceleratorUseCaseListPlaceholder):
             slug = node["accelerator_slug"]
-            content = build_accelerator_usecase_list(slug, docname, context)
+            content = build_accelerator_usecase_list(slug, docname, app, context)
             node.replace_self(content)
 
 
@@ -346,11 +374,11 @@ class EntityDiagramPlaceholderHandler:
     ) -> None:
         """Process entity diagram placeholders."""
         from ...directives.code_links import (
-            AcceleratorEntityDiagramPlaceholder,
+            EntityDiagramPlaceholder,
             build_entity_diagram,
         )
 
-        for node in doctree.traverse(AcceleratorEntityDiagramPlaceholder):
+        for node in doctree.traverse(EntityDiagramPlaceholder):
             slug = node["accelerator_slug"]
             content = build_entity_diagram(slug, docname, context)
             node.replace_self(content)

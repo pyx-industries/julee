@@ -55,7 +55,9 @@ class DoctrineCategory(BaseModel, frozen=True):
     """
 
     name: str = Field(description="Category name (from TestClass name)")
-    description: str = Field(description="What this category covers (from TestClass docstring)")
+    description: str = Field(
+        description="What this category covers (from TestClass docstring)"
+    )
     rules: tuple[DoctrineRule, ...] = Field(default_factory=tuple)
 
     @property
@@ -79,7 +81,9 @@ class DoctrineArea(BaseModel, frozen=True):
 
     name: str = Field(description="Human-readable area name")
     slug: str = Field(description="Machine-readable identifier")
-    definition: str = Field(description="What this entity type IS (from entity docstring)")
+    definition: str = Field(
+        description="What this entity type IS (from entity docstring)"
+    )
     categories: tuple[DoctrineCategory, ...] = Field(default_factory=tuple)
 
     @property
@@ -98,7 +102,9 @@ class DoctrineVerificationResult(BaseModel, frozen=True):
 
     rule: DoctrineRule
     passed: bool = Field(description="Whether the test passed")
-    error_message: str | None = Field(default=None, description="Failure message if failed")
+    error_message: str | None = Field(
+        default=None, description="Failure message if failed"
+    )
 
 
 class DoctrineVerificationReport(BaseModel, frozen=True):

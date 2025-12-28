@@ -115,7 +115,10 @@ class TestEpicOrchestrationUseCase:
         condition = response.conditions[0]
         assert condition.condition == "unknown_story_refs"
         assert condition.epic_slug == "authentication"
-        assert set(condition.details["unknown_refs"]) == {"User Login", "Password Reset"}
+        assert set(condition.details["unknown_refs"]) == {
+            "User Login",
+            "Password Reset",
+        }
 
     @pytest.mark.asyncio
     async def test_partial_unknown_story_refs(
@@ -142,7 +145,9 @@ class TestEpicOrchestrationUseCase:
 
         # Verify: Only Password Reset is unknown
         assert response.has_unknown_story_refs
-        condition = next(c for c in response.conditions if c.condition == "unknown_story_refs")
+        condition = next(
+            c for c in response.conditions if c.condition == "unknown_story_refs"
+        )
         assert condition.details["unknown_refs"] == ["Password Reset"]
 
     @pytest.mark.asyncio

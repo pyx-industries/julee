@@ -6,7 +6,6 @@ Policy definitions are configuration - they live in infrastructure.
 
 from julee.core.entities.policy import Policy
 
-
 # Policy definitions - configuration data
 _POLICIES: list[Policy] = [
     Policy(

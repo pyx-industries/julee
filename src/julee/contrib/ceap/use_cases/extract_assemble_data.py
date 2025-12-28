@@ -17,9 +17,6 @@ import jsonschema
 import multihash
 from pydantic import BaseModel, Field
 
-from julee.core.services.clock import ClockService
-from julee.core.services.execution import ExecutionService
-
 from julee.contrib.ceap.entities.assembly import Assembly, AssemblyStatus
 from julee.contrib.ceap.entities.assembly_specification import AssemblySpecification
 from julee.contrib.ceap.entities.document import Document, DocumentStatus
@@ -37,6 +34,8 @@ from julee.contrib.ceap.repositories.knowledge_service_query import (
 )
 from julee.contrib.ceap.services.knowledge_service import KnowledgeService
 from julee.core.decorators import use_case
+from julee.core.services.clock import ClockService
+from julee.core.services.execution import ExecutionService
 
 from .decorators import try_use_case_step
 

@@ -5,7 +5,6 @@ that can be rendered into diagrams.
 """
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
@@ -110,7 +109,11 @@ def generate_c4_container_diagram(
     # Add personas that have relationships
     for persona in sorted(personas, key=lambda p: p.slug):
         if persona.app_slugs or persona.accelerator_slugs or persona.contrib_slugs:
-            desc = _escape_description(persona.context) if persona.context else persona.name
+            desc = (
+                _escape_description(persona.context)
+                if persona.context
+                else persona.name
+            )
             diagram.persons.append(
                 C4Person(
                     id=_safe_id(persona.slug),

@@ -110,7 +110,9 @@ class JourneyOrchestrationHandler:
                     },
                 )
                 unknown_refs = condition.details.get("unknown_refs", [])
-                ack = await self._unknown_story_ref_handler.handle(journey, unknown_refs)
+                ack = await self._unknown_story_ref_handler.handle(
+                    journey, unknown_refs
+                )
                 info.extend(ack.info)
                 warnings.extend(ack.warnings)
 
