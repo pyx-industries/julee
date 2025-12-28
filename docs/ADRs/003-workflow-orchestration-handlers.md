@@ -185,20 +185,55 @@ class NewDataHandler(Protocol):
 
 Cross-BC handlers use primitives because bounded contexts don't share domain types.
 
-#### 5. Granularity Is a Business Decision
+#### 5. Fine-Grained vs Coarse-Grained Handlers
 
-The framework supports both fine-grained and coarse-grained handlers:
+Handlers come in two architectural patterns:
+
+**Fine-grained handlers** have no internal use case. They interact directly with technology (logging, notifications, queues) without business logic:
 
 ```python
-# Fine-grained: one handler per condition
-orphan_story_handler: OrphanStoryHandler
-unknown_persona_handler: UnknownPersonaHandler
+class LoggingOrphanStoryHandler:
+    """Fine-grained: no internal use case, direct technology interaction."""
 
-# Coarse-grained: one handler decides internally
-story_post_create_handler: StoryPostCreateHandler
+    async def handle(self, story: Story) -> Acknowledgement:
+        logger.warning("Orphan story", extra={"slug": story.slug})
+        return Acknowledgement.wilco(warnings=["Story not in any epic"])
 ```
 
-This is a domain modelling decision, not an architectural constraint.
+**Coarse-grained handlers** wrap exactly ONE internal use case. They translate domain objects to requests, execute business logic via the use case, and process the response:
+
+```python
+class StoryOrchestrationHandler:
+    """Coarse-grained: wraps one internal use case."""
+
+    def __init__(
+        self,
+        orchestration_use_case: StoryOrchestrationUseCase,
+        orphan_handler: OrphanStoryHandler,  # fine-grained delegate
+    ):
+        self._use_case = orchestration_use_case
+        self._orphan_handler = orphan_handler
+
+    async def handle(self, story: Story) -> Acknowledgement:
+        # Translate domain object to request
+        request = StoryOrchestrationRequest(story=story)
+
+        # Execute internal use case (contains business logic)
+        response = await self._use_case.execute(request)
+
+        # Process response - delegate to fine-grained handlers
+        for condition in response.conditions:
+            if condition.type == "orphan":
+                await self._orphan_handler.handle(story)
+
+        return Acknowledgement.wilco()
+```
+
+The internal use case contains the business logic (checking conditions, validating state). The handler is a thin translation layer that coordinates the use case with fine-grained delegates.
+
+Which to use is a domain modelling decision:
+- Simple actions (log, notify) → fine-grained handler
+- Complex orchestration with business logic → coarse-grained handler with internal use case
 
 #### 6. Cross-BC Coordination Is Composition
 

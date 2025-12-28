@@ -3,8 +3,9 @@
 Provides repository instances, handler factories, and use-case factories for
 FastAPI dependency injection. Repositories are configured from environment variables.
 
-Handler factories return null handlers by default. Solution providers can override
-these to inject real handlers for workflow orchestration (see ADR 003).
+Handler architecture (see ADR 003):
+- Fine-grained handlers: No internal use case, interact directly with technology
+- Coarse-grained handlers: Wrap ONE internal use case, delegate to fine-grained handlers
 """
 
 import os
@@ -12,9 +13,17 @@ from functools import lru_cache
 from pathlib import Path
 
 from julee.hcd.infrastructure.handlers.null_handlers import (
-    NullOrphanStoryHandler,
+    LoggingOrphanStoryHandler,
+    LoggingUnknownPersonaHandler,
     NullStoryCreatedHandler,
 )
+from julee.hcd.infrastructure.handlers.story_orchestration import (
+    StoryOrchestrationHandler,
+)
+from julee.hcd.infrastructure.repositories.memory.persona import (
+    MemoryPersonaRepository,
+)
+from julee.hcd.services.story_handlers import StoryCreatedHandler
 from julee.hcd.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
 )
@@ -65,6 +74,7 @@ from julee.hcd.use_cases.crud import (
 )
 from julee.hcd.use_cases.queries.derive_personas import DerivePersonasUseCase
 from julee.hcd.use_cases.queries.get_persona import GetPersonaUseCase
+from julee.hcd.use_cases.story_orchestration import StoryOrchestrationUseCase
 
 
 def get_docs_root() -> Path:
@@ -77,18 +87,69 @@ def get_docs_root() -> Path:
 
 
 # =============================================================================
+# Persona Repository Factory
+# =============================================================================
+
+
+@lru_cache
+def get_persona_repository() -> MemoryPersonaRepository:
+    """Get the persona repository singleton.
+
+    Uses in-memory repository since personas are derived from stories/epics.
+    """
+    return MemoryPersonaRepository()
+
+
+# =============================================================================
 # Handler Factories
 # =============================================================================
 
 
 @lru_cache
-def get_story_created_handler() -> NullStoryCreatedHandler:
+def get_orphan_story_handler() -> LoggingOrphanStoryHandler:
+    """Get fine-grained handler for orphan story conditions.
+
+    Logs warning when a story is not referenced in any epic.
+    """
+    return LoggingOrphanStoryHandler()
+
+
+@lru_cache
+def get_unknown_persona_handler() -> LoggingUnknownPersonaHandler:
+    """Get fine-grained handler for unknown persona conditions.
+
+    Logs warning when a story references an unknown persona.
+    """
+    return LoggingUnknownPersonaHandler()
+
+
+def get_story_orchestration_handler() -> StoryOrchestrationHandler:
+    """Get coarse-grained handler for story orchestration.
+
+    Creates the full handler chain:
+    - StoryOrchestrationUseCase (detects conditions)
+    - Fine-grained handlers (process each condition)
+    """
+    from julee.hcd.use_cases.story_orchestration import StoryOrchestrationUseCase
+
+    orchestration_use_case = StoryOrchestrationUseCase(
+        persona_repo=get_persona_repository(),
+        epic_repo=get_epic_repository(),
+    )
+    return StoryOrchestrationHandler(
+        orchestration_use_case=orchestration_use_case,
+        orphan_handler=get_orphan_story_handler(),
+        unknown_persona_handler=get_unknown_persona_handler(),
+    )
+
+
+def get_story_created_handler() -> StoryCreatedHandler:
     """Get handler for post-story-creation orchestration.
 
-    Returns null handler by default. Override in solution-specific dependencies
-    to inject handlers that orchestrate follow-up work (see ADR 003).
+    Returns the full StoryOrchestrationHandler chain by default.
+    Override in solution-specific dependencies for custom behavior.
     """
-    return NullStoryCreatedHandler()
+    return get_story_orchestration_handler()
 
 
 # =============================================================================
