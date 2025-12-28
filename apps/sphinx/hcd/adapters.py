@@ -5,6 +5,7 @@ Sphinx directives are synchronous, but our domain repositories are async
 """
 
 import asyncio
+import warnings
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
@@ -12,6 +13,16 @@ from pydantic import BaseModel
 from julee.core.repositories.base import BaseRepository
 
 T = TypeVar("T", bound=BaseModel)
+
+
+def _adapter_deprecation_warning(method_name: str) -> None:
+    """Emit deprecation warning for direct adapter method access."""
+    warnings.warn(
+        f"Direct adapter method '{method_name}()' is deprecated. "
+        f"Use the corresponding use case instead (e.g., list_*, get_*, create_*).",
+        DeprecationWarning,
+        stacklevel=3,
+    )
 
 
 class SyncRepositoryAdapter(Generic[T]):
@@ -45,7 +56,9 @@ class SyncRepositoryAdapter(Generic[T]):
         return self._repo
 
     def get(self, entity_id: str) -> T | None:
-        """Retrieve an entity by ID (sync wrapper).
+        """DEPRECATED: Use the corresponding get_* use case instead.
+
+        Retrieve an entity by ID (sync wrapper).
 
         Args:
             entity_id: Unique entity identifier
@@ -53,10 +66,13 @@ class SyncRepositoryAdapter(Generic[T]):
         Returns:
             Entity if found, None otherwise
         """
+        _adapter_deprecation_warning("get")
         return asyncio.run(self._repo.get(entity_id))
 
     def get_many(self, entity_ids: list[str]) -> dict[str, T | None]:
-        """Retrieve multiple entities by ID (sync wrapper).
+        """DEPRECATED: Use the corresponding get_* use case instead.
+
+        Retrieve multiple entities by ID (sync wrapper).
 
         Args:
             entity_ids: List of unique entity identifiers
@@ -64,26 +80,35 @@ class SyncRepositoryAdapter(Generic[T]):
         Returns:
             Dict mapping entity_id to entity (or None if not found)
         """
+        _adapter_deprecation_warning("get_many")
         return asyncio.run(self._repo.get_many(entity_ids))
 
     def save(self, entity: T) -> None:
-        """Save an entity (sync wrapper).
+        """DEPRECATED: Use the corresponding create_* use case instead.
+
+        Save an entity (sync wrapper).
 
         Args:
             entity: Complete entity to save
         """
+        _adapter_deprecation_warning("save")
         asyncio.run(self._repo.save(entity))
 
     def list_all(self) -> list[T]:
-        """List all entities (sync wrapper).
+        """DEPRECATED: Use the corresponding list_* use case instead.
+
+        List all entities (sync wrapper).
 
         Returns:
             List of all entities in the repository
         """
+        _adapter_deprecation_warning("list_all")
         return asyncio.run(self._repo.list_all())
 
     def delete(self, entity_id: str) -> bool:
-        """Delete an entity by ID (sync wrapper).
+        """DEPRECATED: Use the corresponding delete_* use case instead.
+
+        Delete an entity by ID (sync wrapper).
 
         Args:
             entity_id: Unique entity identifier
@@ -91,6 +116,7 @@ class SyncRepositoryAdapter(Generic[T]):
         Returns:
             True if entity was deleted, False if not found
         """
+        _adapter_deprecation_warning("delete")
         return asyncio.run(self._repo.delete(entity_id))
 
     def clear(self) -> None:

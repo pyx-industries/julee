@@ -153,12 +153,17 @@ def verify_policies(
 
     # Filter to specific policy if requested
     if policy_filter:
+        from julee.core.use_cases.policy import GetPolicyRequest, GetPolicyUseCase
+
         policy_repo = get_policy_repository()
-        policy = asyncio.run(policy_repo.get_policy(policy_filter))
+        get_use_case = GetPolicyUseCase(policy_repo)
+        get_response = asyncio.run(get_use_case.execute(GetPolicyRequest(slug=policy_filter)))
+        policy = get_response.policy
         if not policy:
-            all_policies = asyncio.run(policy_repo.list_policies())
+            list_use_case = get_list_policies_use_case()
+            list_response = asyncio.run(list_use_case.execute(ListPoliciesRequest()))
             click.echo(f"Policy '{policy_filter}' not found.")
-            click.echo(f"Available: {', '.join(p.slug for p in all_policies)}")
+            click.echo(f"Available: {', '.join(p.slug for p in list_response.policies)}")
             raise SystemExit(1)
         policies_to_verify = [policy]
 

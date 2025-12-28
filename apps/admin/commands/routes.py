@@ -13,6 +13,10 @@ from julee.core.entities.pipeline_route import PipelineRoute
 from julee.core.infrastructure.repositories.memory.pipeline_route import (
     InMemoryPipelineRouteRepository,
 )
+from julee.core.use_cases.pipeline_route import (
+    ListPipelineRoutesRequest,
+    ListPipelineRoutesUseCase,
+)
 
 # Default route modules to load
 # Each module should have a get_*_routes() function or a *_routes list
@@ -123,7 +127,9 @@ def list_routes(
         modules.extend(module)
 
     repo = _get_route_repository(modules)
-    routes = asyncio.run(repo.list_all())
+    use_case = ListPipelineRoutesUseCase(repo)
+    response = asyncio.run(use_case.execute(ListPipelineRoutesRequest()))
+    routes = response.routes
 
     if not routes:
         click.echo("No routes configured.")
@@ -177,13 +183,17 @@ def show_routes(response_type: str, module: tuple[str, ...]) -> None:
         modules.extend(module)
 
     repo = _get_route_repository(modules)
-    routes = asyncio.run(repo.list_for_response_type(response_type))
+    use_case = ListPipelineRoutesUseCase(repo)
+
+    # Try exact match first
+    response = asyncio.run(use_case.execute(ListPipelineRoutesRequest(response_type=response_type)))
+    routes = response.routes
 
     # Also try partial match if exact match finds nothing
     if not routes:
-        all_routes = asyncio.run(repo.list_all())
+        all_response = asyncio.run(use_case.execute(ListPipelineRoutesRequest()))
         routes = [
-            r for r in all_routes
+            r for r in all_response.routes
             if response_type.lower() in r.response_type.lower()
         ]
 

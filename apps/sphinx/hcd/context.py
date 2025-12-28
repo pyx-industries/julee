@@ -9,7 +9,7 @@ Use cases are exposed as properties for filtering operations:
     stories = response.stories
 """
 
-from dataclasses import dataclass, field
+import warnings
 from typing import TYPE_CHECKING
 
 from julee.hcd.infrastructure.repositories.memory.accelerator import (
@@ -88,7 +88,16 @@ if TYPE_CHECKING:
     )
 
 
-@dataclass
+def _deprecation_warning(repo_name: str) -> None:
+    """Emit deprecation warning for direct repository access."""
+    warnings.warn(
+        f"Direct repository access via '{repo_name}' is deprecated. "
+        f"Use the corresponding use case property instead (e.g., list_*, get_*, create_*).",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+
+
 class HCDContext:
     """Unified context for HCD documentation.
 
@@ -98,174 +107,257 @@ class HCDContext:
 
     This context is created at builder-inited and attached to the
     Sphinx app object. It can be retrieved using get_hcd_context().
+
+    IMPORTANT: Direct repository access (e.g., context.story_repo) is deprecated.
+    Use the corresponding use case properties instead:
+    - list_stories, get_story, create_story (not story_repo)
+    - list_apps, get_app, create_app, update_app (not app_repo)
+    - etc.
     """
 
-    story_repo: SyncRepositoryAdapter["Story"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryStoryRepository())
-    )
-    journey_repo: SyncRepositoryAdapter["Journey"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryJourneyRepository())
-    )
-    epic_repo: SyncRepositoryAdapter["Epic"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryEpicRepository())
-    )
-    app_repo: SyncRepositoryAdapter["App"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryAppRepository())
-    )
-    accelerator_repo: SyncRepositoryAdapter["Accelerator"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryAcceleratorRepository())
-    )
-    integration_repo: SyncRepositoryAdapter["Integration"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryIntegrationRepository())
-    )
-    contrib_repo: SyncRepositoryAdapter["ContribModule"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryContribRepository())
-    )
-    persona_repo: SyncRepositoryAdapter["Persona"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryPersonaRepository())
-    )
-    code_info_repo: SyncRepositoryAdapter["BoundedContextInfo"] = field(
-        default_factory=lambda: SyncRepositoryAdapter(MemoryCodeInfoRepository())
-    )
+    def __init__(
+        self,
+        story_repo: "SyncRepositoryAdapter[Story] | None" = None,
+        journey_repo: "SyncRepositoryAdapter[Journey] | None" = None,
+        epic_repo: "SyncRepositoryAdapter[Epic] | None" = None,
+        app_repo: "SyncRepositoryAdapter[App] | None" = None,
+        accelerator_repo: "SyncRepositoryAdapter[Accelerator] | None" = None,
+        integration_repo: "SyncRepositoryAdapter[Integration] | None" = None,
+        contrib_repo: "SyncRepositoryAdapter[ContribModule] | None" = None,
+        persona_repo: "SyncRepositoryAdapter[Persona] | None" = None,
+        code_info_repo: "SyncRepositoryAdapter[BoundedContextInfo] | None" = None,
+    ) -> None:
+        """Initialize HCDContext with repositories.
 
-    # Use case factories (created on demand from underlying async repos)
+        Args:
+            story_repo: Story repository (defaults to memory)
+            journey_repo: Journey repository (defaults to memory)
+            epic_repo: Epic repository (defaults to memory)
+            app_repo: App repository (defaults to memory)
+            accelerator_repo: Accelerator repository (defaults to memory)
+            integration_repo: Integration repository (defaults to memory)
+            contrib_repo: ContribModule repository (defaults to memory)
+            persona_repo: Persona repository (defaults to memory)
+            code_info_repo: BoundedContextInfo repository (defaults to memory)
+        """
+        self._story_repo = story_repo or SyncRepositoryAdapter(MemoryStoryRepository())
+        self._journey_repo = journey_repo or SyncRepositoryAdapter(MemoryJourneyRepository())
+        self._epic_repo = epic_repo or SyncRepositoryAdapter(MemoryEpicRepository())
+        self._app_repo = app_repo or SyncRepositoryAdapter(MemoryAppRepository())
+        self._accelerator_repo = accelerator_repo or SyncRepositoryAdapter(MemoryAcceleratorRepository())
+        self._integration_repo = integration_repo or SyncRepositoryAdapter(MemoryIntegrationRepository())
+        self._contrib_repo = contrib_repo or SyncRepositoryAdapter(MemoryContribRepository())
+        self._persona_repo = persona_repo or SyncRepositoryAdapter(MemoryPersonaRepository())
+        self._code_info_repo = code_info_repo or SyncRepositoryAdapter(MemoryCodeInfoRepository())
+
+    # =========================================================================
+    # Deprecated repository accessors (emit warnings)
+    # =========================================================================
+
+    @property
+    def story_repo(self) -> "SyncRepositoryAdapter[Story]":
+        """DEPRECATED: Use list_stories, get_story, or create_story instead."""
+        _deprecation_warning("story_repo")
+        return self._story_repo
+
+    @property
+    def journey_repo(self) -> "SyncRepositoryAdapter[Journey]":
+        """DEPRECATED: Use list_journeys, get_journey, or create_journey instead."""
+        _deprecation_warning("journey_repo")
+        return self._journey_repo
+
+    @property
+    def epic_repo(self) -> "SyncRepositoryAdapter[Epic]":
+        """DEPRECATED: Use list_epics or get_epic instead."""
+        _deprecation_warning("epic_repo")
+        return self._epic_repo
+
+    @property
+    def app_repo(self) -> "SyncRepositoryAdapter[App]":
+        """DEPRECATED: Use list_apps, get_app, create_app, or update_app instead."""
+        _deprecation_warning("app_repo")
+        return self._app_repo
+
+    @property
+    def accelerator_repo(self) -> "SyncRepositoryAdapter[Accelerator]":
+        """DEPRECATED: Use list_accelerators or get_accelerator instead."""
+        _deprecation_warning("accelerator_repo")
+        return self._accelerator_repo
+
+    @property
+    def integration_repo(self) -> "SyncRepositoryAdapter[Integration]":
+        """DEPRECATED: Use list_integrations, get_integration, or create_integration instead."""
+        _deprecation_warning("integration_repo")
+        return self._integration_repo
+
+    @property
+    def contrib_repo(self) -> "SyncRepositoryAdapter[ContribModule]":
+        """DEPRECATED: Use list_contribs, get_contrib, or create_contrib instead."""
+        _deprecation_warning("contrib_repo")
+        return self._contrib_repo
+
+    @property
+    def persona_repo(self) -> "SyncRepositoryAdapter[Persona]":
+        """DEPRECATED: Use list_personas or get_persona instead."""
+        _deprecation_warning("persona_repo")
+        return self._persona_repo
+
+    @property
+    def code_info_repo(self) -> "SyncRepositoryAdapter[BoundedContextInfo]":
+        """DEPRECATED: Use get_code_info or save_code_info instead."""
+        _deprecation_warning("code_info_repo")
+        return self._code_info_repo
+
+    # =========================================================================
+    # List use cases
+    # =========================================================================
 
     @property
     def list_stories(self) -> ListStoriesUseCase:
         """Get ListStoriesUseCase for filtered story queries."""
-        return ListStoriesUseCase(self.story_repo.async_repo)  # type: ignore
+        return ListStoriesUseCase(self._story_repo.async_repo)  # type: ignore
 
     @property
     def list_journeys(self) -> ListJourneysUseCase:
         """Get ListJourneysUseCase for filtered journey queries."""
-        return ListJourneysUseCase(self.journey_repo.async_repo)  # type: ignore
+        return ListJourneysUseCase(self._journey_repo.async_repo)  # type: ignore
 
     @property
     def list_epics(self) -> ListEpicsUseCase:
         """Get ListEpicsUseCase for filtered epic queries."""
-        return ListEpicsUseCase(self.epic_repo.async_repo)  # type: ignore
+        return ListEpicsUseCase(self._epic_repo.async_repo)  # type: ignore
 
     @property
     def list_apps(self) -> ListAppsUseCase:
         """Get ListAppsUseCase for filtered app queries."""
-        return ListAppsUseCase(self.app_repo.async_repo)  # type: ignore
+        return ListAppsUseCase(self._app_repo.async_repo)  # type: ignore
 
     @property
     def list_accelerators(self) -> ListAcceleratorsUseCase:
         """Get ListAcceleratorsUseCase for filtered accelerator queries."""
-        return ListAcceleratorsUseCase(self.accelerator_repo.async_repo)  # type: ignore
+        return ListAcceleratorsUseCase(self._accelerator_repo.async_repo)  # type: ignore
 
     @property
     def list_integrations(self) -> ListIntegrationsUseCase:
         """Get ListIntegrationsUseCase for integration queries."""
-        return ListIntegrationsUseCase(self.integration_repo.async_repo)  # type: ignore
+        return ListIntegrationsUseCase(self._integration_repo.async_repo)  # type: ignore
 
     @property
     def list_personas(self) -> ListPersonasUseCase:
         """Get ListPersonasUseCase for persona queries."""
-        return ListPersonasUseCase(self.persona_repo.async_repo)  # type: ignore
+        return ListPersonasUseCase(self._persona_repo.async_repo)  # type: ignore
 
     @property
     def list_contribs(self) -> ListContribModulesUseCase:
         """Get ListContribModulesUseCase for contrib module queries."""
-        return ListContribModulesUseCase(self.contrib_repo.async_repo)  # type: ignore
+        return ListContribModulesUseCase(self._contrib_repo.async_repo)  # type: ignore
 
+    # =========================================================================
     # Get use cases for single entity retrieval
+    # =========================================================================
 
     @property
     def get_story(self) -> GetStoryUseCase:
         """Get GetStoryUseCase for single story lookup."""
-        return GetStoryUseCase(self.story_repo.async_repo)  # type: ignore
+        return GetStoryUseCase(self._story_repo.async_repo)  # type: ignore
 
     @property
     def get_journey(self) -> GetJourneyUseCase:
         """Get GetJourneyUseCase for single journey lookup."""
-        return GetJourneyUseCase(self.journey_repo.async_repo)  # type: ignore
+        return GetJourneyUseCase(self._journey_repo.async_repo)  # type: ignore
 
     @property
     def get_epic(self) -> GetEpicUseCase:
         """Get GetEpicUseCase for single epic lookup."""
-        return GetEpicUseCase(self.epic_repo.async_repo)  # type: ignore
+        return GetEpicUseCase(self._epic_repo.async_repo)  # type: ignore
 
     @property
     def get_app(self) -> GetAppUseCase:
         """Get GetAppUseCase for single app lookup."""
-        return GetAppUseCase(self.app_repo.async_repo)  # type: ignore
+        return GetAppUseCase(self._app_repo.async_repo)  # type: ignore
 
     @property
     def get_accelerator(self) -> GetAcceleratorUseCase:
         """Get GetAcceleratorUseCase for single accelerator lookup."""
-        return GetAcceleratorUseCase(self.accelerator_repo.async_repo)  # type: ignore
+        return GetAcceleratorUseCase(self._accelerator_repo.async_repo)  # type: ignore
 
     @property
     def get_integration(self) -> GetIntegrationUseCase:
         """Get GetIntegrationUseCase for single integration lookup."""
-        return GetIntegrationUseCase(self.integration_repo.async_repo)  # type: ignore
+        return GetIntegrationUseCase(self._integration_repo.async_repo)  # type: ignore
 
     @property
     def get_persona(self) -> GetPersonaUseCase:
         """Get GetPersonaUseCase for single persona lookup."""
-        return GetPersonaUseCase(self.persona_repo.async_repo)  # type: ignore
+        return GetPersonaUseCase(self._persona_repo.async_repo)  # type: ignore
 
     @property
     def get_contrib(self) -> GetContribModuleUseCase:
         """Get GetContribModuleUseCase for single contrib module lookup."""
-        return GetContribModuleUseCase(self.contrib_repo.async_repo)  # type: ignore
-
-    @property
-    def create_contrib(self) -> CreateContribModuleUseCase:
-        """Get CreateContribModuleUseCase for creating contrib modules."""
-        return CreateContribModuleUseCase(self.contrib_repo.async_repo)  # type: ignore
+        return GetContribModuleUseCase(self._contrib_repo.async_repo)  # type: ignore
 
     @property
     def get_code_info(self) -> GetCodeInfoUseCase:
         """Get GetCodeInfoUseCase for code introspection lookup."""
-        return GetCodeInfoUseCase(self.code_info_repo.async_repo)  # type: ignore
+        return GetCodeInfoUseCase(self._code_info_repo.async_repo)  # type: ignore
+
+    # =========================================================================
+    # Create/Update use cases
+    # =========================================================================
+
+    @property
+    def create_contrib(self) -> CreateContribModuleUseCase:
+        """Get CreateContribModuleUseCase for creating contrib modules."""
+        return CreateContribModuleUseCase(self._contrib_repo.async_repo)  # type: ignore
 
     @property
     def create_journey(self) -> CreateJourneyUseCase:
         """Get CreateJourneyUseCase for creating journeys."""
-        return CreateJourneyUseCase(self.journey_repo.async_repo)  # type: ignore
+        return CreateJourneyUseCase(self._journey_repo.async_repo)  # type: ignore
 
     @property
     def create_app(self) -> CreateAppUseCase:
         """Get CreateAppUseCase for creating apps."""
-        return CreateAppUseCase(self.app_repo.async_repo)  # type: ignore
+        return CreateAppUseCase(self._app_repo.async_repo)  # type: ignore
 
     @property
     def update_app(self) -> UpdateAppUseCase:
         """Get UpdateAppUseCase for updating apps."""
-        return UpdateAppUseCase(self.app_repo.async_repo)  # type: ignore
+        return UpdateAppUseCase(self._app_repo.async_repo)  # type: ignore
 
     @property
     def create_story(self) -> CreateStoryUseCase:
         """Get CreateStoryUseCase for creating stories."""
-        return CreateStoryUseCase(self.story_repo.async_repo)  # type: ignore
+        return CreateStoryUseCase(self._story_repo.async_repo)  # type: ignore
 
     @property
     def create_integration(self) -> CreateIntegrationUseCase:
         """Get CreateIntegrationUseCase for creating integrations."""
-        return CreateIntegrationUseCase(self.integration_repo.async_repo)  # type: ignore
+        return CreateIntegrationUseCase(self._integration_repo.async_repo)  # type: ignore
 
     @property
     def save_code_info(self) -> SaveCodeInfoUseCase:
         """Get SaveCodeInfoUseCase for saving code info."""
-        return SaveCodeInfoUseCase(self.code_info_repo.async_repo)  # type: ignore
+        return SaveCodeInfoUseCase(self._code_info_repo.async_repo)  # type: ignore
+
+    # =========================================================================
+    # Utility methods
+    # =========================================================================
 
     def clear_all(self) -> None:
         """Clear all repositories.
 
         Useful for testing or when rebuilding documentation from scratch.
         """
-        self.story_repo.clear()
-        self.journey_repo.clear()
-        self.epic_repo.clear()
-        self.app_repo.clear()
-        self.accelerator_repo.clear()
-        self.integration_repo.clear()
-        self.contrib_repo.clear()
-        self.persona_repo.clear()
-        self.code_info_repo.clear()
+        self._story_repo.clear()
+        self._journey_repo.clear()
+        self._epic_repo.clear()
+        self._app_repo.clear()
+        self._accelerator_repo.clear()
+        self._integration_repo.clear()
+        self._contrib_repo.clear()
+        self._persona_repo.clear()
+        self._code_info_repo.clear()
 
     def clear_by_docname(self, docname: str) -> dict[str, int]:
         """Clear entities defined in a specific document.
@@ -282,26 +374,26 @@ class HCDContext:
         results = {}
 
         # Journey repo has clear_by_docname
-        journey_async = self.journey_repo.async_repo
-        results["journeys"] = self.journey_repo.run_async(
+        journey_async = self._journey_repo.async_repo
+        results["journeys"] = self._journey_repo.run_async(
             journey_async.clear_by_docname(docname)  # type: ignore
         )
 
         # Epic repo has clear_by_docname
-        epic_async = self.epic_repo.async_repo
-        results["epics"] = self.epic_repo.run_async(
+        epic_async = self._epic_repo.async_repo
+        results["epics"] = self._epic_repo.run_async(
             epic_async.clear_by_docname(docname)  # type: ignore
         )
 
         # Accelerator repo has clear_by_docname
-        accel_async = self.accelerator_repo.async_repo
-        results["accelerators"] = self.accelerator_repo.run_async(
+        accel_async = self._accelerator_repo.async_repo
+        results["accelerators"] = self._accelerator_repo.run_async(
             accel_async.clear_by_docname(docname)  # type: ignore
         )
 
         # Contrib repo has clear_by_docname
-        contrib_async = self.contrib_repo.async_repo
-        results["contrib"] = self.contrib_repo.run_async(
+        contrib_async = self._contrib_repo.async_repo
+        results["contrib"] = self._contrib_repo.run_async(
             contrib_async.clear_by_docname(docname)  # type: ignore
         )
 

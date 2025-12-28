@@ -38,6 +38,7 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
     from julee.core.infrastructure.repositories.introspection.solution import (
         FilesystemSolutionRepository,
     )
+    from julee.core.use_cases.solution import GetSolutionRequest, GetSolutionUseCase
 
     # Use JULEE_TARGET if set (by verify command), otherwise find project root
     target = os.environ.get("JULEE_TARGET")
@@ -45,7 +46,9 @@ def _discover_app_doctrine_dirs() -> dict[str, Path]:
 
     async def _discover():
         repo = FilesystemSolutionRepository(project_root)
-        solution = await repo.get()
+        use_case = GetSolutionUseCase(repo)
+        response = await use_case.execute(GetSolutionRequest())
+        solution = response.solution
         dirs = {}
         for app in solution.all_applications:
             doctrine_dir = Path(app.path) / "doctrine"

@@ -568,16 +568,17 @@ def build_system_context_diagram(system_slug: str, title: str, docname: str, app
     persons = []
     try:
         from apps.sphinx.hcd.context import get_hcd_context
+        from julee.hcd.use_cases.crud import GetPersonaRequest
 
         hcd_context = get_hcd_context(app)
         for slug in person_slugs:
-            persona = hcd_context.persona_repo.get(slug)
-            if persona:
+            response = hcd_context.get_persona.execute_sync(GetPersonaRequest(slug=slug))
+            if response.persona:
                 persons.append(
                     PersonInfo(
-                        slug=persona.slug,
-                        name=persona.name,
-                        description=_first_sentence(persona.context or ""),
+                        slug=response.persona.slug,
+                        name=response.persona.name,
+                        description=_first_sentence(response.persona.context or ""),
                     )
                 )
     except (ImportError, AttributeError):

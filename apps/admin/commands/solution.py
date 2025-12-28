@@ -14,6 +14,22 @@ from apps.admin.dependencies import (
     get_project_root,
     get_solution_repository,
 )
+from julee.core.use_cases.application import (
+    GetApplicationRequest,
+    GetApplicationUseCase,
+    ListApplicationsRequest,
+    ListApplicationsUseCase,
+)
+from julee.core.use_cases.deployment import (
+    GetDeploymentRequest,
+    GetDeploymentUseCase,
+    ListDeploymentsRequest,
+    ListDeploymentsUseCase,
+)
+from julee.core.use_cases.solution import (
+    GetSolutionRequest,
+    GetSolutionUseCase,
+)
 
 
 @click.group(name="solution")
@@ -27,7 +43,9 @@ def solution_group() -> None:
 def show_solution(verbose: bool) -> None:
     """Show the current solution structure."""
     repo = get_solution_repository()
-    solution = asyncio.run(repo.get())
+    use_case = GetSolutionUseCase(repo)
+    response = asyncio.run(use_case.execute(GetSolutionRequest()))
+    solution = response.solution
 
     click.echo(f"Solution: {solution.name}")
     click.echo(f"Path: {solution.path}")
@@ -82,7 +100,9 @@ def apps_group() -> None:
 def list_apps(verbose: bool, app_type: str | None) -> None:
     """List all applications in the solution."""
     repo = get_application_repository()
-    applications = asyncio.run(repo.list_all())
+    use_case = ListApplicationsUseCase(repo)
+    response = asyncio.run(use_case.execute(ListApplicationsRequest()))
+    applications = response.applications
 
     if app_type:
         applications = [a for a in applications if a.app_type.value == app_type]
@@ -120,7 +140,9 @@ def list_apps(verbose: bool, app_type: str | None) -> None:
 def show_app(slug: str) -> None:
     """Show details for a specific application."""
     repo = get_application_repository()
-    app = asyncio.run(repo.get(slug))
+    use_case = GetApplicationUseCase(repo)
+    response = asyncio.run(use_case.execute(GetApplicationRequest(slug=slug)))
+    app = response.application
 
     if app is None:
         click.echo(f"Application '{slug}' not found.", err=True)
@@ -155,7 +177,9 @@ def deployments_group() -> None:
 def list_deployments(verbose: bool, dep_type: str | None) -> None:
     """List all deployments in the solution."""
     repo = get_deployment_repository()
-    deployments = asyncio.run(repo.list_all())
+    use_case = ListDeploymentsUseCase(repo)
+    response = asyncio.run(use_case.execute(ListDeploymentsRequest()))
+    deployments = response.deployments
 
     if dep_type:
         deployments = [d for d in deployments if d.deployment_type.value == dep_type]
@@ -181,7 +205,9 @@ def list_deployments(verbose: bool, dep_type: str | None) -> None:
 def show_deployment(slug: str) -> None:
     """Show details for a specific deployment."""
     repo = get_deployment_repository()
-    dep = asyncio.run(repo.get(slug))
+    use_case = GetDeploymentUseCase(repo)
+    response = asyncio.run(use_case.execute(GetDeploymentRequest(slug=slug)))
+    dep = response.deployment
 
     if dep is None:
         click.echo(f"Deployment '{slug}' not found.", err=True)
