@@ -213,29 +213,8 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
     return result_nodes
 
 
-def _build_relative_uri(from_docname: str, target_doc: str, anchor: str = None) -> str:
-    """Build a relative URI from one doc to another."""
-    from_parts = from_docname.split("/")
-    target_parts = target_doc.split("/")
-
-    common = 0
-    for i in range(min(len(from_parts), len(target_parts))):
-        if from_parts[i] == target_parts[i]:
-            common += 1
-        else:
-            break
-
-    up_levels = len(from_parts) - common - 1
-    down_path = "/".join(target_parts[common:])
-
-    if up_levels > 0:
-        rel_path = "../" * up_levels + down_path + ".html"
-    else:
-        rel_path = down_path + ".html"
-
-    if anchor:
-        return f"{rel_path}#{anchor}"
-    return rel_path
+# Use shared build_relative_uri from apps.sphinx.shared
+from apps.sphinx.shared import build_relative_uri as _build_relative_uri
 
 
 def build_epic_index(env, docname: str, hcd_context):

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
 
-from apps.sphinx.shared import path_to_root
+from apps.sphinx.shared import build_relative_uri, path_to_root
 from julee.hcd.utils import slugify
 
 from ..config import get_config
@@ -150,29 +150,7 @@ class HCDDirective(SphinxDirective):
         Returns:
             Relative URI string
         """
-        from_parts = self.docname.split("/")
-        target_parts = target_doc.split("/")
-
-        # Find common prefix
-        common = 0
-        for i in range(min(len(from_parts), len(target_parts))):
-            if from_parts[i] == target_parts[i]:
-                common += 1
-            else:
-                break
-
-        # Build relative path
-        up_levels = len(from_parts) - common - 1
-        down_path = "/".join(target_parts[common:])
-
-        if up_levels > 0:
-            rel_path = "../" * up_levels + down_path + ".html"
-        else:
-            rel_path = down_path + ".html"
-
-        if anchor:
-            return f"{rel_path}#{anchor}"
-        return rel_path
+        return build_relative_uri(self.docname, target_doc, anchor)
 
     def empty_result(self, message: str) -> list[nodes.Node]:
         """Create an emphasized message for empty results."""
