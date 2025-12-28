@@ -10,6 +10,12 @@ Provides directives for defining and cross-referencing epics:
 from docutils import nodes
 
 from apps.sphinx.shared import path_to_root
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    make_link,
+    titled_bullet_list,
+)
 from julee.hcd.entities.epic import Epic
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
 from julee.hcd.use_cases.crud import CreateEpicRequest, CreateEpicUseCase
@@ -183,12 +189,10 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
         story_item = nodes.list_item()
         story_para = nodes.paragraph()
 
-        # Build story link manually
+        # Story link
         story_doc = f"{config.get_doc_path('stories')}/{story.app_slug}"
         story_ref_uri = _build_relative_uri(docname, story_doc, story.slug)
-        story_ref = nodes.reference("", "", refuri=story_ref_uri)
-        story_ref += nodes.Text(story.i_want)
-        story_para += story_ref
+        story_para += make_link(story_ref_uri, story.i_want)
 
         # App in parentheses
         story_para += nodes.Text(" (")
@@ -198,9 +202,7 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
         app_valid = story.app_normalized in known_apps
 
         if app_valid:
-            app_ref = nodes.reference("", "", refuri=app_path)
-            app_ref += nodes.Text(story.app_slug.replace("-", " ").title())
-            story_para += app_ref
+            story_para += make_link(app_path, story.app_slug.replace("-", " ").title())
         else:
             story_para += nodes.Text(story.app_slug.replace("-", " ").title())
 
@@ -252,12 +254,9 @@ def build_epic_index(env, docname: str, hcd_context):
     known_apps = {normalize_name(a.name) for a in all_apps}
 
     if not all_epics:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No epics defined")
-        return [para]
+        return [empty_result_paragraph("No epics defined")]
 
     result_nodes = []
-    bullet_list = nodes.bullet_list()
 
     # Collect all stories assigned to epics
     assigned_stories = set()
@@ -265,24 +264,14 @@ def build_epic_index(env, docname: str, hcd_context):
         for story_title in epic.story_refs:
             assigned_stories.add(normalize_name(story_title))
 
-    for epic in sorted(all_epics, key=lambda e: e.slug):
-        item = nodes.list_item()
-        para = nodes.paragraph()
-
-        # Link to epic
-        epic_path = f"{epic.slug}.html"
-        epic_ref = nodes.reference("", "", refuri=epic_path)
-        epic_ref += nodes.Text(epic.slug.replace("-", " ").title())
-        para += epic_ref
-
-        # Story count
-        story_count = len(epic.story_refs)
-        para += nodes.Text(f" ({story_count} stories)")
-
-        item += para
-        bullet_list += item
-
-    result_nodes.append(bullet_list)
+    # Epic list
+    result_nodes.append(
+        entity_bullet_list(
+            sorted(all_epics, key=lambda e: e.slug),
+            link_fn=lambda e: (f"{e.slug}.html", e.slug.replace("-", " ").title()),
+            suffix_fn=lambda e: f" ({len(e.story_refs)} stories)",
+        )
+    )
 
     # Find unassigned stories
     unassigned_stories = []
@@ -291,6 +280,7 @@ def build_epic_index(env, docname: str, hcd_context):
             unassigned_stories.append(story)
 
     if unassigned_stories:
+        # Section heading
         heading = nodes.paragraph()
         heading += nodes.strong(text="Unassigned Stories")
         result_nodes.append(heading)
@@ -301,6 +291,7 @@ def build_epic_index(env, docname: str, hcd_context):
         )
         result_nodes.append(intro)
 
+        # Build unassigned stories list with app links
         unassigned_list = nodes.bullet_list()
         for story in sorted(unassigned_stories, key=lambda s: s.feature_title.lower()):
             item = nodes.list_item()
@@ -309,9 +300,7 @@ def build_epic_index(env, docname: str, hcd_context):
             # Story link
             story_doc = f"{config.get_doc_path('stories')}/{story.app_slug}"
             story_ref_uri = _build_relative_uri(docname, story_doc, story.slug)
-            story_ref = nodes.reference("", "", refuri=story_ref_uri)
-            story_ref += nodes.Text(story.i_want)
-            para += story_ref
+            para += make_link(story_ref_uri, story.i_want)
 
             # App in parentheses
             para += nodes.Text(" (")
@@ -321,9 +310,7 @@ def build_epic_index(env, docname: str, hcd_context):
             app_valid = story.app_normalized in known_apps
 
             if app_valid:
-                app_ref = nodes.reference("", "", refuri=app_path)
-                app_ref += nodes.Text(story.app_slug.replace("-", " ").title())
-                para += app_ref
+                para += make_link(app_path, story.app_slug.replace("-", " ").title())
             else:
                 para += nodes.Text(story.app_slug.replace("-", " ").title())
 
@@ -359,33 +346,23 @@ def build_epics_for_persona(env, docname: str, persona_arg: str, hcd_context):
             break
 
     if not persona:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No epics found for persona '{persona_arg}'")
-        return [para]
+        return [empty_result_paragraph(f"No epics found for persona '{persona_arg}'")]
 
     # Get epics for this persona
     matching_epics = get_epics_for_persona(persona, all_epics, all_stories)
 
     if not matching_epics:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No epics found for persona '{persona_arg}'")
-        return [para]
+        return [empty_result_paragraph(f"No epics found for persona '{persona_arg}'")]
 
-    bullet_list = nodes.bullet_list()
-
-    for epic in sorted(matching_epics, key=lambda e: e.slug):
-        item = nodes.list_item()
-        para = nodes.paragraph()
-
-        epic_path = f"{prefix}{config.get_doc_path('epics')}/{epic.slug}.html"
-        epic_ref = nodes.reference("", "", refuri=epic_path)
-        epic_ref += nodes.Text(epic.slug.replace("-", " ").title())
-        para += epic_ref
-
-        item += para
-        bullet_list += item
-
-    return [bullet_list]
+    return [
+        entity_bullet_list(
+            sorted(matching_epics, key=lambda e: e.slug),
+            link_fn=lambda e: (
+                f"{prefix}{config.get_doc_path('epics')}/{e.slug}.html",
+                e.slug.replace("-", " ").title(),
+            ),
+        )
+    ]
 
 
 def clear_epic_state(app, env, docname):

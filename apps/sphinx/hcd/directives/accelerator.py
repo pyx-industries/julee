@@ -15,6 +15,13 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    link_list_paragraph,
+    metadata_paragraph,
+    problematic_paragraph,
+)
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.use_cases.crud import (
     CreateAcceleratorRequest,
@@ -234,26 +241,14 @@ class AcceleratorStatusDirective(HCDDirective):
 
         result_nodes = []
 
-        # Status badge
         if accelerator.status:
-            status_para = nodes.paragraph()
-            status_para += nodes.strong(text="Status: ")
-            status_para += nodes.Text(accelerator.status)
-            result_nodes.append(status_para)
+            result_nodes.append(metadata_paragraph("Status", accelerator.status))
 
-        # Milestone
         if accelerator.milestone:
-            milestone_para = nodes.paragraph()
-            milestone_para += nodes.strong(text="Milestone: ")
-            milestone_para += nodes.Text(accelerator.milestone)
-            result_nodes.append(milestone_para)
+            result_nodes.append(metadata_paragraph("Milestone", accelerator.milestone))
 
-        # Acceptance criteria
         if accelerator.acceptance:
-            acceptance_para = nodes.paragraph()
-            acceptance_para += nodes.strong(text="Acceptance: ")
-            acceptance_para += nodes.Text(accelerator.acceptance)
-            result_nodes.append(acceptance_para)
+            result_nodes.append(metadata_paragraph("Acceptance", accelerator.acceptance))
 
         return result_nodes
 
@@ -269,9 +264,7 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
 
     accelerator = hcd_context.accelerator_repo.get(slug)
     if not accelerator:
-        para = nodes.paragraph()
-        para += nodes.problematic(text=f"Accelerator '{slug}' not found")
-        return [para]
+        return [problematic_paragraph(f"Accelerator '{slug}' not found")]
 
     # Get all entities for cross-references
     all_accelerators = hcd_context.accelerator_repo.list_all()
@@ -283,102 +276,77 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
     # Objective/description - parse as RST for formatting support
     if accelerator.objective:
         from .base import parse_rst_content
+
         obj_nodes = parse_rst_content(accelerator.objective, f"<{slug}>")
         result_nodes.extend(obj_nodes)
 
     # Seealso with metadata
     seealso_node = seealso()
 
-    # Status
     if accelerator.status:
-        status_para = nodes.paragraph()
-        status_para += nodes.strong(text="Status: ")
-        status_para += nodes.Text(accelerator.status)
-        seealso_node += status_para
+        seealso_node += metadata_paragraph("Status", accelerator.status)
 
-    # Milestone
     if accelerator.milestone:
-        milestone_para = nodes.paragraph()
-        milestone_para += nodes.strong(text="Milestone: ")
-        milestone_para += nodes.Text(accelerator.milestone)
-        seealso_node += milestone_para
+        seealso_node += metadata_paragraph("Milestone", accelerator.milestone)
 
     # Apps
     apps = get_apps_for_accelerator(accelerator, all_apps)
     if apps:
-        apps_para = nodes.paragraph()
-        apps_para += nodes.strong(text="Apps: ")
-        for i, app in enumerate(apps):
-            app_path = f"{prefix}{config.get_doc_path('applications')}/{app.slug}.html"
-            ref = nodes.reference("", "", refuri=app_path)
-            ref += nodes.Text(app.name)
-            apps_para += ref
-            if i < len(apps) - 1:
-                apps_para += nodes.Text(", ")
-        seealso_node += apps_para
+        seealso_node += link_list_paragraph(
+            "Apps",
+            apps,
+            lambda app: (
+                f"{prefix}{config.get_doc_path('applications')}/{app.slug}.html",
+                app.name,
+            ),
+        )
 
     # Sources from (integrations)
     source_integrations = get_source_integrations(accelerator, all_integrations)
     if source_integrations:
-        sources_para = nodes.paragraph()
-        sources_para += nodes.strong(text="Sources From: ")
-        for i, integration in enumerate(source_integrations):
-            int_path = (
-                f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=int_path)
-            ref += nodes.Text(integration.name)
-            sources_para += ref
-            if i < len(source_integrations) - 1:
-                sources_para += nodes.Text(", ")
-        seealso_node += sources_para
+        seealso_node += link_list_paragraph(
+            "Sources From",
+            source_integrations,
+            lambda i: (
+                f"{prefix}{config.get_doc_path('integrations')}/{i.slug}.html",
+                i.name,
+            ),
+        )
 
     # Publishes to (integrations)
     publish_integrations = get_publish_integrations(accelerator, all_integrations)
     if publish_integrations:
-        publish_para = nodes.paragraph()
-        publish_para += nodes.strong(text="Publishes To: ")
-        for i, integration in enumerate(publish_integrations):
-            int_path = (
-                f"{prefix}{config.get_doc_path('integrations')}/{integration.slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=int_path)
-            ref += nodes.Text(integration.name)
-            publish_para += ref
-            if i < len(publish_integrations) - 1:
-                publish_para += nodes.Text(", ")
-        seealso_node += publish_para
+        seealso_node += link_list_paragraph(
+            "Publishes To",
+            publish_integrations,
+            lambda i: (
+                f"{prefix}{config.get_doc_path('integrations')}/{i.slug}.html",
+                i.name,
+            ),
+        )
 
     # Depends on (other accelerators)
     if accelerator.depends_on:
-        depends_para = nodes.paragraph()
-        depends_para += nodes.strong(text="Depends On: ")
-        for i, dep_slug in enumerate(accelerator.depends_on):
-            accel_path = (
-                f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=accel_path)
-            ref += nodes.Text(dep_slug.replace("-", " ").title())
-            depends_para += ref
-            if i < len(accelerator.depends_on) - 1:
-                depends_para += nodes.Text(", ")
-        seealso_node += depends_para
+        seealso_node += link_list_paragraph(
+            "Depends On",
+            accelerator.depends_on,
+            lambda dep_slug: (
+                f"{prefix}{config.get_doc_path('accelerators')}/{dep_slug}.html",
+                dep_slug.replace("-", " ").title(),
+            ),
+        )
 
     # Fed by (accelerators that feed into this one)
     fed_by = get_fed_by_accelerators(accelerator, all_accelerators)
     if fed_by:
-        fed_para = nodes.paragraph()
-        fed_para += nodes.strong(text="Fed By: ")
-        for i, feeder in enumerate(fed_by):
-            accel_path = (
-                f"{prefix}{config.get_doc_path('accelerators')}/{feeder.slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=accel_path)
-            ref += nodes.Text(feeder.slug.replace("-", " ").title())
-            fed_para += ref
-            if i < len(fed_by) - 1:
-                fed_para += nodes.Text(", ")
-        seealso_node += fed_para
+        seealso_node += link_list_paragraph(
+            "Fed By",
+            fed_by,
+            lambda feeder: (
+                f"{prefix}{config.get_doc_path('accelerators')}/{feeder.slug}.html",
+                feeder.slug.replace("-", " ").title(),
+            ),
+        )
 
     result_nodes.append(seealso_node)
     return result_nodes
@@ -386,12 +354,12 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
 
 def build_accelerator_index(docname: str, hcd_context):
     """Build accelerator index grouped by status."""
+    from ..node_builders import grouped_bullet_lists
+
     all_accelerators = hcd_context.accelerator_repo.list_all()
 
     if not all_accelerators:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No accelerators defined")
-        return [para]
+        return [empty_result_paragraph("No accelerators defined")]
 
     # Group by status
     by_status: dict[str, list[Accelerator]] = {}
@@ -399,38 +367,19 @@ def build_accelerator_index(docname: str, hcd_context):
         status = accel.status or "unknown"
         by_status.setdefault(status, []).append(accel)
 
-    result_nodes = []
+    # Sort entities within each group
+    for status in by_status:
+        by_status[status] = sorted(by_status[status], key=lambda a: a.slug)
 
-    for status in sorted(by_status.keys()):
-        accelerators = by_status[status]
+    # Build group order from actual statuses
+    group_order = [(s, s.title()) for s in sorted(by_status.keys())]
 
-        # Status heading
-        heading = nodes.paragraph()
-        heading += nodes.strong(text=status.title())
-        result_nodes.append(heading)
-
-        # Accelerator list
-        accel_list = nodes.bullet_list()
-
-        for accel in sorted(accelerators, key=lambda a: a.slug):
-            item = nodes.list_item()
-            para = nodes.paragraph()
-
-            # Link to accelerator
-            accel_path = f"{accel.slug}.html"
-            ref = nodes.reference("", "", refuri=accel_path)
-            ref += nodes.Text(accel.slug.replace("-", " ").title())
-            para += ref
-
-            if accel.milestone:
-                para += nodes.Text(f" ({accel.milestone})")
-
-            item += para
-            accel_list += item
-
-        result_nodes.append(accel_list)
-
-    return result_nodes
+    return grouped_bullet_lists(
+        by_status,
+        group_order,
+        link_fn=lambda a: (f"{a.slug}.html", a.slug.replace("-", " ").title()),
+        suffix_fn=lambda a: f" ({a.milestone})" if a.milestone else None,
+    )
 
 
 def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
@@ -442,9 +391,7 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
 
     app = hcd_context.app_repo.get(app_slug)
     if not app:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"App '{app_slug}' not found")
-        return [para]
+        return [empty_result_paragraph(f"App '{app_slug}' not found")]
 
     all_accelerators = hcd_context.accelerator_repo.list_all()
 
@@ -452,25 +399,17 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
     matching = [a for a in all_accelerators if a.slug in (app.accelerators or [])]
 
     if not matching:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No accelerators for app '{app_slug}'")
-        return [para]
+        return [empty_result_paragraph(f"No accelerators for app '{app_slug}'")]
 
-    bullet_list = nodes.bullet_list()
-
-    for accel in sorted(matching, key=lambda a: a.slug):
-        item = nodes.list_item()
-        para = nodes.paragraph()
-
-        accel_path = f"{prefix}{config.get_doc_path('accelerators')}/{accel.slug}.html"
-        ref = nodes.reference("", "", refuri=accel_path)
-        ref += nodes.Text(accel.slug.replace("-", " ").title())
-        para += ref
-
-        item += para
-        bullet_list += item
-
-    return [bullet_list]
+    return [
+        entity_bullet_list(
+            sorted(matching, key=lambda a: a.slug),
+            link_fn=lambda a: (
+                f"{prefix}{config.get_doc_path('accelerators')}/{a.slug}.html",
+                a.slug.replace("-", " ").title(),
+            ),
+        )
+    ]
 
 
 def build_dependency_diagram(docname: str, hcd_context):
@@ -478,16 +417,12 @@ def build_dependency_diagram(docname: str, hcd_context):
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="PlantUML extension not available")
-        return [para]
+        return [empty_result_paragraph("PlantUML extension not available")]
 
     all_accelerators = hcd_context.accelerator_repo.list_all()
 
     if not all_accelerators:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No accelerators defined")
-        return [para]
+        return [empty_result_paragraph("No accelerators defined")]
 
     lines = [
         "@startuml",

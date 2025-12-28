@@ -14,6 +14,13 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    make_link,
+    make_strong_link,
+    titled_bullet_list,
+)
 from julee.hcd.entities.persona import Persona
 from julee.hcd.use_cases.crud import (
     CreatePersonaRequest,
@@ -145,24 +152,7 @@ class DefinePersonaDirective(HCDDirective):
 
     def _build_list_section(self, title: str, items: list[str]) -> list[nodes.Node]:
         """Build a titled bullet list section."""
-        section_nodes = []
-
-        # Title paragraph
-        title_para = nodes.paragraph()
-        title_para += nodes.strong(text=f"{title}:")
-        section_nodes.append(title_para)
-
-        # Bullet list
-        bullet_list = nodes.bullet_list()
-        for item in items:
-            list_item = nodes.list_item()
-            para = nodes.paragraph()
-            para += nodes.Text(item)
-            list_item += para
-            bullet_list += list_item
-        section_nodes.append(bullet_list)
-
-        return section_nodes
+        return titled_bullet_list(title, items)
 
 
 class PersonaIndexDirective(HCDDirective):
@@ -435,9 +425,7 @@ def build_persona_diagram(persona_name: str, docname: str, hcd_context):
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="PlantUML extension not available")
-        return [para]
+        return [empty_result_paragraph("PlantUML extension not available")]
 
     all_stories = hcd_context.story_repo.list_all()
     all_epics = hcd_context.epic_repo.list_all()
@@ -455,16 +443,12 @@ def build_persona_diagram(persona_name: str, docname: str, hcd_context):
             break
 
     if not persona:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No persona found: '{persona_name}'")
-        return [para]
+        return [empty_result_paragraph(f"No persona found: '{persona_name}'")]
 
     # Check if persona has epics
     epics = get_epics_for_persona(persona, all_epics, all_stories)
     if not epics:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No epics found for persona '{persona_name}'")
-        return [para]
+        return [empty_result_paragraph(f"No epics found for persona '{persona_name}'")]
 
     # Generate PlantUML
     puml_source = generate_persona_plantuml(persona, all_epics, all_stories, all_apps)
@@ -483,9 +467,7 @@ def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="PlantUML extension not available")
-        return [para]
+        return [empty_result_paragraph("PlantUML extension not available")]
 
     all_stories = hcd_context.story_repo.list_all()
     all_epics = hcd_context.epic_repo.list_all()
@@ -496,9 +478,7 @@ def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
     personas = sorted(personas_by_type.get(group_type, []), key=lambda p: p.name)
 
     if not personas:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No {group_type} personas found")
-        return [para]
+        return [empty_result_paragraph(f"No {group_type} personas found")]
 
     # Generate PlantUML
     puml_source = generate_persona_index_plantuml(
@@ -572,9 +552,7 @@ def build_persona_index(docname: str, hcd_context, format: str = "list"):
     all_personas = hcd_context.persona_repo.list_all()
 
     if not all_personas:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No personas defined")
-        return [para]
+        return [empty_result_paragraph("No personas defined")]
 
     sorted_personas = sorted(all_personas, key=lambda p: p.name)
 
@@ -597,9 +575,7 @@ def _build_persona_summary(personas, docname: str, config) -> list[nodes.Node]:
 
     # Link to personas index
     personas_dir = config.get_doc_path("personas")
-    personas_ref = nodes.reference("", "", refuri=f"{_relative_uri(docname, personas_dir + '/index')}")
-    personas_ref += nodes.Text("Personas")
-    para += personas_ref
+    para += make_link(_relative_uri(docname, personas_dir + "/index"), "Personas")
 
     para += nodes.Text(" that interact with Julee Tooling: ")
 
@@ -624,11 +600,9 @@ def _build_persona_list(personas, docname: str, config) -> list[nodes.Node]:
         item = nodes.list_item()
         para = nodes.paragraph()
 
-        # Link to persona
+        # Link to persona with bold text
         ref = _persona_link(persona, docname, config)
-        strong_ref = nodes.reference("", "", refuri=ref["refuri"])
-        strong_ref += nodes.strong(text=persona.name)
-        para += strong_ref
+        para += make_strong_link(ref["refuri"], persona.name)
 
         item += para
 

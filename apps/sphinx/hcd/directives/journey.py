@@ -18,6 +18,13 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    make_link,
+    make_strong_link,
+    problematic_paragraph,
+)
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.use_cases.crud import ListJourneysRequest
 from julee.hcd.utils import (
@@ -242,36 +249,27 @@ class JourneyIndexDirective(HCDDirective):
         if not all_journeys:
             return self.empty_result("No journeys defined")
 
-        bullet_list = nodes.bullet_list()
+        def get_suffix(j: Journey) -> str | None:
+            if j.persona:
+                return f" ({j.persona})"
+            return None
 
-        for journey in sorted(all_journeys, key=lambda j: j.slug):
-            item = nodes.list_item()
-            para = nodes.paragraph()
-
-            # Link to journey
-            journey_path = f"{journey.slug}.html"
-            journey_ref = nodes.reference("", "", refuri=journey_path)
-            journey_ref += nodes.strong(text=journey.slug.replace("-", " ").title())
-            para += journey_ref
-
-            # Persona in parentheses
-            if journey.persona:
-                para += nodes.Text(f" ({journey.persona})")
-
-            item += para
-
-            # Intent as sub-paragraph
-            display_text = journey.intent or journey.goal or ""
+        def get_desc(j: Journey) -> str | None:
+            display_text = j.intent or j.goal or ""
             if display_text:
-                desc_para = nodes.paragraph()
                 if len(display_text) > 100:
                     display_text = display_text[:100] + "..."
-                desc_para += nodes.Text(display_text)
-                item += desc_para
+                return display_text
+            return None
 
-            bullet_list += item
-
-        return [bullet_list]
+        return [
+            entity_bullet_list(
+                sorted(all_journeys, key=lambda j: j.slug),
+                link_fn=lambda j: (f"{j.slug}.html", j.slug.replace("-", " ").title()),
+                suffix_fn=get_suffix,
+                desc_fn=get_desc,
+            )
+        ]
 
 
 class JourneyDependencyGraphDirective(HCDDirective):
@@ -347,9 +345,7 @@ def build_story_node(story_title: str, docname: str, hcd_context):
         # Story link
         story_doc = f"{config.get_doc_path('stories')}/{story.app_slug}"
         story_ref_uri = _build_relative_uri(docname, story_doc, story.slug)
-        story_ref = nodes.reference("", "", refuri=story_ref_uri)
-        story_ref += nodes.Text(story.feature_title)
-        para += story_ref
+        para += make_link(story_ref_uri, story.feature_title)
 
         # App in parentheses
         para += nodes.Text(" (")
@@ -359,9 +355,7 @@ def build_story_node(story_title: str, docname: str, hcd_context):
         app_valid = story.app_normalized in known_apps
 
         if app_valid:
-            app_ref = nodes.reference("", "", refuri=app_path)
-            app_ref += nodes.Text(story.app_slug.replace("-", " ").title())
-            para += app_ref
+            para += make_link(app_path, story.app_slug.replace("-", " ").title())
         else:
             para += nodes.Text(story.app_slug.replace("-", " ").title())
         para += nodes.Text(")")
@@ -380,9 +374,7 @@ def build_epic_node(epic_slug: str, docname: str):
     epic_path = f"{prefix}{config.get_doc_path('epics')}/{epic_slug}.html"
 
     para = nodes.paragraph()
-    epic_ref = nodes.reference("", "", refuri=epic_path)
-    epic_ref += nodes.Text(epic_slug.replace("-", " ").title())
-    para += epic_ref
+    para += make_link(epic_path, epic_slug.replace("-", " ").title())
     para += nodes.Text(" (epic)")
 
     return para
@@ -490,9 +482,7 @@ def make_labelled_list(
             related_slug = item
             related_path = f"{related_slug}.html"
             if related_slug in journey_slugs:
-                ref = nodes.reference("", "", refuri=related_path)
-                ref += nodes.Text(related_slug.replace("-", " ").title())
-                inline += ref
+                inline += make_link(related_path, related_slug.replace("-", " ").title())
             else:
                 inline += nodes.Text(related_slug.replace("-", " ").title())
                 inline += nodes.emphasis(text=" [not found]")
@@ -586,16 +576,12 @@ def build_dependency_graph_node(env, hcd_context):
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="PlantUML extension not available")
-        return para
+        return empty_result_paragraph("PlantUML extension not available")
 
     all_journeys = hcd_context.journey_repo.list_all()
 
     if not all_journeys:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No journeys defined")
-        return para
+        return empty_result_paragraph("No journeys defined")
 
     # Build PlantUML content
     lines = [

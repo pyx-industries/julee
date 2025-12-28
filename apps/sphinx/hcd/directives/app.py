@@ -10,6 +10,14 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from apps.sphinx.shared import path_to_root
+from ..node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    grouped_bullet_lists,
+    link_list_paragraph,
+    metadata_paragraph,
+    problematic_paragraph,
+)
 from julee.hcd.entities.app import App, AppInterface, AppType
 from julee.hcd.use_cases.resolve_app_references import (
     get_epics_for_app,
@@ -159,6 +167,7 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
     """Build the content nodes for an app."""
     from sphinx.addnodes import seealso
 
+    from ..node_builders import make_link
     from ..config import get_config
 
     config = get_config()
@@ -167,9 +176,7 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
     # Get app from repository
     app = hcd_context.app_repo.get(app_slug)
     if not app:
-        para = nodes.paragraph()
-        para += nodes.problematic(text=f"App '{app_slug}' not found in apps/")
-        return [para]
+        return [problematic_paragraph(f"App '{app_slug}' not found in apps/")]
 
     # Get all entities for cross-references
     all_stories = hcd_context.story_repo.list_all()
@@ -181,6 +188,7 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
     # Description first - parse as RST for formatting support
     if app.description:
         from .base import parse_rst_content
+
         desc_nodes = parse_rst_content(app.description, f"<{app.slug}>")
         result_nodes.extend(desc_nodes)
 
@@ -192,74 +200,53 @@ def build_app_content(app_slug: str, docname: str, hcd_context):
         stories_para = nodes.paragraph()
         stories_para += nodes.Text(f"The {app.name} has ")
         story_path = f"{prefix}{config.get_doc_path('stories')}/{app_slug}.html"
-        ref = nodes.reference("", "", refuri=story_path)
-        ref += nodes.Text(f"{story_count} stories")
-        stories_para += ref
+        stories_para += make_link(story_path, f"{story_count} stories")
         stories_para += nodes.Text(".")
         result_nodes.append(stories_para)
 
     # Build seealso box with metadata
     seealso_node = seealso()
 
-    # Type
-    type_para = nodes.paragraph()
-    type_para += nodes.strong(text="Type: ")
-    type_para += nodes.Text(app.type_label)
-    seealso_node += type_para
+    seealso_node += metadata_paragraph("Type", app.type_label)
 
-    # Status (if present)
     if app.status:
-        status_para = nodes.paragraph()
-        status_para += nodes.strong(text="Status: ")
-        status_para += nodes.Text(app.status)
-        seealso_node += status_para
+        seealso_node += metadata_paragraph("Status", app.status)
 
     # Personas (derived from stories)
     personas = get_personas_for_app(app, all_stories, all_epics)
     if personas:
-        persona_para = nodes.paragraph()
-        persona_para += nodes.strong(text="Personas: ")
-        for i, persona in enumerate(personas):
-            persona_slug = slugify(persona.name)
-            persona_path = (
-                f"{prefix}{config.get_doc_path('personas')}/{persona_slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=persona_path)
-            ref += nodes.Text(persona.name)
-            persona_para += ref
-            if i < len(personas) - 1:
-                persona_para += nodes.Text(", ")
-        seealso_node += persona_para
+        seealso_node += link_list_paragraph(
+            "Personas",
+            personas,
+            lambda p: (
+                f"{prefix}{config.get_doc_path('personas')}/{slugify(p.name)}.html",
+                p.name,
+            ),
+        )
 
     # Related Journeys
     journeys = get_journeys_for_app(app, all_stories, all_journeys)
     if journeys:
-        journey_para = nodes.paragraph()
-        journey_para += nodes.strong(text="Journeys: ")
-        for i, journey in enumerate(journeys):
-            journey_path = (
-                f"{prefix}{config.get_doc_path('journeys')}/{journey.slug}.html"
-            )
-            ref = nodes.reference("", "", refuri=journey_path)
-            ref += nodes.Text(journey.slug.replace("-", " ").title())
-            journey_para += ref
-            if i < len(journeys) - 1:
-                journey_para += nodes.Text(", ")
-        seealso_node += journey_para
+        seealso_node += link_list_paragraph(
+            "Journeys",
+            journeys,
+            lambda j: (
+                f"{prefix}{config.get_doc_path('journeys')}/{j.slug}.html",
+                j.slug.replace("-", " ").title(),
+            ),
+        )
 
     # Related Epics
     epics = get_epics_for_app(app, all_stories, all_epics)
     if epics:
-        epic_para = nodes.paragraph()
-        epic_para += nodes.strong(text="Epics: ")
-        for i, epic in enumerate(epics):
-            epic_path = f"{prefix}{config.get_doc_path('epics')}/{epic.slug}.html"
-            ref = nodes.reference("", "", refuri=epic_path)
-            ref += nodes.Text(epic.slug.replace("-", " ").title())
-            epic_para += ref
-            if i < len(epics) - 1:
-                epic_para += nodes.Text(", ")
-        seealso_node += epic_para
+        seealso_node += link_list_paragraph(
+            "Epics",
+            epics,
+            lambda e: (
+                f"{prefix}{config.get_doc_path('epics')}/{e.slug}.html",
+                e.slug.replace("-", " ").title(),
+            ),
+        )
 
     result_nodes.append(seealso_node)
 
@@ -271,16 +258,16 @@ def build_app_index(docname: str, hcd_context):
     all_apps = hcd_context.app_repo.list_all()
 
     if not all_apps:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text="No apps defined")
-        return [para]
+        return [empty_result_paragraph("No apps defined")]
 
     # Group apps by interface
     by_interface: dict[AppInterface, list[App]] = {}
     for app in all_apps:
         by_interface.setdefault(app.interface, []).append(app)
 
-    result_nodes = []
+    # Sort entities within each group
+    for interface in by_interface:
+        by_interface[interface] = sorted(by_interface[interface], key=lambda a: a.name)
 
     # Define interface sections with labels
     interface_sections = [
@@ -292,47 +279,26 @@ def build_app_index(docname: str, hcd_context):
         (AppInterface.UNKNOWN, "Other Applications"),
     ]
 
-    for interface_key, interface_label in interface_sections:
-        apps = by_interface.get(interface_key, [])
-        if not apps:
-            continue
+    def get_suffix(app: App) -> str | None:
+        if app.technology:
+            return f" — {app.technology}"
+        return None
 
-        # Section heading
-        heading = nodes.paragraph()
-        heading += nodes.strong(text=interface_label)
-        result_nodes.append(heading)
+    def get_desc(app: App) -> str | None:
+        if app.description:
+            desc = app.description.split(".")[0] + "."
+            if len(desc) > 80:
+                desc = desc[:77] + "..."
+            return desc
+        return None
 
-        # App list
-        app_list = nodes.bullet_list()
-
-        for app in sorted(apps, key=lambda a: a.name):
-            item = nodes.list_item()
-            para = nodes.paragraph()
-
-            # Link to app
-            app_path = f"{app.slug}.html"
-            ref = nodes.reference("", "", refuri=app_path)
-            ref += nodes.Text(app.name)
-            para += ref
-
-            # Technology tag
-            if app.technology:
-                para += nodes.Text(f" — {app.technology}")
-
-            # Description snippet
-            if app.description:
-                desc = app.description.split(".")[0] + "."
-                if len(desc) > 80:
-                    desc = desc[:77] + "..."
-                para += nodes.Text(" ")
-                para += nodes.emphasis(text=desc)
-
-            item += para
-            app_list += item
-
-        result_nodes.append(app_list)
-
-    return result_nodes
+    return grouped_bullet_lists(
+        by_interface,
+        interface_sections,
+        link_fn=lambda a: (f"{a.slug}.html", a.name),
+        suffix_fn=get_suffix,
+        desc_fn=get_desc,
+    )
 
 
 def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
@@ -363,33 +329,23 @@ def build_apps_for_persona(docname: str, persona_arg: str, hcd_context):
             break
 
     if not persona:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No apps found for persona '{persona_arg}'")
-        return [para]
+        return [empty_result_paragraph(f"No apps found for persona '{persona_arg}'")]
 
     # Get apps for this persona
     matching_apps = get_apps_for_persona(persona, all_apps)
 
     if not matching_apps:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No apps found for persona '{persona_arg}'")
-        return [para]
+        return [empty_result_paragraph(f"No apps found for persona '{persona_arg}'")]
 
-    bullet_list = nodes.bullet_list()
-
-    for app in sorted(matching_apps, key=lambda a: a.name):
-        item = nodes.list_item()
-        para = nodes.paragraph()
-
-        app_path = f"{prefix}{config.get_doc_path('applications')}/{app.slug}.html"
-        ref = nodes.reference("", "", refuri=app_path)
-        ref += nodes.Text(app.name)
-        para += ref
-
-        item += para
-        bullet_list += item
-
-    return [bullet_list]
+    return [
+        entity_bullet_list(
+            sorted(matching_apps, key=lambda a: a.name),
+            link_fn=lambda a: (
+                f"{prefix}{config.get_doc_path('applications')}/{a.slug}.html",
+                a.name,
+            ),
+        )
+    ]
 
 
 def process_app_placeholders(app, doctree, docname):
