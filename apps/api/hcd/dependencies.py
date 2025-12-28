@@ -1,13 +1,20 @@
 """Dependency injection for HCD REST API.
 
-Provides repository instances and use-case factories for FastAPI dependency injection.
-Repositories are configured from environment variables.
+Provides repository instances, handler factories, and use-case factories for
+FastAPI dependency injection. Repositories are configured from environment variables.
+
+Handler factories return null handlers by default. Solution providers can override
+these to inject real handlers for workflow orchestration (see ADR 003).
 """
 
 import os
 from functools import lru_cache
 from pathlib import Path
 
+from julee.hcd.infrastructure.handlers.null_handlers import (
+    NullOrphanStoryHandler,
+    NullStoryCreatedHandler,
+)
 from julee.hcd.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
 )
@@ -70,6 +77,21 @@ def get_docs_root() -> Path:
 
 
 # =============================================================================
+# Handler Factories
+# =============================================================================
+
+
+@lru_cache
+def get_story_created_handler() -> NullStoryCreatedHandler:
+    """Get handler for post-story-creation orchestration.
+
+    Returns null handler by default. Override in solution-specific dependencies
+    to inject handlers that orchestrate follow-up work (see ADR 003).
+    """
+    return NullStoryCreatedHandler()
+
+
+# =============================================================================
 # Repository Factories
 # =============================================================================
 
@@ -122,8 +144,11 @@ def get_accelerator_repository() -> FileAcceleratorRepository:
 
 
 def get_create_story_use_case() -> CreateStoryUseCase:
-    """Get CreateStoryUseCase with repository dependency."""
-    return CreateStoryUseCase(get_story_repository())
+    """Get CreateStoryUseCase with repository and handler dependencies."""
+    return CreateStoryUseCase(
+        get_story_repository(),
+        post_create_handler=get_story_created_handler(),
+    )
 
 
 def get_get_story_use_case() -> GetStoryUseCase:
@@ -137,8 +162,11 @@ def get_list_stories_use_case() -> ListStoriesUseCase:
 
 
 def get_update_story_use_case() -> UpdateStoryUseCase:
-    """Get UpdateStoryUseCase with repository dependency."""
-    return UpdateStoryUseCase(get_story_repository())
+    """Get UpdateStoryUseCase with repository and handler dependencies."""
+    return UpdateStoryUseCase(
+        get_story_repository(),
+        post_update_handler=get_story_created_handler(),
+    )
 
 
 def get_delete_story_use_case() -> DeleteStoryUseCase:
