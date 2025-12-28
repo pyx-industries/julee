@@ -6,7 +6,7 @@ Provides the define-component directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.component import Component
+from julee.c4.use_cases.crud import CreateComponentRequest
 
 from .base import C4Directive
 
@@ -52,8 +52,8 @@ class DefineComponentDirective(C4Directive):
         tags = [t.strip() for t in tags_str.split(",") if t.strip()]
         description = "\n".join(self.content).strip()
 
-        # Create component
-        component = Component(
+        # Create component via use case
+        request = CreateComponentRequest(
             slug=slug,
             name=name,
             container_slug=container_slug,
@@ -66,10 +66,7 @@ class DefineComponentDirective(C4Directive):
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["components"][slug] = component
+        self.c4_context.create_component.execute_sync(request)
 
         # Build output nodes
         result_nodes = []

@@ -6,7 +6,8 @@ Provides the define-relationship directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.relationship import ElementType, Relationship
+from julee.c4.entities.relationship import ElementType
+from julee.c4.use_cases.crud import CreateRelationshipRequest
 
 from .base import C4Directive
 
@@ -76,8 +77,8 @@ class DefineRelationshipDirective(C4Directive):
         # Generate slug
         slug = f"{source_slug}-to-{dest_slug}"
 
-        # Create relationship
-        relationship = Relationship(
+        # Create relationship via use case
+        request = CreateRelationshipRequest(
             slug=slug,
             source_type=source_type,
             source_slug=source_slug,
@@ -89,10 +90,7 @@ class DefineRelationshipDirective(C4Directive):
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["relationships"][slug] = relationship
+        self.c4_context.create_relationship.execute_sync(request)
 
         # If hidden, return empty (just register, no output)
         if hidden:

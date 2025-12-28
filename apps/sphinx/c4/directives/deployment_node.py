@@ -6,11 +6,8 @@ Provides the define-deployment-node directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.deployment_node import (
-    ContainerInstance,
-    DeploymentNode,
-    NodeType,
-)
+from julee.c4.entities.deployment_node import ContainerInstance
+from julee.c4.use_cases.crud import CreateDeploymentNodeRequest
 
 from .base import C4Directive
 
@@ -68,12 +65,12 @@ class DefineDeploymentNodeDirective(C4Directive):
                         )
                     )
 
-        # Create deployment node
-        deployment_node = DeploymentNode(
+        # Create deployment node via use case
+        request = CreateDeploymentNodeRequest(
             slug=slug,
             name=name,
             environment=environment,
-            node_type=NodeType(node_type),
+            node_type=node_type,
             technology=technology,
             parent_slug=parent_slug,
             container_instances=container_instances,
@@ -81,10 +78,7 @@ class DefineDeploymentNodeDirective(C4Directive):
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["deployment_nodes"][slug] = deployment_node
+        self.c4_context.create_deployment_node.execute_sync(request)
 
         # Build output nodes
         result_nodes = []

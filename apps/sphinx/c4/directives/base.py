@@ -1,17 +1,19 @@
 """Base directive for C4 Sphinx directives.
 
-Provides common functionality for accessing C4 repositories and building nodes.
+Provides common functionality for accessing C4 use cases and building nodes.
 """
 
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
+
+from ..context import C4Context, get_c4_context
 
 
 class C4Directive(SphinxDirective):
     """Base directive for C4 elements.
 
     Provides common utilities for building docutils nodes and accessing
-    the C4 repositories from Sphinx environment.
+    C4 use cases via C4Context.
     """
 
     @property
@@ -19,8 +21,15 @@ class C4Directive(SphinxDirective):
         """Get the current document name."""
         return self.env.docname
 
+    @property
+    def c4_context(self) -> C4Context:
+        """Get the C4Context for accessing use cases."""
+        return get_c4_context(self.env.app)
+
     def get_c4_storage(self) -> dict:
         """Get or create C4 storage in Sphinx environment.
+
+        DEPRECATED: Use c4_context and use cases instead.
 
         Returns:
             Dictionary for storing C4 elements during the build

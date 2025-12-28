@@ -10,6 +10,14 @@ Provides directives for listing C4 elements defined via define-* directives:
 
 from docutils import nodes
 
+from julee.c4.use_cases.crud import (
+    ListComponentsRequest,
+    ListContainersRequest,
+    ListDeploymentNodesRequest,
+    ListRelationshipsRequest,
+    ListSoftwareSystemsRequest,
+)
+
 from .base import C4Directive
 
 
@@ -27,8 +35,10 @@ class SoftwareSystemIndexDirective(C4Directive):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        storage = self.get_c4_storage()
-        systems = storage.get("software_systems", {})
+        response = self.c4_context.list_software_systems.execute_sync(
+            ListSoftwareSystemsRequest()
+        )
+        systems = {s.slug: s for s in response.entities}
 
         if not systems:
             return self.empty_result("No software systems defined.")
@@ -75,8 +85,10 @@ class ContainerIndexDirective(C4Directive):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        storage = self.get_c4_storage()
-        containers = storage.get("containers", {})
+        response = self.c4_context.list_containers.execute_sync(
+            ListContainersRequest()
+        )
+        containers = {c.slug: c for c in response.entities}
 
         if not containers:
             return self.empty_result("No containers defined.")
@@ -143,8 +155,10 @@ class ComponentIndexDirective(C4Directive):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        storage = self.get_c4_storage()
-        components = storage.get("components", {})
+        response = self.c4_context.list_components.execute_sync(
+            ListComponentsRequest()
+        )
+        components = {c.slug: c for c in response.entities}
 
         if not components:
             return self.empty_result("No components defined.")
@@ -211,8 +225,10 @@ class RelationshipIndexDirective(C4Directive):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        storage = self.get_c4_storage()
-        relationships = storage.get("relationships", {})
+        response = self.c4_context.list_relationships.execute_sync(
+            ListRelationshipsRequest()
+        )
+        relationships = {r.slug: r for r in response.entities}
 
         if not relationships:
             return self.empty_result("No relationships defined.")
@@ -256,8 +272,10 @@ class DeploymentNodeIndexDirective(C4Directive):
     has_content = False
 
     def run(self) -> list[nodes.Node]:
-        storage = self.get_c4_storage()
-        nodes_dict = storage.get("deployment_nodes", {})
+        response = self.c4_context.list_deployment_nodes.execute_sync(
+            ListDeploymentNodesRequest()
+        )
+        nodes_dict = {n.slug: n for n in response.entities}
 
         if not nodes_dict:
             return self.empty_result("No deployment nodes defined.")

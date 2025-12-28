@@ -9,6 +9,11 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from julee.c4.serializers.plantuml import PlantUMLSerializer
+from julee.c4.use_cases.diagrams.component_diagram import GetComponentDiagramRequest
+from julee.c4.use_cases.diagrams.container_diagram import GetContainerDiagramRequest
+from julee.c4.use_cases.diagrams.deployment_diagram import GetDeploymentDiagramRequest
+from julee.c4.use_cases.diagrams.dynamic_diagram import GetDynamicDiagramRequest
+from julee.c4.use_cases.diagrams.system_landscape import GetSystemLandscapeDiagramRequest
 
 from .base import C4Directive
 
@@ -100,58 +105,17 @@ class ContainerDiagramDirective(DiagramDirective):
         system_slug = self.arguments[0]
         title = self.options.get("title", f"Containers: {system_slug}")
 
-        storage = self.get_c4_storage()
-        system = storage["software_systems"].get(system_slug)
-
-        if not system:
-            return self.empty_result(f"Software system '{system_slug}' not found")
-
-        # Gather containers for this system
-        containers = [
-            c for c in storage["containers"].values() if c.system_slug == system_slug
-        ]
-
-        # Gather relationships
-        container_slugs = {c.slug for c in containers}
-        relationships = []
-        external_systems = []
-        person_slugs = []
-
-        for rel in storage["relationships"].values():
-            if (
-                rel.source_slug in container_slugs
-                or rel.destination_slug in container_slugs
-            ):
-                relationships.append(rel)
-
-                for el_type, el_slug in [
-                    (rel.source_type, rel.source_slug),
-                    (rel.destination_type, rel.destination_slug),
-                ]:
-                    if el_slug in container_slugs:
-                        continue
-                    if el_type.value == "software_system":
-                        ext_sys = storage["software_systems"].get(el_slug)
-                        if ext_sys and ext_sys not in external_systems:
-                            external_systems.append(ext_sys)
-                    elif el_type.value == "person":
-                        if el_slug not in person_slugs:
-                            person_slugs.append(el_slug)
-
-        # Build diagram data
-        from julee.c4.entities.diagrams import ContainerDiagram
-
-        data = ContainerDiagram(
-            system=system,
-            containers=containers,
-            external_systems=external_systems,
-            person_slugs=person_slugs,
-            relationships=relationships,
+        # Get diagram data via use case
+        response = self.c4_context.get_container_diagram.execute_sync(
+            GetContainerDiagramRequest(system_slug=system_slug)
         )
+
+        if not response.diagram:
+            return self.empty_result(f"Software system '{system_slug}' not found")
 
         # Generate PlantUML
         serializer = self.get_serializer()
-        puml = serializer.serialize_container_diagram(data, title)
+        puml = serializer.serialize_container_diagram(response.diagram, title)
 
         result_nodes = []
         result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
@@ -176,71 +140,17 @@ class ComponentDiagramDirective(DiagramDirective):
         container_slug = self.arguments[0]
         title = self.options.get("title", f"Components: {container_slug}")
 
-        storage = self.get_c4_storage()
-        container = storage["containers"].get(container_slug)
-
-        if not container:
-            return self.empty_result(f"Container '{container_slug}' not found")
-
-        system = storage["software_systems"].get(container.system_slug)
-        if not system:
-            return self.empty_result(f"System '{container.system_slug}' not found")
-
-        # Gather components for this container
-        components = [
-            c
-            for c in storage["components"].values()
-            if c.container_slug == container_slug
-        ]
-
-        # Gather relationships
-        component_slugs = {c.slug for c in components}
-        relationships = []
-        external_containers = []
-        external_systems = []
-        person_slugs = []
-
-        for rel in storage["relationships"].values():
-            if (
-                rel.source_slug in component_slugs
-                or rel.destination_slug in component_slugs
-            ):
-                relationships.append(rel)
-
-                for el_type, el_slug in [
-                    (rel.source_type, rel.source_slug),
-                    (rel.destination_type, rel.destination_slug),
-                ]:
-                    if el_slug in component_slugs:
-                        continue
-                    if el_type.value == "container":
-                        ext_cont = storage["containers"].get(el_slug)
-                        if ext_cont and ext_cont not in external_containers:
-                            external_containers.append(ext_cont)
-                    elif el_type.value == "software_system":
-                        ext_sys = storage["software_systems"].get(el_slug)
-                        if ext_sys and ext_sys not in external_systems:
-                            external_systems.append(ext_sys)
-                    elif el_type.value == "person":
-                        if el_slug not in person_slugs:
-                            person_slugs.append(el_slug)
-
-        # Build diagram data
-        from julee.c4.entities.diagrams import ComponentDiagram
-
-        data = ComponentDiagram(
-            system=system,
-            container=container,
-            components=components,
-            external_containers=external_containers,
-            external_systems=external_systems,
-            person_slugs=person_slugs,
-            relationships=relationships,
+        # Get diagram data via use case
+        response = self.c4_context.get_component_diagram.execute_sync(
+            GetComponentDiagramRequest(container_slug=container_slug)
         )
+
+        if not response.diagram:
+            return self.empty_result(f"Container '{container_slug}' not found")
 
         # Generate PlantUML
         serializer = self.get_serializer()
-        puml = serializer.serialize_component_diagram(data, title)
+        puml = serializer.serialize_component_diagram(response.diagram, title)
 
         result_nodes = []
         result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
@@ -263,48 +173,17 @@ class SystemLandscapeDiagramDirective(DiagramDirective):
     def run(self) -> list[nodes.Node]:
         title = self.options.get("title", "System Landscape")
 
-        storage = self.get_c4_storage()
-        systems = list(storage["software_systems"].values())
-
-        if not systems:
-            return self.empty_result("No software systems defined")
-
-        # Gather person relationships and cross-system relationships
-        relationships = []
-        person_slugs = []
-
-        for rel in storage["relationships"].values():
-            is_system_rel = (
-                rel.source_type.value == "software_system"
-                or rel.destination_type.value == "software_system"
-            )
-            is_person_rel = (
-                rel.source_type.value == "person"
-                or rel.destination_type.value == "person"
-            )
-
-            if is_system_rel or is_person_rel:
-                relationships.append(rel)
-
-            if rel.source_type.value == "person":
-                if rel.source_slug not in person_slugs:
-                    person_slugs.append(rel.source_slug)
-            if rel.destination_type.value == "person":
-                if rel.destination_slug not in person_slugs:
-                    person_slugs.append(rel.destination_slug)
-
-        # Build diagram data
-        from julee.c4.entities.diagrams import SystemLandscapeDiagram
-
-        data = SystemLandscapeDiagram(
-            systems=systems,
-            person_slugs=person_slugs,
-            relationships=relationships,
+        # Get diagram data via use case
+        response = self.c4_context.get_system_landscape_diagram.execute_sync(
+            GetSystemLandscapeDiagramRequest()
         )
+
+        if not response.diagram or not response.diagram.systems:
+            return self.empty_result("No software systems defined")
 
         # Generate PlantUML
         serializer = self.get_serializer()
-        puml = serializer.serialize_system_landscape(data, title)
+        puml = serializer.serialize_system_landscape(response.diagram, title)
 
         result_nodes = []
         result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
@@ -329,52 +208,19 @@ class DeploymentDiagramDirective(DiagramDirective):
         environment = self.arguments[0]
         title = self.options.get("title", f"Deployment: {environment}")
 
-        storage = self.get_c4_storage()
-        deployment_nodes = storage.get("deployment_nodes", {})
+        # Get diagram data via use case
+        response = self.c4_context.get_deployment_diagram.execute_sync(
+            GetDeploymentDiagramRequest(environment=environment)
+        )
 
-        # Filter nodes by environment
-        nodes_in_env = [
-            n for n in deployment_nodes.values() if n.environment == environment
-        ]
-
-        if not nodes_in_env:
+        if not response.diagram or not response.diagram.nodes:
             return self.empty_result(
                 f"No deployment nodes for environment '{environment}'"
             )
 
-        # Gather container instances
-        container_slugs = set()
-        for node in nodes_in_env:
-            for instance in node.container_instances:
-                container_slugs.add(instance.container_slug)
-
-        containers = [
-            storage["containers"].get(slug)
-            for slug in container_slugs
-            if storage["containers"].get(slug)
-        ]
-
-        # Gather relationships between deployed containers
-        relationships = [
-            rel
-            for rel in storage["relationships"].values()
-            if rel.source_slug in container_slugs
-            or rel.destination_slug in container_slugs
-        ]
-
-        # Build diagram data
-        from julee.c4.entities.diagrams import DeploymentDiagram
-
-        data = DeploymentDiagram(
-            environment=environment,
-            nodes=nodes_in_env,
-            containers=containers,
-            relationships=relationships,
-        )
-
         # Generate PlantUML
         serializer = self.get_serializer()
-        puml = serializer.serialize_deployment_diagram(data, title)
+        puml = serializer.serialize_deployment_diagram(response.diagram, title)
 
         result_nodes = []
         result_nodes.append(self.make_plantuml_node(puml, self.env.docname))
@@ -399,70 +245,17 @@ class DynamicDiagramDirective(DiagramDirective):
         sequence_name = self.arguments[0]
         title = self.options.get("title", f"Dynamic: {sequence_name}")
 
-        storage = self.get_c4_storage()
-        dynamic_steps = storage.get("dynamic_steps", {})
-
-        # Filter steps by sequence name and sort by step number
-        steps = sorted(
-            [s for s in dynamic_steps.values() if s.sequence_name == sequence_name],
-            key=lambda s: s.step_number,
+        # Get diagram data via use case
+        response = self.c4_context.get_dynamic_diagram.execute_sync(
+            GetDynamicDiagramRequest(sequence_name=sequence_name)
         )
 
-        if not steps:
+        if not response.diagram or not response.diagram.steps:
             return self.empty_result(f"No dynamic steps for sequence '{sequence_name}'")
-
-        # Gather participating elements
-        system_slugs = set()
-        container_slugs = set()
-        component_slugs = set()
-        person_slugs = []
-
-        for step in steps:
-            for el_type, el_slug in [
-                (step.source_type, step.source_slug),
-                (step.destination_type, step.destination_slug),
-            ]:
-                if el_type.value == "software_system":
-                    system_slugs.add(el_slug)
-                elif el_type.value == "container":
-                    container_slugs.add(el_slug)
-                elif el_type.value == "component":
-                    component_slugs.add(el_slug)
-                elif el_type.value == "person":
-                    if el_slug not in person_slugs:
-                        person_slugs.append(el_slug)
-
-        systems = [
-            storage["software_systems"].get(slug)
-            for slug in system_slugs
-            if storage["software_systems"].get(slug)
-        ]
-        containers = [
-            storage["containers"].get(slug)
-            for slug in container_slugs
-            if storage["containers"].get(slug)
-        ]
-        components = [
-            storage["components"].get(slug)
-            for slug in component_slugs
-            if storage["components"].get(slug)
-        ]
-
-        # Build diagram data
-        from julee.c4.entities.diagrams import DynamicDiagram
-
-        data = DynamicDiagram(
-            sequence_name=sequence_name,
-            steps=steps,
-            systems=systems,
-            containers=containers,
-            components=components,
-            person_slugs=person_slugs,
-        )
 
         # Generate PlantUML
         serializer = self.get_serializer()
-        puml = serializer.serialize_dynamic_diagram(data, title)
+        puml = serializer.serialize_dynamic_diagram(response.diagram, title)
 
         result_nodes = []
         result_nodes.append(self.make_plantuml_node(puml, self.env.docname))

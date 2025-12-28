@@ -6,7 +6,7 @@ Provides the define-software-system directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.software_system import SoftwareSystem, SystemType
+from julee.c4.use_cases.crud import CreateSoftwareSystemRequest
 
 from .base import C4Directive
 
@@ -49,22 +49,19 @@ class DefineSoftwareSystemDirective(C4Directive):
         description = "\n".join(self.content).strip()
         hidden = "hidden" in self.options
 
-        # Create software system
-        software_system = SoftwareSystem(
+        # Create software system via use case
+        request = CreateSoftwareSystemRequest(
             slug=slug,
             name=name,
             description=description,
-            system_type=SystemType(system_type),
+            system_type=system_type,
             owner=owner,
             technology=technology,
             url=url,
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["software_systems"][slug] = software_system
+        self.c4_context.create_software_system.execute_sync(request)
 
         # If hidden, return empty (just register, no output)
         if hidden:

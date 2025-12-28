@@ -6,7 +6,7 @@ Provides the define-container directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.container import Container, ContainerType
+from julee.c4.use_cases.crud import CreateContainerRequest
 
 from .base import C4Directive
 
@@ -47,22 +47,19 @@ class DefineContainerDirective(C4Directive):
         tags = [t.strip() for t in tags_str.split(",") if t.strip()]
         description = "\n".join(self.content).strip()
 
-        # Create container
-        container = Container(
+        # Create container via use case
+        request = CreateContainerRequest(
             slug=slug,
             name=name,
             system_slug=system_slug,
             description=description,
-            container_type=ContainerType(container_type),
+            container_type=container_type,
             technology=technology,
             url=url,
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["containers"][slug] = container
+        self.c4_context.create_container.execute_sync(request)
 
         # Build output nodes
         result_nodes = []

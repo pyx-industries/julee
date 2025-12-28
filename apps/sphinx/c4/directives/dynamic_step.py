@@ -6,8 +6,8 @@ Provides the define-dynamic-step directive.
 from docutils import nodes
 from docutils.parsers.rst import directives
 
-from julee.c4.entities.dynamic_step import DynamicStep
 from julee.c4.entities.relationship import ElementType
+from julee.c4.use_cases.crud import CreateDynamicStepRequest
 
 from .base import C4Directive
 
@@ -83,8 +83,8 @@ class DefineDynamicStepDirective(C4Directive):
         # Generate slug
         slug = f"{sequence_name}-step-{step_number}"
 
-        # Create dynamic step
-        dynamic_step = DynamicStep(
+        # Create dynamic step via use case
+        request = CreateDynamicStepRequest(
             slug=slug,
             sequence_name=sequence_name,
             step_number=step_number,
@@ -99,10 +99,7 @@ class DefineDynamicStepDirective(C4Directive):
             tags=tags,
             docname=self.docname,
         )
-
-        # Store in environment
-        storage = self.get_c4_storage()
-        storage["dynamic_steps"][slug] = dynamic_step
+        self.c4_context.create_dynamic_step.execute_sync(request)
 
         # Build output nodes - minimal inline display
         result_nodes = []
