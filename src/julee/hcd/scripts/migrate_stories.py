@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 from ..parsers.gherkin import scan_feature_directory
-from ..templates import render_entity
+from ..templates.rendering import render_entity
 
 logger = logging.getLogger(__name__)
 
