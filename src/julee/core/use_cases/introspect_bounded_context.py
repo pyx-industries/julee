@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from julee.core.decorators import use_case
 from julee.core.entities.code_info import BoundedContextInfo
-from julee.core.services.code_introspection import CodeIntrospectionService
+from julee.core.repositories.julee_code import JuleeCodeRepository
 
 
 class IntrospectBoundedContextRequest(BaseModel):
@@ -36,13 +36,13 @@ class IntrospectBoundedContextUseCase:
     discovered in the bounded context's source directories.
     """
 
-    def __init__(self, introspection_service: CodeIntrospectionService) -> None:
-        """Initialize with introspection service.
+    def __init__(self, code_repository: JuleeCodeRepository) -> None:
+        """Initialize with code repository.
 
         Args:
-            introspection_service: Service for parsing code structure
+            code_repository: Repository for accessing code structure
         """
-        self._service = introspection_service
+        self._repo = code_repository
 
     async def execute(
         self, request: IntrospectBoundedContextRequest
@@ -55,7 +55,7 @@ class IntrospectBoundedContextUseCase:
         Returns:
             Response containing bounded context info
         """
-        info = self._service.get_bounded_context(request.context_path)
+        info = self._repo.get_bounded_context(request.context_path)
         return IntrospectBoundedContextResponse(
             info=info,
             found=info is not None,
@@ -85,13 +85,13 @@ class ListBoundedContextsUseCase:
     and returns their code structure.
     """
 
-    def __init__(self, introspection_service: CodeIntrospectionService) -> None:
-        """Initialize with introspection service.
+    def __init__(self, code_repository: JuleeCodeRepository) -> None:
+        """Initialize with code repository.
 
         Args:
-            introspection_service: Service for parsing code structure
+            code_repository: Repository for accessing code structure
         """
-        self._service = introspection_service
+        self._repo = code_repository
 
     async def execute(
         self, request: ListBoundedContextsRequest
@@ -104,7 +104,7 @@ class ListBoundedContextsUseCase:
         Returns:
             Response containing discovered bounded contexts
         """
-        contexts = self._service.list_bounded_contexts(request.src_dir)
+        contexts = self._repo.list_bounded_contexts(request.src_dir)
         return ListBoundedContextsResponse(
             contexts=contexts,
             count=len(contexts),

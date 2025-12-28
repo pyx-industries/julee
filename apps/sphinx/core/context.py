@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from julee.core.entities.code_info import BoundedContextInfo
-from julee.core.infrastructure.services.code_introspection import (
-    AstCodeIntrospectionService,
+from julee.core.infrastructure.repositories.ast.julee_code import (
+    AstJuleeCodeRepository,
 )
-from julee.core.services.code_introspection import CodeIntrospectionService
+from julee.core.repositories.julee_code import JuleeCodeRepository
 from julee.core.use_cases.introspect_bounded_context import (
     IntrospectBoundedContextRequest,
     IntrospectBoundedContextUseCase,
@@ -28,11 +28,11 @@ if TYPE_CHECKING:
 class CoreContext:
     """Context for core documentation directives.
 
-    Holds the introspection service and provides synchronous access to
+    Holds the code repository and provides synchronous access to
     bounded context information.
     """
 
-    service: CodeIntrospectionService
+    repository: JuleeCodeRepository
     src_root: Path
 
     def get_bounded_context(self, module_path: str) -> BoundedContextInfo | None:
@@ -45,7 +45,7 @@ class CoreContext:
             BoundedContextInfo if found, None otherwise
         """
         context_path = self._resolve_path(module_path)
-        use_case = IntrospectBoundedContextUseCase(self.service)
+        use_case = IntrospectBoundedContextUseCase(self.repository)
         request = IntrospectBoundedContextRequest(context_path=context_path)
 
         import asyncio
@@ -62,7 +62,7 @@ class CoreContext:
         Returns:
             List of BoundedContextInfo for discovered contexts
         """
-        use_case = ListBoundedContextsUseCase(self.service)
+        use_case = ListBoundedContextsUseCase(self.repository)
         request = ListBoundedContextsRequest(src_dir=self.src_root / "src" / "julee")
 
         import asyncio
@@ -114,6 +114,6 @@ def initialize_core_context(app: "Sphinx") -> None:
         app: Sphinx application
     """
     src_root = Path(app.srcdir).parent
-    service = AstCodeIntrospectionService()
-    context = CoreContext(service=service, src_root=src_root)
+    repository = AstJuleeCodeRepository()
+    context = CoreContext(repository=repository, src_root=src_root)
     set_core_context(app, context)
