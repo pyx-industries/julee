@@ -13,9 +13,20 @@ from functools import lru_cache
 from pathlib import Path
 
 from julee.hcd.infrastructure.handlers.null_handlers import (
+    LoggingEmptyEpicHandler,
+    LoggingEmptyJourneyHandler,
     LoggingOrphanStoryHandler,
+    LoggingUnknownJourneyEpicRefHandler,
+    LoggingUnknownJourneyPersonaHandler,
+    LoggingUnknownJourneyStoryRefHandler,
     LoggingUnknownPersonaHandler,
-    NullStoryCreatedHandler,
+    LoggingUnknownStoryRefHandler,
+)
+from julee.hcd.infrastructure.handlers.epic_orchestration import (
+    EpicOrchestrationHandler,
+)
+from julee.hcd.infrastructure.handlers.journey_orchestration import (
+    JourneyOrchestrationHandler,
 )
 from julee.hcd.infrastructure.handlers.story_orchestration import (
     StoryOrchestrationHandler,
@@ -23,6 +34,8 @@ from julee.hcd.infrastructure.handlers.story_orchestration import (
 from julee.hcd.infrastructure.repositories.memory.persona import (
     MemoryPersonaRepository,
 )
+from julee.hcd.services.epic_handlers import EpicCreatedHandler
+from julee.hcd.services.journey_handlers import JourneyCreatedHandler
 from julee.hcd.services.story_handlers import StoryCreatedHandler
 from julee.hcd.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
@@ -152,6 +165,94 @@ def get_story_created_handler() -> StoryCreatedHandler:
     return get_story_orchestration_handler()
 
 
+# -----------------------------------------------------------------------------
+# Epic Handlers
+# -----------------------------------------------------------------------------
+
+
+@lru_cache
+def get_empty_epic_handler() -> LoggingEmptyEpicHandler:
+    """Get fine-grained handler for empty epic conditions."""
+    return LoggingEmptyEpicHandler()
+
+
+@lru_cache
+def get_unknown_story_ref_handler() -> LoggingUnknownStoryRefHandler:
+    """Get fine-grained handler for unknown story ref conditions."""
+    return LoggingUnknownStoryRefHandler()
+
+
+def get_epic_orchestration_handler() -> EpicOrchestrationHandler:
+    """Get coarse-grained handler for epic orchestration."""
+    from julee.hcd.use_cases.epic_orchestration import EpicOrchestrationUseCase
+
+    orchestration_use_case = EpicOrchestrationUseCase(
+        story_repo=get_story_repository(),
+    )
+    return EpicOrchestrationHandler(
+        orchestration_use_case=orchestration_use_case,
+        empty_epic_handler=get_empty_epic_handler(),
+        unknown_story_ref_handler=get_unknown_story_ref_handler(),
+    )
+
+
+def get_epic_created_handler() -> EpicCreatedHandler:
+    """Get handler for post-epic-creation orchestration."""
+    return get_epic_orchestration_handler()
+
+
+# -----------------------------------------------------------------------------
+# Journey Handlers
+# -----------------------------------------------------------------------------
+
+
+@lru_cache
+def get_unknown_journey_persona_handler() -> LoggingUnknownJourneyPersonaHandler:
+    """Get fine-grained handler for unknown journey persona conditions."""
+    return LoggingUnknownJourneyPersonaHandler()
+
+
+@lru_cache
+def get_unknown_journey_story_ref_handler() -> LoggingUnknownJourneyStoryRefHandler:
+    """Get fine-grained handler for unknown journey story ref conditions."""
+    return LoggingUnknownJourneyStoryRefHandler()
+
+
+@lru_cache
+def get_unknown_journey_epic_ref_handler() -> LoggingUnknownJourneyEpicRefHandler:
+    """Get fine-grained handler for unknown journey epic ref conditions."""
+    return LoggingUnknownJourneyEpicRefHandler()
+
+
+@lru_cache
+def get_empty_journey_handler() -> LoggingEmptyJourneyHandler:
+    """Get fine-grained handler for empty journey conditions."""
+    return LoggingEmptyJourneyHandler()
+
+
+def get_journey_orchestration_handler() -> JourneyOrchestrationHandler:
+    """Get coarse-grained handler for journey orchestration."""
+    from julee.hcd.use_cases.journey_orchestration import JourneyOrchestrationUseCase
+
+    orchestration_use_case = JourneyOrchestrationUseCase(
+        persona_repo=get_persona_repository(),
+        story_repo=get_story_repository(),
+        epic_repo=get_epic_repository(),
+    )
+    return JourneyOrchestrationHandler(
+        orchestration_use_case=orchestration_use_case,
+        unknown_persona_handler=get_unknown_journey_persona_handler(),
+        unknown_story_ref_handler=get_unknown_journey_story_ref_handler(),
+        unknown_epic_ref_handler=get_unknown_journey_epic_ref_handler(),
+        empty_journey_handler=get_empty_journey_handler(),
+    )
+
+
+def get_journey_created_handler() -> JourneyCreatedHandler:
+    """Get handler for post-journey-creation orchestration."""
+    return get_journey_orchestration_handler()
+
+
 # =============================================================================
 # Repository Factories
 # =============================================================================
@@ -241,8 +342,11 @@ def get_delete_story_use_case() -> DeleteStoryUseCase:
 
 
 def get_create_epic_use_case() -> CreateEpicUseCase:
-    """Get CreateEpicUseCase with repository dependency."""
-    return CreateEpicUseCase(get_epic_repository())
+    """Get CreateEpicUseCase with repository and handler dependencies."""
+    return CreateEpicUseCase(
+        get_epic_repository(),
+        post_create_handler=get_epic_created_handler(),
+    )
 
 
 def get_get_epic_use_case() -> GetEpicUseCase:
@@ -256,8 +360,11 @@ def get_list_epics_use_case() -> ListEpicsUseCase:
 
 
 def get_update_epic_use_case() -> UpdateEpicUseCase:
-    """Get UpdateEpicUseCase with repository dependency."""
-    return UpdateEpicUseCase(get_epic_repository())
+    """Get UpdateEpicUseCase with repository and handler dependencies."""
+    return UpdateEpicUseCase(
+        get_epic_repository(),
+        post_update_handler=get_epic_created_handler(),
+    )
 
 
 def get_delete_epic_use_case() -> DeleteEpicUseCase:
@@ -271,8 +378,11 @@ def get_delete_epic_use_case() -> DeleteEpicUseCase:
 
 
 def get_create_journey_use_case() -> CreateJourneyUseCase:
-    """Get CreateJourneyUseCase with repository dependency."""
-    return CreateJourneyUseCase(get_journey_repository())
+    """Get CreateJourneyUseCase with repository and handler dependencies."""
+    return CreateJourneyUseCase(
+        get_journey_repository(),
+        post_create_handler=get_journey_created_handler(),
+    )
 
 
 def get_get_journey_use_case() -> GetJourneyUseCase:
@@ -286,8 +396,11 @@ def get_list_journeys_use_case() -> ListJourneysUseCase:
 
 
 def get_update_journey_use_case() -> UpdateJourneyUseCase:
-    """Get UpdateJourneyUseCase with repository dependency."""
-    return UpdateJourneyUseCase(get_journey_repository())
+    """Get UpdateJourneyUseCase with repository and handler dependencies."""
+    return UpdateJourneyUseCase(
+        get_journey_repository(),
+        post_update_handler=get_journey_created_handler(),
+    )
 
 
 def get_delete_journey_use_case() -> DeleteJourneyUseCase:
