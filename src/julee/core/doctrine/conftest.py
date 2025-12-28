@@ -1,5 +1,16 @@
-"""Shared fixtures for doctrine tests."""
+"""Shared fixtures for doctrine tests.
 
+Doctrine tests introspect a target codebase. By default, this is the julee
+framework itself. To verify an external solution, set JULEE_TARGET:
+
+    JULEE_TARGET=/path/to/solution pytest src/julee/core/doctrine/
+
+Or use julee-admin:
+
+    julee-admin doctrine verify --target /path/to/solution
+"""
+
+import os
 from pathlib import Path
 
 import pytest
@@ -24,12 +35,34 @@ from julee.core.infrastructure.repositories.introspection.solution import (
     FilesystemSolutionRepository,
 )
 
-# Project root - find by looking for pyproject.toml
-PROJECT_ROOT = Path(__file__).parent
-while PROJECT_ROOT.parent != PROJECT_ROOT:
-    if (PROJECT_ROOT / "pyproject.toml").exists():
-        break
-    PROJECT_ROOT = PROJECT_ROOT.parent
+
+def _find_project_root() -> Path:
+    """Find project root, respecting JULEE_TARGET environment variable.
+
+    Priority:
+    1. JULEE_TARGET env var (explicit target)
+    2. Walk up from this file to find pyproject.toml (default: julee itself)
+    """
+    # Check for explicit target override
+    target = os.environ.get("JULEE_TARGET")
+    if target:
+        target_path = Path(target)
+        if not target_path.exists():
+            raise ValueError(f"JULEE_TARGET does not exist: {target}")
+        return target_path
+
+    # Default: walk up from this file looking for pyproject.toml
+    project_root = Path(__file__).parent
+    while project_root.parent != project_root:
+        if (project_root / "pyproject.toml").exists():
+            return project_root
+        project_root = project_root.parent
+
+    # Fallback to current directory
+    return Path.cwd()
+
+
+PROJECT_ROOT = _find_project_root()
 
 
 @pytest.fixture(scope="session")

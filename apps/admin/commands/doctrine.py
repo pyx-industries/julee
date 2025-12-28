@@ -429,8 +429,18 @@ def list_doctrine_areas(scope: str) -> None:
     help="Doctrine scope: core (framework), apps (app instance), or all",
 )
 @click.option("--app", "app_filter", help="Filter to specific app (for apps scope)")
+@click.option(
+    "--target",
+    "-t",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True),
+    help="Target directory to verify (default: current project)",
+)
 def verify_doctrine(
-    verbose: bool, area: str | None, scope: str, app_filter: str | None
+    verbose: bool,
+    area: str | None,
+    scope: str,
+    app_filter: str | None,
+    target: str | None,
 ) -> None:
     """Verify codebase compliance with architectural doctrine.
 
@@ -442,9 +452,20 @@ def verify_doctrine(
     - core: Framework doctrine only
     - apps: App instance doctrine only
     - all: Both (default)
+
+    Use --target to verify an external solution:
+
+        julee-admin doctrine verify --target /path/to/solution
     """
+    import os
+
     from apps.admin.commands.doctrine_plugin import run_doctrine_verification
     from apps.admin.templates import render_doctrine_verify
+
+    # Set JULEE_TARGET environment variable if target specified
+    if target:
+        os.environ["JULEE_TARGET"] = target
+        click.echo(f"Target: {target}\n")
 
     all_results: dict = {}
     final_exit_code = 0

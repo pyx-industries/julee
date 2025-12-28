@@ -15,6 +15,7 @@ from apps.admin.commands.artifacts import (
 )
 from apps.admin.commands.contexts import contexts_group
 from apps.admin.commands.doctrine import doctrine_group
+from apps.admin.commands.policy import policy_group
 from apps.admin.commands.routes import routes_group
 from apps.admin.commands.solution import (
     apps_group,
@@ -46,6 +47,7 @@ cli.add_command(requests_group)
 cli.add_command(responses_group)
 cli.add_command(routes_group)
 cli.add_command(doctrine_group)
+cli.add_command(policy_group)
 
 
 def main() -> None:

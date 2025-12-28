@@ -4,7 +4,6 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 
 A Solution is the top-level container for a julee-based project:
-- Solution MUST have Documentation (docs/)
 - Solution MAY contain one or more Bounded Contexts
 - Solution MAY contain one or more Applications
 - Solution MAY contain one or more Deployments
@@ -12,18 +11,17 @@ A Solution is the top-level container for a julee-based project:
 
 The canonical structure is:
     {solution}/
-    ├── docs/                # Documentation (REQUIRED)
-    │   ├── conf.py          # Sphinx configuration
-    │   ├── Makefile         # Build with 'make html'
-    │   └── index.rst        # Entry point
     ├── src/{solution}/      # Bounded contexts live here
     │   ├── {bc}/            # Bounded context directories
     │   └── {nested}/        # Optional nested solution(s)
     │       └── {bc}/        # Bounded contexts in nested solution
-    ├── apps/                # Applications live here
+    ├── apps/                # Applications live here (optional)
     │   └── {app}/           # Application directories
-    └── deployments/         # Deployments live here
+    └── deployments/         # Deployments live here (optional)
         └── {env}/           # Environment directories
+
+Note: Documentation requirements (Sphinx) are a POLICY, not doctrine.
+See julee.core.policies.sphinx_documentation for the policy.
 """
 
 import pytest
@@ -278,75 +276,3 @@ class TestSolutionLookup:
                 assert found.slug == app.slug
 
 
-# =============================================================================
-# DOCTRINE: Solution Documentation Requirements
-# =============================================================================
-
-
-class TestSolutionDocumentation:
-    """Doctrine about solution documentation.
-
-    Every julee solution MUST have documentation. Documentation is required,
-    not optional, because a solution without documentation is not a complete
-    deliverable.
-    """
-
-    @pytest.mark.asyncio
-    async def test_solution_MUST_have_documentation(
-        self, solution_repo: FilesystemSolutionRepository
-    ) -> None:
-        """A solution MUST have a docs/ directory."""
-        solution = await solution_repo.get()
-
-        assert (
-            solution.documentation is not None
-        ), "Solution MUST have documentation (docs/ directory)"
-
-    @pytest.mark.asyncio
-    async def test_documentation_MUST_have_sphinx_conf_py(
-        self, solution_repo: FilesystemSolutionRepository
-    ) -> None:
-        """The docs/ directory MUST have a valid Sphinx conf.py."""
-        solution = await solution_repo.get()
-
-        assert solution.documentation is not None, "Solution MUST have documentation"
-        assert (
-            solution.documentation.markers.has_conf_py
-        ), "docs/ MUST have conf.py (Sphinx configuration)"
-
-    @pytest.mark.asyncio
-    async def test_documentation_MUST_have_makefile(
-        self, solution_repo: FilesystemSolutionRepository
-    ) -> None:
-        """The docs/ directory MUST have a Makefile."""
-        solution = await solution_repo.get()
-
-        assert solution.documentation is not None, "Solution MUST have documentation"
-        assert solution.documentation.markers.has_makefile, "docs/ MUST have Makefile"
-
-    @pytest.mark.asyncio
-    async def test_documentation_MUST_support_make_html(
-        self, solution_repo: FilesystemSolutionRepository
-    ) -> None:
-        """The docs/Makefile MUST have an 'html' target."""
-        solution = await solution_repo.get()
-
-        assert solution.documentation is not None, "Solution MUST have documentation"
-        assert (
-            solution.documentation.markers.has_make_html_target
-        ), "docs/Makefile MUST have 'html' target (build with 'make html')"
-
-    @pytest.mark.asyncio
-    async def test_documentation_MUST_be_buildable(
-        self, solution_repo: FilesystemSolutionRepository
-    ) -> None:
-        """Documentation MUST be buildable with 'make html'.
-
-        This is the combined check: Makefile exists AND has html target.
-        """
-        solution = await solution_repo.get()
-
-        assert solution.documentation is not None, "Solution MUST have documentation"
-        assert (
-            solution.documentation.is_buildable
-        ), "Documentation MUST be buildable (Makefile with 'html' target)"

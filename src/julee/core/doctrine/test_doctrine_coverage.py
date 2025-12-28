@@ -17,12 +17,14 @@ DOCTRINE_DIR = Path(__file__).parent
 # - Generic base classes (e.g., ClassInfo is superseded by specific types)
 # - Infrastructure models (e.g., EvaluationResult is for semantic evaluation)
 # - Tested via consolidated doctrine tests (e.g., pipeline routing models)
+# - Tested via policies (e.g., Policy is verified in policies/, not doctrine/)
 SUPPORTING_MODELS = {
     "acknowledgement",  # Handler response type - infrastructure for workflow orchestration
     "code_info",  # Contains FieldInfo, MethodInfo, BoundedContextInfo - supporting models
     "content_stream",  # Pydantic IO stream wrapper - infrastructure utility
-    "documentation",  # Tested via test_solution.py::TestSolutionDocumentation
+    "documentation",  # Tested via sphinx-documentation policy
     "evaluation",  # Contains EvaluationResult - infrastructure for semantic evaluation
+    "policy",  # Policy entity - tested via policies/ infrastructure, not doctrine
     # Pipeline routing models are tested via test_route_doctrine.py in tests/domain/models/
     "pipeline_dispatch",
     "pipeline_route",
@@ -31,10 +33,9 @@ SUPPORTING_MODELS = {
 
 # Meta-doctrine tests that aren't about specific entities.
 # These define organizational/structural rules rather than entity doctrine.
+# Note: test_mcp and test_tests were moved to policies/ (ADR 005)
 META_DOCTRINE_TESTS = {
     "test_doctrine_coverage",  # This test file itself
-    "test_mcp",  # MCP application structure doctrine (not an entity)
-    "test_tests",  # Test organization doctrine (not an entity)
 }
 
 

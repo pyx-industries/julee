@@ -7,13 +7,14 @@ Applications are deployable/runnable compositions that depend on one or more
 bounded contexts. They live in {solution}/apps/ and are classified by type:
 REST-API, MCP, SPHINX-EXTENSION, TEMPORAL-WORKER, CLI.
 
-App Type Doctrine (applies to all apps of a given type):
-- REST-API: All endpoints MUST map to exactly one use case
-- REST-API: Endpoints MUST use Request/Response objects of their use case
-- CLI: CLI apps MUST have a commands/ directory
-- CLI: CLI apps MUST use Click for command definitions
-- MCP: MCP apps MUST use the julee MCP framework (see test_mcp.py)
-- TEMPORAL-WORKER: Worker apps MUST have pipelines
+Doctrine (axioms - what Applications ARE):
+- REST-API: All endpoints MUST map to exactly one use case (Clean Architecture)
+- Applications MUST be discoverable and classifiable by type
+
+Policies (strategic choices - see julee.core.policies):
+- mcp-framework: MCP apps must use julee's MCP framework
+- temporal-pipelines: Worker apps must follow pipeline patterns
+- test-organization: CLI apps must have commands/ directory (structure policy)
 
 App Instance Doctrine lives in apps/{app}/doctrine/ and is additive.
 """

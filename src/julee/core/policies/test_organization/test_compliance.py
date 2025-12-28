@@ -1,7 +1,6 @@
-"""Test organization doctrine.
+"""Compliance tests for Test Organization policy.
 
-These tests ARE the doctrine. The docstrings are doctrine statements.
-The assertions enforce them.
+These tests verify that a solution organizes tests consistently.
 """
 
 from pathlib import Path
@@ -20,13 +19,9 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
     FilesystemBoundedContextRepository,
 )
 
-# =============================================================================
-# DOCTRINE: Bounded Context Tests
-# =============================================================================
-
 
 class TestBoundedContextTestStructure:
-    """Doctrine about test organization within bounded contexts."""
+    """Compliance tests for test organization within bounded contexts."""
 
     @pytest.mark.asyncio
     async def test_every_bounded_context_MUST_have_tests_directory(
@@ -103,13 +98,8 @@ class TestBoundedContextTestStructure:
         ), f"Test files not following {TEST_FILE_PATTERN}: {non_compliant}"
 
 
-# =============================================================================
-# DOCTRINE: Solution-Level Test Configuration
-# =============================================================================
-
-
 class TestSolutionTestConfiguration:
-    """Doctrine about pytest configuration at the solution level."""
+    """Compliance tests for pytest configuration at solution level."""
 
     def test_solution_MUST_have_pyproject_toml(self, project_root: Path):
         """Every solution MUST have a pyproject.toml file.
@@ -128,7 +118,6 @@ class TestSolutionTestConfiguration:
         """
         pyproject = project_root / "pyproject.toml"
 
-        # Read the raw file and check for pytest section
         content = pyproject.read_text()
         assert (
             "[tool.pytest.ini_options]" in content
@@ -143,9 +132,7 @@ class TestSolutionTestConfiguration:
         pyproject = project_root / "pyproject.toml"
         content = pyproject.read_text()
 
-        # Check for testpaths in pytest config
         assert "testpaths" in content, "pytest config MUST specify testpaths"
-        # Verify it includes the source root
         assert SEARCH_ROOT in content, f"testpaths MUST include '{SEARCH_ROOT}'"
 
     def test_pytest_config_MUST_define_standard_markers(self, project_root: Path):
@@ -157,10 +144,8 @@ class TestSolutionTestConfiguration:
         pyproject = project_root / "pyproject.toml"
         content = pyproject.read_text()
 
-        # Check that markers section exists
         assert "markers" in content, "pytest config MUST define markers"
 
-        # Check for standard markers
         for marker in TEST_MARKERS:
             assert marker in content, f"pytest config MUST define '{marker}' marker"
 
@@ -173,39 +158,6 @@ class TestSolutionTestConfiguration:
         pyproject = project_root / "pyproject.toml"
         content = pyproject.read_text()
 
-        # Check that addopts excludes integration tests
         assert (
             "not integration" in content
         ), "pytest addopts MUST exclude integration tests by default"
-
-
-# =============================================================================
-# DOCTRINE: Doctrine Tests Are Special
-# =============================================================================
-
-
-class TestDoctrineTestLocation:
-    """Doctrine about where doctrine tests live."""
-
-    def test_doctrine_tests_MUST_live_in_core_doctrine(self, project_root: Path):
-        """Doctrine tests MUST live in core/doctrine/, not core/tests/.
-
-        Doctrine tests are special - they define and enforce architectural
-        rules. They live in their own directory to distinguish them from
-        regular unit tests.
-        """
-        doctrine_path = project_root / SEARCH_ROOT / "core" / "doctrine"
-        assert doctrine_path.is_dir(), "Doctrine tests MUST live in core/doctrine/"
-
-        # Verify doctrine tests exist
-        doctrine_tests = list(doctrine_path.glob("test_*.py"))
-        assert len(doctrine_tests) > 0, "core/doctrine/ MUST contain doctrine tests"
-
-    def test_doctrine_MUST_have_conftest(self, project_root: Path):
-        """The doctrine directory MUST have a conftest.py for shared fixtures.
-
-        Shared fixtures (like repo, project_root) are defined in conftest.py
-        for reuse across all doctrine tests.
-        """
-        conftest = project_root / SEARCH_ROOT / "core" / "doctrine" / TEST_CONFTEST
-        assert conftest.exists(), "core/doctrine/ MUST have conftest.py"
