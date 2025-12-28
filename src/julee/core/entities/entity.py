@@ -10,7 +10,8 @@ class Entity(ClassInfo):
     doesn't manipulate strings and dictionaries - it operates on Journeys,
     Personas, PollingConfigs. The entities ARE the domain language. They
     give meaning to the bounded context and constrain what can be said
-    within it.
+    within it. Repositories store them; services transform them; use cases
+    orchestrate both.
 
     Entities exist independent of any Application. Whether the system is
     accessed via API, CLI, or workflow trigger, the entities remain the
@@ -28,6 +29,11 @@ class Entity(ClassInfo):
     projection: HCD personas, C4 containers, and other perspectives can be
     inferred across bounded contexts because they share a common ontological
     foundation in code.
+
+    Entities are more than dumb data containers. They are rich objects in
+    their own right, with derivative methods that validate and calculate
+    properties. They have both data and behavior - they encapsulate some
+    of the business rules.
 
     In julee, entities are immutable value objects (Pydantic models with
     frozen=True). Immutability prevents accidental state corruption and

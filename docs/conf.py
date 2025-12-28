@@ -100,7 +100,8 @@ sphinx_hcd = {
     },
 }
 
-templates_path = ['_templates']
+# Templates path - apps/sphinx/templates takes precedence for autosummary
+templates_path = ['../apps/sphinx/templates', '_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 
 # Suppress warnings for ambiguous cross-references caused by re-exports in __init__.py

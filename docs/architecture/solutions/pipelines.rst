@@ -1,13 +1,13 @@
 Pipelines
 =========
 
-A **Julee pipeline** is a :doc:`use case </architecture/clean_architecture/use_cases>`
+A **Julee pipeline** is a :py:class:`use case <julee.core.entities.use_case.UseCase>`
 that has been appropriately treated (with decorators and proxies)
 to run as a Temporal workflow.
 
 A pipeline is the marriage of two things:
 
-1. A **Julee use case** - deterministic business logic following :doc:`Clean Architecture </architecture/clean_architecture/index>`
+1. A **Julee use case** - deterministic business logic following `Clean Architecture <https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html>`_
 2. **Temporal workflow technology** - durable, reliable execution with automatic retries
 
 All Julee pipelines are Temporal workflows, but not all Temporal workflows are Julee pipelines.
@@ -71,8 +71,8 @@ Pipeline Proxies
 
 The magic is in the **pipeline proxies**.
 When a use case runs as a pipeline,
-its :doc:`repository </architecture/clean_architecture/repositories>` and
-:doc:`service </architecture/clean_architecture/services>` dependencies
+its :py:class:`repository <julee.core.entities.repository_protocol.RepositoryProtocol>` and
+:py:class:`service <julee.core.entities.service_protocol.ServiceProtocol>` dependencies
 are replaced with proxy classes that route calls through Temporal activities.
 
 ::
@@ -89,7 +89,7 @@ are replaced with proxy classes that route calls through Temporal activities.
         ...
     )
 
-The proxy implements the same :doc:`protocol </architecture/clean_architecture/protocols>`, enabling :doc:`dependency injection </architecture/clean_architecture/dependency_injection>` to swap implementations without the use case knowing the difference.
+The proxy implements the same protocol, enabling dependency injection to swap implementations without the use case knowing the difference.
 But each method call becomes a Temporal activity with:
 
 - Its own **timeout**

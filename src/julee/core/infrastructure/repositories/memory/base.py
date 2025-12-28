@@ -41,6 +41,10 @@ _module_logger = logging.getLogger(__name__)
 class MemoryRepositoryMixin(Generic[T]):
     """Mixin providing protected helper methods for memory repository implementations.
 
+    Memory repositories are volatile and unsuitable for production, but useful
+    as testing doubles in unit tests that run fast and in parallel without
+    external dependencies.
+
     All methods are protected (prefixed with _) to give repositories full control
     over their public API. Repositories implement their interface by delegating
     to these helpers.

@@ -14,12 +14,16 @@ class UseCase(ClassInfo):
     A use case knows about entities and calls them to do the real work. It
     coordinates the dance: fetch this, validate that, transform here, persist
     there. But it never knows HOW things are persisted or WHERE data comes
-    from - it only knows WHAT needs to happen.
+    from - it only knows WHAT needs to happen. Use cases depend on protocols,
+    not implementations. They have no knowledge of databases, APIs, or frameworks.
 
     The execute() method is the single entry point. It takes a Request (input)
     and returns a Response (output). This uniformity means any delivery
     mechanism - web controller, CLI command, message handler - can invoke
     any use case the same way. The use case is the API to your business logic.
+
+    When executed as pipelines, use cases gain durability, automatic retries,
+    and audit trails without any changes to their code.
     """
 
     pass  # Inherits all fields from ClassInfo

@@ -1,7 +1,7 @@
 CLIs
 ====
 
-CLI applications expose Julee :doc:`use cases </architecture/clean_architecture/use_cases>` via command-line interfaces.
+CLI applications expose Julee :py:class:`use cases <julee.core.entities.use_case.UseCase>` via command-line interfaces.
 
 CLI commands instantiate and execute use cases directly, or trigger :doc:`worker <worker>` :doc:`pipelines </architecture/solutions/pipelines>` for asynchronous operations. CLIs read configuration from environment variables or config files. Common uses include administrative tasks, development and debugging, batch operations, and system initialization.
 

@@ -1,7 +1,7 @@
 Applications
 ============
 
-Applications are the entry points to a Julee solution. They turn :doc:`use cases </architecture/clean_architecture/use_cases>` into features that users or external systems can access.
+Applications are the entry points to a Julee solution. They turn :py:class:`use cases <julee.core.entities.use_case.UseCase>` into features that users or external systems can access.
 
 A typical Julee solution includes multiple application types: :doc:`workers <worker>` execute long-running :doc:`pipelines </architecture/solutions/pipelines>` via Temporal, :doc:`APIs <api>` expose use cases as REST endpoints, :doc:`CLIs <cli>` provide command-line access for administration and development, and :doc:`UIs <ui>` provide human interfaces that interact via the API.
 

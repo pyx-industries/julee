@@ -7,7 +7,7 @@ One is a vocabulary for building things; the other is the thing being built.
 Julee is a framework for building resilient,
 transparent, and accountable digital product supply chains.
 It's a kind of orchestrator that manages :doc:`pipelines <solutions/pipelines>`,
-using a set of idioms based on :doc:`Clean Architecture <clean_architecture/index>` principles.
+using a set of idioms based on `Clean Architecture <https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html>`_ principles.
 
 A "digital product supply chain" is a way of thinking about how work gets done.
 That work might involve humans, traditional automation, and AI agents or services.
@@ -29,8 +29,7 @@ Julee is most suitable for processes which must be done correctly,
 and which may be complex and long-running.
 
 The clean architecture principles allow Julee applications to evolve.
-Infrastructure can be swapped-out
-(see :doc:`dependency injection <clean_architecture/dependency_injection>`),
+Infrastructure can be swapped-out via dependency injection,
 business-logic and domain models can be adapted as requirements change over time,
 and the system remains manageable even in the most complicated enterprises.
 Essentially, the digital supply chain transparency creates an opportunity for good process governance;
@@ -43,10 +42,10 @@ Framework vs Solution
 
 **A framework provides vocabulary.** Julee's first-class concepts are
 the building blocks for constructing digital supply chains:
-:doc:`entities <clean_architecture/entities>` (domain models),
-business processes (:doc:`use cases <clean_architecture/use_cases>`),
-and :doc:`protocols <clean_architecture/protocols>`
-(:doc:`repositories <clean_architecture/repositories>` and :doc:`services <clean_architecture/services>`).
+:py:class:`entities <julee.core.entities.entity.Entity>` (domain models),
+business processes (:py:class:`use cases <julee.core.entities.use_case.UseCase>`),
+and protocols
+(:py:class:`repositories <julee.core.entities.repository_protocol.RepositoryProtocol>` and :py:class:`services <julee.core.entities.service_protocol.ServiceProtocol>`).
 
 A :doc:`solution <solutions/index>` uses that vocabulary to say something specific.
 When you build a solution with Julee, your codebase should be organised
