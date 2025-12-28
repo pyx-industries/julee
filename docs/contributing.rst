@@ -8,7 +8,7 @@ Development Setup
 
 1. Fork and clone the repository::
 
-    git clone https://github.com/yourusername/julee.git
+    git clone https://github.com/pyx-industries/julee.git
     cd julee
 
 2. Create a virtual environment::
@@ -39,7 +39,7 @@ We use the following tools to maintain code quality:
 **Mypy**
     Static type checking::
 
-        mypy api domain repositories services workflows
+        mypy src/julee apps
 
 **Pre-commit**
     Automated checks before commit::
@@ -63,7 +63,8 @@ Run with coverage::
 
 Run specific test files::
 
-    pytest api/tests/test_app.py
+    pytest apps/api/tests/
+    pytest src/julee/core/tests/entities/
 
 
 Writing Tests
@@ -71,9 +72,10 @@ Writing Tests
 
 Place tests in ``tests/`` directories adjacent to the code:
 
-- ``api/tests/`` - API endpoint tests
-- ``domain/*/tests/`` - Domain model and use case tests
-- ``repositories/*/tests/`` - Repository implementation tests
+- ``apps/{app}/tests/`` - Application tests
+- ``apps/{app}/doctrine/`` - Application doctrine tests
+- ``src/julee/{pkg}/tests/`` - Package unit tests
+- ``src/julee/core/doctrine/`` - Core framework doctrine tests
 
 Use pytest fixtures for common setup::
 
@@ -87,6 +89,32 @@ Use pytest fixtures for common setup::
 
     def test_document_creation(sample_document):
         assert sample_document.name == "Test Document"
+
+
+Doctrine Verification
+~~~~~~~~~~~~~~~~~~~~~
+
+Julee uses doctrine tests to enforce architectural rules. The ``julee-admin``
+CLI provides tools to inspect the codebase and verify compliance.
+
+**Explore your solution**::
+
+    julee-admin solution show          # See solution structure
+    julee-admin contexts list          # List bounded contexts
+    julee-admin entities list          # List domain entities
+
+**View doctrine rules**::
+
+    julee-admin doctrine list          # List doctrine areas
+    julee-admin doctrine show          # Show all rules
+    julee-admin doctrine show -v       # Verbose with definitions
+
+**Verify compliance**::
+
+    julee-admin doctrine verify        # Run doctrine tests
+    julee-admin doctrine verify -v     # Verbose output
+
+Run ``julee-admin --help`` to discover all available commands.
 
 
 Architecture Guidelines
@@ -126,20 +154,24 @@ Code Organization
 Follow the existing structure::
 
     julee/
-    ├── api/               # FastAPI application
-    │   ├── routers/       # Route handlers
-    │   └── tests/         # API tests
-    ├── domain/            # Domain layer
-    │   ├── models/        # Domain models
-    │   ├── repositories/  # Repository protocols
-    │   └── use_cases/     # Business logic
-    ├── repositories/      # Repository implementations
-    │   ├── minio/         # MinIO storage
-    │   ├── memory/        # In-memory (testing)
-    │   └── temporal/      # Temporal activities
-    ├── services/          # External services
-    ├── workflows/         # Temporal workflows
-    └── docs/              # Documentation
+    ├── apps/                  # Applications
+    │   ├── admin/             # CLI tooling (julee-admin)
+    │   ├── api/               # FastAPI application
+    │   ├── sphinx/            # Sphinx documentation extensions
+    │   ├── worker/            # Temporal worker
+    │   └── {name}_mcp/        # MCP server applications
+    ├── src/julee/             # Framework package
+    │   ├── core/              # Core framework
+    │   │   ├── doctrine/      # Doctrine tests (architecture rules)
+    │   │   ├── entities/      # Domain entities
+    │   │   ├── infrastructure/# Infrastructure implementations
+    │   │   ├── repositories/  # Repository protocols
+    │   │   ├── services/      # Service protocols
+    │   │   └── use_cases/     # Business logic
+    │   ├── contrib/           # Optional contributions
+    │   ├── c4/                # C4 Model accelerator
+    │   └── hcd/               # Human-Centered Design accelerator
+    └── docs/                  # Documentation
 
 
 
@@ -157,7 +189,7 @@ Pull Requests
 
     pytest
     ruff check .
-    mypy .
+    mypy src/julee apps
 
 4. Commit with clear messages. Use the imperative mood, first line short.
 
