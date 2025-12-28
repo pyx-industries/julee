@@ -17,7 +17,7 @@ from apps.admin.dependencies import (
     get_list_doctrine_rules_use_case,
 )
 from julee.core.entities.doctrine import DoctrineArea
-from julee.core.use_cases.list_doctrine_rules import (
+from julee.core.use_cases.doctrine.list import (
     ListDoctrineAreasRequest,
     ListDoctrineRulesRequest,
 )
@@ -220,7 +220,7 @@ def list_doctrine_areas(scope: str) -> None:
                 from julee.core.infrastructure.repositories.introspection.doctrine import (
                     FilesystemDoctrineRepository,
                 )
-                from julee.core.use_cases.list_doctrine_rules import (
+                from julee.core.use_cases.doctrine.list import (
                     ListDoctrineAreasUseCase,
                 )
 

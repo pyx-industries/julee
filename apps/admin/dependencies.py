@@ -237,7 +237,7 @@ def get_list_doctrine_areas_use_case():
     Returns:
         Use case for listing doctrine areas
     """
-    from julee.core.use_cases.list_doctrine_rules import ListDoctrineAreasUseCase
+    from julee.core.use_cases.doctrine.list import ListDoctrineAreasUseCase
 
     return ListDoctrineAreasUseCase(doctrine_repository=get_doctrine_repository())
 
@@ -248,7 +248,7 @@ def get_list_doctrine_rules_use_case():
     Returns:
         Use case for listing doctrine rules
     """
-    from julee.core.use_cases.list_doctrine_rules import ListDoctrineRulesUseCase
+    from julee.core.use_cases.doctrine.list import ListDoctrineRulesUseCase
 
     return ListDoctrineRulesUseCase(doctrine_repository=get_doctrine_repository())
 
@@ -275,6 +275,77 @@ def get_verify_doctrine_use_case():
     Returns:
         Use case for verifying doctrine compliance
     """
-    from julee.core.use_cases.verify_doctrine import VerifyDoctrineUseCase
+    from julee.core.use_cases.doctrine.verify import VerifyDoctrineUseCase
 
     return VerifyDoctrineUseCase(doctrine_verifier=get_doctrine_verifier())
+
+
+# =============================================================================
+# Policy Use Cases
+# =============================================================================
+
+
+@lru_cache
+def get_policy_repository():
+    """Get the policy repository singleton.
+
+    Returns:
+        Repository for accessing available policies
+    """
+    from julee.core.infrastructure.repositories.memory.policy import (
+        RegistryPolicyRepository,
+    )
+
+    return RegistryPolicyRepository()
+
+
+def get_solution_config_repository():
+    """Get the solution config repository.
+
+    Returns:
+        Repository for reading solution configuration from pyproject.toml
+    """
+    from julee.core.infrastructure.repositories.file.solution_config import (
+        FileSolutionConfigRepository,
+    )
+
+    return FileSolutionConfigRepository()
+
+
+def get_policy_adoption_service():
+    """Get the policy adoption service.
+
+    Returns:
+        Service for computing effective policy adoptions
+    """
+    from julee.core.infrastructure.services.policy_adoption import (
+        DefaultPolicyAdoptionService,
+    )
+
+    return DefaultPolicyAdoptionService()
+
+
+def get_list_policies_use_case():
+    """Get ListPoliciesUseCase with dependencies.
+
+    Returns:
+        Use case for listing available policies
+    """
+    from julee.core.use_cases.policy.list import ListPoliciesUseCase
+
+    return ListPoliciesUseCase(policy_repository=get_policy_repository())
+
+
+def get_effective_policies_use_case():
+    """Get GetEffectivePoliciesUseCase with dependencies.
+
+    Returns:
+        Use case for computing effective policies for a solution
+    """
+    from julee.core.use_cases.policy.get_effective import GetEffectivePoliciesUseCase
+
+    return GetEffectivePoliciesUseCase(
+        solution_config_repository=get_solution_config_repository(),
+        policy_repository=get_policy_repository(),
+        policy_adoption_service=get_policy_adoption_service(),
+    )
