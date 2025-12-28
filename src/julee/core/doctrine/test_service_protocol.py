@@ -111,9 +111,12 @@ class TestServiceProtocolInheritance:
 # Infrastructure protocols that are intentionally generic.
 # These use BaseModel or similar generics because they operate on
 # ANY entity types, not specific ones. They're plumbing, not domain services.
+# Also includes ambient context services that don't transform entities.
 GENERIC_INFRASTRUCTURE_PROTOCOLS = {
     "PipelineRequestTransformer",  # Transforms any Response → any Request
     "RequestTransformer",  # Alias for PipelineRequestTransformer
+    "ClockService",  # Ambient context - provides time, no entity binding
+    "ExecutionService",  # Ambient context - provides execution ID, no entity binding
 }
 
 

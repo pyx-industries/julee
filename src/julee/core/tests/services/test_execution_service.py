@@ -8,7 +8,7 @@ class TestDefaultExecutionService:
 
     def test_returns_string_id(self):
         """get_execution_id() returns a string."""
-        from julee.core.services.execution import DefaultExecutionService
+        from julee.core.infrastructure.services.execution import DefaultExecutionService
 
         service = DefaultExecutionService()
         execution_id = service.get_execution_id()
@@ -18,7 +18,7 @@ class TestDefaultExecutionService:
 
     def test_generates_valid_uuid(self):
         """Generates valid UUID when no ID provided."""
-        from julee.core.services.execution import DefaultExecutionService
+        from julee.core.infrastructure.services.execution import DefaultExecutionService
 
         service = DefaultExecutionService()
         execution_id = service.get_execution_id()
@@ -28,7 +28,7 @@ class TestDefaultExecutionService:
 
     def test_returns_same_id_repeatedly(self):
         """get_execution_id() returns same ID every call."""
-        from julee.core.services.execution import DefaultExecutionService
+        from julee.core.infrastructure.services.execution import DefaultExecutionService
 
         service = DefaultExecutionService()
 
@@ -39,7 +39,7 @@ class TestDefaultExecutionService:
 
     def test_uses_provided_id(self):
         """Uses provided ID instead of generating."""
-        from julee.core.services.execution import DefaultExecutionService
+        from julee.core.infrastructure.services.execution import DefaultExecutionService
 
         custom_id = "my-custom-execution-id"
         service = DefaultExecutionService(execution_id=custom_id)
@@ -52,7 +52,7 @@ class TestFixedExecutionService:
 
     def test_returns_provided_id(self):
         """get_execution_id() returns the ID provided."""
-        from julee.core.services.execution import FixedExecutionService
+        from julee.core.infrastructure.services.execution import FixedExecutionService
 
         fixed_id = "test-execution-123"
         service = FixedExecutionService(fixed_id)
@@ -61,7 +61,7 @@ class TestFixedExecutionService:
 
     def test_returns_same_id_repeatedly(self):
         """get_execution_id() returns identical ID every call."""
-        from julee.core.services.execution import FixedExecutionService
+        from julee.core.infrastructure.services.execution import FixedExecutionService
 
         service = FixedExecutionService("deterministic-id")
 

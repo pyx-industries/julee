@@ -48,7 +48,7 @@ from julee.contrib.ceap.use_cases.validate_document import (
     ValidateDocumentUseCase,
 )
 from julee.core.entities.content_stream import ContentStream
-from julee.core.services.clock import FixedClockService
+from julee.core.infrastructure.services.clock import FixedClockService
 
 pytestmark = pytest.mark.unit
 

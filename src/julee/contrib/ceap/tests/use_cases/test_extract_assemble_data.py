@@ -48,8 +48,8 @@ from julee.contrib.ceap.use_cases.extract_assemble_data import (
     ExtractAssembleDataUseCase,
 )
 from julee.core.entities.content_stream import ContentStream
-from julee.core.services.clock import FixedClockService
-from julee.core.services.execution import FixedExecutionService
+from julee.core.infrastructure.services.clock import FixedClockService
+from julee.core.infrastructure.services.execution import FixedExecutionService
 
 pytestmark = pytest.mark.unit
 
