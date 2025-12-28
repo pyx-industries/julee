@@ -2,34 +2,82 @@
 
 Provides defaults matching the RBA solution layout, with ability to override
 via sphinx_hcd config dict in conf.py.
+
+Configuration can be set via:
+1. Dict in conf.py: sphinx_hcd = {'paths': {'feature_files': 'tests/bdd/'}}
+2. Pydantic model in conf.py: sphinx_hcd = SphinxHCDConfig(paths=PathsConfig(...))
+3. Environment variables: SPHINX_HCD_REPOSITORY_BACKEND=rst
 """
 
-from copy import deepcopy
+import os
 from pathlib import Path
+from typing import Literal
 
+from pydantic import BaseModel, Field, model_validator
+
+
+class PathsConfig(BaseModel):
+    """Paths to source directories relative to project root."""
+
+    feature_files: str = Field(
+        default="tests/e2e/",
+        description="Where to find Gherkin feature files: {app}/features/*.feature",
+    )
+    app_manifests: str = Field(
+        default="apps/",
+        description="Where to find app manifests: */app.yaml",
+    )
+    integration_manifests: str = Field(
+        default="src/integrations/",
+        description="Where to find integration manifests: */integration.yaml",
+    )
+    bounded_contexts: str = Field(
+        default="src/julee/",
+        description="Where to find bounded context code: {slug}/ directories",
+    )
+
+
+class DocsStructureConfig(BaseModel):
+    """RST file locations relative to docs root."""
+
+    applications: str = "applications"
+    personas: str = "users/personas"
+    journeys: str = "users/journeys"
+    epics: str = "users/epics"
+    accelerators: str = "domain/accelerators"
+    integrations: str = "integrations"
+    stories: str = "users/stories"
+
+
+class SphinxHCDConfig(BaseModel):
+    """Root configuration for sphinx_hcd extension.
+
+    Can be instantiated directly in conf.py or created from a dict.
+    Environment variables override config values.
+    """
+
+    paths: PathsConfig = Field(default_factory=PathsConfig)
+    docs_structure: DocsStructureConfig = Field(default_factory=DocsStructureConfig)
+    repository_backend: Literal["memory", "rst"] = Field(
+        default="memory",
+        description="Repository backend: 'memory' (default) or 'rst'",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def apply_env_overrides(cls, values: dict) -> dict:
+        """Apply environment variable overrides."""
+        # Check for env var override
+        env_backend = os.environ.get("SPHINX_HCD_REPOSITORY_BACKEND")
+        if env_backend and env_backend in ("memory", "rst"):
+            values["repository_backend"] = env_backend
+        return values
+
+
+# Legacy DEFAULT_CONFIG for backwards compatibility
 DEFAULT_CONFIG = {
-    "paths": {
-        # Where to find Gherkin feature files: {app}/features/*.feature
-        "feature_files": "tests/e2e/",
-        # Where to find app manifests: */app.yaml
-        "app_manifests": "apps/",
-        # Where to find integration manifests: */integration.yaml
-        "integration_manifests": "src/integrations/",
-        # Where to find bounded context code: {slug}/ directories
-        "bounded_contexts": "src/julee/",
-    },
-    "docs_structure": {
-        # RST file locations relative to docs root
-        "applications": "applications",
-        "personas": "users/personas",
-        "journeys": "users/journeys",
-        "epics": "users/epics",
-        "accelerators": "domain/accelerators",
-        "integrations": "integrations",
-        "stories": "users/stories",
-    },
-    # Repository backend: "memory" (default) or "rst"
-    # When "rst", entities are loaded from/saved to RST files
+    "paths": PathsConfig().model_dump(),
+    "docs_structure": DocsStructureConfig().model_dump(),
     "repository_backend": "memory",
 }
 
@@ -45,20 +93,29 @@ def config_factory() -> dict:
         sphinx_hcd['paths']['feature_files'] = 'tests/bdd/'
 
     Returns:
-        A deep copy of DEFAULT_CONFIG that can be modified.
+        A fresh dict with default config values.
     """
-    return deepcopy(DEFAULT_CONFIG)
+    return SphinxHCDConfig().model_dump()
 
 
-def _deep_merge(base: dict, override: dict) -> dict:
-    """Deep merge override into base, returning new dict."""
-    result = deepcopy(base)
-    for key, value in override.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = _deep_merge(result[key], value)
-        else:
-            result[key] = deepcopy(value)
-    return result
+def _parse_config(user_config) -> SphinxHCDConfig:
+    """Parse user config into validated SphinxHCDConfig.
+
+    Args:
+        user_config: Dict, SphinxHCDConfig, or None
+
+    Returns:
+        Validated SphinxHCDConfig instance
+    """
+    if user_config is None:
+        return SphinxHCDConfig()
+    if isinstance(user_config, SphinxHCDConfig):
+        return user_config
+    if isinstance(user_config, dict):
+        return SphinxHCDConfig(**user_config)
+    raise TypeError(
+        f"sphinx_hcd config must be dict or SphinxHCDConfig, got {type(user_config)}"
+    )
 
 
 class HCDConfig:
@@ -78,9 +135,9 @@ class HCDConfig:
         self._docs_dir = Path(app.srcdir)
         self._project_root = self._docs_dir.parent
 
-        # Merge user config with defaults
-        user_config = getattr(app.config, "sphinx_hcd", {}) or {}
-        self._config = _deep_merge(DEFAULT_CONFIG, user_config)
+        # Parse and validate user config
+        user_config = getattr(app.config, "sphinx_hcd", None)
+        self._model = _parse_config(user_config)
 
     @property
     def project_root(self) -> Path:
@@ -92,6 +149,11 @@ class HCDConfig:
         """Documentation source directory."""
         return self._docs_dir
 
+    @property
+    def model(self) -> SphinxHCDConfig:
+        """Access the underlying validated config model."""
+        return self._model
+
     def get_path(self, key: str) -> Path:
         """Get an absolute path from the paths config.
 
@@ -101,7 +163,7 @@ class HCDConfig:
         Returns:
             Absolute Path resolved relative to project root
         """
-        rel_path = self._config["paths"].get(key, "")
+        rel_path = getattr(self._model.paths, key, "")
         return self._project_root / rel_path
 
     def get_doc_path(self, key: str) -> str:
@@ -113,7 +175,7 @@ class HCDConfig:
         Returns:
             Relative path string for use in doc references
         """
-        return self._config["docs_structure"].get(key, key)
+        return getattr(self._model.docs_structure, key, key)
 
     @property
     def repository_backend(self) -> str:
@@ -122,7 +184,7 @@ class HCDConfig:
         Returns:
             "memory" or "rst"
         """
-        return self._config.get("repository_backend", "memory")
+        return self._model.repository_backend
 
     @property
     def use_rst_backend(self) -> bool:
