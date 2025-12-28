@@ -100,24 +100,74 @@ class BoundedContextHubDirective(SphinxDirective):
     def _get_persona_crossrefs(self, bc_slug: str) -> list[dict]:
         """Get persona cross-references via HCD bridge.
 
-        Traces: Persona → Story → Feature → App → UseCase
+        Traces: Persona ← Story → App → Accelerator → BoundedContext
 
-        Returns list of dicts with persona, story, app, use_case info.
+        Returns list of dicts with persona, app, story_count info, grouped
+        by persona for display in the BC hub template.
         """
         # Try to get HCD context
         try:
             from apps.sphinx.hcd.context import get_hcd_context
+            from julee.hcd.use_cases.crud import (
+                ListAppsRequest,
+                ListStoriesRequest,
+            )
 
             hcd_context = get_hcd_context(self.env.app)
         except (ImportError, AttributeError):
             return []
 
-        # This requires HCD data to be loaded
-        # For now, return empty - will implement when HCD bridge is ready
-        # The implementation would:
-        # 1. List all stories
-        # 2. For each story, check if it references use cases in this BC
-        # 3. Get the persona from the story
-        # 4. Build the cross-reference chain
+        # Step 1: Find apps that use accelerators matching this BC
+        apps_response = hcd_context.list_apps.execute_sync(ListAppsRequest())
+        apps_using_bc = []
 
-        return []
+        for app in apps_response.apps:
+            # App's accelerators field contains slugs of accelerators it uses
+            # An accelerator slug typically matches its BC slug
+            if bc_slug in app.accelerators:
+                apps_using_bc.append(app)
+
+        if not apps_using_bc:
+            return []
+
+        # Step 2: Get stories for those apps, grouped by persona
+        persona_data: dict[str, dict[str, int]] = {}  # persona -> {app_slug: count}
+
+        for app in apps_using_bc:
+            stories_response = hcd_context.list_stories.execute_sync(
+                ListStoriesRequest(app_slug=app.slug)
+            )
+
+            for story in stories_response.stories:
+                persona = story.persona_normalized or story.persona
+                if persona not in persona_data:
+                    persona_data[persona] = {}
+
+                if app.slug not in persona_data[persona]:
+                    persona_data[persona][app.slug] = 0
+
+                persona_data[persona][app.slug] += 1
+
+        # Step 3: Build cross-reference list for template
+        crossrefs = []
+
+        for persona, apps_dict in sorted(persona_data.items()):
+            for app_slug, story_count in sorted(apps_dict.items()):
+                # Find app name
+                app_name = app_slug
+                for app in apps_using_bc:
+                    if app.slug == app_slug:
+                        app_name = app.name
+                        break
+
+                crossrefs.append(
+                    {
+                        "persona": persona,
+                        "persona_slug": persona.lower().replace(" ", "-"),
+                        "app_slug": app_slug,
+                        "app_name": app_name,
+                        "story_count": story_count,
+                    }
+                )
+
+        return crossrefs

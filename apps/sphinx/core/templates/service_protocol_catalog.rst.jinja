@@ -4,25 +4,18 @@
    - artifacts: list[CodeArtifactWithContext] - service protocols with their BC slugs
    - options: dict - directive options (show-methods, link-to-api)
 #}
-{% if not artifacts %}
-*No service protocols found in solution.*
-{% else %}
-{# Group artifacts by bounded_context using groupby #}
-{% for bc_slug, items in artifacts|groupby('bounded_context') %}
+{% extends "catalog_base.rst.jinja" %}
 
-{{ bc_slug|title_case }}
-{{ '~' * (bc_slug|title_case|length) }}
+{% block empty_message %}No service protocols found in solution.{% endblock %}
 
-{% for item in items|sort(attribute='artifact.name') %}
+{% block item_content %}
 {% set svc = item.artifact %}
 {% set entity_type = svc.name[:-7] if svc.name.endswith('Service') else None %}
-``{{ svc.name }}``{% if entity_type %} → {{ entity_type }}{% endif %}
+``{{ svc.name }}``{% if entity_type %} -> {{ entity_type }}{% endif %}
 
    {{ svc.docstring|first_sentence if svc.docstring else '(no description)' }}
 {% if options.get('show-methods') and svc.methods %}
    *Methods:* ``{{ svc.methods|map(attribute='name')|join(', ') }}``
 {% endif %}
 
-{% endfor %}
-{% endfor %}
-{% endif %}
+{% endblock %}

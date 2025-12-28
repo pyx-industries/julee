@@ -105,9 +105,22 @@ def build_relative_uri(
     return rel_path
 
 
+from .roles import (
+    EntityRefRole,
+    make_anchor_role,
+    make_autoapi_role,
+    make_conditional_role,
+    make_page_role,
+)
+
 __all__ = [
     "path_to_root",
     "make_reference",
     "make_internal_link",
     "build_relative_uri",
+    "EntityRefRole",
+    "make_autoapi_role",
+    "make_page_role",
+    "make_anchor_role",
+    "make_conditional_role",
 ]

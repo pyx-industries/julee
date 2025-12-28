@@ -44,7 +44,7 @@ class TestDiscoveryBasics:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing", layers=["entities"])
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -57,7 +57,7 @@ class TestDiscoveryBasics:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing", layers=["use_cases"])
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -72,7 +72,7 @@ class TestDiscoveryBasics:
         create_bounded_context(search_root, "inventory")
         create_bounded_context(search_root, "shipping")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 3
@@ -84,7 +84,7 @@ class TestDiscoveryBasics:
         """Should return empty list when no bounded contexts found."""
         create_search_root(tmp_path)
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert contexts == []
@@ -92,7 +92,7 @@ class TestDiscoveryBasics:
     @pytest.mark.asyncio
     async def test_returns_empty_list_when_search_root_missing(self, tmp_path: Path):
         """Should return empty list when search root doesn't exist."""
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert contexts == []
@@ -116,7 +116,7 @@ class TestExclusions:
         for reserved in RESERVED_WORDS:
             create_bounded_context(search_root, reserved)
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -129,7 +129,7 @@ class TestExclusions:
         create_bounded_context(search_root, "billing")
         create_bounded_context(search_root, ".hidden")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -146,7 +146,7 @@ class TestExclusions:
         not_package.mkdir()
         (not_package / "domain" / "models").mkdir(parents=True)
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -164,7 +164,7 @@ class TestExclusions:
         (no_structure / "__init__.py").touch()
         (no_structure / "helpers.py").touch()
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -184,7 +184,7 @@ class TestExclusions:
             "julee.core.infrastructure.repositories.introspection.bounded_context._is_gitignored",
             mock_gitignore,
         ):
-            repo = FilesystemBoundedContextRepository(tmp_path)
+            repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
             contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -204,7 +204,7 @@ class TestMarkerDetection:
             layers=["entities", "repositories", "services", "use_cases"],
         )
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -226,7 +226,7 @@ class TestMarkerDetection:
             extra_path.mkdir()
             (extra_path / "__init__.py").touch()
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         markers = contexts[0].markers
@@ -244,7 +244,7 @@ class TestViewpointDetection:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "hcd")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -257,7 +257,7 @@ class TestViewpointDetection:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "c4")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 1
@@ -270,7 +270,7 @@ class TestViewpointDetection:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert contexts[0].is_viewpoint is False
@@ -291,7 +291,7 @@ class TestContribDiscovery:
         (contrib_path / "__init__.py").touch()
         create_bounded_context(contrib_path, "polling")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         assert len(contexts) == 2
@@ -309,7 +309,7 @@ class TestContribDiscovery:
         (contrib_path / "__init__.py").touch()
         create_bounded_context(contrib_path, "polling")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         contexts = await repo.list_all()
 
         billing = next(c for c in contexts if c.slug == "billing")
@@ -329,7 +329,7 @@ class TestGetMethod:
         create_bounded_context(search_root, "billing")
         create_bounded_context(search_root, "inventory")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         context = await repo.get("billing")
 
         assert context is not None
@@ -341,7 +341,7 @@ class TestGetMethod:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
         context = await repo.get("unknown")
 
         assert context is None
@@ -356,7 +356,7 @@ class TestCaching:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
 
         # First call populates cache
         contexts1 = await repo.list_all()
@@ -375,7 +375,7 @@ class TestCaching:
         search_root = create_search_root(tmp_path)
         create_bounded_context(search_root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path)
+        repo = FilesystemBoundedContextRepository(tmp_path, "src/julee")
 
         contexts1 = await repo.list_all()
         assert len(contexts1) == 1

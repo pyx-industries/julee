@@ -283,6 +283,43 @@ def setup(app):
     app.add_directive("usecase-ssd", UseCaseSSDDirective)
     app.add_directive("usecase-documentation", UseCaseDocumentationDirective)
 
+    # Register HCD cross-reference roles
+    from apps.sphinx.shared import make_anchor_role, make_page_role
+    from julee.hcd.use_cases.crud import GetStoryRequest
+
+    # :persona:`slug` -> users/personas/{slug}.html
+    PersonaRole = make_page_role("users/personas/{slug}")
+    app.add_role("persona", PersonaRole())
+
+    # :epic:`slug` -> users/epics/{slug}.html
+    EpicRole = make_page_role("users/epics/{slug}")
+    app.add_role("epic", EpicRole())
+
+    # :journey:`slug` -> users/journeys/{slug}.html
+    JourneyRole = make_page_role("users/journeys/{slug}")
+    app.add_role("journey", JourneyRole())
+
+    # :story:`slug` -> applications/{app}.html#story-{slug}
+    def lookup_story(slug, sphinx_app):
+        """Look up story and return (docname, anchor)."""
+        try:
+            hcd_ctx = get_hcd_context(sphinx_app)
+            response = hcd_ctx.get_story.execute_sync(GetStoryRequest(slug=slug))
+            if response.story:
+                return (f"applications/{response.story.app_slug}", f"story-{slug}")
+        except Exception:
+            pass
+        return None
+
+    StoryRole = make_anchor_role(lookup_story)
+    app.add_role("story", StoryRole())
+
+    # :accelerator:`slug` -> autoapi/julee/{slug}/index.html (Accelerator = BC)
+    from apps.sphinx.shared import make_autoapi_role
+
+    AcceleratorRole = make_autoapi_role("autoapi/julee/{slug}/index")
+    app.add_role("accelerator", AcceleratorRole())
+
     logger.info("Loaded apps.sphinx.hcd extensions")
 
     return {

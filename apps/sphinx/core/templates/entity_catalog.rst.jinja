@@ -4,18 +4,11 @@
    - artifacts: list[CodeArtifactWithContext] - entities with their BC slugs
    - options: dict - directive options (show-fields, link-to-api)
 #}
-{% if not artifacts %}
-*No entities found in solution.*
-{% else %}
-{# Group artifacts by bounded_context using groupby #}
-{% for bc_slug, items in artifacts|groupby('bounded_context') %}
+{% extends "catalog_base.rst.jinja" %}
 
-{{ bc_slug|title_case }}
-{{ '~' * (bc_slug|title_case|length) }}
+{% block empty_message %}No entities found in solution.{% endblock %}
 
-{% for item in items|sort(attribute='artifact.name') %}
+{% block item_content %}
 - **{{ item.artifact.name }}** - {{ item.artifact.docstring|first_sentence if item.artifact.docstring else '(no description)' }}{% if options.get('show-fields') and item.artifact.fields %} ({{ item.artifact.fields|length }} fields){% endif %}
 
-{% endfor %}
-{% endfor %}
-{% endif %}
+{% endblock %}

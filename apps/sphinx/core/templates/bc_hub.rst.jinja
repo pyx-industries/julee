@@ -37,12 +37,12 @@ Applications Using This BC
 Personas
 ~~~~~~~~
 
-Use cases in this bounded context are exposed to these personas:
+Use cases in this bounded context are exposed to these personas through apps:
 
 {% for persona, refs in persona_crossrefs|groupby('persona') %}
 **{{ persona }}**
 {% for ref in refs %}
-   via *{{ ref.story }}* on ``{{ ref.app }}`` → ``{{ ref.use_case }}``
+- via :app:`{{ ref.app_slug }}` ({{ ref.story_count }} {{ 'story' if ref.story_count == 1 else 'stories' }})
 {% endfor %}
 
 {% endfor %}

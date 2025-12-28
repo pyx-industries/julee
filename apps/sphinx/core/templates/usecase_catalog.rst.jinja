@@ -5,20 +5,12 @@
    - options: dict - directive options (group-by-crud, link-to-api)
    - classify_crud: function to classify CRUD type from name
 #}
-{% if not artifacts %}
-*No use cases found in solution.*
-{% else %}
-{# Group artifacts by bounded_context using groupby #}
-{% for bc_slug, items in artifacts|groupby('bounded_context') %}
+{% extends "catalog_base.rst.jinja" %}
 
-{{ bc_slug|title_case }}
-{{ '~' * (bc_slug|title_case|length) }}
+{% block empty_message %}No use cases found in solution.{% endblock %}
 
-{% for item in items|sort(attribute='artifact.name') %}
+{% block item_content %}
 {% set uc = item.artifact %}
 {% set crud = classify_crud(uc.name) %}
 - **{{ uc.name }}**{% if crud %} [{{ crud }}]{% endif %} - {{ uc.docstring|first_sentence if uc.docstring else '(no description)' }}
-{% endfor %}
-
-{% endfor %}
-{% endif %}
+{% endblock %}

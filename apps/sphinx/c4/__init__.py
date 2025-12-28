@@ -73,6 +73,41 @@ def setup(app):
     """
     setup_directives(app)
 
+    # Register C4 cross-reference roles
+    from apps.sphinx.shared import make_conditional_role, make_page_role
+    from julee.c4.use_cases.crud import GetContainerRequest
+
+    from .context import get_c4_context
+
+    # :system:`slug` -> index.html (System = Solution view)
+    # For now, link to solution root; could be enhanced to link to
+    # a dedicated system page if one exists
+    SystemRole = make_page_role("index")
+    app.add_role("system", SystemRole())
+
+    # :container:`slug` -> Application OR BC page depending on container type
+    def lookup_container(slug, sphinx_app):
+        """Look up container and return appropriate page.
+
+        Container maps to either Application or BoundedContext.
+        """
+        try:
+            c4_ctx = get_c4_context(sphinx_app)
+            response = c4_ctx.get_container.execute_sync(
+                GetContainerRequest(slug=slug)
+            )
+            if response.entity:
+                # If container has parent_system, it's likely an app
+                # For now, try apps first, then BC
+                return f"autoapi/apps/{slug}/index"
+        except Exception:
+            pass
+        # Fallback to BC
+        return f"autoapi/julee/{slug}/index"
+
+    ContainerRole = make_conditional_role(lookup_container)
+    app.add_role("container", ContainerRole())
+
     return {
         "version": "0.1.0",
         "parallel_read_safe": True,

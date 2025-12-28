@@ -284,17 +284,27 @@ def _first_sentence(text: str) -> str:
 
 
 def _get_c4_storage(app):
-    """Get C4 storage from app environment."""
+    """Get C4 storage from app environment.
+
+    Ensures all expected keys exist, even if storage was initialized
+    elsewhere with a different structure.
+    """
     if not hasattr(app.env, "c4_storage"):
-        app.env.c4_storage = {
-            "software_systems": {},
-            "containers": {},
-            "components": {},
-            "relationships": {},
-            "deployment_nodes": {},
-            "dynamic_steps": {},
-        }
-    return app.env.c4_storage
+        app.env.c4_storage = {}
+    storage = app.env.c4_storage
+    # Ensure all expected keys exist (handles case where repository
+    # initialized storage before this function was called)
+    for key in [
+        "software_systems",
+        "containers",
+        "components",
+        "relationships",
+        "deployment_nodes",
+        "dynamic_steps",
+    ]:
+        if key not in storage:
+            storage[key] = {}
+    return storage
 
 
 def _make_plantuml_node(puml_source: str, docname: str) -> nodes.Node:

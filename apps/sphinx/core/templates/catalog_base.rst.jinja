@@ -1,0 +1,24 @@
+{# Base catalog template - provides common structure for artifact catalogs #}
+{#
+   Receives:
+   - artifacts: list[CodeArtifactWithContext] - artifacts with their BC slugs
+   - options: dict - directive options
+
+   Blocks to override:
+   - empty_message: Message when no artifacts found
+   - item_content: How to render each item (has access to: item, bc_slug, options)
+#}
+{% if not artifacts %}
+*{% block empty_message %}No items found in solution.{% endblock %}*
+{% else %}
+{# Group artifacts by bounded_context using groupby #}
+{% for bc_slug, items in artifacts|groupby('bounded_context') %}
+
+{{ bc_slug|title_case }}
+{{ '~' * (bc_slug|title_case|length) }}
+
+{% for item in items|sort(attribute='artifact.name') %}
+{% block item_content scoped %}{% endblock %}
+{% endfor %}
+{% endfor %}
+{% endif %}

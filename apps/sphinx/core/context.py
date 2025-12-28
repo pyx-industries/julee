@@ -199,7 +199,7 @@ def initialize_core_context(app: "Sphinx") -> None:
     repository = AstJuleeCodeRepository()
 
     # Create entity-based repositories for solution structure
-    bc_repository = FilesystemBoundedContextRepository(src_root)
+    bc_repository = FilesystemBoundedContextRepository(src_root, "src/julee")
     app_repository = FilesystemApplicationRepository(src_root)
     deployment_repository = FilesystemDeploymentRepository(src_root)
 

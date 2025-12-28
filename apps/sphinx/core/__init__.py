@@ -84,6 +84,7 @@ Directives Provided
 - ``nested-solution-list`` - List nested solutions (e.g., contrib modules)
 - ``viewpoint-links`` - Show links to viewpoint BCs (HCD, C4)
 - ``bc-hub`` - Show detailed BC contents (use cases, apps, personas)
+- ``bounded-context-map`` - Show BC overview with grouping and dependencies
 """
 
 from sphinx.util import logging
@@ -105,6 +106,7 @@ def setup(app):
         DoctrineConstantDirective,
     )
     from .directives.bounded_context_hub import BoundedContextHubDirective
+    from .directives.bc_map import BoundedContextMapDirective
     from .directives.solution import (
         ApplicationListDirective,
         BoundedContextListDirective,
@@ -114,9 +116,19 @@ def setup(app):
         SolutionStructureDirective,
         ViewpointLinksDirective,
     )
+    from apps.sphinx.shared import make_autoapi_role
 
     # Initialize context at builder-inited
     app.connect("builder-inited", lambda app: initialize_core_context(app))
+
+    # Register Core cross-reference roles
+    # :bc:`slug` -> autoapi/julee/{slug}/index.html
+    BCRole = make_autoapi_role("autoapi/julee/{slug}/index")
+    app.add_role("bc", BCRole())
+
+    # :app:`slug` -> autoapi/apps/{slug}/index.html
+    AppRole = make_autoapi_role("autoapi/apps/{slug}/index")
+    app.add_role("app", AppRole())
 
     # Register concept directives
     app.add_directive("core-concept", CoreConceptDirective)
@@ -137,6 +149,7 @@ def setup(app):
     app.add_directive("nested-solution-list", NestedSolutionListDirective)
     app.add_directive("viewpoint-links", ViewpointLinksDirective)
     app.add_directive("bc-hub", BoundedContextHubDirective)
+    app.add_directive("bounded-context-map", BoundedContextMapDirective)
 
     logger.info("Loaded apps.sphinx.core extension")
 
