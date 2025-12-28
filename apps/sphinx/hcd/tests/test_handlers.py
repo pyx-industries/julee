@@ -66,3 +66,39 @@ class TestHandlerImports:
         assert "C4Bridge" in names
         assert "CodeLinks" in names
         assert "EntityDiagram" in names
+
+
+class TestUseCaseFactories:
+    """Test use case factory functions."""
+
+    def test_use_case_factory_imports(self) -> None:
+        """Test use case factories import correctly."""
+        from apps.sphinx.hcd.dependencies import (
+            get_create_accelerator_use_case,
+            get_create_epic_use_case,
+        )
+
+        assert get_create_accelerator_use_case is not None
+        assert get_create_epic_use_case is not None
+
+    def test_get_create_accelerator_use_case(self) -> None:
+        """Test get_create_accelerator_use_case returns configured use case."""
+        from apps.sphinx.hcd.context import HCDContext
+        from apps.sphinx.hcd.dependencies import get_create_accelerator_use_case
+        from julee.hcd.use_cases.crud import CreateAcceleratorUseCase
+
+        context = HCDContext()
+        use_case = get_create_accelerator_use_case(context)
+
+        assert isinstance(use_case, CreateAcceleratorUseCase)
+
+    def test_get_create_epic_use_case(self) -> None:
+        """Test get_create_epic_use_case returns configured use case."""
+        from apps.sphinx.hcd.context import HCDContext
+        from apps.sphinx.hcd.dependencies import get_create_epic_use_case
+        from julee.hcd.use_cases.crud import CreateEpicUseCase
+
+        context = HCDContext()
+        use_case = get_create_epic_use_case(context)
+
+        assert isinstance(use_case, CreateEpicUseCase)

@@ -17,10 +17,11 @@ from ..node_builders import (
     titled_bullet_list,
 )
 from julee.hcd.entities.epic import Epic
+from julee.hcd.use_cases.crud import CreateEpicRequest
 from julee.hcd.use_cases.derive_personas import derive_personas, get_epics_for_persona
-from julee.hcd.use_cases.crud import CreateEpicRequest, CreateEpicUseCase
 from julee.hcd.utils import normalize_name
 
+from ..dependencies import get_create_epic_use_case
 from .base import HCDDirective
 
 
@@ -63,7 +64,7 @@ class DefineEpicDirective(HCDDirective):
             story_refs=[],  # Will be populated by epic-story
             docname=docname,
         )
-        use_case = CreateEpicUseCase(self.hcd_context.epic_repo.async_repo)
+        use_case = get_create_epic_use_case(self.hcd_context)
         response = use_case.execute_sync(request)
         epic = response.epic
 

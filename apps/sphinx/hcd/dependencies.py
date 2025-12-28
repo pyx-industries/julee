@@ -1,10 +1,15 @@
 """Dependency injection for sphinx_hcd extension.
 
-Provides factory functions for creating handlers and services
+Provides factory functions for creating handlers, services, and use cases
 used by the extension.
 """
 
 from typing import TYPE_CHECKING
+
+from julee.hcd.use_cases.crud import (
+    CreateAcceleratorUseCase,
+    CreateEpicUseCase,
+)
 
 from .infrastructure.handlers import (
     AcceleratorPlaceholderHandler,
@@ -20,6 +25,7 @@ from .infrastructure.handlers import (
 )
 
 if TYPE_CHECKING:
+    from .context import HCDContext
     from .services.placeholder_handlers import PlaceholderResolutionHandler
 
 
@@ -46,3 +52,31 @@ def get_placeholder_handlers() -> list["PlaceholderResolutionHandler"]:
         CodeLinksPlaceholderHandler(),
         EntityDiagramPlaceholderHandler(),
     ]
+
+
+# Use Case Factories
+# These provide configured use case instances for directives
+
+
+def get_create_accelerator_use_case(context: "HCDContext") -> CreateAcceleratorUseCase:
+    """Get a CreateAcceleratorUseCase configured with context repositories.
+
+    Args:
+        context: HCD context with repositories
+
+    Returns:
+        Configured CreateAcceleratorUseCase instance
+    """
+    return CreateAcceleratorUseCase(context.accelerator_repo.async_repo)
+
+
+def get_create_epic_use_case(context: "HCDContext") -> CreateEpicUseCase:
+    """Get a CreateEpicUseCase configured with context repositories.
+
+    Args:
+        context: HCD context with repositories
+
+    Returns:
+        Configured CreateEpicUseCase instance
+    """
+    return CreateEpicUseCase(context.epic_repo.async_repo)

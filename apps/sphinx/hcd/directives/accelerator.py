@@ -23,10 +23,9 @@ from ..node_builders import (
     problematic_paragraph,
 )
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
-from julee.hcd.use_cases.crud import (
-    CreateAcceleratorRequest,
-    CreateAcceleratorUseCase,
-)
+from julee.hcd.use_cases.crud import CreateAcceleratorRequest
+
+from ..dependencies import get_create_accelerator_use_case
 from julee.hcd.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
     get_fed_by_accelerators,
@@ -149,9 +148,7 @@ class DefineAcceleratorDirective(HCDDirective):
             feeds_into=feeds_into,
             docname=docname,
         )
-        use_case = CreateAcceleratorUseCase(
-            self.hcd_context.accelerator_repo.async_repo
-        )
+        use_case = get_create_accelerator_use_case(self.hcd_context)
         response = use_case.execute_sync(request)
         accelerator = response.accelerator
 
