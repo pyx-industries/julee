@@ -13,6 +13,9 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from julee.hcd.infrastructure.renderers import C4PlantUMLRenderer
+from julee.hcd.use_cases.c4_bridge import generate_c4_container_diagram
+
 from .base import HCDDirective
 
 
@@ -115,7 +118,11 @@ def build_c4_container_diagram(
     foundation_name: str,
     external_name: str,
 ):
-    """Build a C4 container diagram from HCD data."""
+    """Build a C4 container diagram from HCD data.
+
+    Uses the C4 bridge use case for data generation and
+    PlantUML renderer for diagram output.
+    """
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
@@ -133,130 +140,24 @@ def build_c4_container_diagram(
         para += nodes.emphasis(text="No apps, accelerators, or contrib modules defined")
         return [para]
 
-    # Build PlantUML
-    lines = [
-        "@startuml",
-        "!include <C4/C4_Container>",
-        "",
-        f"title {title}",
-        "",
-    ]
+    # Generate diagram data via use case
+    diagram_data = generate_c4_container_diagram(
+        apps=all_apps,
+        accelerators=all_accelerators,
+        contribs=all_contribs,
+        personas=all_personas,
+        title=title,
+        system_name=system_name,
+        show_foundation=show_foundation,
+        foundation_name=foundation_name,
+        show_external=show_external,
+        external_name=external_name,
+    )
 
-    # Personas (outside system boundary) - only those with relationships
-    shown_personas = [
-        p for p in all_personas
-        if p.app_slugs or p.accelerator_slugs or p.contrib_slugs
-    ]
-    for persona in sorted(shown_personas, key=lambda p: p.slug):
-        persona_id = _safe_id(persona.slug)
-        desc = _escape(persona.context) if persona.context else persona.name
-        lines.append(f'Person({persona_id}, "{persona.name}", "{desc}")')
-    if shown_personas:
-        lines.append("")
+    # Render to PlantUML
+    renderer = C4PlantUMLRenderer()
+    puml_source = renderer.render(diagram_data)
 
-    lines.append(f'System_Boundary({_safe_id(system_name)}, "{system_name}") {{')
-    lines.append("")
-
-    # Apps as containers
-    for app in sorted(all_apps, key=lambda a: a.slug):
-        app_id = _safe_id(app.slug)
-        tech = app.c4_technology
-        desc = app.description or app.interface_label
-        lines.append(f'   Container({app_id}, "{app.name}", "{tech}", "{_escape(desc)}")')
-    if all_apps:
-        lines.append("")
-
-    # Accelerators as containers
-    for accel in sorted(all_accelerators, key=lambda a: a.slug):
-        accel_id = _safe_id(accel.slug)
-        tech = accel.technology
-        desc = accel.c4_description
-        lines.append(f'   Container({accel_id}, "{accel.display_title}", "{tech}", "{_escape(desc)}")')
-    if all_accelerators:
-        lines.append("")
-
-    # Contrib modules as containers
-    for contrib in sorted(all_contribs, key=lambda c: c.slug):
-        contrib_id = _safe_id(contrib.slug)
-        tech = contrib.technology
-        desc = contrib.c4_description
-        lines.append(f'   Container({contrib_id}, "{contrib.display_title}", "{tech}", "{_escape(desc)}")')
-    if all_contribs:
-        lines.append("")
-
-    # Foundation layer
-    if show_foundation:
-        lines.append(f'   Container(foundation, "{foundation_name}", "Python", "Clean architecture idioms and utilities")')
-        lines.append("")
-
-    lines.append("}")  # End system boundary
-    lines.append("")
-
-    # External systems
-    if show_external:
-        lines.append(f'System_Ext(external, "{external_name}", "External dependencies")')
-        lines.append("")
-
-    # Relationships: Personas to apps
-    app_by_slug = {app.slug: app for app in all_apps}
-    for persona in all_personas:
-        persona_id = _safe_id(persona.slug)
-        for app_slug in persona.app_slugs:
-            if app_slug in app_by_slug:
-                app = app_by_slug[app_slug]
-                lines.append(f'Rel({persona_id}, {_safe_id(app_slug)}, "{app.interface.user_relationship}")')
-    if all_personas:
-        lines.append("")
-
-    # Relationships: Personas to accelerators (direct usage)
-    accel_by_slug = {accel.slug: accel for accel in all_accelerators}
-    for persona in all_personas:
-        persona_id = _safe_id(persona.slug)
-        for accel_slug in persona.accelerator_slugs:
-            if accel_slug in accel_by_slug:
-                lines.append(f'Rel({persona_id}, {_safe_id(accel_slug)}, "Uses")')
-    lines.append("")
-
-    # Relationships: Personas to contrib modules
-    contrib_by_slug = {contrib.slug: contrib for contrib in all_contribs}
-    for persona in all_personas:
-        persona_id = _safe_id(persona.slug)
-        for contrib_slug in persona.contrib_slugs:
-            if contrib_slug in contrib_by_slug:
-                lines.append(f'Rel({persona_id}, {_safe_id(contrib_slug)}, "Uses")')
-    lines.append("")
-
-    # Relationships: Apps to accelerators
-    for app in all_apps:
-        app_id = _safe_id(app.slug)
-        for accel_slug in app.accelerators:
-            accel_id = _safe_id(accel_slug)
-            lines.append(f'Rel({app_id}, {accel_id}, "{app.interface.accelerator_relationship}")')
-
-    lines.append("")
-
-    # Relationships: Accelerators to foundation
-    if show_foundation:
-        for accel in all_accelerators:
-            accel_id = _safe_id(accel.slug)
-            lines.append(f'Rel({accel_id}, foundation, "Built on")')
-        lines.append("")
-
-    # Relationships: Contrib modules to foundation
-    if show_foundation:
-        for contrib in all_contribs:
-            contrib_id = _safe_id(contrib.slug)
-            lines.append(f'Rel({contrib_id}, foundation, "Built on")')
-        lines.append("")
-
-    # Relationships: Foundation to external (foundation provides infrastructure)
-    if show_external and show_foundation:
-        lines.append('Rel(foundation, external, "Connects to")')
-        lines.append("")
-
-    lines.append("@enduml")
-
-    puml_source = "\n".join(lines)
     node = plantuml(puml_source)
     node["uml"] = puml_source
     node["incdir"] = os.path.dirname(docname)
@@ -335,25 +236,6 @@ def build_accelerator_list(docname: str, hcd_context):
         bullet_list += item
 
     return [bullet_list]
-
-
-def _safe_id(name: str) -> str:
-    """Convert name to a safe PlantUML identifier."""
-    return name.replace("-", "_").replace(" ", "_").replace(".", "_")
-
-
-def _escape(text: str) -> str:
-    """Escape text for PlantUML strings, using only the first sentence."""
-    # Normalize whitespace
-    text = " ".join(text.split())
-    # Extract first sentence
-    for end in [". ", ".\n", ".\t"]:
-        if end[0] in text:
-            idx = text.find(end[0])
-            if idx > 0:
-                text = text[:idx]
-                break
-    return text.replace('"', '\\"')
 
 
 def process_c4_bridge_placeholders(app, doctree, docname):
