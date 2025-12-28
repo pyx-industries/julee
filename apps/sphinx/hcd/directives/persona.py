@@ -25,6 +25,10 @@ from julee.hcd.entities.persona import Persona
 from julee.hcd.use_cases.crud import (
     CreatePersonaRequest,
     CreatePersonaUseCase,
+    ListAppsRequest,
+    ListEpicsRequest,
+    ListPersonasRequest,
+    ListStoriesRequest,
 )
 from julee.hcd.use_cases.derive_personas import (
     derive_personas,
@@ -423,14 +427,24 @@ def generate_persona_index_plantuml(
 
 def build_persona_diagram(persona_name: str, docname: str, hcd_context):
     """Build the PlantUML diagram for a single persona."""
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
         return [empty_result_paragraph("PlantUML extension not available")]
 
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_stories = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    ).stories
+    all_epics = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    ).epics
+    all_apps = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    ).apps
 
     # Derive personas
     personas = derive_personas(all_stories, all_epics)
@@ -465,14 +479,24 @@ def build_persona_diagram(persona_name: str, docname: str, hcd_context):
 
 def build_persona_index_diagram(group_type: str, docname: str, hcd_context):
     """Build the PlantUML diagram for a persona group."""
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
         return [empty_result_paragraph("PlantUML extension not available")]
 
-    all_stories = hcd_context.story_repo.list_all()
-    all_epics = hcd_context.epic_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_stories = hcd_context.list_stories.execute_sync(
+        ListStoriesRequest(solution_slug=solution)
+    ).stories
+    all_epics = hcd_context.list_epics.execute_sync(
+        ListEpicsRequest(solution_slug=solution)
+    ).epics
+    all_apps = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    ).apps
 
     # Get personas grouped by app type
     personas_by_type = derive_personas_by_app_type(all_stories, all_epics, all_apps)
@@ -549,8 +573,11 @@ def build_persona_index(docname: str, hcd_context, format: str = "list"):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
 
-    all_personas = hcd_context.persona_repo.list_all()
+    all_personas = hcd_context.list_personas.execute_sync(
+        ListPersonasRequest(solution_slug=solution)
+    ).personas
 
     if not all_personas:
         return [empty_result_paragraph("No personas defined")]

@@ -23,7 +23,14 @@ from ..node_builders import (
     problematic_paragraph,
 )
 from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
-from julee.hcd.use_cases.crud import CreateAcceleratorRequest
+from julee.hcd.use_cases.crud import (
+    CreateAcceleratorRequest,
+    GetAcceleratorRequest,
+    GetAppRequest,
+    ListAcceleratorsRequest,
+    ListAppsRequest,
+    ListIntegrationsRequest,
+)
 
 from ..dependencies import get_create_accelerator_use_case
 from julee.hcd.use_cases.resolve_accelerator_references import (
@@ -232,7 +239,10 @@ class AcceleratorStatusDirective(HCDDirective):
 
     def run(self):
         slug = self.arguments[0]
-        accelerator = self.hcd_context.accelerator_repo.get(slug)
+        response = self.hcd_context.get_accelerator.execute_sync(
+            GetAcceleratorRequest(slug=slug)
+        )
+        accelerator = response.accelerator
 
         if not accelerator:
             return self.empty_result(f"Accelerator '{slug}' not found")
@@ -258,16 +268,26 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    accelerator = hcd_context.accelerator_repo.get(slug)
+    accel_response = hcd_context.get_accelerator.execute_sync(
+        GetAcceleratorRequest(slug=slug)
+    )
+    accelerator = accel_response.accelerator
     if not accelerator:
         return [problematic_paragraph(f"Accelerator '{slug}' not found")]
 
     # Get all entities for cross-references
-    all_accelerators = hcd_context.accelerator_repo.list_all()
-    all_apps = hcd_context.app_repo.list_all()
-    all_integrations = hcd_context.integration_repo.list_all()
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
+    all_apps = hcd_context.list_apps.execute_sync(
+        ListAppsRequest(solution_slug=solution)
+    ).apps
+    all_integrations = hcd_context.list_integrations.execute_sync(
+        ListIntegrationsRequest(solution_slug=solution)
+    ).integrations
 
     result_nodes = []
 
@@ -352,9 +372,14 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
 
 def build_accelerator_index(docname: str, hcd_context):
     """Build accelerator index grouped by status."""
+    from ..config import get_config
     from ..node_builders import grouped_bullet_lists
 
-    all_accelerators = hcd_context.accelerator_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
 
     if not all_accelerators:
         return [empty_result_paragraph("No accelerators defined")]
@@ -385,13 +410,17 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
     from ..config import get_config
 
     config = get_config()
+    solution = config.solution_slug
     prefix = path_to_root(docname)
 
-    app = hcd_context.app_repo.get(app_slug)
+    app_response = hcd_context.get_app.execute_sync(GetAppRequest(slug=app_slug))
+    app = app_response.app
     if not app:
         return [empty_result_paragraph(f"App '{app_slug}' not found")]
 
-    all_accelerators = hcd_context.accelerator_repo.list_all()
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
 
     # Filter to accelerators this app exposes
     matching = [a for a in all_accelerators if a.slug in (app.accelerators or [])]
@@ -412,12 +441,18 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
 
 def build_dependency_diagram(docname: str, hcd_context):
     """Build PlantUML diagram of accelerator dependencies."""
+    from ..config import get_config
+
     try:
         from sphinxcontrib.plantuml import plantuml
     except ImportError:
         return [empty_result_paragraph("PlantUML extension not available")]
 
-    all_accelerators = hcd_context.accelerator_repo.list_all()
+    config = get_config()
+    solution = config.solution_slug
+    all_accelerators = hcd_context.list_accelerators.execute_sync(
+        ListAcceleratorsRequest(solution_slug=solution)
+    ).accelerators
 
     if not all_accelerators:
         return [empty_result_paragraph("No accelerators defined")]
