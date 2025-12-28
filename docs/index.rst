@@ -91,6 +91,13 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Proposals
+
+   proposals/framework_taxonomy/index
+   proposals/projected_views/index
+
+.. toctree::
+   :maxdepth: 2
    :caption: Full API Reference
 
    api/index

@@ -491,6 +491,9 @@ def use_case(cls: type[T]) -> type[T]:
             """
             return asyncio.run(self.execute(request))
 
+        # Set proper metadata so sphinx_autodoc_typehints doesn't see this as a local function
+        execute_sync.__module__ = cls.__module__
+        execute_sync.__qualname__ = f"{cls.__qualname__}.execute_sync"
         cls.execute_sync = execute_sync  # type: ignore[attr-defined]
 
     # Mark the class as a use case for doctrine verification

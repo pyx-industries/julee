@@ -21,4 +21,5 @@ Guides
 
    pipelines
    modules
+   contrib
    3rd-party

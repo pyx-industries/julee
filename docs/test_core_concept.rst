@@ -1,3 +1,5 @@
+:orphan:
+
 Test Core Concept Directive
 ============================
 

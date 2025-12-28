@@ -1,3 +1,5 @@
+:orphan:
+
 Test Catalog Directives
 ========================
 
