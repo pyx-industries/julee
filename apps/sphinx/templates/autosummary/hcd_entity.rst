@@ -16,49 +16,69 @@
 {%- endfor %}
 {% endif %}
 
-{% if "story" in fullname %}
-This Solution's Stories
------------------------
-
-.. story-index::
-
-{% elif "persona" in fullname %}
+{% if "persona" in fullname and "entities" in fullname %}
 This Solution's Personas
 ------------------------
 
 .. persona-index::
 
-{% elif "epic" in fullname %}
-This Solution's Epics
----------------------
+Persona Overview
+~~~~~~~~~~~~~~~~
 
-.. epic-index::
+.. persona-index-diagram::
 
-{% elif "journey" in fullname %}
+{% elif "journey" in fullname and "entities" in fullname %}
 This Solution's Journeys
 ------------------------
 
 .. journey-index::
 
-{% elif "app" in fullname %}
+Journey Dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+.. journey-dependency-graph::
+
+{% elif "epic" in fullname and "entities" in fullname %}
+This Solution's Epics
+---------------------
+
+.. epic-index::
+
+{% elif "story" in fullname and "entities" in fullname %}
+This Solution's Stories
+-----------------------
+
+.. story-index::
+
+{% elif "app" in fullname and "entities" in fullname %}
 This Solution's Apps
 --------------------
 
 .. app-index::
 
-{% elif "accelerator" in fullname %}
+Apps by Interface
+~~~~~~~~~~~~~~~~~
+
+.. app-list-by-interface::
+
+{% elif "accelerator" in fullname and "entities" in fullname %}
 This Solution's Accelerators
 ----------------------------
 
 .. accelerator-index::
 
-{% elif "integration" in fullname %}
+Accelerator Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. accelerator-dependency-diagram::
+
+{% elif "integration" in fullname and "entities" in fullname %}
 This Solution's Integrations
 ----------------------------
 
 .. integration-index::
 
-{% elif "contrib" in fullname %}
+{% elif "contrib" in fullname and "entities" in fullname %}
 This Solution's Contribs
 ------------------------
 

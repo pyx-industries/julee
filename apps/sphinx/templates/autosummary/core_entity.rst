@@ -84,6 +84,11 @@ This Solution's Entities
 
 .. entity-catalog::
 
+Entity Relationships
+~~~~~~~~~~~~~~~~~~~~
+
+.. entity-diagram::
+
 {% elif "use_case" in fullname and "entities" in fullname %}
 This Solution's Use Cases
 -------------------------
