@@ -91,9 +91,9 @@ def generate_index_directive(
     request_factory: Callable[[dict], BaseModel],
     rendering_service_getter: Callable[[Any], DocumentationRenderingService],
     context_getter: Callable[[Any], Ctx],
+    placeholder_class: type[nodes.Element],
     *,
     option_spec: dict[str, Any] | None = None,
-    use_placeholder: bool = True,
 ) -> type[SphinxDirective]:
     """Generate an index directive that calls a use case and renders via service.
 
@@ -103,8 +103,8 @@ def generate_index_directive(
         request_factory: Function(options) -> Request instance
         rendering_service_getter: Function(app) -> DocumentationRenderingService
         context_getter: Function(app) -> domain context (e.g., get_hcd_context)
+        placeholder_class: Module-level placeholder class (must be picklable)
         option_spec: Optional directive options (default: {"format": unchanged})
-        use_placeholder: If True, use placeholder pattern for deferred rendering
 
     Returns:
         Generated directive class
@@ -116,95 +116,59 @@ def generate_index_directive(
     }
     final_option_spec = {**default_option_spec, **(option_spec or {})}
 
-    if use_placeholder:
-        # Create a unique placeholder class for this entity
-        placeholder_cls = type(
-            f"{entity_name}IndexPlaceholder",
-            (nodes.General, nodes.Element),
-            {"__doc__": f"Placeholder for {slug}-index directive."},
-        )
+    # Store in local var to avoid class body name shadowing
+    _placeholder_cls = placeholder_class
 
-        class GeneratedIndexDirective(SphinxDirective):
-            __doc__ = f"Render index of all {slug}s."
-            option_spec = final_option_spec
+    class GeneratedIndexDirective(SphinxDirective):
+        __doc__ = f"Render index of all {slug}s."
+        option_spec = final_option_spec
 
-            # Expose placeholder class for registration
-            placeholder_class = placeholder_cls
+        # Expose placeholder class for registration
+        placeholder_class = _placeholder_cls
 
-            def run(self):
-                node = placeholder_cls()
-                node["options"] = dict(self.options)
-                node["docname"] = self.env.docname
-                return [node]
+        def run(self):
+            node = _placeholder_cls()
+            node["options"] = dict(self.options)
+            node["docname"] = self.env.docname
+            return [node]
 
-            @staticmethod
-            def resolve_placeholder(
-                node: nodes.Element,
-                app: Any,
-            ) -> list[nodes.Node]:
-                """Resolve placeholder to actual content.
+        @staticmethod
+        def resolve_placeholder(
+            node: nodes.Element,
+            app: Any,
+        ) -> list[nodes.Node]:
+            """Resolve placeholder to actual content.
 
-                Called during doctree-resolved event.
-                """
-                ctx = context_getter(app)
-                docname = node["docname"]
-                options = node["options"]
+            Called during doctree-resolved event.
+            """
+            ctx = context_getter(app)
+            docname = node["docname"]
+            options = node["options"]
 
-                # Execute use case
-                use_case = use_case_factory(ctx)
-                request = request_factory(options)
-                response = use_case.execute_sync(request)
+            # Execute use case
+            use_case = use_case_factory(ctx)
+            request = request_factory(options)
+            response = use_case.execute_sync(request)
 
-                # Get entities from response (uses auto-derived field name)
-                entities_field = _pluralize(_to_snake_case(entity_name))
-                entities = getattr(response, entities_field, response.entities)
+            # Get entities from response (uses auto-derived field name)
+            entities_field = _pluralize(_to_snake_case(entity_name))
+            entities = getattr(response, entities_field, response.entities)
 
-                # Render via service
-                rendering_service = rendering_service_getter(app)
-                rst_content = rendering_service.render_index(
-                    entities=entities,
-                    entity_type=slug,
-                    docname=docname,
-                    **options,
-                )
+            # Render via service
+            rendering_service = rendering_service_getter(app)
+            rst_content = rendering_service.render_index(
+                entities=entities,
+                entity_type=slug,
+                docname=docname,
+                **options,
+            )
 
-                return parse_rst_to_nodes(rst_content, docname)
+            return parse_rst_to_nodes(rst_content, docname)
 
-        GeneratedIndexDirective.__name__ = f"{entity_name}IndexDirective"
-        return GeneratedIndexDirective
-
-    else:
-        # Direct rendering (no placeholder)
-        class GeneratedIndexDirective(SphinxDirective):
-            __doc__ = f"Render index of all {slug}s."
-            option_spec = final_option_spec
-
-            def run(self):
-                ctx = context_getter(self.env.app)
-                docname = self.env.docname
-
-                # Execute use case
-                use_case = use_case_factory(ctx)
-                request = request_factory(self.options)
-                response = use_case.execute_sync(request)
-
-                # Get entities from response
-                entities_field = _pluralize(_to_snake_case(entity_name))
-                entities = getattr(response, entities_field, response.entities)
-
-                # Render via service
-                rendering_service = rendering_service_getter(self.env.app)
-                rst_content = rendering_service.render_index(
-                    entities=entities,
-                    entity_type=slug,
-                    docname=docname,
-                    **dict(self.options),
-                )
-
-                return parse_rst_to_nodes(rst_content, docname)
-
-        GeneratedIndexDirective.__name__ = f"{entity_name}IndexDirective"
-        return GeneratedIndexDirective
+    GeneratedIndexDirective.__name__ = f"{entity_name}IndexDirective"
+    # Fix class attribute reference
+    GeneratedIndexDirective.placeholder_class = placeholder_class
+    return GeneratedIndexDirective
 
 
 def generate_define_directive(
@@ -309,6 +273,7 @@ def generate_index_directive_from_build_fn(
     entity_name: str,
     build_function: Callable[[str, Ctx], list[nodes.Node]],
     context_getter: Callable[[Any], Ctx],
+    placeholder_class: type[nodes.Element],
     *,
     option_spec: dict[str, Any] | None = None,
     env_getter: Callable[[Any], Any] | None = None,
@@ -322,6 +287,7 @@ def generate_index_directive_from_build_fn(
         entity_name: Entity name for directive naming (e.g., "Epic")
         build_function: Function(docname, context, **options) -> list[nodes.Node]
         context_getter: Function(app) -> domain context
+        placeholder_class: Module-level placeholder class (must be picklable)
         option_spec: Optional directive options
         env_getter: Optional function(app) -> env (for build functions that need it)
 
@@ -335,21 +301,17 @@ def generate_index_directive_from_build_fn(
     }
     final_option_spec = {**default_option_spec, **(option_spec or {})}
 
-    # Create placeholder class
-    placeholder_cls = type(
-        f"{entity_name}IndexPlaceholder",
-        (nodes.General, nodes.Element),
-        {"__doc__": f"Placeholder for {slug}-index directive."},
-    )
+    # Store in local var to avoid class body name shadowing
+    _placeholder_cls = placeholder_class
 
     class GeneratedIndexDirective(SphinxDirective):
         __doc__ = f"Render index of all {slug}s."
         option_spec = final_option_spec
 
-        placeholder_class = placeholder_cls
+        placeholder_class = _placeholder_cls
 
         def run(self):
-            node = placeholder_cls()
+            node = _placeholder_cls()
             node["options"] = dict(self.options)
             node["docname"] = self.env.docname
             return [node]
