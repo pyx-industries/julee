@@ -39,7 +39,7 @@ Install Julee from `PyPI <https://pypi.org/project/julee/>`_::
 
 Julee applications require: `Temporal <https://temporal.io/>`_ (workflow orchestration), S3-compatible object storage (e.g. MinIO), PostgreSQL (for Temporal).
 
-See :doc:`architecture/framework` to understand Julee's philosophy, or :doc:`architecture/solutions/index` to learn how to structure your application.
+See :py:mod:`julee` to understand Julee's philosophy, or :doc:`architecture/solutions/index` to learn how to structure your application.
 
 Example Application
 -------------------
@@ -60,7 +60,6 @@ Documentation Contents
    :maxdepth: 2
    :caption: Architecture
 
-   architecture/framework
    architecture/c4/index
    architecture/solutions/index
    architecture/applications/index

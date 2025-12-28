@@ -1,7 +1,7 @@
 System Context
 ==============
 
-Julee Tooling supports the development of :doc:`solutions <../framework>`.
+Julee Tooling supports the development of :doc:`solutions <../solutions/index>`.
 This page shows who uses the tooling and what external systems it interacts with.
 
 .. define-software-system:: julee-tooling
@@ -45,7 +45,7 @@ This page shows who uses the tooling and what external systems it interacts with
 .. persona-index::
    :format: summary
 
-The :doc:`Julee Solution <../framework>` being developed is the external system.
+The Julee Solution being developed is the external system.
 The tooling reads and writes solution artifacts:
 
 - RST documentation files

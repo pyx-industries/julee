@@ -2,7 +2,7 @@ Solutions
 =========
 
 A **Julee Solution** is a software system
-built on the :doc:`Julee framework </architecture/framework>`.
+built on the :py:mod:`Julee framework <julee>`.
 The framework provides the vocabulary and patterns
 for orchestrating a digital product supply chains.
 
