@@ -75,3 +75,25 @@ class PolicyVerificationResult(BaseModel, frozen=True):
     )
     skipped: bool = Field(default=False, description="If True, policy was not applicable")
     skip_reason: str = Field(default="", description="Why the policy was skipped")
+
+
+class SolutionPolicyConfig(BaseModel, frozen=True):
+    """Policy configuration for a solution.
+
+    Read from [tool.julee] in pyproject.toml. Presence of this section
+    declares the project as a "julee solution" which inherits framework-default
+    policies.
+    """
+
+    is_julee_solution: bool = Field(
+        default=False,
+        description="True if [tool.julee] section exists",
+    )
+    policies: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Explicitly adopted policy slugs",
+    )
+    skip_policies: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Explicitly skipped policy slugs (framework defaults)",
+    )
