@@ -176,11 +176,15 @@ class DoctrineCollector:
         return result
 
 
-def run_doctrine_verification(tests_dir: Path) -> tuple[dict, int]:
+def run_doctrine_verification(
+    tests_dir: Path,
+    include_slow: bool = False,
+) -> tuple[dict, int]:
     """Run doctrine tests and collect results.
 
     Args:
         tests_dir: Directory containing doctrine test files
+        include_slow: If True, include tests marked with @pytest.mark.slow
 
     Returns:
         Tuple of (results dict for template rendering, exit code)
@@ -199,17 +203,20 @@ def run_doctrine_verification(tests_dir: Path) -> tuple[dict, int]:
     sys.stderr = StringIO()
 
     try:
+        # Build pytest args
+        pytest_args = [
+            str(tests_dir),
+            "-o", "addopts=",  # Clear default addopts (disables xdist, coverage)
+            "--tb=short",
+            "-q",  # Quiet mode
+        ]
+
+        # Exclude slow tests by default
+        if not include_slow:
+            pytest_args.extend(["-m", "not slow"])
+
         # Run pytest with our plugin, collecting only doctrine tests
-        # Override addopts to disable xdist and coverage from pyproject.toml
-        exit_code = pytest.main(
-            [
-                str(tests_dir),
-                "-o", "addopts=",  # Clear default addopts (disables xdist, coverage)
-                "--tb=short",
-                "-q",  # Quiet mode
-            ],
-            plugins=[collector],
-        )
+        exit_code = pytest.main(pytest_args, plugins=[collector])
     finally:
         sys.stdout = old_stdout
         sys.stderr = old_stderr

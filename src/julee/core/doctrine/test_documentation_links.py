@@ -39,6 +39,7 @@ class TestInternalLinks:
         r"docutils\.nodes",  # Docutils internals
     ]
 
+    @pytest.mark.slow
     @pytest.mark.asyncio
     async def test_docs_MUST_NOT_have_broken_internal_references(
         self, project_root: Path
@@ -121,6 +122,7 @@ class TestInternalLinks:
 class TestExternalLinks:
     """Doctrine about external documentation links."""
 
+    @pytest.mark.slow
     def test_docs_external_links_SHOULD_be_valid(
         self, project_root: Path
     ) -> None:
@@ -188,9 +190,3 @@ class TestExternalLinks:
                 "Review manually:\n"
                 + "\n".join(f"  - {link}" for link in broken_links[:10])
             )
-
-
-# Mark external link test as slow (requires network)
-TestExternalLinks.test_docs_external_links_SHOULD_be_valid = pytest.mark.slow(
-    TestExternalLinks.test_docs_external_links_SHOULD_be_valid
-)

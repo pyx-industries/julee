@@ -263,12 +263,18 @@ def list_doctrine_areas(scope: str) -> None:
     type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True),
     help="Target directory to verify (default: current project)",
 )
+@click.option(
+    "--include-slow",
+    is_flag=True,
+    help="Include slow tests (e.g., docs link checking)",
+)
 def verify_doctrine(
     verbose: bool,
     area: str | None,
     scope: str,
     app_filter: str | None,
     target: str | None,
+    include_slow: bool,
 ) -> None:
     """Verify codebase compliance with architectural doctrine.
 
@@ -280,6 +286,9 @@ def verify_doctrine(
     - core: Framework doctrine only
     - apps: App instance doctrine only
     - all: Both (default)
+
+    By default, slow tests (like documentation link checking) are skipped.
+    Use --include-slow to run them.
 
     Use --target to verify an external solution:
 
@@ -302,7 +311,9 @@ def verify_doctrine(
     if scope in ("core", "all"):
         if DOCTRINE_DIR.exists():
             click.echo("Verifying core doctrine...\n")
-            results, exit_code = run_doctrine_verification(DOCTRINE_DIR)
+            results, exit_code = run_doctrine_verification(
+                DOCTRINE_DIR, include_slow=include_slow
+            )
             if results:
                 for k, v in results.items():
                     all_results[f"Core: {k}"] = v
@@ -323,7 +334,9 @@ def verify_doctrine(
 
         for app_slug, doctrine_dir in sorted(app_dirs.items()):
             click.echo(f"Verifying {app_slug} app doctrine...\n")
-            results, exit_code = run_doctrine_verification(doctrine_dir)
+            results, exit_code = run_doctrine_verification(
+                doctrine_dir, include_slow=include_slow
+            )
             if results:
                 for k, v in results.items():
                     all_results[f"App/{app_slug}: {k}"] = v
