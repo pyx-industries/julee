@@ -359,3 +359,217 @@ class TestTemporalWorkerAppStructure:
             "Found workers: "
             + ", ".join(f"{app.slug}@{app.path}" for app in worker_apps)
         )
+
+
+# =============================================================================
+# APP DEPENDENCY RULES
+# =============================================================================
+
+
+def _find_app_business_files(app_path: Path) -> list[Path]:
+    """Find app files that contain business logic (not DI containers).
+
+    Returns files in routers/, handlers/, event_handlers/, tools/.
+    Excludes:
+    - dependencies.py (DI container for REST/MCP apps)
+    - commands/ (CLI entry points that do their own wiring)
+    - test files
+    """
+    business_files = []
+
+    # Directories containing business logic that receives dependencies
+    # Note: commands/ excluded - CLI commands are entry points that wire dependencies
+    business_dirs = [
+        "routers",
+        "handlers",
+        "event_handlers",
+        "tools",  # MCP tools
+    ]
+
+    for dir_name in business_dirs:
+        # Direct directory
+        direct_dir = app_path / dir_name
+        if direct_dir.exists():
+            for f in direct_dir.glob("**/*.py"):
+                if not f.name.startswith("_") and "test" not in f.name:
+                    business_files.append(f)
+
+        # BC-organized subdirs (e.g., apps/api/hcd/routers/)
+        for subdir in app_path.iterdir():
+            if subdir.is_dir() and not subdir.name.startswith(("_", ".")):
+                if subdir.name not in ("shared", "tests", "__pycache__", "templates"):
+                    nested_dir = subdir / dir_name
+                    if nested_dir.exists():
+                        for f in nested_dir.glob("**/*.py"):
+                            if not f.name.startswith("_") and "test" not in f.name:
+                                business_files.append(f)
+
+    return business_files
+
+
+def _extract_infrastructure_imports(file_path: Path) -> list[dict]:
+    """Extract imports from BC infrastructure/ directories.
+
+    Returns imports that reference infrastructure implementations
+    rather than domain abstractions.
+    """
+    from julee.core.parsers.imports import extract_imports
+
+    violations = []
+    imports = extract_imports(file_path)
+
+    for imp in imports:
+        # Check if import is from infrastructure
+        parts = imp.module.lower().split(".")
+        if "infrastructure" in parts:
+            violations.append(
+                {
+                    "line": 0,  # extract_imports doesn't track line numbers
+                    "module": imp.module,
+                    "names": imp.names,
+                }
+            )
+
+    return violations
+
+
+def _extract_implementation_instantiations(file_path: Path) -> list[dict]:
+    """Find direct instantiation of repository/service implementations.
+
+    Looks for patterns like:
+    - MemoryStoryRepository()
+    - FileStoryRepository()
+    - *Repository() where * suggests implementation
+    - *Service() instantiation (not protocol references)
+    """
+    import re
+
+    try:
+        source = file_path.read_text()
+        tree = ast.parse(source)
+    except (SyntaxError, OSError):
+        return []
+
+    violations = []
+
+    # Implementation class patterns (concrete, not protocols)
+    impl_patterns = [
+        re.compile(r"^(Memory|File|Filesystem|Sqlite|Postgres|Redis|Http|Grpc)\w+(Repository|Service)$"),
+        re.compile(r"^\w+(MemoryRepository|FileRepository|SqliteRepository)$"),
+    ]
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            # Get the class being instantiated
+            class_name = None
+            if isinstance(node.func, ast.Name):
+                class_name = node.func.id
+            elif isinstance(node.func, ast.Attribute):
+                class_name = node.func.attr
+
+            if class_name:
+                for pattern in impl_patterns:
+                    if pattern.match(class_name):
+                        violations.append(
+                            {
+                                "line": node.lineno,
+                                "class": class_name,
+                            }
+                        )
+                        break
+
+    return violations
+
+
+class TestAppDependencyRules:
+    """Doctrine about application layer dependency rules.
+
+    Applications are the outermost layer. They wire together infrastructure
+    and domain via dependency injection. Business logic files (routers,
+    commands, handlers) MUST NOT import or instantiate infrastructure directly.
+    """
+
+    @pytest.mark.asyncio
+    async def test_app_business_files_MUST_NOT_import_bc_infrastructure(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """App business files MUST NOT import from BC infrastructure/.
+
+        Doctrine: Application files containing business logic (routers, commands,
+        handlers) MUST NOT import from bounded context infrastructure/ directories.
+
+        They should import:
+        - Use cases (from {bc}.use_cases)
+        - Request/Response types (from {bc}.use_cases)
+        - Entity types (from {bc}.entities)
+        - Repository protocols (from {bc}.repositories) for type hints only
+
+        Infrastructure implementations are wired via dependencies.py (DI container),
+        not imported directly into business logic.
+
+        This ensures:
+        - Business logic is testable with mock implementations
+        - Swapping implementations doesn't require changing business code
+        - Clear separation between "what" (domain) and "how" (infrastructure)
+        """
+        apps = await app_repo.list_all()
+
+        violations = []
+
+        for app in apps:
+            business_files = _find_app_business_files(Path(app.path))
+
+            for business_file in business_files:
+                infra_imports = _extract_infrastructure_imports(business_file)
+
+                for imp in infra_imports:
+                    violations.append(
+                        f"{business_file.relative_to(Path(app.path))}: "
+                        f"imports from infrastructure ({imp['module']})"
+                    )
+
+        assert not violations, (
+            "App business files MUST NOT import from BC infrastructure/:\n"
+            + "\n".join(f"  - {v}" for v in violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_app_business_files_MUST_NOT_instantiate_implementations(
+        self, app_repo: FilesystemApplicationRepository
+    ) -> None:
+        """App business files MUST NOT instantiate repository/service implementations.
+
+        Doctrine: Application files containing business logic (routers, commands,
+        handlers) MUST NOT directly instantiate infrastructure implementations
+        like MemoryStoryRepository() or FileStoryRepository().
+
+        Implementation instances should be:
+        - Created in dependencies.py (DI container)
+        - Injected into use cases via constructor
+        - Received by handlers via FastAPI Depends() or similar DI mechanism
+
+        This ensures:
+        - Single place for wiring (dependencies.py)
+        - Easy to swap implementations for testing or different environments
+        - Business logic remains ignorant of concrete infrastructure
+        """
+        apps = await app_repo.list_all()
+
+        violations = []
+
+        for app in apps:
+            business_files = _find_app_business_files(Path(app.path))
+
+            for business_file in business_files:
+                instantiations = _extract_implementation_instantiations(business_file)
+
+                for inst in instantiations:
+                    violations.append(
+                        f"{business_file.relative_to(Path(app.path))}:"
+                        f"{inst['line']} - instantiates {inst['class']}"
+                    )
+
+        assert not violations, (
+            "App business files MUST NOT instantiate implementations:\n"
+            + "\n".join(f"  - {v}" for v in violations)
+        )
