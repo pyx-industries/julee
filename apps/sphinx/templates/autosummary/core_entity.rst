@@ -96,4 +96,10 @@ This Solution's Repository Protocols
 
 .. repository-catalog::
 
+{% elif "service_protocol" in fullname and "entities" in fullname %}
+This Solution's Service Protocols
+---------------------------------
+
+.. service-protocol-catalog::
+
 {% endif %}

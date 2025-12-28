@@ -2,10 +2,10 @@
 
 Provides factory functions to generate Sphinx directives that:
 1. Call a use case to get data
-2. Render a Jinja template with that data
+2. Render via DocumentationRenderingService
 3. Convert the resulting RST to docutils nodes
 
-This separates data fetching (use cases) from presentation (templates),
+This separates data fetching (use cases) from presentation (rendering service),
 reducing boilerplate across bounded context documentation extensions.
 
 Example:
@@ -19,21 +19,24 @@ Example:
         entity_name="Persona",
         use_case_factory=_list_personas,
         request_factory=lambda opts: ListPersonasRequest(),
-        template_path="persona_index.rst.jinja",
+        rendering_service=rendering_service,
     )
 """
 
+from __future__ import annotations
+
+import re
 from collections.abc import Callable
-from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from docutils import nodes
 from docutils.parsers.rst import directives
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from pydantic import BaseModel
 from sphinx.util.docutils import SphinxDirective
 
-from apps.sphinx.shared import path_to_root
+if TYPE_CHECKING:
+    from pydantic import BaseModel
+
+    from julee.core.services.documentation import DocumentationRenderingService
 
 # Type for context objects (HCDContext, C4Context, etc.)
 Ctx = TypeVar("Ctx")
@@ -41,8 +44,6 @@ Ctx = TypeVar("Ctx")
 
 def _to_snake_case(name: str) -> str:
     """Convert CamelCase to snake_case."""
-    import re
-
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
@@ -54,39 +55,6 @@ def _pluralize(name: str) -> str:
     elif name.endswith("s") or name.endswith("x") or name.endswith("ch"):
         return name + "es"
     return name + "s"
-
-
-def _title_case(slug: str) -> str:
-    """Convert slug to title case."""
-    return slug.replace("-", " ").replace("_", " ").title()
-
-
-def _first_sentence(text: str) -> str:
-    """Extract first sentence from text."""
-    if not text:
-        return ""
-    for i, char in enumerate(text):
-        if char in ".!?" and (i + 1 >= len(text) or text[i + 1] in " \n"):
-            return text[: i + 1]
-    return text
-
-
-def _create_jinja_env(template_dir: Path) -> Environment:
-    """Create a Jinja environment with common filters."""
-    env = Environment(
-        loader=FileSystemLoader(template_dir),
-        autoescape=select_autoescape(disabled_extensions=["rst", "jinja"]),
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-
-    # Register common filters
-    env.filters["snake_case"] = _to_snake_case
-    env.filters["pluralize"] = _pluralize
-    env.filters["title_case"] = _title_case
-    env.filters["first_sentence"] = _first_sentence
-
-    return env
 
 
 def parse_rst_to_nodes(rst_text: str, source_name: str = "<rst>") -> list[nodes.Node]:
@@ -117,81 +85,30 @@ def parse_rst_to_nodes(rst_text: str, source_name: str = "<rst>") -> list[nodes.
     return list(doctree.children)
 
 
-class DirectiveContext:
-    """Context passed to templates for link building and path resolution."""
-
-    def __init__(self, docname: str, config: Any):
-        self.docname = docname
-        self.config = config
-        self.prefix = path_to_root(docname)
-
-    def doc_path(self, doc_type: str) -> str:
-        """Get path for a documentation type."""
-        return f"{self.prefix}{self.config.get_doc_path(doc_type)}"
-
-    def relative_uri(self, target_doc: str, anchor: str | None = None) -> str:
-        """Build relative URI from current doc to target."""
-        from_parts = self.docname.split("/")
-        target_parts = target_doc.split("/")
-
-        common = 0
-        for i in range(min(len(from_parts), len(target_parts))):
-            if from_parts[i] == target_parts[i]:
-                common += 1
-            else:
-                break
-
-        up_levels = len(from_parts) - common - 1
-        down_path = "/".join(target_parts[common:])
-
-        if up_levels > 0:
-            rel_path = "../" * up_levels + down_path + ".html"
-        else:
-            rel_path = down_path + ".html"
-
-        if anchor:
-            return f"{rel_path}#{anchor}"
-        return rel_path
-
-
-class IndexPlaceholder(nodes.General, nodes.Element):
-    """Generic placeholder node for index directives.
-
-    Stores directive metadata for resolution during doctree-resolved event.
-    """
-
-    pass
-
-
 def generate_index_directive(
     entity_name: str,
     use_case_factory: Callable[[Ctx], Any],
     request_factory: Callable[[dict], BaseModel],
-    template_dir: Path,
-    template_name: str,
+    rendering_service_getter: Callable[[Any], DocumentationRenderingService],
     context_getter: Callable[[Any], Ctx],
-    config_getter: Callable[[], Any],
     *,
     option_spec: dict[str, Any] | None = None,
     use_placeholder: bool = True,
 ) -> type[SphinxDirective]:
-    """Generate an index directive that calls a use case and renders a template.
+    """Generate an index directive that calls a use case and renders via service.
 
     Args:
         entity_name: Entity name for directive naming (e.g., "Persona")
         use_case_factory: Function(context) -> UseCase instance
         request_factory: Function(options) -> Request instance
-        template_dir: Directory containing templates
-        template_name: Template filename (e.g., "persona_index.rst.jinja")
+        rendering_service_getter: Function(app) -> DocumentationRenderingService
         context_getter: Function(app) -> domain context (e.g., get_hcd_context)
-        config_getter: Function() -> config object
         option_spec: Optional directive options (default: {"format": unchanged})
         use_placeholder: If True, use placeholder pattern for deferred rendering
 
     Returns:
         Generated directive class
     """
-    jinja_env = _create_jinja_env(template_dir)
     slug = _to_snake_case(entity_name)
 
     default_option_spec = {
@@ -230,7 +147,6 @@ def generate_index_directive(
                 Called during doctree-resolved event.
                 """
                 ctx = context_getter(app)
-                config = config_getter()
                 docname = node["docname"]
                 options = node["options"]
 
@@ -239,20 +155,17 @@ def generate_index_directive(
                 request = request_factory(options)
                 response = use_case.execute_sync(request)
 
-                # Build template context
-                template_ctx = DirectiveContext(docname, config)
-
                 # Get entities from response (uses auto-derived field name)
                 entities_field = _pluralize(_to_snake_case(entity_name))
                 entities = getattr(response, entities_field, response.entities)
 
-                # Render template
-                template = jinja_env.get_template(template_name)
-                rst_content = template.render(
+                # Render via service
+                rendering_service = rendering_service_getter(app)
+                rst_content = rendering_service.render_index(
                     entities=entities,
-                    response=response,
-                    ctx=template_ctx,
-                    options=options,
+                    entity_type=slug,
+                    docname=docname,
+                    **options,
                 )
 
                 return parse_rst_to_nodes(rst_content, docname)
@@ -268,30 +181,27 @@ def generate_index_directive(
 
             def run(self):
                 ctx = context_getter(self.env.app)
-                config = config_getter()
+                docname = self.env.docname
 
                 # Execute use case
                 use_case = use_case_factory(ctx)
                 request = request_factory(self.options)
                 response = use_case.execute_sync(request)
 
-                # Build template context
-                template_ctx = DirectiveContext(self.env.docname, config)
-
                 # Get entities from response
                 entities_field = _pluralize(_to_snake_case(entity_name))
                 entities = getattr(response, entities_field, response.entities)
 
-                # Render template
-                template = jinja_env.get_template(template_name)
-                rst_content = template.render(
+                # Render via service
+                rendering_service = rendering_service_getter(self.env.app)
+                rst_content = rendering_service.render_index(
                     entities=entities,
-                    response=response,
-                    ctx=template_ctx,
-                    options=self.options,
+                    entity_type=slug,
+                    docname=docname,
+                    **dict(self.options),
                 )
 
-                return parse_rst_to_nodes(rst_content, self.env.docname)
+                return parse_rst_to_nodes(rst_content, docname)
 
         GeneratedIndexDirective.__name__ = f"{entity_name}IndexDirective"
         return GeneratedIndexDirective
@@ -301,10 +211,8 @@ def generate_define_directive(
     entity_name: str,
     create_use_case_factory: Callable[[Ctx], Any],
     request_cls: type[BaseModel],
-    template_dir: Path,
-    template_name: str,
+    rendering_service_getter: Callable[[Any], DocumentationRenderingService],
     context_getter: Callable[[Any], Ctx],
-    config_getter: Callable[[], Any],
     *,
     option_spec: dict[str, Any],
     option_to_request: Callable[[str, dict, list[str]], dict] | None = None,
@@ -315,17 +223,14 @@ def generate_define_directive(
         entity_name: Entity name (e.g., "Persona")
         create_use_case_factory: Function(context) -> CreateUseCase instance
         request_cls: Request class for the create use case
-        template_dir: Directory containing templates
-        template_name: Template filename for rendering the defined entity
+        rendering_service_getter: Function(app) -> DocumentationRenderingService
         context_getter: Function(app) -> domain context
-        config_getter: Function() -> config object
         option_spec: Directive option specification
         option_to_request: Optional function(slug, options, content) -> request kwargs
 
     Returns:
         Generated directive class
     """
-    jinja_env = _create_jinja_env(template_dir)
     slug = _to_snake_case(entity_name)
 
     class GeneratedDefineDirective(SphinxDirective):
@@ -340,7 +245,6 @@ def generate_define_directive(
             content = "\n".join(self.content).strip()
 
             ctx = context_getter(self.env.app)
-            config = config_getter()
 
             # Build request kwargs
             if option_to_request:
@@ -363,12 +267,13 @@ def generate_define_directive(
             entity_field = _to_snake_case(entity_name)
             entity = getattr(response, entity_field, response.entity)
 
-            # Render template
-            template_ctx = DirectiveContext(docname, config)
-            template = jinja_env.get_template(template_name)
-            rst_content = template.render(
+            # Render via service
+            rendering_service = rendering_service_getter(self.env.app)
+            rst_content = rendering_service.render_entity(
                 entity=entity,
-                ctx=template_ctx,
+                entity_type=slug,
+                docname=docname,
+                view_type="define",
                 content=content,
             )
 

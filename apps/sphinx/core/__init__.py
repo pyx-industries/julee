@@ -59,6 +59,7 @@ def setup(app):
     from .directives.catalog import (
         EntityCatalogDirective,
         RepositoryCatalogDirective,
+        ServiceProtocolCatalogDirective,
         UseCaseCatalogDirective,
     )
     from .directives.concept import (
@@ -86,6 +87,7 @@ def setup(app):
     # Register catalog directives
     app.add_directive("entity-catalog", EntityCatalogDirective)
     app.add_directive("repository-catalog", RepositoryCatalogDirective)
+    app.add_directive("service-protocol-catalog", ServiceProtocolCatalogDirective)
     app.add_directive("usecase-catalog", UseCaseCatalogDirective)
 
     # Register solution structure directives

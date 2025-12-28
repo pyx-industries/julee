@@ -29,6 +29,10 @@ from julee.core.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsRequest,
     ListRepositoryProtocolsUseCase,
 )
+from julee.core.use_cases.code_artifact.list_service_protocols import (
+    ListServiceProtocolsRequest,
+    ListServiceProtocolsUseCase,
+)
 from julee.core.use_cases.code_artifact.list_use_cases import (
     ListUseCasesRequest,
     ListUseCasesUseCase,
@@ -266,6 +270,64 @@ class UseCaseCatalogDirective(SphinxDirective):
             artifacts=response.artifacts,
             options=dict(self.options),
             classify_crud=_classify_crud_type,
+        )
+
+        # Parse RST to nodes
+        return parse_rst_to_nodes(rst_content, self.env.docname)
+
+
+class ServiceProtocolCatalogDirective(SphinxDirective):
+    """List all service protocols in bounded context(s).
+
+    Uses template-driven rendering:
+    1. Calls ListServiceProtocolsUseCase to get service protocols
+    2. Passes response to service_protocol_catalog.rst.jinja template
+    3. Template renders RST which is parsed to nodes
+
+    Usage::
+
+        .. service-protocol-catalog:: julee.hcd
+           :show-methods:
+           :link-to-api:
+
+    Or without argument to list all service protocols across all BCs::
+
+        .. service-protocol-catalog::
+    """
+
+    required_arguments = 0
+    optional_arguments = 1
+    has_content = False
+
+    option_spec = {
+        "show-methods": directives.flag,
+        "link-to-api": directives.flag,
+    }
+
+    def run(self) -> list[nodes.Node]:
+        """Execute the directive."""
+        import asyncio
+
+        context = get_core_context(self.env.app)
+
+        # Determine filter (single BC or all)
+        bc_filter = self.arguments[0] if self.arguments else None
+
+        # Call use case
+        use_case = ListServiceProtocolsUseCase(context.bc_repository)
+        request = ListServiceProtocolsRequest(bounded_context=bc_filter)
+
+        async def execute():
+            return await use_case.execute(request)
+
+        response = asyncio.run(execute())
+
+        # Render template
+        env = _get_jinja_env()
+        template = env.get_template("service_protocol_catalog.rst.jinja")
+        rst_content = template.render(
+            artifacts=response.artifacts,
+            options=dict(self.options),
         )
 
         # Parse RST to nodes
