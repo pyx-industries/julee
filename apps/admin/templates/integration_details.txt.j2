@@ -1,0 +1,9 @@
+Slug:         {{ i.slug }}
+Name:         {{ i.name }}
+{% if i.system_type %}
+Type:         {{ i.system_type }}
+{% endif %}
+{% if i.description %}
+Description:  {{ i.description | truncate(80) }}
+{% endif %}
+Document:     {{ i.docname }}

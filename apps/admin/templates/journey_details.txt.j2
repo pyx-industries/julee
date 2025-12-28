@@ -1,0 +1,18 @@
+Slug:         {{ j.slug }}
+Name:         {{ j.display_title }}
+{% if j.persona %}
+Persona:      {{ j.persona }}
+{% endif %}
+{% if j.intent %}
+Intent:       {{ j.intent | truncate(60) }}
+{% endif %}
+{% if j.outcome %}
+Outcome:      {{ j.outcome | truncate(60) }}
+{% endif %}
+{% if j.steps %}
+Steps:
+{% for step in j.steps %}
+  {{ loop.index }}. [{{ step.step_type.value }}] {{ step.ref }}
+{% endfor %}
+{% endif %}
+Document:     {{ j.docname }}

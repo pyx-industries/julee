@@ -1,0 +1,18 @@
+Slug:         {{ a.slug }}
+Name:         {{ a.name }}
+{% if a.status %}
+Status:       {{ a.status }}
+{% endif %}
+{% if a.objective %}
+Objective:    {{ a.objective | truncate(80) }}
+{% endif %}
+{% if a.technology %}
+Technology:   {{ a.technology }}
+{% endif %}
+{% if a.depends_on %}
+Depends On:
+{% for dep in a.depends_on %}
+  - {{ dep }}
+{% endfor %}
+{% endif %}
+Document:     {{ a.docname }}

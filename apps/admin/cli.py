@@ -15,6 +15,15 @@ from apps.admin.commands.artifacts import (
 )
 from apps.admin.commands.contexts import contexts_group
 from apps.admin.commands.doctrine import doctrine_group
+from apps.admin.commands.hcd import (
+    accelerators_group,
+    epics_group,
+    hcd_apps_group,
+    integrations_group,
+    journeys_group,
+    personas_group,
+    stories_group,
+)
 from apps.admin.commands.policy import policy_group
 from apps.admin.commands.routes import routes_group
 from apps.admin.commands.solution import (
@@ -48,6 +57,15 @@ cli.add_command(responses_group)
 cli.add_command(routes_group)
 cli.add_command(doctrine_group)
 cli.add_command(policy_group)
+
+# HCD command groups (RST-backed entities)
+cli.add_command(personas_group)
+cli.add_command(journeys_group)
+cli.add_command(epics_group)
+cli.add_command(stories_group)
+cli.add_command(hcd_apps_group)
+cli.add_command(accelerators_group)
+cli.add_command(integrations_group)
 
 
 def main() -> None:

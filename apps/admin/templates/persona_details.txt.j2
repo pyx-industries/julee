@@ -1,0 +1,24 @@
+Slug:         {{ p.slug }}
+Name:         {{ p.name }}
+{% if p.goals %}
+Goals:
+{% for goal in p.goals %}
+  - {{ goal }}
+{% endfor %}
+{% endif %}
+{% if p.frustrations %}
+Frustrations:
+{% for f in p.frustrations %}
+  - {{ f }}
+{% endfor %}
+{% endif %}
+{% if p.jobs_to_be_done %}
+Jobs to be Done:
+{% for j in p.jobs_to_be_done %}
+  - {{ j }}
+{% endfor %}
+{% endif %}
+{% if p.context %}
+Context:      {{ p.context | truncate(80) }}
+{% endif %}
+Document:     {{ p.docname }}

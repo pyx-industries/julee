@@ -1,0 +1,12 @@
+Slug:         {{ s.slug }}
+Name:         {{ s.name }}
+{% if s.persona %}
+Persona:      {{ s.persona }}
+{% endif %}
+{% if s.app_slug %}
+App:          {{ s.app_slug }}
+{% endif %}
+{% if s.acceptance %}
+Acceptance:   {{ s.acceptance | truncate(80) }}
+{% endif %}
+Document:     {{ s.docname }}

@@ -1,0 +1,12 @@
+Slug:         {{ e.slug }}
+Name:         {{ e.display_title }}
+{% if e.description %}
+Description:  {{ e.description | truncate(80) }}
+{% endif %}
+{% if e.story_refs %}
+Stories:
+{% for ref in e.story_refs %}
+  - {{ ref }}
+{% endfor %}
+{% endif %}
+Document:     {{ e.docname }}

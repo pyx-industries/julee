@@ -1,0 +1,15 @@
+Slug:         {{ a.slug }}
+Name:         {{ a.name }}
+{% if a.app_type %}
+Type:         {{ a.app_type.value }}
+{% endif %}
+{% if a.technology %}
+Technology:   {{ a.technology }}
+{% endif %}
+{% if a.accelerators %}
+Accelerators:
+{% for acc in a.accelerators %}
+  - {{ acc }}
+{% endfor %}
+{% endif %}
+Document:     {{ a.docname }}

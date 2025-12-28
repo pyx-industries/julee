@@ -349,3 +349,264 @@ def get_effective_policies_use_case():
         policy_repository=get_policy_repository(),
         policy_adoption_service=get_policy_adoption_service(),
     )
+
+
+# =============================================================================
+# HCD Repositories (RST file-backed)
+# =============================================================================
+
+
+def get_docs_path() -> Path:
+    """Get the docs directory path for the solution.
+
+    Returns:
+        Path to the docs directory
+    """
+    return get_project_root() / "docs"
+
+
+@lru_cache
+def get_persona_repository():
+    """Get the persona repository singleton.
+
+    Returns:
+        RST file-backed PersonaRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.persona import RstPersonaRepository
+
+    return RstPersonaRepository(get_docs_path() / "users" / "personas")
+
+
+@lru_cache
+def get_journey_repository():
+    """Get the journey repository singleton.
+
+    Returns:
+        RST file-backed JourneyRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.journey import RstJourneyRepository
+
+    return RstJourneyRepository(get_docs_path() / "users" / "journeys")
+
+
+@lru_cache
+def get_epic_repository():
+    """Get the epic repository singleton.
+
+    Returns:
+        RST file-backed EpicRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.epic import RstEpicRepository
+
+    return RstEpicRepository(get_docs_path() / "users" / "epics")
+
+
+@lru_cache
+def get_story_repository():
+    """Get the story repository singleton.
+
+    Returns:
+        RST file-backed StoryRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.story import RstStoryRepository
+
+    return RstStoryRepository(get_docs_path() / "users" / "stories")
+
+
+@lru_cache
+def get_app_repository():
+    """Get the app repository singleton.
+
+    Returns:
+        RST file-backed AppRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.app import RstAppRepository
+
+    return RstAppRepository(get_docs_path() / "domain" / "applications")
+
+
+@lru_cache
+def get_accelerator_repository():
+    """Get the accelerator repository singleton.
+
+    Returns:
+        RST file-backed AcceleratorRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.accelerator import (
+        RstAcceleratorRepository,
+    )
+
+    return RstAcceleratorRepository(get_docs_path() / "domain" / "accelerators")
+
+
+@lru_cache
+def get_integration_repository():
+    """Get the integration repository singleton.
+
+    Returns:
+        RST file-backed IntegrationRepository
+    """
+    from julee.hcd.infrastructure.repositories.rst.integration import (
+        RstIntegrationRepository,
+    )
+
+    return RstIntegrationRepository(get_docs_path() / "domain" / "integrations")
+
+
+# =============================================================================
+# HCD Use Cases
+# =============================================================================
+
+
+def get_list_personas_use_case():
+    """Get ListPersonasUseCase with repository dependency.
+
+    Returns:
+        Use case for listing personas
+    """
+    from julee.hcd.use_cases.crud import ListPersonasUseCase
+
+    return ListPersonasUseCase(repo=get_persona_repository())
+
+
+def get_get_persona_use_case():
+    """Get GetPersonaUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single persona
+    """
+    from julee.hcd.use_cases.crud import GetPersonaUseCase
+
+    return GetPersonaUseCase(repo=get_persona_repository())
+
+
+def get_list_journeys_use_case():
+    """Get ListJourneysUseCase with repository dependency.
+
+    Returns:
+        Use case for listing journeys
+    """
+    from julee.hcd.use_cases.crud import ListJourneysUseCase
+
+    return ListJourneysUseCase(repo=get_journey_repository())
+
+
+def get_get_journey_use_case():
+    """Get GetJourneyUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single journey
+    """
+    from julee.hcd.use_cases.crud import GetJourneyUseCase
+
+    return GetJourneyUseCase(repo=get_journey_repository())
+
+
+def get_list_epics_use_case():
+    """Get ListEpicsUseCase with repository dependency.
+
+    Returns:
+        Use case for listing epics
+    """
+    from julee.hcd.use_cases.crud import ListEpicsUseCase
+
+    return ListEpicsUseCase(repo=get_epic_repository())
+
+
+def get_get_epic_use_case():
+    """Get GetEpicUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single epic
+    """
+    from julee.hcd.use_cases.crud import GetEpicUseCase
+
+    return GetEpicUseCase(repo=get_epic_repository())
+
+
+def get_list_stories_use_case():
+    """Get ListStoriesUseCase with repository dependency.
+
+    Returns:
+        Use case for listing stories
+    """
+    from julee.hcd.use_cases.crud import ListStoriesUseCase
+
+    return ListStoriesUseCase(repo=get_story_repository())
+
+
+def get_get_story_use_case():
+    """Get GetStoryUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single story
+    """
+    from julee.hcd.use_cases.crud import GetStoryUseCase
+
+    return GetStoryUseCase(repo=get_story_repository())
+
+
+def get_list_apps_use_case():
+    """Get ListAppsUseCase with repository dependency.
+
+    Returns:
+        Use case for listing apps
+    """
+    from julee.hcd.use_cases.crud import ListAppsUseCase
+
+    return ListAppsUseCase(repo=get_app_repository())
+
+
+def get_get_app_use_case():
+    """Get GetAppUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single app
+    """
+    from julee.hcd.use_cases.crud import GetAppUseCase
+
+    return GetAppUseCase(repo=get_app_repository())
+
+
+def get_list_accelerators_use_case():
+    """Get ListAcceleratorsUseCase with repository dependency.
+
+    Returns:
+        Use case for listing accelerators
+    """
+    from julee.hcd.use_cases.crud import ListAcceleratorsUseCase
+
+    return ListAcceleratorsUseCase(repo=get_accelerator_repository())
+
+
+def get_get_accelerator_use_case():
+    """Get GetAcceleratorUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single accelerator
+    """
+    from julee.hcd.use_cases.crud import GetAcceleratorUseCase
+
+    return GetAcceleratorUseCase(repo=get_accelerator_repository())
+
+
+def get_list_integrations_use_case():
+    """Get ListIntegrationsUseCase with repository dependency.
+
+    Returns:
+        Use case for listing integrations
+    """
+    from julee.hcd.use_cases.crud import ListIntegrationsUseCase
+
+    return ListIntegrationsUseCase(repo=get_integration_repository())
+
+
+def get_get_integration_use_case():
+    """Get GetIntegrationUseCase with repository dependency.
+
+    Returns:
+        Use case for getting a single integration
+    """
+    from julee.hcd.use_cases.crud import GetIntegrationUseCase
+
+    return GetIntegrationUseCase(repo=get_integration_repository())
