@@ -1,7 +1,38 @@
 """Accelerator domain model.
 
-Represents an accelerator (bounded context) in the HCD documentation system.
-Accelerators are defined via RST directives and may have associated code.
+An accelerator is a collection of pipelines that work together to make an area
+of business go faster.
+
+Julee is a framework for accountable and transparent digital supply chains.
+Accelerators are how solutions deliver that value - automating business processes
+that would otherwise be slow and manual, while maintaining the audit trails
+needed for compliance and due diligence.
+
+Structure
+---------
+A solution screams its accelerators::
+
+    solution/
+      src/
+        accelerator_a/
+          entities/
+          use_cases/
+          infrastructure/
+        accelerator_b/
+          entities/
+          use_cases/
+          infrastructure/
+      apps/
+        api/
+        cli/
+        worker/
+
+Each accelerator is a top-level package in ``src/``. The solution's architecture
+speaks its business language.
+
+Accelerators are bounded contexts that provide business capabilities. They may
+have associated code in ``src/{slug}/`` and are exposed through one or more
+applications.
 """
 
 from pydantic import BaseModel, Field, field_validator

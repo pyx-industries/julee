@@ -1,4 +1,49 @@
-"""Pipeline model for Temporal workflow wrappers."""
+"""Pipeline model for Temporal workflow wrappers.
+
+A Julee pipeline is a use case that has been appropriately treated (with
+decorators and proxies) to run as a Temporal workflow.
+
+A pipeline is the marriage of two things:
+
+1. A **Julee use case** - deterministic business logic following Clean Architecture
+2. **Temporal workflow technology** - durable, reliable execution with automatic retries
+
+All Julee pipelines are Temporal workflows, but not all Temporal workflows are
+Julee pipelines. All Julee pipelines are Julee use cases, but not all Julee
+use cases are pipelines.
+
+Why Pipelines?
+--------------
+Direct execution of use cases is simple but fragile:
+
+- If the process crashes, work is lost
+- If a service fails, the operation fails
+- No record of what happened or why
+- No way to retry or recover
+
+Pipelines solve these problems:
+
+**Reliability** - Automatic retries, timeout handling, failure recovery. If a
+service is temporarily unavailable, the pipeline waits and retries.
+
+**Durability** - Workflow state is persisted. If the worker crashes, another
+worker picks up where it left off.
+
+**Observability** - Julee uses Temporal's workflow history as an audit log.
+Every step is recorded: what happened, when, with what inputs and outputs.
+
+**Supply Chain Provenance** - The audit log constructs a supply chain provenance
+graph for artefacts produced by the pipeline. Every step is recorded with its
+actor, inputs, outputs, and timing - creating complete lineage for compliance.
+
+Pipeline Proxies
+----------------
+When a use case runs as a pipeline, its repository and service dependencies are
+replaced with proxy classes that route calls through Temporal activities. The
+proxy implements the same protocol, enabling dependency injection to swap
+implementations. But each method call becomes a Temporal activity with its own
+timeout, retry policy, state persistence, and audit trail.
+"""
 
 from pydantic import BaseModel, Field, field_validator
 

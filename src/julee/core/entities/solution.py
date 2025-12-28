@@ -1,20 +1,63 @@
 """Solution domain model.
 
-Represents a solution as the top-level organizational container for a julee
-project. A solution aggregates bounded contexts, applications, deployments,
-documentation, and optionally nested solutions into a coherent unit.
+A Julee Solution is a software system built on the Julee framework. The
+framework provides vocabulary and patterns; the solution uses that vocabulary
+to say something specific about YOUR business domain.
 
-Doctrine:
+Organise Around Your Business Domain
+------------------------------------
+The Julee framework codebase is organised around software architecture concepts,
+because Julee is a framework - those ARE its domain concepts.
+
+A Julee solution should be organised around YOUR bounded contexts - the distinct
+areas of your business that the solution serves. These are your accelerators.
+This is what makes your architecture "speak" your business language::
+
+    # Framework organisation (Julee itself)
+    julee/
+      domain/           # Framework vocabulary
+      infrastructure/   # Framework implementations
+      workflows/        # Framework patterns
+
+    # Solution organisation (your application)
+    your_business/      # Bounded contexts of your business
+      billing/
+        entities/
+        use_cases/
+        infrastructure/
+      compliance/
+        entities/
+        use_cases/
+      apps/             # Application entry points
+        api/
+        cli/
+        worker/
+
+Each bounded context contains its own domain models, use cases, and infrastructure
+- using Julee's vocabulary (Repository, Service, UseCase patterns) to express
+the specific concerns of that part of your business.
+
+Applications Adjacent to Contexts
+---------------------------------
+Application entry points (API, CLI, Worker, UI) sit ADJACENT to bounded contexts,
+not above or below them. They wire together the contexts and expose them to the
+outside world. The ``apps/`` directory doesn't contain business logic - it
+provides a way for business logic to interact with the outside world.
+
+Doctrine
+--------
 - Solution MUST have documentation (docs/)
 - Solution MAY contain one or more Bounded Contexts
 - Solution MAY contain one or more Applications
 - Solution MAY contain one or more Deployments
 - Solution MAY contain one or more nested Solutions
 
-The dependency chain flows outward:
-    Deployment → Application → BoundedContext
+The dependency chain flows outward: Deployment → Application → BoundedContext
 
-The canonical structure is:
+Canonical Structure
+-------------------
+::
+
     {solution}/
     ├── docs/                # Documentation (REQUIRED)
     │   ├── conf.py          # Sphinx configuration
