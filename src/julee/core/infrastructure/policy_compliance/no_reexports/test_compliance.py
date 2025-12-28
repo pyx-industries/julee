@@ -49,7 +49,8 @@ def extract_reexports(init_file: Path) -> list[tuple[str, str]]:
         return []
 
     reexports = []
-    for node in ast.walk(tree):
+    # Only check module-level statements, not imports inside functions
+    for node in tree.body:
         if isinstance(node, ast.ImportFrom):
             # Skip relative imports (from . or from .submodule)
             if node.level > 0:
