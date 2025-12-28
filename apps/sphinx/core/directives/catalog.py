@@ -43,17 +43,21 @@ def _infer_entity_type(name: str) -> str | None:
 
 
 class EntityCatalogDirective(SphinxDirective):
-    """List all entities in a bounded context with summaries.
+    """List all entities in bounded context(s) with summaries.
 
     Usage::
 
         .. entity-catalog:: julee.hcd
            :show-fields:
            :link-to-api:
+
+    Or without argument to list all entities across all BCs::
+
+        .. entity-catalog::
     """
 
-    required_arguments = 1
-    optional_arguments = 0
+    required_arguments = 0
+    optional_arguments = 1
     has_content = False
 
     option_spec = {
@@ -63,17 +67,51 @@ class EntityCatalogDirective(SphinxDirective):
 
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
-        module_path = self.arguments[0]
         context = get_core_context(self.env.app)
-        bc_info = context.get_bounded_context(module_path)
 
-        if not bc_info or not bc_info.entities:
-            para = nodes.paragraph(text=f"No entities found in {module_path}")
+        if self.arguments:
+            # Single BC mode
+            module_path = self.arguments[0]
+            bc_info = context.get_bounded_context(module_path)
+
+            if not bc_info or not bc_info.entities:
+                para = nodes.paragraph(text=f"No entities found in {module_path}")
+                return [para]
+
+            return self._render_entities(bc_info.entities, module_path)
+        else:
+            # All BCs mode - list entities from all bounded contexts
+            return self._render_all_bcs(context)
+
+    def _render_all_bcs(self, context) -> list[nodes.Node]:
+        """Render entities from all bounded contexts."""
+        bounded_contexts = context.list_solution_bounded_contexts()
+        result = []
+
+        for bc in bounded_contexts:
+            bc_info = context.get_bounded_context(f"julee.{bc.slug}")
+            if not bc_info or not bc_info.entities:
+                continue
+
+            # BC heading
+            rubric = nodes.rubric(text=bc.display_name)
+            result.append(rubric)
+
+            # Entity list for this BC
+            result.extend(self._render_entities(bc_info.entities, f"julee.{bc.slug}"))
+
+        if not result:
+            para = nodes.paragraph()
+            para += nodes.emphasis(text="No entities found in solution.")
             return [para]
 
+        return result
+
+    def _render_entities(self, entities, module_path: str) -> list[nodes.Node]:
+        """Render a list of entities."""
         bullet_list = nodes.bullet_list()
 
-        for entity in bc_info.entities:
+        for entity in entities:
             item = nodes.list_item()
             para = nodes.paragraph()
 
@@ -101,17 +139,21 @@ class EntityCatalogDirective(SphinxDirective):
 
 
 class RepositoryCatalogDirective(SphinxDirective):
-    """List all repository protocols in a bounded context.
+    """List all repository protocols in bounded context(s).
 
     Usage::
 
         .. repository-catalog:: julee.hcd
            :show-methods:
            :link-to-api:
+
+    Or without argument to list all repos across all BCs::
+
+        .. repository-catalog::
     """
 
-    required_arguments = 1
-    optional_arguments = 0
+    required_arguments = 0
+    optional_arguments = 1
     has_content = False
 
     option_spec = {
@@ -121,17 +163,51 @@ class RepositoryCatalogDirective(SphinxDirective):
 
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
-        module_path = self.arguments[0]
         context = get_core_context(self.env.app)
-        bc_info = context.get_bounded_context(module_path)
 
-        if not bc_info or not bc_info.repository_protocols:
-            para = nodes.paragraph(text=f"No repositories found in {module_path}")
+        if self.arguments:
+            # Single BC mode
+            module_path = self.arguments[0]
+            bc_info = context.get_bounded_context(module_path)
+
+            if not bc_info or not bc_info.repository_protocols:
+                para = nodes.paragraph(text=f"No repositories found in {module_path}")
+                return [para]
+
+            return self._render_repos(bc_info.repository_protocols, module_path)
+        else:
+            # All BCs mode
+            return self._render_all_bcs(context)
+
+    def _render_all_bcs(self, context) -> list[nodes.Node]:
+        """Render repositories from all bounded contexts."""
+        bounded_contexts = context.list_solution_bounded_contexts()
+        result = []
+
+        for bc in bounded_contexts:
+            bc_info = context.get_bounded_context(f"julee.{bc.slug}")
+            if not bc_info or not bc_info.repository_protocols:
+                continue
+
+            # BC heading
+            rubric = nodes.rubric(text=bc.display_name)
+            result.append(rubric)
+
+            # Repo list for this BC
+            result.extend(self._render_repos(bc_info.repository_protocols, f"julee.{bc.slug}"))
+
+        if not result:
+            para = nodes.paragraph()
+            para += nodes.emphasis(text="No repository protocols found in solution.")
             return [para]
 
+        return result
+
+    def _render_repos(self, repos, module_path: str) -> list[nodes.Node]:
+        """Render a list of repository protocols."""
         dl = nodes.definition_list()
 
-        for repo in bc_info.repository_protocols:
+        for repo in repos:
             item = nodes.definition_list_item()
 
             term = nodes.term()
@@ -171,17 +247,21 @@ class RepositoryCatalogDirective(SphinxDirective):
 
 
 class UseCaseCatalogDirective(SphinxDirective):
-    """List all use cases in a bounded context with CRUD classification.
+    """List all use cases in bounded context(s) with CRUD classification.
 
     Usage::
 
         .. usecase-catalog:: julee.hcd
            :group-by-crud:
            :link-to-api:
+
+    Or without argument to list all use cases across all BCs::
+
+        .. usecase-catalog::
     """
 
-    required_arguments = 1
-    optional_arguments = 0
+    required_arguments = 0
+    optional_arguments = 1
     has_content = False
 
     option_spec = {
@@ -191,18 +271,51 @@ class UseCaseCatalogDirective(SphinxDirective):
 
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
-        module_path = self.arguments[0]
         context = get_core_context(self.env.app)
-        bc_info = context.get_bounded_context(module_path)
 
-        if not bc_info or not bc_info.use_cases:
-            para = nodes.paragraph(text=f"No use cases found in {module_path}")
+        if self.arguments:
+            # Single BC mode
+            module_path = self.arguments[0]
+            bc_info = context.get_bounded_context(module_path)
+
+            if not bc_info or not bc_info.use_cases:
+                para = nodes.paragraph(text=f"No use cases found in {module_path}")
+                return [para]
+
+            if "group-by-crud" in self.options:
+                return self._render_grouped(bc_info.use_cases, module_path)
+            else:
+                return self._render_flat(bc_info.use_cases, module_path)
+        else:
+            # All BCs mode
+            return self._render_all_bcs(context)
+
+    def _render_all_bcs(self, context) -> list[nodes.Node]:
+        """Render use cases from all bounded contexts."""
+        bounded_contexts = context.list_solution_bounded_contexts()
+        result = []
+
+        for bc in bounded_contexts:
+            bc_info = context.get_bounded_context(f"julee.{bc.slug}")
+            if not bc_info or not bc_info.use_cases:
+                continue
+
+            # BC heading
+            rubric = nodes.rubric(text=bc.display_name)
+            result.append(rubric)
+
+            # Use case list for this BC
+            if "group-by-crud" in self.options:
+                result.extend(self._render_grouped(bc_info.use_cases, f"julee.{bc.slug}"))
+            else:
+                result.extend(self._render_flat(bc_info.use_cases, f"julee.{bc.slug}"))
+
+        if not result:
+            para = nodes.paragraph()
+            para += nodes.emphasis(text="No use cases found in solution.")
             return [para]
 
-        if "group-by-crud" in self.options:
-            return self._render_grouped(bc_info.use_cases, module_path)
-        else:
-            return self._render_flat(bc_info.use_cases, module_path)
+        return result
 
     def _render_flat(self, use_cases: list[ClassInfo], module_path: str) -> list[nodes.Node]:
         """Render as a simple bullet list."""

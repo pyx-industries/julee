@@ -1,5 +1,8 @@
 {# Dispatcher template - selects bespoke template based on module path #}
-{% if "entities" in fullname and "core" in fullname %}
+{% if fullname.startswith("julee.") and fullname.count(".") == 1 and fullname.split(".")[-1] not in ["contrib"] %}
+{# Top-level BC module like julee.hcd, julee.core, julee.c4 #}
+{% include "autosummary/core_entity.rst" %}
+{% elif "entities" in fullname and "core" in fullname %}
 {% include "autosummary/core_entity.rst" %}
 {% elif "entities" in fullname and "hcd" in fullname %}
 {% include "autosummary/hcd_entity.rst" %}

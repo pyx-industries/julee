@@ -49,6 +49,15 @@ Nested Solutions
 
 .. nested-solution-list::
 
+{% elif fullname.startswith("julee.") and fullname.count(".") == 1 and fullname.split(".")[-1] not in ["contrib"] %}
+{# This is a BC module page like julee.hcd, julee.core, julee.c4 #}
+{% set bc_slug = fullname.split(".")[-1] %}
+
+BC Contents
+-----------
+
+.. bc-hub:: {{ bc_slug }}
+
 {% elif "bounded_context" in fullname %}
 This Solution's Bounded Contexts
 --------------------------------

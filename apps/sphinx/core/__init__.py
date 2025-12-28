@@ -45,6 +45,7 @@ Directives Provided
 - ``deployment-list`` - List all deployments in the solution
 - ``nested-solution-list`` - List nested solutions (e.g., contrib modules)
 - ``viewpoint-links`` - Show links to viewpoint BCs (HCD, C4)
+- ``bc-hub`` - Show detailed BC contents (use cases, apps, personas)
 """
 
 from sphinx.util import logging
@@ -64,6 +65,7 @@ def setup(app):
         CoreConceptDirective,
         DoctrineConstantDirective,
     )
+    from .directives.bounded_context_hub import BoundedContextHubDirective
     from .directives.solution import (
         ApplicationListDirective,
         BoundedContextListDirective,
@@ -94,6 +96,7 @@ def setup(app):
     app.add_directive("deployment-list", DeploymentListDirective)
     app.add_directive("nested-solution-list", NestedSolutionListDirective)
     app.add_directive("viewpoint-links", ViewpointLinksDirective)
+    app.add_directive("bc-hub", BoundedContextHubDirective)
 
     logger.info("Loaded apps.sphinx.core extension")
 
