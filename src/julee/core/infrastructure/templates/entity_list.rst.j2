@@ -1,0 +1,19 @@
+{# Template for rendering a list of entities with AutoAPI links.
+
+Receives:
+- entities: list[dict] - Entity info with:
+    - name: str
+    - href: str|None
+    - docstring: str|None
+- empty_message: str - Message when no entities
+
+Output: Bullet list of entities with links and descriptions.
+#}
+{% if not entities %}
+*{{ empty_message }}*
+{% else %}
+{% for entity in entities %}
+- {% if entity.href %}`{{ entity.name }} <{{ entity.href }}>`_{% else %}``{{ entity.name }}``{% endif %}{% if entity.docstring %} — {{ entity.docstring }}{% endif %}
+
+{% endfor %}
+{% endif %}

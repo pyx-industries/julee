@@ -1,0 +1,23 @@
+{# Template for rendering a list of use cases.
+
+Receives:
+- use_cases: list[dict] - Use case info with:
+    - name: str
+    - href: str|None
+    - docstring: str|None
+- empty_message: str - Message when no use cases
+
+Output: Styled list of use cases with links and descriptions.
+#}
+{% if not use_cases %}
+*{{ empty_message }}*
+{% else %}
+{% for uc in use_cases %}
+{% if uc.href %}**`{{ uc.name }} <{{ uc.href }}>`_**{% else %}**{{ uc.name }}**{% endif %}
+
+{% if uc.docstring %}
+{{ uc.docstring }}
+{% endif %}
+
+{% endfor %}
+{% endif %}

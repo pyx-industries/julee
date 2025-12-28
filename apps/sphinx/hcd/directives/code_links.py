@@ -5,6 +5,17 @@ Provides directives that generate links to AutoAPI documentation:
 - list-app-code: Links to application code
 - list-contrib-code: Links to contrib module code
 - entity-diagram: PlantUML class diagram of domain entities
+
+Template-driven pattern (for code_links):
+1. Directive creates placeholder with arguments
+2. Processor calls use case to get code_info
+3. Processor checks Sphinx filesystem (autoapi paths)
+4. Processor calls rendering service with prepared data
+5. Template renders RST
+6. RST parsed to docutils nodes
+
+PlantUML diagrams (entity-diagram) use Python rendering since they
+generate PlantUML source, not RST.
 """
 
 import logging
@@ -13,12 +24,32 @@ from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from jinja2 import Environment, FileSystemLoader
 
+from apps.sphinx.directive_factory import parse_rst_to_nodes
 from julee.hcd.use_cases.crud import GetCodeInfoRequest
 
 from .base import HCDDirective
 
 logger = logging.getLogger(__name__)
+
+# Template directory for Core entity templates (code_info is Core entity)
+_CORE_TEMPLATE_DIR = Path(__file__).parent.parent.parent.parent.parent / "src/julee/core/infrastructure/templates"
+
+# Jinja environment for code links templates
+_jinja_env: Environment | None = None
+
+
+def _get_jinja_env() -> Environment:
+    """Get or create Jinja environment for code links templates."""
+    global _jinja_env
+    if _jinja_env is None:
+        _jinja_env = Environment(
+            loader=FileSystemLoader(str(_CORE_TEMPLATE_DIR)),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+    return _jinja_env
 
 
 class AcceleratorCodePlaceholder(nodes.General, nodes.Element):
@@ -158,7 +189,14 @@ def build_accelerator_code_links(
     hcd_context,
     show_empty: bool = False,
 ) -> list[nodes.Node]:
-    """Build code link nodes for an accelerator.
+    """Build code link nodes for an accelerator using template-driven rendering.
+
+    Pattern:
+    1. Call use case to get code_info (Core entity)
+    2. Check Sphinx filesystem for autoapi paths (Sphinx-specific)
+    3. Prepare data structure for template
+    4. Render via Jinja template
+    5. Parse RST to docutils nodes
 
     Args:
         accelerator_slug: The accelerator identifier (e.g., 'ceap', 'hcd', 'c4')
@@ -173,7 +211,6 @@ def build_accelerator_code_links(
     from apps.sphinx.shared import path_to_root
 
     prefix = path_to_root(docname)
-    result_nodes = []
 
     # Get code info via use case
     response = hcd_context.get_code_info.execute_sync(
@@ -181,227 +218,149 @@ def build_accelerator_code_links(
     )
     code_info = response.code_info
 
-    # Build autoapi base path
-    autoapi_base = f"autoapi/julee/{accelerator_slug}"
+    # Prepare data for template
+    data = _prepare_code_links_data(
+        accelerator_slug, code_info, app, prefix, show_empty
+    )
 
-    # Check which autoapi paths exist
+    # Render template
+    env = _get_jinja_env()
+    template = env.get_template("code_links_detail.rst.j2")
+    rst_content = template.render(**data)
+
+    # Parse RST to nodes
+    return parse_rst_to_nodes(rst_content, docname)
+
+
+def _prepare_code_links_data(
+    accelerator_slug: str,
+    code_info,
+    app,
+    prefix: str,
+    show_empty: bool,
+) -> dict:
+    """Prepare data structure for code_links template.
+
+    Checks Sphinx filesystem for autoapi paths and builds the data
+    structure expected by the template.
+
+    Args:
+        accelerator_slug: The accelerator identifier
+        code_info: BoundedContextInfo from use case
+        app: Sphinx application (for srcdir)
+        prefix: Path prefix for relative links
+        show_empty: Whether to include empty items
+
+    Returns:
+        Dict with domain_items, infrastructure_items, warning
+    """
+    autoapi_base = f"autoapi/julee/{accelerator_slug}"
     docs_dir = Path(app.srcdir)
 
-    def check_autoapi_path(subpath: str) -> tuple[bool, str]:
-        """Check if autoapi path exists and return (exists, full_path)."""
+    def check_path(subpath: str) -> tuple[bool, str, str]:
+        """Check if autoapi path exists, return (exists, full_path, href)."""
         full_path = f"{autoapi_base}/{subpath}/index"
         rst_file = docs_dir / f"{full_path}.rst"
-        return rst_file.exists(), full_path
+        exists = rst_file.exists()
+        href = f"{prefix}{full_path}.html" if exists else None
+        return exists, full_path, href
 
-    # Domain section
-    domain_section = nodes.section()
-    domain_section["ids"] = [f"{accelerator_slug}-domain-code"]
-    domain_title = nodes.title(text="Domain")
-    domain_section += domain_title
-
-    domain_list = nodes.bullet_list()
     domain_items = []
+    infrastructure_items = []
+    warning = None
 
-    # Entities
-    exists, path = check_autoapi_path("domain/models")
-    count = len(code_info.entities) if code_info else 0
-    if exists or show_empty:
-        item = _make_code_link_item(
-            "Entities",
-            count,
-            f"{prefix}{path}.html" if exists else None,
-            exists,
+    if not code_info:
+        warning = (
+            f"No code introspection data found for accelerator '{accelerator_slug}'. "
+            f"Ensure it exists in src/julee/{accelerator_slug}/ with proper structure."
         )
-        domain_items.append(item)
-        if not exists:
-            logger.warning(
-                f"list-accelerator-code: Missing autoapi path for "
-                f"{accelerator_slug} entities: {path}"
-            )
+        return {
+            "accelerator_slug": accelerator_slug,
+            "domain_items": domain_items,
+            "infrastructure_items": infrastructure_items,
+            "warning": warning,
+        }
 
-    # Repository Protocols
-    exists, path = check_autoapi_path("domain/repositories")
-    count = len(code_info.repository_protocols) if code_info else 0
-    if exists or show_empty:
-        item = _make_code_link_item(
-            "Repository Protocols",
-            count,
-            f"{prefix}{path}.html" if exists else None,
-            exists,
-        )
-        domain_items.append(item)
-        if not exists:
-            logger.warning(
-                f"list-accelerator-code: Missing autoapi path for "
-                f"{accelerator_slug} repository protocols: {path}"
-            )
+    # Domain items
+    domain_checks = [
+        ("domain/models", "Entities", len(code_info.entities)),
+        ("domain/repositories", "Repository Protocols", len(code_info.repository_protocols)),
+        ("domain/services", "Service Protocols", len(code_info.service_protocols)),
+        ("domain/use_cases", "Use Cases", len(code_info.use_cases)),
+    ]
 
-    # Service Protocols
-    exists, path = check_autoapi_path("domain/services")
-    count = len(code_info.service_protocols) if code_info else 0
-    if exists or count > 0 or show_empty:
-        item = _make_code_link_item(
-            "Service Protocols",
-            count,
-            f"{prefix}{path}.html" if exists else None,
-            exists,
-        )
-        domain_items.append(item)
-        if not exists and count > 0:
-            logger.warning(
-                f"list-accelerator-code: Missing autoapi path for "
-                f"{accelerator_slug} service protocols: {path}"
-            )
+    for subpath, label, count in domain_checks:
+        exists, full_path, href = check_path(subpath)
+        if exists or count > 0 or show_empty:
+            domain_items.append({
+                "label": label,
+                "count": count,
+                "href": href,
+                "exists": exists,
+            })
+            if not exists and count > 0:
+                logger.warning(
+                    f"list-accelerator-code: Missing autoapi path for "
+                    f"{accelerator_slug} {label.lower()}: {full_path}"
+                )
 
-    # Use Cases
-    exists, path = check_autoapi_path("domain/use_cases")
-    count = len(code_info.use_cases) if code_info else 0
-    if exists or count > 0 or show_empty:
-        item = _make_code_link_item(
-            "Use Cases",
-            count,
-            f"{prefix}{path}.html" if exists else None,
-            exists,
-        )
-        domain_items.append(item)
-        if not exists and count > 0:
-            logger.warning(
-                f"list-accelerator-code: Missing autoapi path for "
-                f"{accelerator_slug} use cases: {path}"
-            )
+    # Requests and Responses (link to use_cases)
+    exists, _, href = check_path("domain/use_cases")
+    for label, count in [
+        ("Requests", len(code_info.requests)),
+        ("Responses", len(code_info.responses)),
+    ]:
+        if count > 0 or show_empty:
+            domain_items.append({
+                "label": label,
+                "count": count,
+                "href": href if exists and count > 0 else None,
+                "exists": exists and count > 0,
+            })
 
-    # Requests (use case input DTOs)
-    requests_count = len(code_info.requests) if code_info else 0
-    if requests_count > 0 or show_empty:
-        # Requests are in use_cases/requests.py, link to use_cases index
-        exists, path = check_autoapi_path("domain/use_cases")
-        item = _make_code_link_item(
-            "Requests",
-            requests_count,
-            f"{prefix}{path}.html" if exists else None,
-            exists and requests_count > 0,
-        )
-        domain_items.append(item)
-
-    # Responses (use case output DTOs)
-    responses_count = len(code_info.responses) if code_info else 0
-    if responses_count > 0 or show_empty:
-        # Responses are in use_cases/responses.py, link to use_cases index
-        exists, path = check_autoapi_path("domain/use_cases")
-        item = _make_code_link_item(
-            "Responses",
-            responses_count,
-            f"{prefix}{path}.html" if exists else None,
-            exists and responses_count > 0,
-        )
-        domain_items.append(item)
-
-    for item in domain_items:
-        domain_list += item
-
-    if domain_items:
-        domain_section += domain_list
-        result_nodes.append(domain_section)
-
-    # Infrastructure section
-    infra_section = nodes.section()
-    infra_section["ids"] = [f"{accelerator_slug}-infrastructure-code"]
-    infra_title = nodes.title(text="Infrastructure")
-    infra_section += infra_title
-
-    infra_list = nodes.bullet_list()
-    infra_items = []
-
-    # Repository Implementations (check multiple locations)
-    repo_impl_paths = [
+    # Infrastructure items
+    infra_checks = [
         ("repositories/memory", "Memory Repositories"),
         ("repositories/file", "File Repositories"),
         ("repositories", "Repository Implementations"),
     ]
-    for subpath, label in repo_impl_paths:
-        exists, path = check_autoapi_path(subpath)
-        if exists:
-            item = _make_code_link_item(label, None, f"{prefix}{path}.html", exists)
-            infra_items.append(item)
 
-    # Also check shared repositories
+    for subpath, label in infra_checks:
+        exists, _, href = check_path(subpath)
+        if exists:
+            infrastructure_items.append({
+                "label": label,
+                "count": None,
+                "href": href,
+                "exists": True,
+            })
+
+    # Shared repositories
     shared_repo_path = "autoapi/julee/repositories/index"
     if (docs_dir / f"{shared_repo_path}.rst").exists():
-        item = _make_code_link_item(
-            "Shared Repositories",
-            None,
-            f"{prefix}{shared_repo_path}.html",
-            True,
-        )
-        infra_items.append(item)
+        infrastructure_items.append({
+            "label": "Shared Repositories",
+            "count": None,
+            "href": f"{prefix}{shared_repo_path}.html",
+            "exists": True,
+        })
 
     # Pipelines/Workflows
     workflows_path = "autoapi/julee/workflows/index"
     if (docs_dir / f"{workflows_path}.rst").exists():
-        item = _make_code_link_item(
-            "Pipelines (Workflows)",
-            None,
-            f"{prefix}{workflows_path}.html",
-            True,
-        )
-        infra_items.append(item)
+        infrastructure_items.append({
+            "label": "Pipelines (Workflows)",
+            "count": None,
+            "href": f"{prefix}{workflows_path}.html",
+            "exists": True,
+        })
 
-    for item in infra_items:
-        infra_list += item
-
-    if infra_items:
-        infra_section += infra_list
-        result_nodes.append(infra_section)
-
-    # Warning if no code info found
-    if not code_info:
-        warning = nodes.warning()
-        warning_para = nodes.paragraph()
-        warning_para += nodes.Text(
-            f"No code introspection data found for accelerator '{accelerator_slug}'. "
-            f"Ensure it exists in src/julee/{accelerator_slug}/ with proper structure."
-        )
-        warning += warning_para
-        result_nodes.insert(0, warning)
-
-    return result_nodes
-
-
-def _make_code_link_item(
-    label: str,
-    count: int | None,
-    href: str | None,
-    exists: bool,
-) -> nodes.list_item:
-    """Create a bullet list item for a code link.
-
-    Args:
-        label: Display label (e.g., "Entities")
-        count: Number of items (None to omit)
-        href: Link target (None if doesn't exist)
-        exists: Whether the target exists
-
-    Returns:
-        A list_item node
-    """
-    item = nodes.list_item()
-    para = nodes.paragraph()
-
-    if exists and href:
-        ref = nodes.reference("", "", refuri=href)
-        ref += nodes.strong(text=label)
-        para += ref
-    else:
-        para += nodes.strong(text=label)
-        if not exists:
-            para += nodes.Text(" ")
-            para += nodes.emphasis(text="(not found)")
-
-    if count is not None:
-        para += nodes.Text(f" ({count})")
-
-    item += para
-    return item
+    return {
+        "accelerator_slug": accelerator_slug,
+        "domain_items": domain_items,
+        "infrastructure_items": infrastructure_items,
+        "warning": warning,
+    }
 
 
 def build_accelerator_entity_list(
@@ -410,7 +369,7 @@ def build_accelerator_entity_list(
     app,
     hcd_context,
 ) -> list[nodes.Node]:
-    """Build a bullet list of entities with AutoAPI links.
+    """Build a bullet list of entities with AutoAPI links using template.
 
     Args:
         accelerator_slug: The accelerator identifier
@@ -432,58 +391,58 @@ def build_accelerator_entity_list(
     )
     code_info = response.code_info
 
-    if not code_info or not code_info.entities:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No entities found for '{accelerator_slug}'")
-        return [para]
+    # Prepare entity data for template
+    entities = []
+    if code_info and code_info.entities:
+        for entity in sorted(code_info.entities, key=lambda e: e.name):
+            module_name = entity.file.replace(".py", "")
+            href = _find_entity_href(
+                accelerator_slug, module_name, entity.name, docs_dir, prefix
+            )
+            entities.append({
+                "name": entity.name,
+                "href": href,
+                "docstring": entity.docstring,
+            })
 
-    bullet_list = nodes.bullet_list()
+    # Render template
+    env = _get_jinja_env()
+    template = env.get_template("entity_list.rst.j2")
+    rst_content = template.render(
+        entities=entities,
+        empty_message=f"No entities found for '{accelerator_slug}'",
+    )
 
-    for entity in sorted(code_info.entities, key=lambda e: e.name):
-        item = nodes.list_item()
-        para = nodes.paragraph()
+    return parse_rst_to_nodes(rst_content, docname)
 
-        # Build AutoAPI link path based on file location
-        # Entities are in domain/models/, file name maps to module
-        module_name = entity.file.replace(".py", "")
 
-        # Try nested structure first: domain/models/{package}/{module}/index
-        # (common in CEAP where assembly/assembly.py contains Assembly)
-        nested_path = f"autoapi/julee/{accelerator_slug}/domain/models/{module_name}/{module_name}/index"
-        flat_path = f"autoapi/julee/{accelerator_slug}/domain/models/{module_name}/index"
+def _find_entity_href(
+    accelerator_slug: str,
+    module_name: str,
+    entity_name: str,
+    docs_dir: Path,
+    prefix: str,
+) -> str | None:
+    """Find AutoAPI href for an entity.
 
-        if (docs_dir / f"{nested_path}.rst").exists():
-            # Nested structure: link to julee.{slug}.domain.models.{package}.{module}.{Class}
-            href = f"{prefix}{nested_path}.html#julee.{accelerator_slug}.domain.models.{module_name}.{module_name}.{entity.name}"
-            ref = nodes.reference("", "", refuri=href)
-            ref += nodes.literal(text=entity.name)
-            para += ref
-        elif (docs_dir / f"{flat_path}.rst").exists():
-            # Flat structure: link to julee.{slug}.domain.models.{module}.{Class}
-            href = f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.models.{module_name}.{entity.name}"
-            ref = nodes.reference("", "", refuri=href)
-            ref += nodes.literal(text=entity.name)
-            para += ref
-        else:
-            # Fallback: try the models index page
-            fallback_path = f"autoapi/julee/{accelerator_slug}/domain/models/index"
-            if (docs_dir / f"{fallback_path}.rst").exists():
-                href = f"{prefix}{fallback_path}.html"
-                ref = nodes.reference("", "", refuri=href)
-                ref += nodes.literal(text=entity.name)
-                para += ref
-            else:
-                para += nodes.literal(text=entity.name)
+    Checks multiple path patterns for AutoAPI documentation.
+    """
+    # Try nested structure first
+    nested_path = f"autoapi/julee/{accelerator_slug}/domain/models/{module_name}/{module_name}/index"
+    if (docs_dir / f"{nested_path}.rst").exists():
+        return f"{prefix}{nested_path}.html#julee.{accelerator_slug}.domain.models.{module_name}.{module_name}.{entity_name}"
 
-        # Add docstring if available
-        if entity.docstring:
-            para += nodes.Text(" — ")
-            para += nodes.Text(entity.docstring)
+    # Try flat structure
+    flat_path = f"autoapi/julee/{accelerator_slug}/domain/models/{module_name}/index"
+    if (docs_dir / f"{flat_path}.rst").exists():
+        return f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.models.{module_name}.{entity_name}"
 
-        item += para
-        bullet_list += item
+    # Fallback to models index
+    fallback_path = f"autoapi/julee/{accelerator_slug}/domain/models/index"
+    if (docs_dir / f"{fallback_path}.rst").exists():
+        return f"{prefix}{fallback_path}.html"
 
-    return [bullet_list]
+    return None
 
 
 def build_accelerator_usecase_list(
@@ -492,7 +451,7 @@ def build_accelerator_usecase_list(
     app,
     hcd_context,
 ) -> list[nodes.Node]:
-    """Build a list of use cases with AutoAPI links.
+    """Build a list of use cases with AutoAPI links using template.
 
     Args:
         accelerator_slug: The accelerator identifier
@@ -514,55 +473,55 @@ def build_accelerator_usecase_list(
     )
     code_info = response.code_info
 
-    if not code_info or not code_info.use_cases:
-        para = nodes.paragraph()
-        para += nodes.emphasis(text=f"No use cases found for '{accelerator_slug}'")
-        return [para]
+    # Prepare use case data for template
+    use_cases = []
+    if code_info and code_info.use_cases:
+        for uc in sorted(code_info.use_cases, key=lambda u: u.name):
+            href = _find_usecase_href(
+                accelerator_slug, uc.file, uc.name, docs_dir, prefix
+            )
+            use_cases.append({
+                "name": uc.name,
+                "href": href,
+                "docstring": uc.docstring,
+            })
 
-    result_nodes = []
+    # Render template
+    env = _get_jinja_env()
+    template = env.get_template("usecase_list.rst.j2")
+    rst_content = template.render(
+        use_cases=use_cases,
+        empty_message=f"No use cases found for '{accelerator_slug}'",
+    )
 
-    for use_case in sorted(code_info.use_cases, key=lambda u: u.name):
-        # Create a container for this use case
-        container = nodes.container()
-        container["classes"].append("usecase-item")
+    return parse_rst_to_nodes(rst_content, docname)
 
-        # Build AutoAPI link path
-        # file can be "create.py" or "diagrams/container_diagram.py"
-        module_path = use_case.file.replace(".py", "")  # "create" or "diagrams/container_diagram"
-        # Convert path separators to dots for the anchor
-        module_dotted = module_path.replace("/", ".").replace("\\", ".")
 
-        # Build paths - autoapi uses directory structure
-        flat_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/{module_path}/index"
+def _find_usecase_href(
+    accelerator_slug: str,
+    file_path: str,
+    use_case_name: str,
+    docs_dir: Path,
+    prefix: str,
+) -> str | None:
+    """Find AutoAPI href for a use case.
 
-        # Determine href
-        href = None
-        if (docs_dir / f"{flat_path}.rst").exists():
-            href = f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.use_cases.{module_dotted}.{use_case.name}"
-        else:
-            fallback_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/index"
-            if (docs_dir / f"{fallback_path}.rst").exists():
-                href = f"{prefix}{fallback_path}.html"
+    Checks multiple path patterns for AutoAPI documentation.
+    """
+    module_path = file_path.replace(".py", "")
+    module_dotted = module_path.replace("/", ".").replace("\\", ".")
 
-        # Add linked title
-        title_para = nodes.paragraph()
-        if href:
-            ref = nodes.reference("", "", refuri=href)
-            ref += nodes.strong(text=use_case.name)
-            title_para += ref
-        else:
-            title_para += nodes.strong(text=use_case.name)
-        container += title_para
+    # Try direct path
+    flat_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/{module_path}/index"
+    if (docs_dir / f"{flat_path}.rst").exists():
+        return f"{prefix}{flat_path}.html#julee.{accelerator_slug}.domain.use_cases.{module_dotted}.{use_case_name}"
 
-        # Add docstring if available
-        if use_case.docstring:
-            desc_para = nodes.paragraph()
-            desc_para += nodes.Text(use_case.docstring)
-            container += desc_para
+    # Fallback to use_cases index
+    fallback_path = f"autoapi/julee/{accelerator_slug}/domain/use_cases/index"
+    if (docs_dir / f"{fallback_path}.rst").exists():
+        return f"{prefix}{fallback_path}.html"
 
-        result_nodes.append(container)
-
-    return result_nodes
+    return None
 
 
 def build_entity_diagram(

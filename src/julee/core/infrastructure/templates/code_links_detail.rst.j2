@@ -1,0 +1,38 @@
+{# Template for rendering code links to autoapi documentation.
+
+Receives:
+- accelerator_slug: str - The bounded context/accelerator slug
+- domain_items: list[dict] - Domain layer items with:
+    - label: str
+    - count: int|None
+    - href: str|None
+    - exists: bool
+- infrastructure_items: list[dict] - Infrastructure layer items (same structure)
+- warning: str|None - Warning message if code_info not found
+
+Output: RST sections with bullet lists of links to autoapi docs.
+#}
+{% if warning %}
+.. warning::
+
+   {{ warning }}
+
+{% endif %}
+{% if domain_items %}
+Domain
+------
+
+{% for item in domain_items %}
+- {% if item.exists and item.href %}`{{ item.label }} <{{ item.href }}>`_{% else %}**{{ item.label }}**{% endif %}{% if item.count is not none %} ({{ item.count }}){% endif %}{% if not item.exists %} *(not found)*{% endif %}
+
+{% endfor %}
+{% endif %}
+{% if infrastructure_items %}
+Infrastructure
+--------------
+
+{% for item in infrastructure_items %}
+- {% if item.exists and item.href %}`{{ item.label }} <{{ item.href }}>`_{% else %}**{{ item.label }}**{% endif %}{% if not item.exists %} *(not found)*{% endif %}
+
+{% endfor %}
+{% endif %}

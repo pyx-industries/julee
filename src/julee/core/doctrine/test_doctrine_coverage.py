@@ -38,6 +38,7 @@ SUPPORTING_MODELS = {
 META_DOCTRINE_TESTS = {
     "test_doctrine_coverage",  # This test file itself
     "test_sphinx_extension",  # SPHINX-EXTENSION app type rules (subset of application)
+    "test_documentation_links",  # Documentation link integrity (not entity-specific)
 }
 
 
