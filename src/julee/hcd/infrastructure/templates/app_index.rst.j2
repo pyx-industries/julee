@@ -1,0 +1,21 @@
+{# Template for rendering a list/index of applications.
+
+Receives:
+- apps: list[App] - App entities to render
+- empty_message: str - Message when no apps
+- show_personas: bool - Whether to show personas (default: True)
+- show_interface: bool - Whether to show interface type (default: False)
+
+Output: Bullet list of apps with links.
+#}
+{% if not apps %}
+*{{ empty_message }}*
+{% else %}
+{% for app in apps %}
+- **`{{ app.name }} <{{ app.slug }}.html>`_**{% if show_interface and app.interface_type %} [{{ app.interface_type }}]{% endif %}{% if show_personas and app.personas %} — {{ app.personas | join(', ') }}{% endif %}
+
+{% if app.context %}
+  {{ app.context | first_sentence }}
+{% endif %}
+{% endfor %}
+{% endif %}

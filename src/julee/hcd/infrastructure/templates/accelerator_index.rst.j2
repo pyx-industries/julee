@@ -1,0 +1,21 @@
+{# Template for rendering a list/index of accelerators.
+
+Receives:
+- accelerators: list[Accelerator] - Accelerator entities to render
+- empty_message: str - Message when no accelerators
+- show_status: bool - Whether to show status (default: True)
+- show_dependencies: bool - Whether to show dependency count (default: False)
+
+Output: Bullet list of accelerators with links.
+#}
+{% if not accelerators %}
+*{{ empty_message }}*
+{% else %}
+{% for accel in accelerators %}
+- **`{{ accel.slug | replace('-', ' ') | title }} <{{ accel.slug }}.html>`_**{% if show_status and accel.status %} [{{ accel.status }}]{% endif %}{% if show_dependencies and accel.depends_on %} (depends on {{ accel.depends_on | length }}){% endif %}
+
+{% if accel.context %}
+  {{ accel.context | first_sentence }}
+{% endif %}
+{% endfor %}
+{% endif %}

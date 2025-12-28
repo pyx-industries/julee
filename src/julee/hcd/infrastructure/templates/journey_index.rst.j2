@@ -1,0 +1,30 @@
+{# Template for rendering a list/index of journeys.
+
+Receives:
+- journeys: list[Journey] - Journey entities to render
+- empty_message: str - Message when no journeys
+- show_persona: bool - Whether to show persona in parentheses (default: True)
+- show_description: bool - Whether to show intent/goal (default: True)
+- max_desc_length: int - Max description length (default: 100)
+- ctx: RenderContext - For building links
+
+Output: Bullet list of journeys with links.
+#}
+{% if not journeys %}
+*{{ empty_message }}*
+{% else %}
+{% for journey in journeys %}
+- **`{{ journey.slug | replace('-', ' ') | title }} <{{ journey.slug }}.html>`_**{% if show_persona and journey.persona %} ({{ journey.persona }}){% endif %}
+
+{% if show_description %}
+{% set desc = journey.intent or journey.goal or '' %}
+{% if desc %}
+{% if desc | length > max_desc_length %}
+  {{ desc[:max_desc_length] }}...
+{% else %}
+  {{ desc }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}

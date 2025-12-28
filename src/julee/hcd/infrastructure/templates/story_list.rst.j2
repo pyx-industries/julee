@@ -1,0 +1,23 @@
+{# Template for rendering a list of stories.
+
+Receives:
+- stories: list[dict] - Story data with:
+    - feature_title: str
+    - slug: str
+    - app_slug: str
+    - story_href: str|None
+    - app_href: str|None
+    - app_valid: bool
+- empty_message: str - Message when no stories
+- show_app: bool - Whether to show app in parentheses (default: True)
+
+Output: Bullet list of stories with links.
+#}
+{% if not stories %}
+*{{ empty_message }}*
+{% else %}
+{% for story in stories %}
+- {% if story.story_href %}`{{ story.feature_title }} <{{ story.story_href }}>`_{% else %}{{ story.feature_title }}{% endif %}{% if show_app %} ({% if story.app_valid and story.app_href %}`{{ story.app_slug | replace('-', ' ') | title }} <{{ story.app_href }}>`_{% else %}{{ story.app_slug | replace('-', ' ') | title }}{% endif %}){% endif %}
+
+{% endfor %}
+{% endif %}

@@ -12,11 +12,19 @@ Provides directives:
 - journey-index: Render index of all journeys
 - journey-dependency-graph: Generate PlantUML graph of journey dependencies
 - journeys-for-persona: List journeys for a specific persona
+
+Template-driven pattern:
+- journey-index and journeys-for-persona use Jinja templates
+- Templates are in julee/hcd/infrastructure/templates/
 """
+
+from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from jinja2 import Environment, FileSystemLoader
 
+from apps.sphinx.directive_factory import parse_rst_to_nodes
 from apps.sphinx.shared import path_to_root
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.use_cases.crud import (
@@ -38,6 +46,36 @@ from ..node_builders import (
     make_link,
 )
 from .base import HCDDirective
+
+# Template directory for HCD entity templates
+_HCD_TEMPLATE_DIR = Path(__file__).parent.parent.parent.parent.parent / "src/julee/hcd/infrastructure/templates"
+
+# Jinja environment for journey templates
+_jinja_env: Environment | None = None
+
+
+def _get_jinja_env() -> Environment:
+    """Get or create Jinja environment for HCD templates."""
+    global _jinja_env
+    if _jinja_env is None:
+        _jinja_env = Environment(
+            loader=FileSystemLoader(str(_HCD_TEMPLATE_DIR)),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        # Add custom filters
+        _jinja_env.filters["first_sentence"] = _first_sentence
+    return _jinja_env
+
+
+def _first_sentence(text: str) -> str:
+    """Extract first sentence from text."""
+    if not text:
+        return ""
+    for i, char in enumerate(text):
+        if char in ".!?" and (i + 1 >= len(text) or text[i + 1] in " \n"):
+            return text[: i + 1]
+    return text
 
 
 class JourneyDependencyGraphPlaceholder(nodes.General, nodes.Element):
@@ -257,35 +295,50 @@ class JourneyIndexDirective(HCDDirective):
 
     def run(self):
         solution = self.solution_slug
+        docname = self.env.docname
         journeys_response = self.hcd_context.list_journeys.execute_sync(
             ListJourneysRequest(solution_slug=solution)
         )
         all_journeys = journeys_response.journeys
 
-        if not all_journeys:
-            return self.empty_result("No journeys defined")
+        return build_journey_index(
+            journeys=all_journeys,
+            docname=docname,
+            empty_message="No journeys defined",
+        )
 
-        def get_suffix(j: Journey) -> str | None:
-            if j.persona:
-                return f" ({j.persona})"
-            return None
 
-        def get_desc(j: Journey) -> str | None:
-            display_text = j.intent or j.goal or ""
-            if display_text:
-                if len(display_text) > 100:
-                    display_text = display_text[:100] + "..."
-                return display_text
-            return None
+def build_journey_index(
+    journeys: list[Journey],
+    docname: str,
+    empty_message: str = "No journeys found",
+    show_persona: bool = True,
+    show_description: bool = True,
+    max_desc_length: int = 100,
+) -> list[nodes.Node]:
+    """Build journey index using template.
 
-        return [
-            entity_bullet_list(
-                sorted(all_journeys, key=lambda j: j.slug),
-                link_fn=lambda j: (f"{j.slug}.html", j.slug.replace("-", " ").title()),
-                suffix_fn=get_suffix,
-                desc_fn=get_desc,
-            )
-        ]
+    Args:
+        journeys: List of Journey entities to render
+        docname: Current document name (for RST parsing)
+        empty_message: Message when no journeys
+        show_persona: Whether to show persona in parentheses
+        show_description: Whether to show intent/goal
+        max_desc_length: Max description length
+
+    Returns:
+        List of docutils nodes
+    """
+    env = _get_jinja_env()
+    template = env.get_template("journey_index.rst.j2")
+    rst_content = template.render(
+        journeys=sorted(journeys, key=lambda j: j.slug),
+        empty_message=empty_message,
+        show_persona=show_persona,
+        show_description=show_description,
+        max_desc_length=max_desc_length,
+    )
+    return parse_rst_to_nodes(rst_content, docname)
 
 
 class JourneyDependencyGraphDirective(HCDDirective):
@@ -316,6 +369,7 @@ class JourneysForPersonaDirective(HCDDirective):
     def run(self):
         persona_arg = self.arguments[0]
         solution = self.solution_slug
+        docname = self.env.docname
 
         # Get journeys using filtered use case
         response = self.hcd_context.list_journeys.execute_sync(
@@ -323,19 +377,13 @@ class JourneysForPersonaDirective(HCDDirective):
         )
         journeys = response.journeys
 
-        if not journeys:
-            return self.empty_result(f"No journeys found for persona '{persona_arg}'")
-
-        bullet_list = nodes.bullet_list()
-
-        for journey in sorted(journeys, key=lambda j: j.slug):
-            item = nodes.list_item()
-            para = nodes.paragraph()
-            para += self.make_journey_link(journey.slug)
-            item += para
-            bullet_list += item
-
-        return [bullet_list]
+        return build_journey_index(
+            journeys=journeys,
+            docname=docname,
+            empty_message=f"No journeys found for persona '{persona_arg}'",
+            show_persona=False,
+            show_description=False,
+        )
 
 
 def build_story_node(story_title: str, docname: str, hcd_context):

@@ -1,0 +1,25 @@
+{# Template for rendering a labelled bullet list.
+
+Receives:
+- label: str - The label/term (rendered bold)
+- items: list[dict] - Items with:
+    - text: str - Item text
+    - href: str|None - Optional link
+    - valid: bool - Whether link is valid (default: True)
+    - suffix: str|None - Optional suffix text
+- empty_message: str|None - Message when empty (if None, nothing rendered)
+
+Output: Label followed by bullet list of items.
+#}
+{% if items %}
+**{{ label }}**
+
+{% for item in items %}
+- {% if item.href and item.valid is not false %}`{{ item.text }} <{{ item.href }}>`_{% else %}{{ item.text }}{% endif %}{% if not item.valid and item.href %} *[not found]*{% endif %}{% if item.suffix %}{{ item.suffix }}{% endif %}
+
+{% endfor %}
+{% elif empty_message %}
+**{{ label }}**
+
+*{{ empty_message }}*
+{% endif %}

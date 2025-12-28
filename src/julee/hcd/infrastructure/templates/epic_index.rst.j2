@@ -1,0 +1,21 @@
+{# Template for rendering a list/index of epics.
+
+Receives:
+- epics: list[Epic] - Epic entities to render
+- empty_message: str - Message when no epics
+- show_persona: bool - Whether to show persona (default: True)
+- show_story_count: bool - Whether to show story count (default: True)
+
+Output: Bullet list of epics with links.
+#}
+{% if not epics %}
+*{{ empty_message }}*
+{% else %}
+{% for epic in epics %}
+- **`{{ epic.slug | replace('-', ' ') | title }} <{{ epic.slug }}.html>`_**{% if show_persona and epic.persona %} ({{ epic.persona }}){% endif %}{% if show_story_count and epic.stories %} — {{ epic.stories | length }} stories{% endif %}
+
+{% if epic.context %}
+  {{ epic.context | first_sentence }}
+{% endif %}
+{% endfor %}
+{% endif %}

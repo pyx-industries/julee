@@ -7,12 +7,19 @@ Provides directives for rendering user stories from Gherkin feature files:
 - story-index: Toctree-style index of per-app story pages
 - stories: Render specific stories by name
 - story: Single story reference
+
+Template-driven pattern:
+- story-list-for-persona uses Jinja templates
+- Templates are in julee/hcd/infrastructure/templates/
 """
 
 from collections import defaultdict
+from pathlib import Path
 
 from docutils import nodes
+from jinja2 import Environment, FileSystemLoader
 
+from apps.sphinx.directive_factory import parse_rst_to_nodes
 from julee.hcd.entities.story import Story
 from julee.hcd.use_cases.crud import (
     ListAppsRequest,
@@ -27,6 +34,24 @@ from julee.hcd.use_cases.resolve_story_references import (
 from julee.hcd.utils import normalize_name, slugify
 
 from .base import HCDDirective, make_deprecated_directive
+
+# Template directory for HCD entity templates
+_HCD_TEMPLATE_DIR = Path(__file__).parent.parent.parent.parent.parent / "src/julee/hcd/infrastructure/templates"
+
+# Jinja environment for story templates
+_jinja_env: Environment | None = None
+
+
+def _get_jinja_env() -> Environment:
+    """Get or create Jinja environment for HCD templates."""
+    global _jinja_env
+    if _jinja_env is None:
+        _jinja_env = Environment(
+            loader=FileSystemLoader(str(_HCD_TEMPLATE_DIR)),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+    return _jinja_env
 
 
 class StorySeeAlsoPlaceholder(nodes.General, nodes.Element):
