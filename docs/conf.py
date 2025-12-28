@@ -36,6 +36,7 @@ extensions = [
     'sphinxcontrib.plantuml',       # PlantUML diagram support
 
     # Julee documentation extensions (self-documenting)
+    'apps.sphinx.core',             # Core doctrine reflexive documentation
     'apps.sphinx.hcd',              # Human-Centered Design directives
     'apps.sphinx.c4',               # C4 model architecture directives
 ]
