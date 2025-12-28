@@ -6,7 +6,7 @@ RST files are treated as a database backend with lossless round-trip support.
 
 import logging
 from pathlib import Path
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel
 
@@ -16,7 +16,7 @@ from julee.hcd.parsers.docutils_parser import (
     find_entity_by_type,
     parse_rst_file,
 )
-from julee.hcd.templates import render_entity
+from julee.hcd.templates.rendering import render_entity
 
 logger = logging.getLogger(__name__)
 

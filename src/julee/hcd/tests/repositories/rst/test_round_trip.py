@@ -35,7 +35,7 @@ from julee.hcd.parsers.docutils_parser import (
     find_entity_by_type,
     parse_rst_content,
 )
-from julee.hcd.templates import render_entity
+from julee.hcd.templates.rendering import render_entity
 
 
 class TestJourneyRoundTrip:
