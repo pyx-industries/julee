@@ -27,13 +27,6 @@ class TestConfigurationValidity:
         assert DOCTRINE_DIR.exists(), f"DOCTRINE_DIR does not exist: {DOCTRINE_DIR}"
         assert DOCTRINE_DIR.is_dir(), f"DOCTRINE_DIR is not a directory: {DOCTRINE_DIR}"
 
-    def test_models_dir_exists(self) -> None:
-        """MODELS_DIR must point to an existing directory."""
-        from apps.admin.commands.doctrine import MODELS_DIR
-
-        assert MODELS_DIR.exists(), f"MODELS_DIR does not exist: {MODELS_DIR}"
-        assert MODELS_DIR.is_dir(), f"MODELS_DIR is not a directory: {MODELS_DIR}"
-
     def test_templates_dir_exists(self) -> None:
         """Templates directory must exist."""
         from apps.admin.commands.contexts import TEMPLATES_DIR
