@@ -1,0 +1,53 @@
+{# Bounded Context hub template - renders BC contents including use cases, apps, and persona cross-refs #}
+{#
+   Receives:
+   - bc_info: BoundedContextInfo object with use_cases, entities, etc.
+   - apps_using_bc: list of ApplicationInfo using this BC
+   - persona_crossrefs: list[dict] with persona, story, app, use_case
+   - bc_slug: the BC slug
+#}
+{% if not bc_info %}
+*Bounded context '{{ bc_slug }}' not found.*
+{% else %}
+{% if bc_info.use_cases %}
+Use Cases
+~~~~~~~~~
+
+{# Group use cases by file (package) #}
+{% for package, ucs in bc_info.use_cases|groupby('file') %}
+{% set pkg_name = package.split('/')[-1].replace('.py', '') if package else 'other' %}
+**{{ pkg_name }}**
+
+{% for uc in ucs|sort(attribute='name') %}
+- ``{{ uc.name }}`` — {{ uc.docstring|first_sentence if uc.docstring else '(no description)' }}
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+{% if apps_using_bc %}
+Applications Using This BC
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{% for app in apps_using_bc|sort(attribute='slug') %}
+- **{{ app.slug }}** [{{ app.app_type.value }}]{% if app.description %} — {{ app.description }}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% if persona_crossrefs %}
+Personas
+~~~~~~~~
+
+Use cases in this bounded context are exposed to these personas:
+
+{% for persona, refs in persona_crossrefs|groupby('persona') %}
+**{{ persona }}**
+{% for ref in refs %}
+   via *{{ ref.story }}* on ``{{ ref.app }}`` → ``{{ ref.use_case }}``
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+{% if not bc_info.use_cases and not apps_using_bc and not persona_crossrefs %}
+*No contents discovered for this bounded context.*
+{% endif %}
+{% endif %}

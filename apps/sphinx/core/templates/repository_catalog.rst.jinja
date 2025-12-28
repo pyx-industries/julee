@@ -1,0 +1,28 @@
+{# Repository catalog template - renders repository protocols grouped by bounded context #}
+{#
+   Receives:
+   - artifacts: list[CodeArtifactWithContext] - repos with their BC slugs
+   - options: dict - directive options (show-methods, link-to-api)
+#}
+{% if not artifacts %}
+*No repository protocols found in solution.*
+{% else %}
+{# Group artifacts by bounded_context using groupby #}
+{% for bc_slug, items in artifacts|groupby('bounded_context') %}
+
+{{ bc_slug|title_case }}
+{{ '~' * (bc_slug|title_case|length) }}
+
+{% for item in items|sort(attribute='artifact.name') %}
+{% set repo = item.artifact %}
+{% set entity_type = repo.name[:-10] if repo.name.endswith('Repository') else None %}
+``{{ repo.name }}``{% if entity_type %} → {{ entity_type }}{% endif %}
+
+   {{ repo.docstring|first_sentence if repo.docstring else '(no description)' }}
+{% if options.get('show-methods') and repo.methods %}
+   *Methods:* ``{{ repo.methods|map(attribute='name')|join(', ') }}``
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endif %}
