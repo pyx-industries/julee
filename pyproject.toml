@@ -217,3 +217,7 @@ ignore_missing_imports = true
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+
+[tool.julee]
+# julee is itself a julee solution
+skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal
