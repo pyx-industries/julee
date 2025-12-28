@@ -43,6 +43,34 @@ _STRUCTURAL_SUBDIRS = frozenset(
 __all__ = ["FilesystemApplicationRepository"]
 
 
+def _get_first_docstring_line(path: Path) -> str | None:
+    """Extract first line of docstring from a Python package's __init__.py.
+
+    Args:
+        path: Directory containing __init__.py
+
+    Returns:
+        First non-empty line of docstring or None if not found
+    """
+    init_file = path / "__init__.py"
+    if not init_file.exists():
+        return None
+
+    try:
+        source = init_file.read_text()
+        tree = ast.parse(source)
+        docstring = ast.get_docstring(tree)
+        if docstring:
+            for line in docstring.split("\n"):
+                line = line.strip()
+                if line:
+                    return line
+    except (SyntaxError, OSError):
+        pass
+
+    return None
+
+
 class FilesystemApplicationRepository:
     """Repository that discovers applications by scanning filesystem.
 
@@ -234,6 +262,7 @@ class FilesystemApplicationRepository:
             app = Application(
                 slug=candidate.name,
                 path=str(candidate),
+                description=_get_first_docstring_line(candidate),
                 app_type=app_type,
                 markers=markers,
             )

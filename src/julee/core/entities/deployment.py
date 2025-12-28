@@ -80,6 +80,10 @@ class Deployment(BaseModel):
     # Identity
     slug: str = Field(description="Deployment identifier, typically directory name")
     path: str = Field(description="Absolute filesystem path to deployment directory")
+    description: str | None = Field(
+        default=None,
+        description="First line of README or __init__.py docstring, if present",
+    )
 
     # Classification
     deployment_type: DeploymentType = Field(

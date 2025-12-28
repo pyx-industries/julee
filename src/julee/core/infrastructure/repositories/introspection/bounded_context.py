@@ -5,6 +5,7 @@ This is a read-only repository - bounded contexts are defined by
 the filesystem, not created through this repository.
 """
 
+import ast
 import subprocess
 from pathlib import Path
 
@@ -21,6 +22,39 @@ from julee.core.doctrine_constants import (
 from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
 
 __all__ = ["FilesystemBoundedContextRepository"]
+
+
+# =============================================================================
+# Docstring Extraction
+# =============================================================================
+
+
+def _get_first_docstring_line(path: Path) -> str | None:
+    """Extract first line of docstring from a Python package's __init__.py.
+
+    Args:
+        path: Directory containing __init__.py
+
+    Returns:
+        First non-empty line of docstring or None if not found
+    """
+    init_file = path / "__init__.py"
+    if not init_file.exists():
+        return None
+
+    try:
+        source = init_file.read_text()
+        tree = ast.parse(source)
+        docstring = ast.get_docstring(tree)
+        if docstring:
+            for line in docstring.split("\n"):
+                line = line.strip()
+                if line:
+                    return line
+    except (SyntaxError, OSError):
+        pass
+
+    return None
 
 
 # =============================================================================
@@ -137,6 +171,7 @@ class FilesystemBoundedContextRepository:
             context = BoundedContext(
                 slug=candidate.name,
                 path=str(candidate),
+                description=_get_first_docstring_line(candidate),
                 is_contrib=is_contrib,
                 is_viewpoint=candidate.name in VIEWPOINT_SLUGS,
                 markers=markers,

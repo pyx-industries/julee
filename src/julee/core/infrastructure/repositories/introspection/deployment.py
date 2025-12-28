@@ -17,6 +17,36 @@ from julee.core.entities.deployment import (
 __all__ = ["FilesystemDeploymentRepository"]
 
 
+def _get_description_from_readme(path: Path) -> str | None:
+    """Extract first meaningful line from README file.
+
+    Args:
+        path: Directory to search for README
+
+    Returns:
+        First non-empty, non-header line from README, or None if not found
+    """
+    for readme_name in ("README.md", "README.rst", "README.txt", "README"):
+        readme_file = path / readme_name
+        if readme_file.exists():
+            try:
+                content = readme_file.read_text()
+                for line in content.split("\n"):
+                    line = line.strip()
+                    # Skip empty lines and markdown headers
+                    if not line:
+                        continue
+                    if line.startswith("#"):
+                        continue
+                    if line.startswith("=") or line.startswith("-"):
+                        continue
+                    # Return first meaningful line
+                    return line[:200] if len(line) > 200 else line
+            except OSError:
+                pass
+    return None
+
+
 class FilesystemDeploymentRepository:
     """Repository that discovers deployments by scanning filesystem.
 
@@ -159,6 +189,7 @@ class FilesystemDeploymentRepository:
             deployment = Deployment(
                 slug=candidate.name,
                 path=str(candidate),
+                description=_get_description_from_readme(candidate),
                 deployment_type=deployment_type,
                 markers=markers,
                 application_refs=app_refs,

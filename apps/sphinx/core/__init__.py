@@ -39,7 +39,12 @@ Directives Provided
 - ``repository-catalog`` - List all repository protocols in the solution
 - ``usecase-catalog`` - List all use cases in the solution
 - ``solution-structure`` - Show the solution's overall structure
+- ``solution-overview`` - Show solution name and description
 - ``bounded-context-list`` - List all bounded contexts in the solution
+- ``application-list`` - List all applications in the solution
+- ``deployment-list`` - List all deployments in the solution
+- ``nested-solution-list`` - List nested solutions (e.g., contrib modules)
+- ``viewpoint-links`` - Show links to viewpoint BCs (HCD, C4)
 """
 
 from sphinx.util import logging
@@ -60,8 +65,13 @@ def setup(app):
         DoctrineConstantDirective,
     )
     from .directives.solution import (
+        ApplicationListDirective,
         BoundedContextListDirective,
+        DeploymentListDirective,
+        NestedSolutionListDirective,
+        SolutionOverviewDirective,
         SolutionStructureDirective,
+        ViewpointLinksDirective,
     )
 
     # Initialize context at builder-inited
@@ -78,7 +88,12 @@ def setup(app):
 
     # Register solution structure directives
     app.add_directive("solution-structure", SolutionStructureDirective)
+    app.add_directive("solution-overview", SolutionOverviewDirective)
     app.add_directive("bounded-context-list", BoundedContextListDirective)
+    app.add_directive("application-list", ApplicationListDirective)
+    app.add_directive("deployment-list", DeploymentListDirective)
+    app.add_directive("nested-solution-list", NestedSolutionListDirective)
+    app.add_directive("viewpoint-links", ViewpointLinksDirective)
 
     logger.info("Loaded apps.sphinx.core extension")
 

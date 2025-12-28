@@ -129,6 +129,10 @@ class Application(BaseModel):
     # Identity
     slug: str = Field(description="Directory name, e.g., 'api', 'admin', 'worker'")
     path: str = Field(description="Filesystem path relative to project root")
+    description: str | None = Field(
+        default=None,
+        description="First line of __init__.py docstring, if present",
+    )
 
     # Classification
     app_type: AppType = Field(description="Type of application")

@@ -62,6 +62,10 @@ class BoundedContext(BaseModel):
     # Identity
     slug: str = Field(description="Directory name / import path segment")
     path: str = Field(description="Filesystem path relative to project root")
+    description: str | None = Field(
+        default=None,
+        description="First line of __init__.py docstring, if present",
+    )
 
     # Classification
     is_contrib: bool = Field(
