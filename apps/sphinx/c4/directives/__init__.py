@@ -1,9 +1,8 @@
 """C4 Sphinx directives.
 
-Provides directives for defining C4 elements and generating diagrams.
+Provides directives for defining C4 elements, generating diagrams, and listing elements.
 """
 
-from .base import C4Directive
 from .component import DefineComponentDirective
 from .container import DefineContainerDirective
 from .deployment_node import DefineDeploymentNodeDirective
@@ -17,24 +16,15 @@ from .diagrams import (
     process_c4_diagram_placeholders,
 )
 from .dynamic_step import DefineDynamicStepDirective
+from .indexes import (
+    ComponentIndexDirective,
+    ContainerIndexDirective,
+    DeploymentNodeIndexDirective,
+    RelationshipIndexDirective,
+    SoftwareSystemIndexDirective,
+)
 from .relationship import DefineRelationshipDirective
 from .software_system import DefineSoftwareSystemDirective
-
-__all__ = [
-    "C4Directive",
-    "DefineSoftwareSystemDirective",
-    "DefineContainerDirective",
-    "DefineComponentDirective",
-    "DefineRelationshipDirective",
-    "DefineDeploymentNodeDirective",
-    "DefineDynamicStepDirective",
-    "SystemContextDiagramDirective",
-    "ContainerDiagramDirective",
-    "ComponentDiagramDirective",
-    "SystemLandscapeDiagramDirective",
-    "DeploymentDiagramDirective",
-    "DynamicDiagramDirective",
-]
 
 
 def setup(app):
@@ -58,6 +48,13 @@ def setup(app):
     app.add_directive("system-landscape-diagram", SystemLandscapeDiagramDirective)
     app.add_directive("deployment-diagram", DeploymentDiagramDirective)
     app.add_directive("dynamic-diagram", DynamicDiagramDirective)
+
+    # Index directives
+    app.add_directive("software-system-index", SoftwareSystemIndexDirective)
+    app.add_directive("container-index", ContainerIndexDirective)
+    app.add_directive("component-index", ComponentIndexDirective)
+    app.add_directive("relationship-index", RelationshipIndexDirective)
+    app.add_directive("deployment-node-index", DeploymentNodeIndexDirective)
 
     # Register placeholder resolution at doctree-resolved
     app.connect("doctree-resolved", process_c4_diagram_placeholders)
