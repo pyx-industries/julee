@@ -62,7 +62,6 @@ Documentation Contents
 
    architecture/c4/index
    architecture/solutions/index
-   architecture/applications/index
 
 .. toctree::
    :maxdepth: 2

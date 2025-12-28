@@ -58,7 +58,7 @@ Pipelines solve these problems:
     Automatic retries, timeout handling, failure recovery. If a service is temporarily unavailable, the pipeline waits and retries.
 
 **Durability**
-    Workflow state is persisted. If the :doc:`worker </architecture/applications/worker>` crashes, another worker picks up where it left off.
+    Workflow state is persisted. If the worker crashes, another worker picks up where it left off.
 
 **Observability**
     Julee uses Temporal's workflow history as an audit log. Every step is recorded: what happened, when, with what inputs and outputs.
@@ -108,12 +108,12 @@ See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for th
 Dispatching Pipelines
 ---------------------
 
-:doc:`Applications </architecture/applications/index>` dispatch pipelines rather than executing use cases directly.
+:py:mod:`Applications <julee.core.entities.application>` dispatch pipelines rather than executing use cases directly.
 
 From API Applications
 ~~~~~~~~~~~~~~~~~~~~~
 
-:doc:`APIs </architecture/applications/api>` dispatch pipelines via a Temporal client, returning a workflow ID that clients can use to check status.
+APIs dispatch pipelines via a Temporal client, returning a workflow ID that clients can use to check status.
 
 ::
 
@@ -155,7 +155,7 @@ From API Applications
 From CLI Applications
 ~~~~~~~~~~~~~~~~~~~~~
 
-:doc:`CLIs </architecture/applications/cli>` dispatch pipelines for batch operations or administrative tasks, optionally waiting for the result.
+CLIs dispatch pipelines for batch operations or administrative tasks, optionally waiting for the result.
 
 ::
 
@@ -186,7 +186,7 @@ From CLI Applications
 Direct Execution vs Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:doc:`Applications </architecture/applications/index>` can choose how to execute use cases—directly for simplicity, or as a pipeline for reliability and auditability:
+:py:mod:`Applications <julee.core.entities.application>` can choose how to execute use cases—directly for simplicity, or as a pipeline for reliability and auditability:
 
 ::
 

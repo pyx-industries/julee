@@ -56,7 +56,7 @@ Use cases become :doc:`pipelines <pipelines>` when run with Temporal for durabil
 Applications Adjacent to Contexts
 ---------------------------------
 
-:doc:`Application </architecture/applications/index>` entry points (API, CLI, Worker, UI) sit *adjacent* to bounded contexts,
+:py:mod:`Application <julee.core.entities.application>` entry points (API, CLI, Worker, UI) sit *adjacent* to bounded contexts,
 not above or below them. They wire together the contexts and expose them to the outside world.
 
 ::
