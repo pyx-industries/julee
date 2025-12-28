@@ -37,6 +37,7 @@ SUPPORTING_MODELS = {
 # Note: test_mcp and test_tests were moved to policies/ (ADR 005)
 META_DOCTRINE_TESTS = {
     "test_doctrine_coverage",  # This test file itself
+    "test_sphinx_extension",  # SPHINX-EXTENSION app type rules (subset of application)
 }
 
 
