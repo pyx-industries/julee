@@ -297,14 +297,3 @@ def _init_config_handler(app):
     init_config(app)
 
 
-__all__ = [
-    "HCDContext",
-    "SyncRepositoryAdapter",
-    "create_sphinx_env_context",
-    "ensure_hcd_context",
-    "get_hcd_context",
-    "initialize_hcd_context",
-    "purge_doc_from_context",
-    "set_hcd_context",
-    "setup",
-]

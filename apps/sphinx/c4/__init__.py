@@ -37,15 +37,19 @@ C4 entities form hub pages that link outward to related content:
 Directives Provided
 -------------------
 Define directives: ``define-software-system``, ``define-container``,
-``define-component``, ``define-relationship``, ``define-deployment-node``
+``define-component``, ``define-relationship``, ``define-deployment-node``,
+``define-dynamic-step``
 
-Diagram directives: ``c4-context-diagram``, ``c4-container-diagram``,
-``c4-component-diagram``, ``c4-deployment-diagram``
+Index directives: ``software-system-index``, ``container-index``,
+``component-index``, ``relationship-index``, ``deployment-node-index``
+
+Diagram directives: ``system-context-diagram``, ``container-diagram``,
+``component-diagram``, ``system-landscape-diagram``, ``deployment-diagram``,
+``dynamic-diagram``
 """
 
 from .directives import setup as setup_directives
 
-__all__ = ["setup"]
 
 
 def setup(app):
