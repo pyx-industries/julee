@@ -1,17 +1,23 @@
 Test Catalog Directives
 ========================
 
-Entity Catalog (Core)
----------------------
-
-.. entity-catalog:: julee.core.entities.entity
-   :show-fields:
-
 Entity Catalog (HCD)
 --------------------
 
-.. entity-catalog:: julee.hcd.entities
+.. entity-catalog:: julee.hcd
    :show-fields:
+
+Repository Catalog (HCD)
+------------------------
+
+.. repository-catalog:: julee.hcd
+   :show-methods:
+
+Use Case Catalog (HCD)
+----------------------
+
+.. usecase-catalog:: julee.hcd
+   :group-by-crud:
 
 Solution Structure
 ------------------

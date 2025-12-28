@@ -1,35 +1,58 @@
 """Catalog directives for auto-generated documentation.
 
-These directives introspect modules to generate entity, repository,
-and use case listings automatically.
+These directives use the CoreContext to introspect bounded contexts
+and render entity, repository, and use case listings.
 """
 
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util.docutils import SphinxDirective
 
-from julee.core.introspection.catalog import (
-    introspect_entities,
-    introspect_repositories,
-    introspect_use_cases,
-)
+from julee.core.entities.code_info import ClassInfo
+
+from ..context import get_core_context
+
+
+def _get_summary(class_info: ClassInfo) -> str:
+    """Extract first line of docstring as summary."""
+    if not class_info.docstring:
+        return "(no description)"
+    return class_info.docstring.split("\n")[0].strip()
+
+
+def _classify_crud_type(name: str) -> str | None:
+    """Classify use case by CRUD type based on naming conventions."""
+    name_lower = name.lower()
+
+    if any(p in name_lower for p in ["create", "add", "register", "new"]):
+        return "Create"
+    if any(p in name_lower for p in ["get", "list", "find", "fetch", "query", "search"]):
+        return "Read"
+    if any(p in name_lower for p in ["update", "modify", "edit", "change", "set"]):
+        return "Update"
+    if any(p in name_lower for p in ["delete", "remove", "clear", "purge"]):
+        return "Delete"
+    return None
+
+
+def _infer_entity_type(name: str) -> str | None:
+    """Infer entity type from repository class name."""
+    if name.endswith("Repository"):
+        return name[:-10]
+    return None
 
 
 class EntityCatalogDirective(SphinxDirective):
-    """List all entities in a module with summaries.
+    """List all entities in a bounded context with summaries.
 
     Usage::
 
-        .. entity-catalog:: julee.hcd.entities
+        .. entity-catalog:: julee.hcd
            :show-fields:
            :link-to-api:
-
-    Options:
-        :show-fields: Include field counts
-        :link-to-api: Add cross-references to API docs
     """
 
-    required_arguments = 1  # module.path
+    required_arguments = 1
     optional_arguments = 0
     has_content = False
 
@@ -41,46 +64,35 @@ class EntityCatalogDirective(SphinxDirective):
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
         module_path = self.arguments[0]
+        context = get_core_context(self.env.app)
+        bc_info = context.get_bounded_context(module_path)
 
-        try:
-            entities = introspect_entities(module_path)
-        except ImportError as e:
-            error = self.state_machine.reporter.error(
-                f"Cannot import module '{module_path}': {e}",
-                nodes.literal_block(self.block_text, self.block_text),
-                line=self.lineno,
-            )
-            return [error]
-
-        if not entities:
+        if not bc_info or not bc_info.entities:
             para = nodes.paragraph(text=f"No entities found in {module_path}")
             return [para]
 
-        # Build bullet list
         bullet_list = nodes.bullet_list()
 
-        for entity in entities:
+        for entity in bc_info.entities:
             item = nodes.list_item()
             para = nodes.paragraph()
 
-            # Entity name (optionally as cross-reference)
             if "link-to-api" in self.options:
                 ref = nodes.reference(
                     "",
-                    entity.class_name,
-                    refuri=f"#py-class-{entity.full_path.replace('.', '-').lower()}",
+                    entity.name,
+                    refuri=f"#py-class-{module_path.replace('.', '-')}-{entity.name.lower()}",
                     internal=True,
                 )
                 para += nodes.strong("", "", ref)
             else:
-                para += nodes.strong(text=entity.class_name)
+                para += nodes.strong(text=entity.name)
 
-            # Summary
-            para += nodes.Text(f" - {entity.summary}")
+            summary = _get_summary(entity)
+            para += nodes.Text(f" - {summary}")
 
-            # Field count if requested
-            if "show-fields" in self.options and entity.field_count > 0:
-                para += nodes.Text(f" ({entity.field_count} fields)")
+            if "show-fields" in self.options and entity.fields:
+                para += nodes.Text(f" ({len(entity.fields)} fields)")
 
             item += para
             bullet_list += item
@@ -89,17 +101,13 @@ class EntityCatalogDirective(SphinxDirective):
 
 
 class RepositoryCatalogDirective(SphinxDirective):
-    """List all repository protocols in a module.
+    """List all repository protocols in a bounded context.
 
     Usage::
 
-        .. repository-catalog:: julee.domain.repositories
+        .. repository-catalog:: julee.hcd
            :show-methods:
            :link-to-api:
-
-    Options:
-        :show-methods: Include method names
-        :link-to-api: Add cross-references to API docs
     """
 
     required_arguments = 1
@@ -114,54 +122,46 @@ class RepositoryCatalogDirective(SphinxDirective):
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
         module_path = self.arguments[0]
+        context = get_core_context(self.env.app)
+        bc_info = context.get_bounded_context(module_path)
 
-        try:
-            repositories = introspect_repositories(module_path)
-        except ImportError as e:
-            error = self.state_machine.reporter.error(
-                f"Cannot import module '{module_path}': {e}",
-                nodes.literal_block(self.block_text, self.block_text),
-                line=self.lineno,
-            )
-            return [error]
-
-        if not repositories:
+        if not bc_info or not bc_info.repository_protocols:
             para = nodes.paragraph(text=f"No repositories found in {module_path}")
             return [para]
 
-        # Build definition list for more detail
         dl = nodes.definition_list()
 
-        for repo in repositories:
+        for repo in bc_info.repository_protocols:
             item = nodes.definition_list_item()
 
-            # Term: repository name
             term = nodes.term()
             if "link-to-api" in self.options:
                 ref = nodes.reference(
                     "",
-                    repo.class_name,
-                    refuri=f"#py-class-{repo.full_path.replace('.', '-').lower()}",
+                    repo.name,
+                    refuri=f"#py-class-{module_path.replace('.', '-')}-{repo.name.lower()}",
                     internal=True,
                 )
                 term += ref
             else:
-                term += nodes.literal(text=repo.class_name)
+                term += nodes.literal(text=repo.name)
 
-            if repo.entity_type:
-                term += nodes.Text(f" → {repo.entity_type}")
+            entity_type = _infer_entity_type(repo.name)
+            if entity_type:
+                term += nodes.Text(f" → {entity_type}")
 
             item += term
 
-            # Definition: summary and optionally methods
             definition = nodes.definition()
-            summary_para = nodes.paragraph(text=repo.summary)
+            summary = _get_summary(repo)
+            summary_para = nodes.paragraph(text=summary)
             definition += summary_para
 
-            if "show-methods" in self.options and repo.method_names:
+            if "show-methods" in self.options and repo.methods:
+                method_names = [m.name for m in repo.methods]
                 methods_para = nodes.paragraph()
                 methods_para += nodes.emphasis(text="Methods: ")
-                methods_para += nodes.literal(text=", ".join(repo.method_names))
+                methods_para += nodes.literal(text=", ".join(method_names))
                 definition += methods_para
 
             item += definition
@@ -171,17 +171,13 @@ class RepositoryCatalogDirective(SphinxDirective):
 
 
 class UseCaseCatalogDirective(SphinxDirective):
-    """List all use cases in a module with CRUD classification.
+    """List all use cases in a bounded context with CRUD classification.
 
     Usage::
 
-        .. usecase-catalog:: julee.hcd.use_cases
+        .. usecase-catalog:: julee.hcd
            :group-by-crud:
            :link-to-api:
-
-    Options:
-        :group-by-crud: Group use cases by CRUD type
-        :link-to-api: Add cross-references to API docs
     """
 
     required_arguments = 1
@@ -196,27 +192,19 @@ class UseCaseCatalogDirective(SphinxDirective):
     def run(self) -> list[nodes.Node]:
         """Execute the directive."""
         module_path = self.arguments[0]
+        context = get_core_context(self.env.app)
+        bc_info = context.get_bounded_context(module_path)
 
-        try:
-            use_cases = introspect_use_cases(module_path)
-        except ImportError as e:
-            error = self.state_machine.reporter.error(
-                f"Cannot import module '{module_path}': {e}",
-                nodes.literal_block(self.block_text, self.block_text),
-                line=self.lineno,
-            )
-            return [error]
-
-        if not use_cases:
+        if not bc_info or not bc_info.use_cases:
             para = nodes.paragraph(text=f"No use cases found in {module_path}")
             return [para]
 
         if "group-by-crud" in self.options:
-            return self._render_grouped(use_cases)
+            return self._render_grouped(bc_info.use_cases, module_path)
         else:
-            return self._render_flat(use_cases)
+            return self._render_flat(bc_info.use_cases, module_path)
 
-    def _render_flat(self, use_cases) -> list[nodes.Node]:
+    def _render_flat(self, use_cases: list[ClassInfo], module_path: str) -> list[nodes.Node]:
         """Render as a simple bullet list."""
         bullet_list = nodes.bullet_list()
 
@@ -224,37 +212,42 @@ class UseCaseCatalogDirective(SphinxDirective):
             item = nodes.list_item()
             para = nodes.paragraph()
 
-            # Use case name
             if "link-to-api" in self.options:
                 ref = nodes.reference(
                     "",
-                    uc.class_name,
-                    refuri=f"#py-class-{uc.full_path.replace('.', '-').lower()}",
+                    uc.name,
+                    refuri=f"#py-class-{module_path.replace('.', '-')}-{uc.name.lower()}",
                     internal=True,
                 )
                 para += nodes.strong("", "", ref)
             else:
-                para += nodes.strong(text=uc.class_name)
+                para += nodes.strong(text=uc.name)
 
-            # CRUD type badge
-            if uc.crud_type:
+            crud_type = _classify_crud_type(uc.name)
+            if crud_type:
                 para += nodes.Text(" ")
-                para += nodes.inline(text=f"[{uc.crud_type}]", classes=["crud-badge"])
+                para += nodes.inline(text=f"[{crud_type}]", classes=["crud-badge"])
 
-            # Summary
-            para += nodes.Text(f" - {uc.summary}")
+            summary = _get_summary(uc)
+            para += nodes.Text(f" - {summary}")
 
             item += para
             bullet_list += item
 
         return [bullet_list]
 
-    def _render_grouped(self, use_cases) -> list[nodes.Node]:
+    def _render_grouped(self, use_cases: list[ClassInfo], module_path: str) -> list[nodes.Node]:
         """Render grouped by CRUD type."""
-        groups = {"Create": [], "Read": [], "Update": [], "Delete": [], "Other": []}
+        groups: dict[str, list[ClassInfo]] = {
+            "Create": [],
+            "Read": [],
+            "Update": [],
+            "Delete": [],
+            "Other": [],
+        }
 
         for uc in use_cases:
-            crud = uc.crud_type or "Other"
+            crud = _classify_crud_type(uc.name) or "Other"
             groups[crud].append(uc)
 
         result_nodes = []
@@ -263,11 +256,9 @@ class UseCaseCatalogDirective(SphinxDirective):
             if not items:
                 continue
 
-            # Section header
             rubric = nodes.rubric(text=crud_type)
             result_nodes.append(rubric)
 
-            # Bullet list for this group
             bullet_list = nodes.bullet_list()
             for uc in items:
                 item = nodes.list_item()
@@ -276,15 +267,16 @@ class UseCaseCatalogDirective(SphinxDirective):
                 if "link-to-api" in self.options:
                     ref = nodes.reference(
                         "",
-                        uc.class_name,
-                        refuri=f"#py-class-{uc.full_path.replace('.', '-').lower()}",
+                        uc.name,
+                        refuri=f"#py-class-{module_path.replace('.', '-')}-{uc.name.lower()}",
                         internal=True,
                     )
                     para += nodes.strong("", "", ref)
                 else:
-                    para += nodes.strong(text=uc.class_name)
+                    para += nodes.strong(text=uc.name)
 
-                para += nodes.Text(f" - {uc.summary}")
+                summary = _get_summary(uc)
+                para += nodes.Text(f" - {summary}")
                 item += para
                 bullet_list += item
 

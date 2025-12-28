@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def setup(app):
     """Set up core doctrine extension for Sphinx."""
+    from .context import initialize_core_context
     from .directives.catalog import (
         EntityCatalogDirective,
         RepositoryCatalogDirective,
@@ -25,6 +26,9 @@ def setup(app):
         BoundedContextListDirective,
         SolutionStructureDirective,
     )
+
+    # Initialize context at builder-inited
+    app.connect("builder-inited", lambda app: initialize_core_context(app))
 
     # Register concept directives
     app.add_directive("core-concept", CoreConceptDirective)
