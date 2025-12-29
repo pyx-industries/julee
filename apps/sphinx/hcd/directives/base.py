@@ -10,13 +10,15 @@ from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
 
 from apps.sphinx.shared import build_relative_uri, path_to_root
+from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
+from apps.sphinx.shared.services.entity_link_builder import EntityLinkBuilder
 from julee.hcd.utils import slugify
 
 from ..config import get_config
 from ..context import HCDContext, get_hcd_context
 
 if TYPE_CHECKING:
-    pass
+    from apps.sphinx.shared.documentation_mapping import DocumentationMapping
 
 
 class HCDDirective(SphinxDirective):
@@ -53,9 +55,43 @@ class HCDDirective(SphinxDirective):
         """Get relative path prefix to docs root."""
         return path_to_root(self.docname)
 
+    @property
+    def link_builder(self) -> EntityLinkBuilder:
+        """Get EntityLinkBuilder for creating entity links."""
+        if not hasattr(self, "_link_builder"):
+            self._link_builder = EntityLinkBuilder(get_documentation_mapping())
+        return self._link_builder
+
     def get_doc_path(self, doc_type: str) -> str:
         """Get the path for a documentation type with prefix."""
         return f"{self.prefix}{self.hcd_config.get_doc_path(doc_type)}"
+
+    def make_entity_link(
+        self,
+        entity_type: type,
+        slug: str,
+        title: str | None = None,
+        anchor: str | None = None,
+        strong: bool = False,
+    ) -> nodes.reference:
+        """Create a link to any entity using SemanticRelation.
+
+        Uses EntityLinkBuilder and DocumentationMapping to resolve the
+        entity type to its documentation page via semantic relations.
+
+        Args:
+            entity_type: The entity class (e.g., Persona, Accelerator)
+            slug: Entity slug
+            title: Display text (defaults to titlecased slug)
+            anchor: Optional anchor within the page
+            strong: Whether to make text bold
+
+        Returns:
+            Reference node
+        """
+        return self.link_builder.build_node(
+            entity_type, slug, title, self.prefix, anchor, strong
+        )
 
     def make_link(
         self,
@@ -81,28 +117,52 @@ class HCDDirective(SphinxDirective):
         return ref
 
     def make_app_link(self, app_slug: str) -> nodes.reference:
-        """Create a link to an app page."""
-        app_name = app_slug.replace("-", " ").title()
-        app_path = f"{self.get_doc_path('applications')}/{app_slug}.html"
-        return self.make_link(app_name, app_path)
+        """Create a link to an app page.
+
+        Uses make_entity_link with HCD App entity type.
+        """
+        from julee.hcd.entities.app import App
+
+        return self.make_entity_link(App, app_slug)
 
     def make_persona_link(self, persona_name: str) -> nodes.reference:
-        """Create a link to a persona page."""
+        """Create a link to a persona page.
+
+        Uses make_entity_link with Persona entity type.
+        Note: Accepts persona name and slugifies it.
+        """
+        from julee.hcd.entities.persona import Persona
+
         persona_slug = slugify(persona_name)
-        persona_path = f"{self.get_doc_path('personas')}/{persona_slug}.html"
-        return self.make_link(persona_name, persona_path)
+        return self.make_entity_link(Persona, persona_slug, title=persona_name)
 
     def make_epic_link(self, epic_slug: str) -> nodes.reference:
-        """Create a link to an epic page."""
-        epic_name = epic_slug.replace("-", " ").title()
-        epic_path = f"{self.get_doc_path('epics')}/{epic_slug}.html"
-        return self.make_link(epic_name, epic_path)
+        """Create a link to an epic page.
+
+        Uses make_entity_link with Epic entity type.
+        """
+        from julee.hcd.entities.epic import Epic
+
+        return self.make_entity_link(Epic, epic_slug)
 
     def make_journey_link(self, journey_slug: str) -> nodes.reference:
-        """Create a link to a journey page."""
-        journey_name = journey_slug.replace("-", " ").title()
-        journey_path = f"{self.get_doc_path('journeys')}/{journey_slug}.html"
-        return self.make_link(journey_name, journey_path)
+        """Create a link to a journey page.
+
+        Uses make_entity_link with Journey entity type.
+        """
+        from julee.hcd.entities.journey import Journey
+
+        return self.make_entity_link(Journey, journey_slug)
+
+    def make_accelerator_link(self, accelerator_slug: str) -> nodes.reference:
+        """Create a link to an accelerator page.
+
+        Uses make_entity_link with Accelerator entity type.
+        Accelerator PROJECTS BoundedContext, so resolves to BC autoapi page.
+        """
+        from julee.hcd.entities.accelerator import Accelerator
+
+        return self.make_entity_link(Accelerator, accelerator_slug)
 
     def make_story_link(
         self,

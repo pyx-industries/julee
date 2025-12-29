@@ -143,6 +143,12 @@ def project_root() -> Path:
     return PROJECT_ROOT
 
 
+@pytest.fixture
+def search_root() -> str:
+    """Search root path (relative to project_root)."""
+    return SEARCH_ROOT
+
+
 def create_bounded_context(
     base_path: Path, name: str, layers: list[str] | None = None
 ) -> Path:

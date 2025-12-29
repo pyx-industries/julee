@@ -13,7 +13,6 @@ from julee.core.doctrine_constants import (
     CONTRIB_DIR,
     ENTITIES_PATH,
     RESERVED_WORDS,
-    SEARCH_ROOT,
     VIEWPOINT_SLUGS,
 )
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
@@ -261,21 +260,21 @@ class TestSolutionExhaustiveness:
 
     @pytest.mark.asyncio
     async def test_all_packages_in_solution_MUST_be_BC_or_reserved_or_nested_solution(
-        self, project_root: Path
+        self, project_root: Path, search_root: str
     ):
         """All Python packages in solution root MUST be BC, reserved, or nested solution.
 
         This is the exhaustiveness check. It catches packages that exist but don't
         follow doctrine - like a bounded context that has domain/ instead of entities/.
         """
-        search_path = project_root / SEARCH_ROOT
+        search_path = project_root / search_root
 
         # TODO: Relocate util to core - see https://github.com/pyx-industries/julee/issues/XXX
         # Once relocated, remove this exclusion
         pending_relocation = {"util"}
 
         # Get discovered bounded contexts
-        repo = FilesystemBoundedContextRepository(project_root, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(project_root, search_root)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
         discovered_slugs = {ctx.slug for ctx in response.bounded_contexts}
@@ -321,20 +320,20 @@ class TestSolutionExhaustiveness:
 
     @pytest.mark.asyncio
     async def test_all_packages_in_nested_solution_MUST_be_BC_or_reserved(
-        self, project_root: Path
+        self, project_root: Path, search_root: str
     ):
         """All Python packages in nested solution MUST be BC or reserved.
 
         Nested solutions (like contrib/) contain bounded contexts, not other
         nested solutions (no deep nesting allowed).
         """
-        contrib_path = project_root / SEARCH_ROOT / CONTRIB_DIR
+        contrib_path = project_root / search_root / CONTRIB_DIR
 
         if not contrib_path.exists():
             pytest.skip("No contrib directory")
 
         # Get discovered bounded contexts in contrib
-        repo = FilesystemBoundedContextRepository(project_root, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(project_root, search_root)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
         contrib_slugs = {

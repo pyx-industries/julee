@@ -2,12 +2,19 @@
 
 DRYs up repeated docutils node construction patterns across directive files.
 All functions return docutils nodes ready for insertion into the doctree.
+
+Entity-aware functions (prefixed with `entity_`) use EntityLinkBuilder and
+DocumentationMapping to automatically resolve entity types to documentation
+paths via SemanticRelation.
 """
 
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from docutils import nodes
+
+if TYPE_CHECKING:
+    from apps.sphinx.shared.services.entity_link_builder import EntityLinkBuilder
 
 
 def make_link(path: str, text: str) -> nodes.reference:
@@ -277,3 +284,118 @@ def grouped_bullet_lists(
         result.append(bullet_list)
 
     return result
+
+
+# ============================================================================
+# Entity-aware node builders using SemanticRelation
+# ============================================================================
+
+
+def entity_link_list(
+    label: str,
+    entities: list[Any],
+    link_builder: "EntityLinkBuilder",
+    prefix: str = "",
+    title_attr: str = "name",
+    slug_attr: str = "slug",
+) -> nodes.paragraph:
+    """Create a 'Label: link1, link2, link3' paragraph using SemanticRelation.
+
+    Uses EntityLinkBuilder to automatically resolve entity types to
+    documentation paths via DocumentationMapping and SemanticRelation.
+
+    Args:
+        label: The label text (will be bold, colon added automatically)
+        entities: List of entity instances
+        link_builder: EntityLinkBuilder for path resolution
+        prefix: Path prefix for relative navigation
+        title_attr: Attribute name for display title (default "name")
+        slug_attr: Attribute name for slug (default "slug")
+
+    Returns:
+        Paragraph node with comma-separated links
+
+    Example:
+        >>> link_builder = EntityLinkBuilder(get_documentation_mapping())
+        >>> apps = [app1, app2]
+        >>> node = entity_link_list("Apps", apps, link_builder, prefix="../")
+        # Renders as: **Apps:** App One, App Two
+    """
+    para = nodes.paragraph()
+    para += nodes.strong(text=f"{label}: ")
+
+    for i, entity in enumerate(entities):
+        ref = link_builder.build_entity_node(
+            entity, prefix, title_attr=title_attr, slug_attr=slug_attr
+        )
+        para += ref
+        if i < len(entities) - 1:
+            para += nodes.Text(", ")
+
+    return para
+
+
+def entity_bullet_list_auto(
+    entities: list[Any],
+    link_builder: "EntityLinkBuilder",
+    prefix: str = "",
+    title_attr: str = "name",
+    slug_attr: str = "slug",
+    suffix_fn: Callable[[Any], str] | None = None,
+    desc_fn: Callable[[Any], str] | None = None,
+) -> nodes.bullet_list:
+    """Create a bullet list of entity links using SemanticRelation.
+
+    Uses EntityLinkBuilder to automatically resolve entity types to
+    documentation paths via DocumentationMapping and SemanticRelation.
+
+    Args:
+        entities: List of entity instances
+        link_builder: EntityLinkBuilder for path resolution
+        prefix: Path prefix for relative navigation
+        title_attr: Attribute name for display title (default "name")
+        slug_attr: Attribute name for slug (default "slug")
+        suffix_fn: Optional function returning text to append inline
+        desc_fn: Optional function returning description for a sub-paragraph
+
+    Returns:
+        Bullet list node with linked items
+
+    Example:
+        >>> link_builder = EntityLinkBuilder(get_documentation_mapping())
+        >>> epics = [epic1, epic2]
+        >>> node = entity_bullet_list_auto(
+        ...     epics,
+        ...     link_builder,
+        ...     prefix="../",
+        ...     suffix_fn=lambda e: f" ({len(e.story_refs)} stories)",
+        ... )
+    """
+    bullet_list = nodes.bullet_list()
+
+    for entity in entities:
+        item = nodes.list_item()
+        para = nodes.paragraph()
+
+        ref = link_builder.build_entity_node(
+            entity, prefix, title_attr=title_attr, slug_attr=slug_attr
+        )
+        para += ref
+
+        if suffix_fn:
+            suffix = suffix_fn(entity)
+            if suffix:
+                para += nodes.Text(suffix)
+
+        item += para
+
+        if desc_fn:
+            desc = desc_fn(entity)
+            if desc:
+                desc_para = nodes.paragraph()
+                desc_para += nodes.Text(desc)
+                item += desc_para
+
+        bullet_list += item
+
+    return bullet_list
