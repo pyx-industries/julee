@@ -33,6 +33,10 @@ from typing import Callable
 from julee.core.decorators import semantic_relation
 from julee.core.entities.semantic_relation import RelationType
 
+# Import Core entities for projection decorators
+from julee.core.entities.application import Application
+from julee.core.entities.bounded_context import BoundedContext
+
 # Import HCD entities for convenience decorators
 from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
@@ -120,3 +124,24 @@ def enables_journey() -> Callable[[type], type]:
     Use when a solution entity enables user journeys.
     """
     return semantic_relation(Journey, RelationType.ENABLES)
+
+
+# Projection decorators - for HCD entities that project Core entities
+
+
+def projects_bounded_context() -> Callable[[type], type]:
+    """Declare that the decorated class projects a BoundedContext.
+
+    Use when an HCD viewpoint entity provides a view onto a Core
+    bounded context. For example, Accelerator projects BoundedContext.
+    """
+    return semantic_relation(BoundedContext, RelationType.PROJECTS)
+
+
+def projects_application() -> Callable[[type], type]:
+    """Declare that the decorated class projects an Application.
+
+    Use when an HCD viewpoint entity provides a view onto a Core
+    application. For example, App projects Application.
+    """
+    return semantic_relation(Application, RelationType.PROJECTS)

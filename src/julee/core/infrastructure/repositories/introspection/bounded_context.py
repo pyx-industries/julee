@@ -186,16 +186,83 @@ class FilesystemBoundedContextRepository:
 
         return sorted(contexts, key=lambda c: c.slug)
 
+    def _is_nested_solution(self, path: Path) -> bool:
+        """Check if a directory is a nested solution container.
+
+        A nested solution is a Python package that:
+        - Does NOT have BC structure itself (no entities/ or use_cases/)
+        - Contains at least one subdirectory that IS a bounded context
+
+        Examples: contrib/, experimental/, plugins/
+        """
+        if not self._is_python_package(path):
+            return False
+
+        # If it has BC structure, it's a BC not a nested solution
+        markers = self._detect_markers(path)
+        if self._is_bounded_context(markers):
+            return False
+
+        # Check if any child is a bounded context
+        for child in path.iterdir():
+            if not child.is_dir() or child.name.startswith("."):
+                continue
+            if not self._is_python_package(child):
+                continue
+            child_markers = self._detect_markers(child)
+            if self._is_bounded_context(child_markers):
+                return True
+
+        return False
+
     def _discover_all(self) -> list[BoundedContext]:
-        """Discover all bounded contexts."""
+        """Discover all bounded contexts.
+
+        Scans top-level directories and recursively discovers BCs in
+        nested solutions. A nested solution is a Python package that
+        contains BCs but isn't a BC itself (e.g., contrib/, experimental/).
+        """
         search_path = self.project_root / self.search_root
+        all_contexts: list[BoundedContext] = []
 
-        top_level = self._discover_in_directory(search_path)
+        if not search_path.exists():
+            return all_contexts
 
-        contrib_path = search_path / CONTRIB_DIR
-        contrib = self._discover_in_directory(contrib_path, is_contrib=True)
+        for candidate in search_path.iterdir():
+            if not candidate.is_dir():
+                continue
+            if candidate.name.startswith("."):
+                continue
+            if _is_gitignored(candidate, self.project_root):
+                continue
+            if candidate.name in RESERVED_WORDS:
+                continue
+            if not self._is_python_package(candidate):
+                continue
 
-        return top_level + contrib
+            markers = self._detect_markers(candidate)
+
+            if self._is_bounded_context(markers):
+                # It's a bounded context
+                is_contrib = candidate.name == CONTRIB_DIR
+                context = BoundedContext(
+                    slug=candidate.name,
+                    path=str(candidate),
+                    description=_get_first_docstring_line(candidate),
+                    is_contrib=is_contrib,
+                    is_viewpoint=candidate.name in VIEWPOINT_SLUGS,
+                    markers=markers,
+                )
+                all_contexts.append(context)
+            elif self._is_nested_solution(candidate):
+                # It's a nested solution - discover BCs within it
+                is_contrib = candidate.name == CONTRIB_DIR
+                nested_contexts = self._discover_in_directory(
+                    candidate, is_contrib=is_contrib
+                )
+                all_contexts.extend(nested_contexts)
+
+        return sorted(all_contexts, key=lambda c: c.slug)
 
     async def list_all(self) -> list[BoundedContext]:
         """List all discovered bounded contexts."""

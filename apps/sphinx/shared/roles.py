@@ -18,6 +18,8 @@ from . import build_relative_uri
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
+    from apps.sphinx.shared.documentation_mapping import DocumentationMapping
+
 
 class EntityRefRole(SphinxRole):
     """Base role for entity cross-references.
@@ -193,10 +195,60 @@ def make_conditional_role(
     return ConditionalRole
 
 
+def make_semantic_role(
+    entity_type: type,
+    mapping: "DocumentationMapping",
+) -> type[SphinxRole]:
+    """Create role that resolves using SemanticRelation and DocumentationMapping.
+
+    This factory creates roles that:
+    1. Look up the entity type in the DocumentationMapping
+    2. Follow PROJECTS relations to find the documentation target
+    3. Resolve the slug using the discovered pattern
+
+    Args:
+        entity_type: The entity class this role references
+        mapping: DocumentationMapping instance for pattern lookup
+
+    Returns:
+        Role class for registration
+
+    Example:
+        from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
+        from julee.hcd.entities.accelerator import Accelerator
+
+        mapping = get_documentation_mapping()
+        AcceleratorRole = make_semantic_role(Accelerator, mapping)
+        app.add_role("accelerator", AcceleratorRole())
+
+        # :accelerator:`slug` resolves to autoapi/julee/{slug}/index
+        # because Accelerator PROJECTS BoundedContext
+    """
+    from apps.sphinx.shared.documentation_mapping import DocumentationMapping
+
+    class SemanticRole(EntityRefRole):
+        """Role resolving via SemanticRelation."""
+
+        def resolve(self, slug: str) -> str:
+            result = mapping.resolve(entity_type, slug, self.env.app)
+            if result is None:
+                # No pattern found - return slug as dangling ref
+                return f"#{slug}"
+            if isinstance(result, tuple):
+                # Anchor result
+                docname, anchor = result
+                return self.build_uri(docname, anchor)
+            # Page/autoapi result
+            return self.build_uri(result)
+
+    return SemanticRole
+
+
 __all__ = [
     "EntityRefRole",
     "make_autoapi_role",
     "make_page_role",
     "make_anchor_role",
     "make_conditional_role",
+    "make_semantic_role",
 ]

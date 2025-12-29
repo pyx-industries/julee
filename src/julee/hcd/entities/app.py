@@ -2,12 +2,20 @@
 
 Represents an application in the HCD documentation system.
 Apps are defined via YAML manifests in apps/*/app.yaml.
+
+Semantic Relations
+------------------
+App PROJECTS Application - it provides an HCD viewpoint onto
+the core application structure, adding user-facing documentation.
 """
 
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import semantic_relation
+from julee.core.entities.application import Application
+from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name
 
 
@@ -71,12 +79,15 @@ class AppInterface(str, Enum):
         return labels.get(self, "Uses")
 
 
+@semantic_relation(Application, RelationType.PROJECTS)
 class App(BaseModel):
     """Application entity.
 
     Apps represent distinct applications in the system, defined via YAML
     manifests or RST directives. They serve as containers for stories and
     provide organization for the documentation.
+
+    Semantic relation: App PROJECTS Application.
     """
 
     slug: str

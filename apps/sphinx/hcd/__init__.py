@@ -283,23 +283,20 @@ def setup(app):
     app.add_directive("usecase-ssd", UseCaseSSDDirective)
     app.add_directive("usecase-documentation", UseCaseDocumentationDirective)
 
-    # Register HCD cross-reference roles
-    from apps.sphinx.shared import make_anchor_role, make_page_role
+    # Register HCD cross-reference roles using documentation mapping
+    from apps.sphinx.shared import make_anchor_role
+    from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
+    from apps.sphinx.shared.roles import make_semantic_role
+    from julee.hcd.entities.accelerator import Accelerator
+    from julee.hcd.entities.epic import Epic
+    from julee.hcd.entities.journey import Journey
+    from julee.hcd.entities.persona import Persona
+    from julee.hcd.entities.story import Story
     from julee.hcd.use_cases.crud import GetStoryRequest
 
-    # :persona:`slug` -> users/personas/{slug}.html
-    PersonaRole = make_page_role("users/personas/{slug}")
-    app.add_role("persona", PersonaRole())
+    mapping = get_documentation_mapping()
 
-    # :epic:`slug` -> users/epics/{slug}.html
-    EpicRole = make_page_role("users/epics/{slug}")
-    app.add_role("epic", EpicRole())
-
-    # :journey:`slug` -> users/journeys/{slug}.html
-    JourneyRole = make_page_role("users/journeys/{slug}")
-    app.add_role("journey", JourneyRole())
-
-    # :story:`slug` -> applications/{app}.html#story-{slug}
+    # Register Story anchor lookup (Story requires app context for lookup)
     def lookup_story(slug, sphinx_app):
         """Look up story and return (docname, anchor)."""
         try:
@@ -311,13 +308,26 @@ def setup(app):
             pass
         return None
 
+    mapping.register_anchor(Story, lookup_story)
+
+    # :persona:`slug` -> resolved via Persona's registered pattern
+    PersonaRole = make_semantic_role(Persona, mapping)
+    app.add_role("persona", PersonaRole())
+
+    # :epic:`slug` -> resolved via Epic's registered pattern
+    EpicRole = make_semantic_role(Epic, mapping)
+    app.add_role("epic", EpicRole())
+
+    # :journey:`slug` -> resolved via Journey's registered pattern
+    JourneyRole = make_semantic_role(Journey, mapping)
+    app.add_role("journey", JourneyRole())
+
+    # :story:`slug` -> resolved via Story's registered anchor pattern
     StoryRole = make_anchor_role(lookup_story)
     app.add_role("story", StoryRole())
 
-    # :accelerator:`slug` -> autoapi/julee/{slug}/index.html (Accelerator = BC)
-    from apps.sphinx.shared import make_autoapi_role
-
-    AcceleratorRole = make_autoapi_role("autoapi/julee/{slug}/index")
+    # :accelerator:`slug` -> resolved via Accelerator's PROJECTS relation to BC
+    AcceleratorRole = make_semantic_role(Accelerator, mapping)
     app.add_role("accelerator", AcceleratorRole())
 
     logger.info("Loaded apps.sphinx.hcd extensions")

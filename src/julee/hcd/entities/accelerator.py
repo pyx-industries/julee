@@ -33,9 +33,18 @@ speaks its business language.
 Accelerators are bounded contexts that provide business capabilities. They may
 have associated code in ``src/{slug}/`` and are exposed through one or more
 applications.
+
+Semantic Relations
+------------------
+Accelerator PROJECTS BoundedContext - it provides an HCD viewpoint onto
+the core bounded context structure, adding business capability framing.
 """
 
 from pydantic import BaseModel, Field, field_validator
+
+from julee.core.decorators import semantic_relation
+from julee.core.entities.bounded_context import BoundedContext
+from julee.core.entities.semantic_relation import RelationType
 
 
 class AcceleratorValidationIssue(BaseModel):
@@ -83,12 +92,15 @@ class IntegrationReference(BaseModel):
         return cls(slug=data.get("slug", ""), description=data.get("description", ""))
 
 
+@semantic_relation(BoundedContext, RelationType.PROJECTS)
 class Accelerator(BaseModel):
     """Accelerator entity.
 
     An accelerator represents a bounded context that provides business
     capabilities. It may have associated code in src/{slug}/ and is
     exposed through one or more applications.
+
+    Semantic relation: Accelerator PROJECTS BoundedContext.
     """
 
     slug: str

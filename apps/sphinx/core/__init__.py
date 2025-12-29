@@ -116,18 +116,24 @@ def setup(app):
         SolutionStructureDirective,
         ViewpointLinksDirective,
     )
-    from apps.sphinx.shared import make_autoapi_role
+    from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
+    from apps.sphinx.shared.roles import make_semantic_role
+    from julee.core.entities.application import Application
+    from julee.core.entities.bounded_context import BoundedContext
 
     # Initialize context at builder-inited
     app.connect("builder-inited", lambda app: initialize_core_context(app))
 
-    # Register Core cross-reference roles
+    # Get documentation mapping (shares patterns with other extensions)
+    mapping = get_documentation_mapping()
+
+    # Register Core cross-reference roles using semantic mapping
     # :bc:`slug` -> autoapi/julee/{slug}/index.html
-    BCRole = make_autoapi_role("autoapi/julee/{slug}/index")
+    BCRole = make_semantic_role(BoundedContext, mapping)
     app.add_role("bc", BCRole())
 
     # :app:`slug` -> autoapi/apps/{slug}/index.html
-    AppRole = make_autoapi_role("autoapi/apps/{slug}/index")
+    AppRole = make_semantic_role(Application, mapping)
     app.add_role("app", AppRole())
 
     # Register concept directives
