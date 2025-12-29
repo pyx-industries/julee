@@ -508,3 +508,71 @@ def is_use_case(cls: type) -> bool:
     Used by doctrine tests to verify all use cases are properly decorated.
     """
     return getattr(cls, "_is_use_case", False)
+
+
+# =============================================================================
+# Semantic Relation Decorator
+# =============================================================================
+
+
+def semantic_relation(
+    target_type: type,
+    relation: "RelationType",
+) -> Callable[[type], type]:
+    """Declare a semantic relationship from the decorated class to target_type.
+
+    Used to explicitly declare how entities relate across bounded contexts
+    and framework layers. The relationship is stored as a SemanticRelation
+    entity on the decorated class.
+
+    Args:
+        target_type: The entity type to relate to (must be BaseModel or Enum subclass)
+        relation: The type of relationship (from RelationType enum)
+
+    Returns:
+        Decorator that adds the semantic relation to the class
+
+    Example:
+        from julee.core.decorators import semantic_relation
+        from julee.core.entities.semantic_relation import RelationType
+        from julee.hcd.entities import Persona
+
+        @semantic_relation(Persona, RelationType.IS_A)
+        class CustomerSegment(BaseModel):
+            '''A customer segment - is_a Persona in HCD terms.'''
+            slug: str
+            name: str
+
+    The decorated class will have a __semantic_relations__ attribute
+    containing a list of SemanticRelation entities.
+    """
+    # Import here to avoid circular dependency
+    from julee.core.entities.semantic_relation import RelationType, SemanticRelation
+
+    def decorator(cls: type) -> type:
+        if not hasattr(cls, "__semantic_relations__"):
+            cls.__semantic_relations__ = []  # type: ignore[attr-defined]
+
+        cls.__semantic_relations__.append(  # type: ignore[attr-defined]
+            SemanticRelation(
+                source_type=cls,
+                target_type=target_type,
+                relation_type=relation,
+            )
+        )
+        return cls
+
+    return decorator
+
+
+def get_semantic_relations(cls: type) -> list:
+    """Get semantic relations declared on a class.
+
+    Args:
+        cls: The class to inspect
+
+    Returns:
+        List of SemanticRelation entities declared on the class,
+        or empty list if none declared.
+    """
+    return getattr(cls, "__semantic_relations__", [])
