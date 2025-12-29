@@ -83,6 +83,30 @@ class RelationType(str, Enum):
     The source and target are related but without hierarchical implication.
     """
 
+    PART_OF = "part_of"
+    """Compositional containment relationship.
+
+    The source type is contained within / part of the target.
+    Used for anchor-based documentation where the source appears on
+    the target's page rather than having its own page.
+    Example: Story part_of App (story appears on app's story page)
+    """
+
+    CONTAINS = "contains"
+    """Aggregation relationship.
+
+    The source type contains / aggregates instances of the target.
+    Inverse of PART_OF for navigation purposes.
+    Example: Epic contains Story (epic groups stories)
+    """
+
+    REFERENCES = "references"
+    """Reference relationship without ownership.
+
+    The source type references the target but doesn't contain it.
+    Example: Story references Persona (story has a persona actor)
+    """
+
 
 # Type alias for doctrine-valid entity types.
 # Valid types are Pydantic BaseModel subclasses or Enum subclasses.

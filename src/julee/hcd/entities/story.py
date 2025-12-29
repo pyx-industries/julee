@@ -1,13 +1,21 @@
 """Story domain model.
 
 Represents a user story extracted from a Gherkin .feature file.
+
+Semantic relations:
+- Story PART_OF App (stories appear on app's story page)
+- Story REFERENCES Persona (stories have a persona actor)
 """
 
 from pydantic import BaseModel, field_validator
 
+from julee.core.decorators import semantic_relation
+from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name, slugify
 
 
+@semantic_relation(lambda: __import__("julee.hcd.entities.app", fromlist=["App"]).App, RelationType.PART_OF)
+@semantic_relation(lambda: __import__("julee.hcd.entities.persona", fromlist=["Persona"]).Persona, RelationType.REFERENCES)
 class Story(BaseModel):
     """A user story extracted from a Gherkin feature file.
 

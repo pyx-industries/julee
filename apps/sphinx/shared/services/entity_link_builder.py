@@ -110,6 +110,42 @@ class EntityLinkBuilder:
             ref += nodes.Text(display_title)
         return ref
 
+    def build_entity_link(
+        self,
+        entity,
+        prefix: str = "",
+        slug_attr: str = "slug",
+    ) -> str:
+        """Build documentation URL from an entity instance.
+
+        Handles PART_OF relations by resolving to container page with anchor.
+
+        Args:
+            entity: Entity instance (e.g., Story with app_slug)
+            prefix: Path prefix (e.g., "../" for relative navigation)
+            slug_attr: Attribute name for slug
+
+        Returns:
+            URL string
+        """
+        result = self.mapping.resolve_entity(entity, slug_attr=slug_attr)
+
+        if result is None:
+            # No pattern found - return dangling anchor
+            slug = getattr(entity, slug_attr, str(entity))
+            return f"#{slug}"
+
+        if isinstance(result, tuple):
+            # Anchor-based pattern (docname, anchor)
+            docname, anchor = result
+            url = f"{prefix}{docname}.html"
+            if anchor:
+                url = f"{url}#{anchor}"
+            return url
+
+        # Page/autoapi pattern - result is docname
+        return f"{prefix}{result}.html"
+
     def build_entity_node(
         self,
         entity,
@@ -121,6 +157,7 @@ class EntityLinkBuilder:
         """Create a reference node from an entity instance.
 
         Extracts type, slug, and title from the entity automatically.
+        Handles PART_OF relations by resolving to container page with anchor.
 
         Args:
             entity: Entity instance (e.g., Persona, Story)
@@ -132,11 +169,18 @@ class EntityLinkBuilder:
         Returns:
             docutils reference node
         """
-        entity_type = type(entity)
-        slug = getattr(entity, slug_attr, str(entity))
+        url = self.build_entity_link(entity, prefix, slug_attr)
         title = getattr(entity, title_attr, None)
+        if title is None:
+            slug = getattr(entity, slug_attr, str(entity))
+            title = slug.replace("-", " ").replace("_", " ").title()
 
-        return self.build_node(entity_type, slug, title, prefix, strong=strong)
+        ref = nodes.reference("", "", refuri=url)
+        if strong:
+            ref += nodes.strong(text=title)
+        else:
+            ref += nodes.Text(title)
+        return ref
 
 
 # Convenience function to get a configured builder

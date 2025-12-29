@@ -2,13 +2,19 @@
 
 Represents an epic in the HCD documentation system.
 Epics are defined via RST directives and group related stories together.
+
+Semantic relations:
+- Epic CONTAINS Story (epics group related stories)
 """
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import semantic_relation
+from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name
 
 
+@semantic_relation(lambda: __import__("julee.hcd.entities.story", fromlist=["Story"]).Story, RelationType.CONTAINS)
 class Epic(BaseModel):
     """Epic entity.
 

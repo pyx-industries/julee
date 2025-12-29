@@ -133,6 +133,90 @@ class TestSemanticRelationResolution:
         assert result is None
 
 
+class TestCompositionalRelations:
+    """Tests for PART_OF, CONTAINS, and REFERENCES relations."""
+
+    def test_story_part_of_app_relation_exists(self):
+        """Story should have PART_OF App relation."""
+        from julee.core.decorators import get_semantic_relations
+        from julee.core.entities.semantic_relation import RelationType
+        from julee.hcd.entities.story import Story
+
+        relations = get_semantic_relations(Story)
+        part_of_relations = [r for r in relations if r.relation_type == RelationType.PART_OF]
+
+        assert len(part_of_relations) == 1
+        assert part_of_relations[0].target_type.__name__ == "App"
+
+    def test_story_references_persona_relation_exists(self):
+        """Story should have REFERENCES Persona relation."""
+        from julee.core.decorators import get_semantic_relations
+        from julee.core.entities.semantic_relation import RelationType
+        from julee.hcd.entities.story import Story
+
+        relations = get_semantic_relations(Story)
+        ref_relations = [r for r in relations if r.relation_type == RelationType.REFERENCES]
+
+        assert len(ref_relations) == 1
+        assert ref_relations[0].target_type.__name__ == "Persona"
+
+    def test_epic_contains_story_relation_exists(self):
+        """Epic should have CONTAINS Story relation."""
+        from julee.core.decorators import get_semantic_relations
+        from julee.core.entities.semantic_relation import RelationType
+
+        relations = get_semantic_relations(Epic)
+        contains_relations = [r for r in relations if r.relation_type == RelationType.CONTAINS]
+
+        assert len(contains_relations) == 1
+        assert contains_relations[0].target_type.__name__ == "Story"
+
+    def test_journey_contains_story_and_epic(self):
+        """Journey should have CONTAINS relations to Story and Epic."""
+        from julee.core.decorators import get_semantic_relations
+        from julee.core.entities.semantic_relation import RelationType
+
+        relations = get_semantic_relations(Journey)
+        contains_relations = [r for r in relations if r.relation_type == RelationType.CONTAINS]
+
+        target_names = {r.target_type.__name__ for r in contains_relations}
+        assert target_names == {"Story", "Epic"}
+
+    def test_journey_references_persona(self):
+        """Journey should have REFERENCES Persona relation."""
+        from julee.core.decorators import get_semantic_relations
+        from julee.core.entities.semantic_relation import RelationType
+
+        relations = get_semantic_relations(Journey)
+        ref_relations = [r for r in relations if r.relation_type == RelationType.REFERENCES]
+
+        assert len(ref_relations) == 1
+        assert ref_relations[0].target_type.__name__ == "Persona"
+
+    def test_resolve_entity_story_part_of_app(self):
+        """Story instance should resolve to App page with anchor via PART_OF."""
+        from julee.hcd.entities.story import Story
+
+        mapping = DocumentationMapping()
+        story = Story(
+            slug="user-login",
+            feature_title="User Login",
+            persona="developer",
+            app_slug="sphinx",
+            file_path="features/login.feature",
+        )
+
+        result = mapping.resolve_entity(story)
+
+        # Should resolve to App's page (via App PROJECTS Application)
+        # with anchor story-{slug}
+        assert result is not None
+        assert isinstance(result, tuple)
+        docname, anchor = result
+        assert docname == "autoapi/apps/sphinx/index"
+        assert anchor == "story-user-login"
+
+
 class TestSingletonMapping:
     """Tests for singleton mapping access."""
 

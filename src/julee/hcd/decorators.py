@@ -145,3 +145,43 @@ def projects_application() -> Callable[[type], type]:
     application. For example, App projects Application.
     """
     return semantic_relation(Application, RelationType.PROJECTS)
+
+
+# Compositional decorators - for within-BC entity relationships
+
+
+def part_of_app() -> Callable[[type], type]:
+    """Declare that the decorated class is part of an App.
+
+    Use for entities that are contained within an App and appear
+    on the App's documentation page rather than having their own page.
+    Example: Story is part_of App.
+    """
+    return semantic_relation(App, RelationType.PART_OF)
+
+
+def contains_story() -> Callable[[type], type]:
+    """Declare that the decorated class contains Stories.
+
+    Use for entities that aggregate stories.
+    Example: Epic contains Story, Journey contains Story.
+    """
+    return semantic_relation(Story, RelationType.CONTAINS)
+
+
+def contains_epic() -> Callable[[type], type]:
+    """Declare that the decorated class contains Epics.
+
+    Use for entities that aggregate epics.
+    Example: Journey contains Epic.
+    """
+    return semantic_relation(Epic, RelationType.CONTAINS)
+
+
+def references_persona() -> Callable[[type], type]:
+    """Declare that the decorated class references a Persona.
+
+    Use for entities that reference a persona without containing it.
+    Example: Story references Persona, Journey references Persona.
+    """
+    return semantic_relation(Persona, RelationType.REFERENCES)

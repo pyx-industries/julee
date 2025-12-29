@@ -4,6 +4,7 @@ Centralizes the mapping from entity types to documentation patterns.
 Uses SemanticRelation introspection to determine documentation targets:
 
 - Entities with PROJECTS relations inherit their target's documentation pattern
+- Entities with PART_OF relations resolve to anchors on container pages
 - Entities with explicit patterns use those directly
 - Entities without explicit patterns use a default autoapi pattern
 
@@ -13,6 +14,9 @@ on entity types, rather than hardcoded patterns in Sphinx extensions.
 Example:
     # Accelerator PROJECTS BoundedContext
     # So :accelerator:`slug` resolves to BC's autoapi page
+
+    # Story PART_OF App
+    # So :story:`slug` resolves to App's page with #story-slug anchor
 
     from apps.sphinx.shared.documentation_mapping import DocumentationMapping
 
@@ -205,6 +209,59 @@ class DocumentationMapping:
         if pattern is None:
             return None
         return pattern.resolve(slug, app)
+
+    def resolve_entity(
+        self,
+        entity,
+        slug_attr: str = "slug",
+        app: "Sphinx | None" = None,
+    ) -> str | tuple[str, str] | None:
+        """Resolve entity instance to documentation target.
+
+        Handles PART_OF relations by looking up container info from the entity.
+        Uses convention: container slug attribute is `{container_type_lower}_slug`.
+
+        Args:
+            entity: Entity instance to resolve
+            slug_attr: Attribute name for entity's own slug
+            app: Sphinx application (required for anchor lookups)
+
+        Returns:
+            docname string, (docname, anchor) tuple, or None if not found
+
+        Example:
+            # Story has `app_slug` attribute and PART_OF App relation
+            story = Story(slug="login", app_slug="sphinx", ...)
+            result = mapping.resolve_entity(story)
+            # Returns ("applications/sphinx", "story-login") tuple
+        """
+        entity_type = type(entity)
+        entity_slug = getattr(entity, slug_attr, str(entity))
+
+        # Check for PART_OF relation - resolve to container's page with anchor
+        relations = get_semantic_relations(entity_type)
+        for rel in relations:
+            if rel.relation_type == RelationType.PART_OF:
+                container_type = rel.target_type
+                # Convention: container slug attr is {type_name_lower}_slug
+                container_attr = f"{container_type.__name__.lower()}_slug"
+                container_slug = getattr(entity, container_attr, None)
+
+                if container_slug:
+                    # Resolve container's documentation
+                    container_result = self.resolve(container_type, container_slug, app)
+                    if container_result:
+                        # Return (docname, anchor) tuple
+                        if isinstance(container_result, tuple):
+                            docname, _ = container_result
+                        else:
+                            docname = container_result
+                        # Anchor format: {entity_type_lower}-{slug}
+                        anchor = f"{entity_type.__name__.lower()}-{entity_slug}"
+                        return (docname, anchor)
+
+        # Fall back to standard resolution
+        return self.resolve(entity_type, entity_slug, app)
 
 
 # Singleton instance for use across Sphinx extensions

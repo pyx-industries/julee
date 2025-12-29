@@ -516,7 +516,7 @@ def is_use_case(cls: type) -> bool:
 
 
 def semantic_relation(
-    target_type: type,
+    target_type: type | Callable[[], type],
     relation: "RelationType",
 ) -> Callable[[type], type]:
     """Declare a semantic relationship from the decorated class to target_type.
@@ -526,7 +526,9 @@ def semantic_relation(
     entity on the decorated class.
 
     Args:
-        target_type: The entity type to relate to (must be BaseModel or Enum subclass)
+        target_type: The entity type to relate to (must be BaseModel or Enum subclass).
+                     Can also be a callable that returns the type, for lazy evaluation
+                     to handle circular imports.
         relation: The type of relationship (from RelationType enum)
 
     Returns:
@@ -543,6 +545,11 @@ def semantic_relation(
             slug: str
             name: str
 
+        # For circular imports, use a callable:
+        @semantic_relation(lambda: SomeType, RelationType.PART_OF)
+        class ContainedEntity(BaseModel):
+            ...
+
     The decorated class will have a __semantic_relations__ attribute
     containing a list of SemanticRelation entities.
     """
@@ -553,10 +560,13 @@ def semantic_relation(
         if not hasattr(cls, "__semantic_relations__"):
             cls.__semantic_relations__ = []  # type: ignore[attr-defined]
 
+        # Resolve callable type providers (for circular import handling)
+        resolved_type = target_type() if callable(target_type) and not isinstance(target_type, type) else target_type
+
         cls.__semantic_relations__.append(  # type: ignore[attr-defined]
             SemanticRelation(
                 source_type=cls,
-                target_type=target_type,
+                target_type=resolved_type,
                 relation_type=relation,
             )
         )

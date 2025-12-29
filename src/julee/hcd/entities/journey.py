@@ -3,12 +3,19 @@
 Represents a user journey in the HCD documentation system.
 Journeys are defined via RST directives and track a persona's path
 through the system to achieve a goal.
+
+Semantic relations:
+- Journey CONTAINS Story (journeys include story steps)
+- Journey CONTAINS Epic (journeys include epic steps)
+- Journey REFERENCES Persona (journeys track a persona's path)
 """
 
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import semantic_relation
+from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name
 
 
@@ -119,6 +126,9 @@ class JourneyStep(BaseModel):
         )
 
 
+@semantic_relation(lambda: __import__("julee.hcd.entities.story", fromlist=["Story"]).Story, RelationType.CONTAINS)
+@semantic_relation(lambda: __import__("julee.hcd.entities.epic", fromlist=["Epic"]).Epic, RelationType.CONTAINS)
+@semantic_relation(lambda: __import__("julee.hcd.entities.persona", fromlist=["Persona"]).Persona, RelationType.REFERENCES)
 class Journey(BaseModel):
     """User journey entity.
 
