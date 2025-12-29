@@ -4,8 +4,15 @@ Uses SemanticRelation declarations to traverse entity relationships
 and generate cross-reference data for documentation templates.
 
 This service enables reflexive documentation by introspecting declared
-relations (PART_OF, CONTAINS, REFERENCES, PROJECTS) to build navigation
+relations (PART_OF, CONTAINS, REFERENCES, PROJECTS, IS_A) to build navigation
 paths between entities.
+
+Relation Types:
+- PROJECTS: Viewpoint entity projects Core entity (Accelerator → BC)
+- PART_OF: Entity is contained in another (Story → App)
+- CONTAINS: Entity aggregates others (Epic → Story)
+- REFERENCES: Non-owning reference (Story → Persona)
+- IS_A: Solution entity specializes framework entity (CustomerSegment is_a Persona)
 
 Example:
     traversal = RelationTraversal()
@@ -18,6 +25,9 @@ Example:
 
     # Build cross-reference data for a bounded context
     crossrefs = traversal.build_bc_persona_crossrefs(bc_slug, hcd_context)
+
+    # Discover solution entities that IS_A framework entity
+    solution_personas = traversal.discover_is_a_entities(Persona, search_paths)
 """
 
 from collections import defaultdict
@@ -563,6 +573,123 @@ class RelationTraversal:
                         result[inverse_key].append(other_type)
 
         return dict(result)
+
+    def discover_is_a_entities(
+        self,
+        target_type: type,
+        search_paths: list[str] | None = None,
+    ) -> list[dict]:
+        """Discover entities that declare IS_A relation to a target type.
+
+        Scans Python modules for entity classes decorated with
+        @semantic_relation(target_type, IS_A).
+
+        This enables solutions to define entities like CustomerSegment
+        that IS_A Persona, and have them discovered for documentation.
+
+        Args:
+            target_type: HCD entity type to find IS_A relations for
+            search_paths: Module paths to search (e.g., ["acme.entities"])
+
+        Returns:
+            List of dicts with entity class info and IS_A relation
+        """
+        import importlib
+        import pkgutil
+        from pathlib import Path
+
+        if search_paths is None:
+            return []
+
+        results = []
+
+        for search_path in search_paths:
+            try:
+                # Import the module
+                module = importlib.import_module(search_path)
+                module_path = Path(module.__file__).parent if hasattr(module, "__file__") else None
+
+                if not module_path:
+                    continue
+
+                # Walk through submodules
+                for _importer, modname, _ispkg in pkgutil.walk_packages(
+                    [str(module_path)], prefix=f"{search_path}."
+                ):
+                    try:
+                        submodule = importlib.import_module(modname)
+
+                        # Check all classes in the module
+                        for name in dir(submodule):
+                            obj = getattr(submodule, name)
+                            if not isinstance(obj, type):
+                                continue
+
+                            # Check for IS_A relation to target type
+                            relations = get_semantic_relations(obj)
+                            for rel in relations:
+                                if (
+                                    rel.relation_type == RelationType.IS_A
+                                    and rel.target_type == target_type
+                                ):
+                                    results.append({
+                                        "entity_type": obj,
+                                        "entity_name": obj.__name__,
+                                        "module": obj.__module__,
+                                        "target_type": target_type.__name__,
+                                        "relation": "is_a",
+                                    })
+                    except (ImportError, AttributeError):
+                        continue
+            except ImportError:
+                continue
+
+        return results
+
+    def get_is_a_target(self, entity_type: type) -> type | None:
+        """Get the target type from an entity's IS_A relation.
+
+        Args:
+            entity_type: Entity class to check
+
+        Returns:
+            Target type if IS_A relation exists, None otherwise
+        """
+        relations = self.get_relations(entity_type, RelationType.IS_A)
+        return relations[0].target_type if relations else None
+
+    def build_solution_entity_mapping(
+        self,
+        search_paths: list[str] | None = None,
+    ) -> dict[str, list[dict]]:
+        """Build mapping of HCD types to solution entities that IS_A them.
+
+        Discovers all solution entities with IS_A relations and groups
+        them by their target HCD type.
+
+        Args:
+            search_paths: Module paths to search
+
+        Returns:
+            Dict mapping HCD type names to lists of solution entity info
+        """
+        from julee.hcd.entities.accelerator import Accelerator
+        from julee.hcd.entities.app import App
+        from julee.hcd.entities.epic import Epic
+        from julee.hcd.entities.integration import Integration
+        from julee.hcd.entities.journey import Journey
+        from julee.hcd.entities.persona import Persona
+        from julee.hcd.entities.story import Story
+
+        hcd_types = [Persona, Story, Epic, Journey, App, Accelerator, Integration]
+        mapping: dict[str, list[dict]] = defaultdict(list)
+
+        for hcd_type in hcd_types:
+            entities = self.discover_is_a_entities(hcd_type, search_paths)
+            if entities:
+                mapping[hcd_type.__name__] = entities
+
+        return dict(mapping)
 
 
 # Singleton instance

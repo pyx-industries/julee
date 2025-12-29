@@ -213,6 +213,53 @@ class TestNavigationGraph:
         assert "Journey" in types
 
 
+class TestIsADiscovery:
+    """Tests for IS_A relation discovery."""
+
+    def test_get_is_a_target_returns_none_for_no_relation(self):
+        """get_is_a_target should return None if no IS_A relation."""
+        traversal = RelationTraversal()
+
+        # Story has PART_OF and REFERENCES but no IS_A
+        result = traversal.get_is_a_target(Story)
+        assert result is None
+
+    def test_get_is_a_target_with_is_a_relation(self):
+        """get_is_a_target should return target type for IS_A relation."""
+        from pydantic import BaseModel
+
+        from julee.core.decorators import semantic_relation
+        from julee.core.entities.semantic_relation import RelationType
+        from julee.hcd.entities.persona import Persona
+
+        # Create a test entity with IS_A relation
+        @semantic_relation(Persona, RelationType.IS_A)
+        class TestCustomerSegment(BaseModel):
+            slug: str
+            name: str
+
+        traversal = RelationTraversal()
+        result = traversal.get_is_a_target(TestCustomerSegment)
+
+        assert result == Persona
+
+    def test_discover_is_a_entities_empty_search(self):
+        """discover_is_a_entities should return empty for no search paths."""
+        from julee.hcd.entities.persona import Persona
+
+        traversal = RelationTraversal()
+        result = traversal.discover_is_a_entities(Persona, None)
+
+        assert result == []
+
+    def test_build_solution_entity_mapping_empty(self):
+        """build_solution_entity_mapping should return empty for no search paths."""
+        traversal = RelationTraversal()
+        result = traversal.build_solution_entity_mapping(None)
+
+        assert result == {}
+
+
 class TestSingletonTraversal:
     """Tests for singleton access."""
 
