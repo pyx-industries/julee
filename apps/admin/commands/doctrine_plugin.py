@@ -17,6 +17,7 @@ class RuleResult:
     test_name: str
     test_file: str
     passed: bool = True
+    skipped: bool = False
     failure_message: str = ""
 
 
@@ -123,11 +124,18 @@ class DoctrineCollector:
                     self._test_map[item.nodeid] = rule
 
     def pytest_runtest_logreport(self, report):
-        """Capture pass/fail status after each test runs.
+        """Capture pass/fail/skip status after each test runs.
 
         This hook is called for each phase of test execution (setup, call, teardown).
-        We capture the result from the 'call' phase.
+        We capture the result from the 'call' phase, or 'setup' phase for skips.
         """
+        # Handle skips (can happen in setup phase via pytest.skip())
+        if report.skipped and report.nodeid in self._test_map:
+            rule = self._test_map[report.nodeid]
+            rule.skipped = True
+            rule.passed = True  # Skipped tests are not failures
+            return
+
         if report.when == "call":
             if report.nodeid in self._test_map:
                 rule = self._test_map[report.nodeid]
@@ -167,6 +175,7 @@ class DoctrineCollector:
                             "test_name": r.test_name,
                             "test_file": r.test_file,
                             "passed": r.passed,
+                            "skipped": r.skipped,
                             "failure_message": r.failure_message,
                         }
                         for r in cat.rules

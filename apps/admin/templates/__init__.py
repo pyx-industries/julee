@@ -43,12 +43,15 @@ def render_doctrine_verify(
     total_tests = 0
     passed_count = 0
     failed_count = 0
+    skipped_count = 0
 
     for categories in results.values():
         for category in categories:
             for rule in category["rules"]:
                 total_tests += 1
-                if rule["passed"]:
+                if rule.get("skipped", False):
+                    skipped_count += 1
+                elif rule["passed"]:
                     passed_count += 1
                 else:
                     failed_count += 1
@@ -61,5 +64,6 @@ def render_doctrine_verify(
         total_tests=total_tests,
         passed_count=passed_count,
         failed_count=failed_count,
+        skipped_count=skipped_count,
         all_passed=(failed_count == 0),
     )

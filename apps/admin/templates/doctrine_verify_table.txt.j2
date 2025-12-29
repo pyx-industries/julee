@@ -4,7 +4,9 @@ DOCTRINE VERIFICATION
 {{ area }}:
 {% for category in categories %}
 {% for rule in category.rules %}
-{% if rule.passed %}
+{% if rule.skipped %}
+  [SKIP] {{ rule.statement }}
+{% elif rule.passed %}
   [PASS] {{ rule.statement }}
 {% else %}
   [FAIL] {{ rule.statement }}
@@ -14,7 +16,7 @@ DOCTRINE VERIFICATION
 
 {% endfor %}
 {% if all_passed %}
-All {{ total_tests }} rules passed.
+All {{ total_tests }} rules passed{% if skipped_count %} ({{ skipped_count }} skipped){% endif %}.
 {% else %}
-{{ failed_count }} of {{ total_tests }} rules FAILED.
+{{ failed_count }} of {{ total_tests }} rules FAILED{% if skipped_count %} ({{ skipped_count }} skipped){% endif %}.
 {% endif %}
