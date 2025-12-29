@@ -279,9 +279,11 @@ def setup(app):
         UseCaseDocumentationDirective,
         UseCaseSSDDirective,
     )
+    from apps.sphinx.shared.directives.entity_graph import EntityGraphDirective
 
     app.add_directive("usecase-ssd", UseCaseSSDDirective)
     app.add_directive("usecase-documentation", UseCaseDocumentationDirective)
+    app.add_directive("entity-graph", EntityGraphDirective)
 
     # Register HCD cross-reference roles using documentation mapping
     from apps.sphinx.shared import make_anchor_role

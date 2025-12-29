@@ -31,6 +31,14 @@ Entity Diagram
 
 .. entity-diagram:: hcd
 
+Semantic Relations
+~~~~~~~~~~~~~~~~~~
+
+The HCD entities are connected via semantic relations that enable automatic
+cross-reference generation and navigation:
+
+.. entity-graph::
+
 Use Cases
 ---------
 
