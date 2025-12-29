@@ -23,6 +23,11 @@ from julee.core.use_cases.bounded_context.list import (
     ListBoundedContextsUseCase,
 )
 
+# Search root used by create_solution() for synthetic test fixtures.
+# This is NOT the same as the dynamic search_root fixture - this is for
+# tests that create temporary directories with known structure.
+_TEST_SEARCH_ROOT = "src/julee"
+
 # =============================================================================
 # DOCTRINE: Bounded Context Structure
 # =============================================================================
@@ -39,7 +44,7 @@ class TestBoundedContextStructure:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid", layers=[ENTITIES_PATH])
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -54,7 +59,7 @@ class TestBoundedContextStructure:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -77,7 +82,7 @@ class TestReservedWords:
         root = create_solution(tmp_path)
         create_bounded_context(root, "billing")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -143,7 +148,7 @@ class TestImportPaths:
         root = create_solution(tmp_path)
         create_bounded_context(root, "valid")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -174,7 +179,7 @@ class TestViewpoints:
         root = create_solution(tmp_path)
         create_bounded_context(root, "hcd")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -202,7 +207,7 @@ class TestContrib:
         (contrib / "__init__.py").touch()
         create_bounded_context(contrib, "mymodule")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
@@ -216,7 +221,7 @@ class TestContrib:
         root = create_solution(tmp_path)
         create_bounded_context(root, "toplevel")
 
-        repo = FilesystemBoundedContextRepository(tmp_path, SEARCH_ROOT)
+        repo = FilesystemBoundedContextRepository(tmp_path, _TEST_SEARCH_ROOT)
         use_case = ListBoundedContextsUseCase(repo)
         response = await use_case.execute(ListBoundedContextsRequest())
 
