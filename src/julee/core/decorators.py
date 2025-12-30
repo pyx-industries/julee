@@ -515,8 +515,35 @@ def is_use_case(cls: type) -> bool:
 # =============================================================================
 
 
+def _resolve_type_reference(type_ref: "type | str | Callable[[], type]") -> type:
+    """Resolve a type reference to an actual type.
+
+    Handles:
+    - Direct type references (pass through)
+    - String references like "julee.hcd.entities.story.Story"
+    - Callable type providers (legacy support)
+    """
+    if isinstance(type_ref, type):
+        return type_ref
+
+    if isinstance(type_ref, str):
+        # String reference: "module.path.ClassName"
+        parts = type_ref.rsplit(".", 1)
+        if len(parts) != 2:
+            raise ValueError(f"Invalid type reference: {type_ref}. Expected 'module.ClassName'")
+        module_path, class_name = parts
+        module = __import__(module_path, fromlist=[class_name])
+        return getattr(module, class_name)
+
+    if callable(type_ref):
+        # Legacy callable support
+        return type_ref()
+
+    raise TypeError(f"Invalid type reference: {type_ref}")
+
+
 def semantic_relation(
-    target_type: type | Callable[[], type],
+    target_type: "type | str | Callable[[], type]",
     relation: "RelationType",
 ) -> Callable[[type], type]:
     """Declare a semantic relationship from the decorated class to target_type.
@@ -526,9 +553,10 @@ def semantic_relation(
     entity on the decorated class.
 
     Args:
-        target_type: The entity type to relate to (must be BaseModel or Enum subclass).
-                     Can also be a callable that returns the type, for lazy evaluation
-                     to handle circular imports.
+        target_type: The entity type to relate to. Can be:
+                     - A type directly (if no circular import)
+                     - A string like "julee.hcd.entities.story.Story"
+                     - A callable returning the type (legacy)
         relation: The type of relationship (from RelationType enum)
 
     Returns:
@@ -537,18 +565,17 @@ def semantic_relation(
     Example:
         from julee.core.decorators import semantic_relation
         from julee.core.entities.semantic_relation import RelationType
-        from julee.hcd.entities import Persona
 
+        # Direct type reference (when no circular import):
         @semantic_relation(Persona, RelationType.IS_A)
         class CustomerSegment(BaseModel):
-            '''A customer segment - is_a Persona in HCD terms.'''
             slug: str
-            name: str
 
-        # For circular imports, use a callable:
-        @semantic_relation(lambda: SomeType, RelationType.PART_OF)
-        class ContainedEntity(BaseModel):
-            ...
+        # String reference (for circular imports):
+        @semantic_relation("julee.hcd.entities.app.App", RelationType.PART_OF)
+        @semantic_relation("julee.hcd.entities.persona.Persona", RelationType.REFERENCES)
+        class Story(BaseModel):
+            slug: str
 
     The decorated class will have a __semantic_relations__ attribute
     containing a list of SemanticRelation entities.
@@ -560,8 +587,7 @@ def semantic_relation(
         if not hasattr(cls, "__semantic_relations__"):
             cls.__semantic_relations__ = []  # type: ignore[attr-defined]
 
-        # Resolve callable type providers (for circular import handling)
-        resolved_type = target_type() if callable(target_type) and not isinstance(target_type, type) else target_type
+        resolved_type = _resolve_type_reference(target_type)
 
         cls.__semantic_relations__.append(  # type: ignore[attr-defined]
             SemanticRelation(

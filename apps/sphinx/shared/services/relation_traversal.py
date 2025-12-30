@@ -448,11 +448,12 @@ class RelationTraversal:
             from julee.hcd.entities.accelerator import Accelerator
             from julee.hcd.entities.app import App
             from julee.hcd.entities.epic import Epic
+            from julee.hcd.entities.integration import Integration
             from julee.hcd.entities.journey import Journey
             from julee.hcd.entities.persona import Persona
             from julee.hcd.entities.story import Story
 
-            entity_types = [Story, Epic, Journey, Persona, App, Accelerator]
+            entity_types = [Story, Epic, Journey, Persona, App, Accelerator, Integration]
 
         nodes = []
         edges = []
@@ -555,11 +556,12 @@ class RelationTraversal:
             from julee.hcd.entities.accelerator import Accelerator
             from julee.hcd.entities.app import App
             from julee.hcd.entities.epic import Epic
+            from julee.hcd.entities.integration import Integration
             from julee.hcd.entities.journey import Journey
             from julee.hcd.entities.persona import Persona
             from julee.hcd.entities.story import Story
 
-            all_types = [Story, Epic, Journey, Persona, App, Accelerator]
+            all_types = [Story, Epic, Journey, Persona, App, Accelerator, Integration]
 
             for other_type in all_types:
                 if other_type == entity_type:

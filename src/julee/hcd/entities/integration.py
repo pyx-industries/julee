@@ -2,12 +2,17 @@
 
 Represents an integration module in the HCD documentation system.
 Integrations are defined via YAML manifests in integrations/*/integration.yaml.
+
+Semantic relations:
+- Integration PART_OF Accelerator (integrations belong to bounded contexts)
 """
 
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
+from julee.core.decorators import semantic_relation
+from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name
 
 
@@ -69,6 +74,7 @@ class ExternalDependency(BaseModel):
         )
 
 
+@semantic_relation("julee.hcd.entities.accelerator.Accelerator", RelationType.PART_OF)
 class Integration(BaseModel):
     """Integration module entity.
 

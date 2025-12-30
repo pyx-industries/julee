@@ -14,7 +14,7 @@ from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name
 
 
-@semantic_relation(lambda: __import__("julee.hcd.entities.story", fromlist=["Story"]).Story, RelationType.CONTAINS)
+@semantic_relation("julee.hcd.entities.story.Story", RelationType.CONTAINS)
 class Epic(BaseModel):
     """Epic entity.
 

@@ -5,6 +5,7 @@ Represents a user story extracted from a Gherkin .feature file.
 Semantic relations:
 - Story PART_OF App (stories appear on app's story page)
 - Story REFERENCES Persona (stories have a persona actor)
+- Story PROJECTS UseCase (stories describe use cases from user perspective)
 """
 
 from pydantic import BaseModel, field_validator
@@ -14,8 +15,9 @@ from julee.core.entities.semantic_relation import RelationType
 from julee.hcd.utils import normalize_name, slugify
 
 
-@semantic_relation(lambda: __import__("julee.hcd.entities.app", fromlist=["App"]).App, RelationType.PART_OF)
-@semantic_relation(lambda: __import__("julee.hcd.entities.persona", fromlist=["Persona"]).Persona, RelationType.REFERENCES)
+@semantic_relation("julee.hcd.entities.app.App", RelationType.PART_OF)
+@semantic_relation("julee.hcd.entities.persona.Persona", RelationType.REFERENCES)
+@semantic_relation("julee.core.entities.use_case.UseCase", RelationType.PROJECTS)
 class Story(BaseModel):
     """A user story extracted from a Gherkin feature file.
 

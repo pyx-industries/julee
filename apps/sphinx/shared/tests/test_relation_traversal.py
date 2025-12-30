@@ -65,15 +65,33 @@ class TestRelationTraversal:
         assert projected is not None
         assert projected.__name__ == "BoundedContext"
 
+    def test_get_projected_type_story(self):
+        """Story should project UseCase via PROJECTS."""
+        traversal = RelationTraversal()
+        projected = traversal.get_projected_type(Story)
+
+        assert projected is not None
+        assert projected.__name__ == "UseCase"
+
+    def test_get_container_type_integration(self):
+        """Integration should have Accelerator as container via PART_OF."""
+        from julee.hcd.entities.integration import Integration
+
+        traversal = RelationTraversal()
+        container = traversal.get_container_type(Integration)
+
+        assert container is not None
+        assert container.__name__ == "Accelerator"
+
     def test_build_entity_relation_summary_story(self):
-        """Story relation summary should show PART_OF and REFERENCES."""
+        """Story relation summary should show PART_OF, REFERENCES, and PROJECTS."""
         traversal = RelationTraversal()
         summary = traversal.build_entity_relation_summary(Story)
 
         assert summary["part_of"] == "App"
         assert "Persona" in summary["references"]
         assert summary["contains"] == []
-        assert summary["projects"] is None
+        assert summary["projects"] == "UseCase"
 
     def test_build_entity_relation_summary_epic(self):
         """Epic relation summary should show CONTAINS Story."""

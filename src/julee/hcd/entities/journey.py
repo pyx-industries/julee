@@ -126,9 +126,9 @@ class JourneyStep(BaseModel):
         )
 
 
-@semantic_relation(lambda: __import__("julee.hcd.entities.story", fromlist=["Story"]).Story, RelationType.CONTAINS)
-@semantic_relation(lambda: __import__("julee.hcd.entities.epic", fromlist=["Epic"]).Epic, RelationType.CONTAINS)
-@semantic_relation(lambda: __import__("julee.hcd.entities.persona", fromlist=["Persona"]).Persona, RelationType.REFERENCES)
+@semantic_relation("julee.hcd.entities.story.Story", RelationType.CONTAINS)
+@semantic_relation("julee.hcd.entities.epic.Epic", RelationType.CONTAINS)
+@semantic_relation("julee.hcd.entities.persona.Persona", RelationType.REFERENCES)
 class Journey(BaseModel):
     """User journey entity.
 
