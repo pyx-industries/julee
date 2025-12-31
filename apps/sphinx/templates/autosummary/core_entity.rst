@@ -58,6 +58,13 @@ BC Contents
 
 .. bc-hub:: {{ bc_slug }}
 
+Semantic Relations
+~~~~~~~~~~~~~~~~~~
+
+.. unified-links:: BoundedContext
+   :slug: {{ bc_slug }}
+   :mode: instance
+
 {% elif "bounded_context" in fullname %}
 This Solution's Bounded Contexts
 --------------------------------

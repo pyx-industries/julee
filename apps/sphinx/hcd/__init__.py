@@ -50,7 +50,11 @@ Relationship directives: ``journeys-for-persona``, ``epics-for-persona``,
 ``apps-for-persona``, ``stories``, ``accelerators-for-app``, etc.
 
 Diagram directives: ``persona-diagram``, ``journey-dependency-graph``,
-``accelerator-dependency-diagram``, ``entity-diagram``, ``c4-container-diagram``
+``c4-container-diagram``
+
+Note: Accelerator-related directives (define-accelerator, accelerator-index,
+accelerator-dependency-diagram, entity-diagram, list-accelerator-code)
+are now in apps.sphinx.supply_chain.
 """
 
 from sphinx.util import logging
@@ -72,18 +76,8 @@ logger = logging.getLogger(__name__)
 def setup(app):
     """Set up HCD extension for Sphinx."""
     from .directives import (
-        AcceleratorCodePlaceholder,
-        AcceleratorDependencyDiagramDirective,
-        AcceleratorDependencyDiagramPlaceholder,
-        AcceleratorEntityListDirective,
-        AcceleratorEntityListPlaceholder,
         AcceleratorListDirective,
         AcceleratorListPlaceholder,
-        AcceleratorsForAppDirective,
-        AcceleratorsForAppPlaceholder,
-        AcceleratorStatusDirective,
-        AcceleratorUseCaseListDirective,
-        AcceleratorUseCaseListPlaceholder,
         AppListByInterfaceDirective,
         AppListByInterfacePlaceholder,
         AppsForPersonaDirective,
@@ -94,8 +88,6 @@ def setup(app):
         ContribIndexPlaceholder,
         ContribListDirective,
         ContribListPlaceholder,
-        DefineAcceleratorDirective,
-        DefineAcceleratorPlaceholder,
         DefineAppDirective,
         DefineAppPlaceholder,
         DefineContribDirective,
@@ -105,10 +97,6 @@ def setup(app):
         DefineIntegrationPlaceholder,
         DefineJourneyDirective,
         DefinePersonaDirective,
-        DependentAcceleratorsDirective,
-        DependentAcceleratorsPlaceholder,
-        EntityDiagramDirective,
-        EntityDiagramPlaceholder,
         EpicsForPersonaDirective,
         EpicsForPersonaPlaceholder,
         EpicStoryDirective,
@@ -122,7 +110,6 @@ def setup(app):
         JourneyDependencyGraphPlaceholder,
         JourneyIndexDirective,
         JourneysForPersonaDirective,
-        ListAcceleratorCodeDirective,
         PersonaDiagramDirective,
         PersonaDiagramPlaceholder,
         PersonaIndexDiagramDirective,
@@ -138,6 +125,7 @@ def setup(app):
         StoryRefDirective,
         StorySeeAlsoPlaceholder,
     )
+    # NOTE: Code link directives moved to apps.sphinx.supply_chain
     from .event_handlers import (
         on_builder_inited,
         on_doctree_read,
@@ -208,22 +196,7 @@ def setup(app):
     app.add_node(GeneratedAppIndexDirective.placeholder_class)
     app.add_node(AppsForPersonaPlaceholder)
 
-    # Register accelerator directives (accelerator-index uses generated directive)
-    from .generated_directives import GeneratedAcceleratorIndexDirective
-
-    app.add_directive("define-accelerator", DefineAcceleratorDirective)
-    app.add_directive("accelerator-index", GeneratedAcceleratorIndexDirective)  # Using generated
-    app.add_directive("accelerators-for-app", AcceleratorsForAppDirective)
-    app.add_directive("dependent-accelerators", DependentAcceleratorsDirective)
-    app.add_directive(
-        "accelerator-dependency-diagram", AcceleratorDependencyDiagramDirective
-    )
-    app.add_directive("accelerator-status", AcceleratorStatusDirective)
-    app.add_node(DefineAcceleratorPlaceholder)
-    app.add_node(GeneratedAcceleratorIndexDirective.placeholder_class)
-    app.add_node(AcceleratorsForAppPlaceholder)
-    app.add_node(DependentAcceleratorsPlaceholder)
-    app.add_node(AcceleratorDependencyDiagramPlaceholder)
+    # NOTE: Accelerator directives moved to apps.sphinx.supply_chain
 
     # Register integration directives (integration-index uses generated directive)
     from .generated_directives import GeneratedIntegrationIndexDirective
@@ -260,19 +233,7 @@ def setup(app):
     app.add_node(ContribIndexPlaceholder)
     app.add_node(ContribListPlaceholder)
 
-    # Register code link directives
-    app.add_directive("list-accelerator-code", ListAcceleratorCodeDirective)
-    app.add_node(AcceleratorCodePlaceholder)
-
-    # Register entity diagram directives
-    app.add_directive("entity-diagram", EntityDiagramDirective)
-    app.add_node(EntityDiagramPlaceholder)
-
-    # Register accelerator entity/usecase list directives
-    app.add_directive("accelerator-entity-list", AcceleratorEntityListDirective)
-    app.add_node(AcceleratorEntityListPlaceholder)
-    app.add_directive("accelerator-usecase-list", AcceleratorUseCaseListDirective)
-    app.add_node(AcceleratorUseCaseListPlaceholder)
+    # NOTE: Code link directives moved to apps.sphinx.supply_chain
 
     # Register shared directives
     from apps.sphinx.shared.directives import (
@@ -289,12 +250,12 @@ def setup(app):
     from apps.sphinx.shared import make_anchor_role
     from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
     from apps.sphinx.shared.roles import make_semantic_role
-    from julee.hcd.entities.accelerator import Accelerator
     from julee.hcd.entities.epic import Epic
     from julee.hcd.entities.journey import Journey
     from julee.hcd.entities.persona import Persona
     from julee.hcd.entities.story import Story
     from julee.hcd.use_cases.crud import GetStoryRequest
+    from julee.supply_chain.entities.accelerator import Accelerator
 
     mapping = get_documentation_mapping()
 
@@ -331,6 +292,11 @@ def setup(app):
     # :accelerator:`slug` -> resolved via Accelerator's PROJECTS relation to BC
     AcceleratorRole = make_semantic_role(Accelerator, mapping)
     app.add_role("accelerator", AcceleratorRole())
+
+    # Register shared directives (unified-links, etc.)
+    from apps.sphinx.shared import setup_shared_directives
+
+    setup_shared_directives(app)
 
     logger.info("Loaded apps.sphinx.hcd extensions")
 

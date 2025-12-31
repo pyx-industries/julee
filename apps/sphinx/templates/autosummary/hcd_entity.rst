@@ -72,6 +72,12 @@ Accelerator Dependencies
 
 .. accelerator-dependency-diagram::
 
+Semantic Relations
+~~~~~~~~~~~~~~~~~~
+
+.. unified-links:: Accelerator
+   :mode: type
+
 {% elif "integration" in fullname and "entities" in fullname %}
 This Solution's Integrations
 ----------------------------

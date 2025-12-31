@@ -123,4 +123,29 @@ __all__ = [
     "make_page_role",
     "make_anchor_role",
     "make_conditional_role",
+    "setup_shared_directives",
 ]
+
+
+def setup_shared_directives(app) -> None:
+    """Register shared directives and event handlers.
+
+    Call this from other Sphinx extension setup functions to register
+    shared directives like unified-links.
+
+    Args:
+        app: Sphinx application
+    """
+    from apps.sphinx.shared.directives import (
+        UnifiedLinksDirective,
+        UnifiedLinksPlaceholder,
+        process_unified_links_placeholders,
+    )
+
+    # Register unified-links directive
+    app.add_directive("unified-links", UnifiedLinksDirective)
+    app.add_node(UnifiedLinksPlaceholder)
+
+    # Connect placeholder resolution handler
+    # Use a priority to ensure it runs after other handlers
+    app.connect("doctree-resolved", process_unified_links_placeholders, priority=500)
