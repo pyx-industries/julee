@@ -252,7 +252,7 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
     """Build content nodes for an accelerator page."""
     from sphinx.addnodes import seealso
 
-    from ..config import get_config
+    from apps.sphinx.hcd.config import get_config
 
     config = get_config()
     solution = config.solution_slug
@@ -359,7 +359,7 @@ def build_accelerator_content(slug: str, docname: str, hcd_context):
 
 def build_accelerator_index(docname: str, hcd_context):
     """Build accelerator index grouped by status."""
-    from ..config import get_config
+    from apps.sphinx.hcd.config import get_config
     from ..node_builders import grouped_bullet_lists
 
     config = get_config()
@@ -394,7 +394,7 @@ def build_accelerator_index(docname: str, hcd_context):
 
 def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
     """Build list of accelerators for an app."""
-    from ..config import get_config
+    from apps.sphinx.hcd.config import get_config
 
     config = get_config()
     solution = config.solution_slug
@@ -428,7 +428,7 @@ def build_accelerators_for_app(app_slug: str, docname: str, hcd_context):
 
 def build_dependency_diagram(docname: str, hcd_context):
     """Build PlantUML diagram of accelerator dependencies."""
-    from ..config import get_config
+    from apps.sphinx.hcd.config import get_config
 
     try:
         from sphinxcontrib.plantuml import plantuml

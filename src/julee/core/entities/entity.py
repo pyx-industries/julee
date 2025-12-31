@@ -20,8 +20,8 @@ class Entity(ClassInfo):
 
     Entity is not a language primitive - it is the ontological primitive of the
     framework, which happens to be expressed in software. The binding to source
-    code occurs through :class:`~julee.core.entities.code_info.ClassInfo`, which
-    provides introspection capabilities (module path, docstring, source location).
+    code occurs through ``ClassInfo``, which provides introspection capabilities
+    (module path, docstring, source location).
     This architectural binding enables programmatic reasoning over the ontology:
     we can traverse relationships, validate conformance, and project viewpoints
     because the concepts exist in code, not just documentation.

@@ -165,9 +165,9 @@ class UnifiedLinkResolver:
     def __init__(
         self,
         registry: SemanticRelationRegistry,
-        mapping: "DocumentationMapping",
-        bc_repo: "BoundedContextRepository | None" = None,
-        app_repo: "ApplicationRepository | None" = None,
+        mapping: DocumentationMapping,
+        bc_repo: BoundedContextRepository | None = None,
+        app_repo: ApplicationRepository | None = None,
     ):
         """Initialize the resolver.
 
@@ -303,7 +303,7 @@ class UnifiedLinkResolver:
             groups[link.category].append(link)
 
         return [
-            LinkGroup(label=category.title(), links=sorted(group_links, key=lambda l: l.slug))
+            LinkGroup(label=category.title(), links=sorted(group_links, key=lambda lnk: lnk.slug))
             for category, group_links in sorted(groups.items())
         ]
 
@@ -547,8 +547,8 @@ class UnifiedLinkResolver:
 
 
 def create_unified_link_resolver(
-    bc_repo: "BoundedContextRepository | None" = None,
-    app_repo: "ApplicationRepository | None" = None,
+    bc_repo: BoundedContextRepository | None = None,
+    app_repo: ApplicationRepository | None = None,
 ) -> UnifiedLinkResolver:
     """Create a UnifiedLinkResolver with default configuration.
 
@@ -560,7 +560,6 @@ def create_unified_link_resolver(
         Configured UnifiedLinkResolver
     """
     from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
-
     from julee.core.services.semantic_relation_registry import SemanticRelationRegistry
 
     registry = SemanticRelationRegistry()

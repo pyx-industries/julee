@@ -95,7 +95,7 @@ class UnifiedLinksDirective(SphinxDirective):
 
 def resolve_unified_links_placeholder(
     node: UnifiedLinksPlaceholder,
-    app: "Sphinx",
+    app: Sphinx,
 ) -> list[nodes.Node]:
     """Resolve placeholder to actual content.
 
@@ -215,7 +215,7 @@ def _resolve_entity_type(name: str) -> type | None:
     return None
 
 
-def _get_resolver(app: "Sphinx") -> Any:
+def _get_resolver(app: Sphinx) -> Any:
     """Get the UnifiedLinkResolver for the app.
 
     Args:
@@ -226,7 +226,6 @@ def _get_resolver(app: "Sphinx") -> Any:
     """
     from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
     from apps.sphinx.shared.services.unified_link_resolver import UnifiedLinkResolver
-
     from julee.core.services.semantic_relation_registry import SemanticRelationRegistry
 
     # Check if resolver is cached on app
@@ -259,7 +258,7 @@ def _get_resolver(app: "Sphinx") -> Any:
     return app._unified_link_resolver
 
 
-def _render_link_result(result: "LinkResult", docname: str) -> list[nodes.Node]:
+def _render_link_result(result: LinkResult, docname: str) -> list[nodes.Node]:
     """Render LinkResult to docutils nodes with BC-grouped admonitions.
 
     Semantic relations (outbound and inbound) are grouped by bounded context,
@@ -355,7 +354,7 @@ def _render_link_result(result: "LinkResult", docname: str) -> list[nodes.Node]:
 
 
 def process_unified_links_placeholders(
-    app: "Sphinx",
+    app: Sphinx,
     doctree: nodes.document,
     docname: str,
 ) -> None:
