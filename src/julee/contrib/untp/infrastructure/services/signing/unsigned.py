@@ -9,8 +9,8 @@ cryptographic signing (e.g., Ed25519 Data Integrity proofs).
 
 from datetime import datetime, timezone
 
-from julee.contrib.untp.entities.credential import BaseCredential
 from julee.contrib.untp.entities.core import CredentialProof
+from julee.contrib.untp.entities.credential import BaseCredential
 
 
 class UnsignedCredentialService:
@@ -22,7 +22,9 @@ class UnsignedCredentialService:
     For verification, always returns True (credentials are "valid").
     """
 
-    def __init__(self, verification_method: str = "https://example.com/keys/dev") -> None:
+    def __init__(
+        self, verification_method: str = "https://example.com/keys/dev"
+    ) -> None:
         self._verification_method = verification_method
 
     async def sign(self, credential: BaseCredential) -> BaseCredential:
@@ -53,6 +55,19 @@ class UnsignedCredentialService:
         """Return the configured verification method URI."""
         return self._verification_method
 
+    async def create_proof(self, credential: BaseCredential) -> CredentialProof:
+        """Return a placeholder proof (no actual cryptographic proof).
+
+        This no-op implementation returns a proof with empty values.
+        """
+        return CredentialProof(
+            proof_type="None",
+            created=datetime.now(timezone.utc),
+            verification_method=self._verification_method,
+            proof_purpose="assertionMethod",
+            proof_value="",
+        )
+
 
 class MockSignedCredentialService:
     """Mock signing service that adds a fake proof for testing.
@@ -62,7 +77,9 @@ class MockSignedCredentialService:
     paths that depend on credentials having a proof.
     """
 
-    def __init__(self, verification_method: str = "https://example.com/keys/test") -> None:
+    def __init__(
+        self, verification_method: str = "https://example.com/keys/test"
+    ) -> None:
         self._verification_method = verification_method
 
     async def sign(self, credential: BaseCredential) -> BaseCredential:
@@ -96,3 +113,16 @@ class MockSignedCredentialService:
     async def get_verification_method(self) -> str:
         """Return the configured verification method URI."""
         return self._verification_method
+
+    async def create_proof(self, credential: BaseCredential) -> CredentialProof:
+        """Create a mock proof for testing.
+
+        Returns a fake DataIntegrityProof for testing purposes.
+        """
+        return CredentialProof(
+            proof_type="DataIntegrityProof",
+            created=datetime.now(timezone.utc),
+            verification_method=self._verification_method,
+            proof_purpose="assertionMethod",
+            proof_value="mock-signature-for-testing",
+        )

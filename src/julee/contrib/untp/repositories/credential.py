@@ -7,13 +7,13 @@ Credentials are stored after projection and signing.
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
-from julee.core.repositories.base import BaseRepository
 from julee.contrib.untp.entities.credential import (
     BaseCredential,
     DigitalConformityCredential,
     DigitalProductPassport,
     DigitalTraceabilityEvent,
 )
+from julee.core.repositories.base import BaseRepository
 
 
 @runtime_checkable

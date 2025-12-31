@@ -7,31 +7,28 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.core.entities.operation_record import OperationRecord
-from julee.core.entities.use_case_execution import UseCaseExecution
-from julee.core.entities.pipeline_output import PipelineOutput
 from julee.contrib.untp.entities.core import Identifier, Organization
 from julee.contrib.untp.entities.credential import (
+    ConformityAssessment,
+    DCCSubject,
+    DigitalConformityCredential,
     DigitalProductPassport,
     DigitalTraceabilityEvent,
-    DigitalConformityCredential,
     DPPSubject,
     DTESubject,
-    DCCSubject,
-    ConformityAssessment,
 )
 from julee.contrib.untp.infrastructure.repositories.memory.credential import (
-    MemoryCredentialRepository,
-    MemoryTraceabilityEventRepository,
-    MemoryProductPassportRepository,
     MemoryConformityCredentialRepository,
+    MemoryCredentialRepository,
+    MemoryProductPassportRepository,
+    MemoryTraceabilityEventRepository,
 )
 from julee.contrib.untp.infrastructure.repositories.memory.projection import (
     MemoryProjectionMappingRepository,
 )
 from julee.contrib.untp.infrastructure.services.signing.unsigned import (
-    UnsignedCredentialService,
     MockSignedCredentialService,
+    UnsignedCredentialService,
 )
 
 

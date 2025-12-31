@@ -25,9 +25,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from julee.core.decorators import semantic_relation
-from julee.core.entities.semantic_relation import RelationType
-
 from julee.contrib.untp.entities.core import (
     CredentialProof,
     CredentialStatus,
@@ -35,6 +32,8 @@ from julee.contrib.untp.entities.core import (
     Organization,
     SecureLink,
 )
+from julee.core.decorators import semantic_relation
+from julee.core.entities.semantic_relation import RelationType
 
 
 class CredentialType(str, Enum):
@@ -398,11 +397,17 @@ class DFRSubject(BaseModel):
     )
 
 
+@semantic_relation(
+    "julee.supply_chain.entities.party.Party",
+    RelationType.PROJECTS,
+)
 class DigitalFacilityRecord(BaseCredential):
     """Digital Facility Record (DFR).
 
     Organization-level credential describing a manufacturing or processing
     facility. Similar to DPP but for facilities rather than products.
+
+    PROJECTS Party - DFR is projected from a Party entity with facility role.
     """
 
     credential_subject: DFRSubject = Field(
@@ -523,12 +528,18 @@ class DIASubject(BaseModel):
     )
 
 
+@semantic_relation(
+    "julee.supply_chain.entities.party.Party",
+    RelationType.PROJECTS,
+)
 class DigitalIdentityAttestation(BaseCredential):
     """Digital Identity Attestation (DIA).
 
     Issued by authoritative registers (business, trademark, land) to
     cryptographically verify organization identity. Accompanies other
     credentials to confirm the issuer is who they claim to be.
+
+    PROJECTS Party - DIA attests the identity of a Party entity.
     """
 
     credential_subject: DIASubject = Field(

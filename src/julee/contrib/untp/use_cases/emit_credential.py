@@ -6,11 +6,10 @@ using the CredentialRepository.
 
 from pydantic import BaseModel
 
-from julee.core.decorators import use_case
-
 from julee.contrib.untp.entities.credential import BaseCredential
 from julee.contrib.untp.repositories.credential import CredentialRepository
 from julee.contrib.untp.services.signing import CredentialSigningService
+from julee.core.decorators import use_case
 
 
 class EmitCredentialRequest(BaseModel):

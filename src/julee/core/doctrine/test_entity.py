@@ -22,6 +22,14 @@ INFRASTRUCTURE_ENTITIES = {
     "ContentStream",  # Pydantic custom field type for IO streams
 }
 
+# Valid intermediate base classes that inherit from BaseModel.
+# Entities inheriting from these are considered valid.
+VALID_BASEMODEL_INTERMEDIATES = {
+    "ClassInfo",  # Core class info pattern
+    "BaseCredential",  # contrib/untp credential base
+    "BaseEvent",  # contrib/untp event base
+}
+
 
 class TestEntityNaming:
     """Doctrine about entity naming conventions."""
@@ -150,13 +158,15 @@ class TestEntityImplementation:
             if is_enum:
                 continue
 
-            # ClassInfo subclasses inherit BaseModel indirectly - this is valid
-            inherits_classinfo = "ClassInfo" in bases
-            if inherits_classinfo:
-                continue
-
             # Skip infrastructure entities with special patterns
             if name in INFRASTRUCTURE_ENTITIES:
+                continue
+
+            # Check if inherits from valid intermediate base classes
+            inherits_valid_intermediate = any(
+                base in VALID_BASEMODEL_INTERMEDIATES for base in bases
+            )
+            if inherits_valid_intermediate:
                 continue
 
             # Check if BaseModel is in the inheritance chain

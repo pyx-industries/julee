@@ -6,28 +6,26 @@ projects to UNTP credentials based on supply chain semantics.
 
 from datetime import datetime, timezone
 from typing import Protocol
-from uuid import uuid4
 
 import pytest
 
-from julee.core.entities.operation_record import OperationRecord
-from julee.core.entities.use_case_execution import UseCaseExecution
-from julee.core.entities.pipeline_output import PipelineOutput
-from julee.supply_chain.decorators import (
-    transformation,
-    transaction,
-    observation,
-    aggregation,
-    get_supply_chain_operation_type,
-    SupplyChainOperationType,
-)
-from julee.contrib.untp.entities.core import Identifier, Organization
+from julee.contrib.untp.entities.core import Identifier
 from julee.contrib.untp.entities.event import (
-    TransformationEvent,
-    TransactionEvent,
-    ObjectEvent,
     AggregationEvent,
     EventAction,
+    ObjectEvent,
+    TransformationEvent,
+)
+from julee.core.entities.operation_record import OperationRecord
+from julee.core.entities.pipeline_output import PipelineOutput
+from julee.core.entities.use_case_execution import UseCaseExecution
+from julee.supply_chain.decorators import (
+    SupplyChainOperationType,
+    aggregation,
+    get_supply_chain_operation_type,
+    observation,
+    transaction,
+    transformation,
 )
 
 
@@ -107,6 +105,8 @@ class TestOperationRecordCreation:
 
     def test_operation_record_is_immutable(self):
         """OperationRecord is frozen."""
+        from pydantic import ValidationError
+
         now = datetime.now(timezone.utc)
         record = OperationRecord(
             operation_id="op-001",
@@ -115,7 +115,7 @@ class TestOperationRecordCreation:
             started_at=now,
             completed_at=now,
         )
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             record.operation_id = "changed"
 
 
@@ -171,9 +171,18 @@ class TestUseCaseExecutionWithOperations:
             operation_records=sample_operations,
         )
         assert len(execution.operation_records) == 3
-        assert execution.operation_records[0].service_type == "supply_chain.TransformationService"
-        assert execution.operation_records[1].service_type == "supply_chain.InspectionService"
-        assert execution.operation_records[2].service_type == "supply_chain.ShippingService"
+        assert (
+            execution.operation_records[0].service_type
+            == "supply_chain.TransformationService"
+        )
+        assert (
+            execution.operation_records[1].service_type
+            == "supply_chain.InspectionService"
+        )
+        assert (
+            execution.operation_records[2].service_type
+            == "supply_chain.ShippingService"
+        )
 
     def test_execution_without_operations(self):
         """UseCaseExecution can have empty operation_records."""
@@ -310,6 +319,8 @@ class TestPipelineOutputProjection:
 
     def test_pipeline_output_is_immutable(self):
         """PipelineOutput is frozen."""
+        from pydantic import ValidationError
+
         now = datetime.now(timezone.utc)
         output = PipelineOutput(
             output_id="out-003",
@@ -318,5 +329,5 @@ class TestPipelineOutputProjection:
             created_at=now,
             execution_ids=[],
         )
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             output.name = "Changed"

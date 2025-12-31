@@ -21,7 +21,9 @@ class MemoryProjectionMappingRepository:
     async def get(self, entity_id: str) -> ProjectionMapping | None:
         return self._mappings.get(entity_id)
 
-    async def get_many(self, entity_ids: list[str]) -> dict[str, ProjectionMapping | None]:
+    async def get_many(
+        self, entity_ids: list[str]
+    ) -> dict[str, ProjectionMapping | None]:
         return {eid: self._mappings.get(eid) for eid in entity_ids}
 
     async def save(self, entity: ProjectionMapping) -> None:
@@ -45,9 +47,7 @@ class MemoryProjectionMappingRepository:
     async def list_slugs(self) -> set[str]:
         return set(self._mappings.keys())
 
-    async def get_for_service_type(
-        self, service_type: str
-    ) -> ProjectionMapping | None:
+    async def get_for_service_type(self, service_type: str) -> ProjectionMapping | None:
         """Get the projection mapping for a specific service type.
 
         Uses glob pattern matching against service_type_pattern.
@@ -58,11 +58,10 @@ class MemoryProjectionMappingRepository:
                 return mapping
         return None
 
-    async def list_by_pattern_prefix(
-        self, prefix: str
-    ) -> list[ProjectionMapping]:
+    async def list_by_pattern_prefix(self, prefix: str) -> list[ProjectionMapping]:
         """Get all mappings with patterns starting with a prefix."""
         return [
-            m for m in self._mappings.values()
+            m
+            for m in self._mappings.values()
             if m.service_type_pattern.startswith(prefix)
         ]

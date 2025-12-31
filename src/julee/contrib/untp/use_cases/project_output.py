@@ -5,19 +5,17 @@ Digital Product Passport (DPP), linking to all traceability events
 from the executions that produced the output.
 """
 
-from datetime import datetime, timezone
 from uuid import uuid4
 
 from pydantic import BaseModel
-
-from julee.core.decorators import use_case
-from julee.core.entities.pipeline_output import PipelineOutput
 
 from julee.contrib.untp.entities.core import Identifier, Organization, SecureLink
 from julee.contrib.untp.entities.credential import (
     DigitalProductPassport,
     DPPSubject,
 )
+from julee.core.decorators import use_case
+from julee.core.entities.pipeline_output import PipelineOutput
 
 
 class ProjectOutputRequest(BaseModel):

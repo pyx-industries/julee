@@ -77,7 +77,9 @@ class MemoryCredentialRepository:
 
     async def get_by_type(self, credential_type: str) -> list[BaseCredential]:
         return [
-            c for c in self._credentials.values() if credential_type in c.credential_type
+            c
+            for c in self._credentials.values()
+            if credential_type in c.credential_type
         ]
 
     async def get_valid_at(self, timestamp: datetime) -> list[BaseCredential]:
@@ -110,7 +112,9 @@ class MemoryTraceabilityEventRepository:
     def __init__(self) -> None:
         self._events: dict[str, DigitalTraceabilityEvent] = {}
         self._by_operation: dict[str, str] = {}  # operation_id -> credential_id
-        self._by_execution: dict[str, list[str]] = {}  # execution_id -> [credential_ids]
+        self._by_execution: dict[str, list[str]] = (
+            {}
+        )  # execution_id -> [credential_ids]
 
     async def get(self, entity_id: str) -> DigitalTraceabilityEvent | None:
         return self._events.get(entity_id)

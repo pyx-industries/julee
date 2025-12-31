@@ -5,20 +5,22 @@ Defines the interface for cryptographically signing UNTP credentials.
 
 from typing import Protocol, runtime_checkable
 
-from julee.contrib.untp.entities.credential import BaseCredential
 from julee.contrib.untp.entities.core import CredentialProof
+from julee.contrib.untp.entities.credential import BaseCredential
 
 
 @runtime_checkable
 class CredentialSigningService(Protocol):
     """Service protocol for signing UNTP credentials.
 
+    Transforms BaseCredential → BaseCredential with CredentialProof attached.
+
     Implementations may use various cryptographic methods:
     - Data Integrity proofs (Ed25519, secp256k1)
     - JWT/JWS signatures
     - No-op for development/testing
 
-    The service adds a proof to the credential, making it a
+    The service adds a CredentialProof to the credential, making it a
     Verifiable Credential that can be cryptographically verified.
     """
 
@@ -55,6 +57,17 @@ class CredentialSigningService(Protocol):
 
         Returns:
             URI of the verification method (public key)
+        """
+        ...
+
+    async def create_proof(self, credential: BaseCredential) -> CredentialProof:
+        """Create a cryptographic proof for a credential.
+
+        Args:
+            credential: The credential to create a proof for
+
+        Returns:
+            The cryptographic proof (not yet attached to credential)
         """
         ...
 

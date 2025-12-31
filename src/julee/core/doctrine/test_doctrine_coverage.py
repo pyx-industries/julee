@@ -30,6 +30,10 @@ SUPPORTING_MODELS = {
     "pipeline_dispatch",
     "pipeline_route",
     "pipeline_router",
+    # Execution record models - infrastructure for observability and projections
+    "operation_record",  # Records service operation invocations within use cases
+    "pipeline_output",  # Output artifacts produced by pipeline executions
+    "use_case_execution",  # Records of use case executions with their operations
 }
 
 # Meta-doctrine tests that aren't about specific entities.

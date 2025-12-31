@@ -8,48 +8,31 @@ from datetime import datetime, timezone
 
 import pytest
 
-from julee.core.decorators import get_semantic_relations
-from julee.core.entities.semantic_relation import RelationType
-
 from julee.contrib.untp.entities.core import (
     Identifier,
     Organization,
     SecureLink,
-    Accreditation,
-    AccreditationStatus,
-    TrustAnchor,
-    CredentialProof,
-    CredentialStatus,
 )
 from julee.contrib.untp.entities.credential import (
-    CredentialType,
-    BaseCredential,
-    DigitalProductPassport,
-    DPPSubject,
-    ProductCharacteristic,
     Claim,
     DigitalConformityCredential,
-    DCCSubject,
-    ConformityAssessment,
     DigitalFacilityRecord,
-    DFRSubject,
-    FacilityCapability,
-    DigitalTraceabilityEvent,
-    DTESubject,
     DigitalIdentityAttestation,
-    DIASubject,
+    DigitalProductPassport,
+    DigitalTraceabilityEvent,
+    DPPSubject,
+    DTESubject,
+    ProductCharacteristic,
 )
 from julee.contrib.untp.entities.event import (
+    AggregationEvent,
     EventAction,
     EventDisposition,
-    QuantityElement,
-    BaseEvent,
-    TransformationEvent,
-    TransactionEvent,
-    TransactionType,
     ObjectEvent,
-    AggregationEvent,
+    TransformationEvent,
 )
+from julee.core.decorators import get_semantic_relations
+from julee.core.entities.semantic_relation import RelationType
 
 
 class TestCoreEntities:
@@ -113,7 +96,9 @@ class TestCredentialEntities:
             name="Test Manufacturer",
         )
 
-    def test_digital_product_passport_creation(self, sample_issuer, sample_manufacturer):
+    def test_digital_product_passport_creation(
+        self, sample_issuer, sample_manufacturer
+    ):
         """DigitalProductPassport can be created."""
         dpp = DigitalProductPassport(
             id="urn:uuid:12345678-1234-1234-1234-123456789abc",
@@ -232,17 +217,21 @@ class TestEntityImmutability:
 
     def test_identifier_is_frozen(self):
         """Identifier is immutable."""
+        from pydantic import ValidationError
+
         id = Identifier(scheme="gtin", value="123")
-        with pytest.raises(Exception):  # ValidationError for frozen model
+        with pytest.raises(ValidationError):
             id.value = "456"
 
     def test_organization_is_frozen(self):
         """Organization is immutable."""
+        from pydantic import ValidationError
+
         org = Organization(
             id=Identifier(scheme="lei", value="123"),
             name="Test",
         )
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             org.name = "Changed"
 
 
@@ -253,7 +242,9 @@ class TestSemanticRelations:
         """DigitalTraceabilityEvent declares PROJECTS relation to OperationRecord."""
         relations = get_semantic_relations(DigitalTraceabilityEvent)
         assert len(relations) >= 1
-        projects_relations = [r for r in relations if r.relation_type == RelationType.PROJECTS]
+        projects_relations = [
+            r for r in relations if r.relation_type == RelationType.PROJECTS
+        ]
         assert len(projects_relations) >= 1
         # Check target is OperationRecord
         target_names = [r.target_type.__name__ for r in projects_relations]
@@ -263,7 +254,9 @@ class TestSemanticRelations:
         """DigitalProductPassport declares PROJECTS relation to PipelineOutput."""
         relations = get_semantic_relations(DigitalProductPassport)
         assert len(relations) >= 1
-        projects_relations = [r for r in relations if r.relation_type == RelationType.PROJECTS]
+        projects_relations = [
+            r for r in relations if r.relation_type == RelationType.PROJECTS
+        ]
         assert len(projects_relations) >= 1
         # Check target is PipelineOutput
         target_names = [r.target_type.__name__ for r in projects_relations]
@@ -273,8 +266,36 @@ class TestSemanticRelations:
         """DigitalConformityCredential declares PROJECTS relation to OperationRecord."""
         relations = get_semantic_relations(DigitalConformityCredential)
         assert len(relations) >= 1
-        projects_relations = [r for r in relations if r.relation_type == RelationType.PROJECTS]
+        projects_relations = [
+            r for r in relations if r.relation_type == RelationType.PROJECTS
+        ]
         assert len(projects_relations) >= 1
         # Check target is OperationRecord
         target_names = [r.target_type.__name__ for r in projects_relations]
         assert "OperationRecord" in target_names
+
+    def test_dfr_projects_party(self):
+        """DigitalFacilityRecord declares PROJECTS relation to Party."""
+
+        relations = get_semantic_relations(DigitalFacilityRecord)
+        assert len(relations) >= 1
+        projects_relations = [
+            r for r in relations if r.relation_type == RelationType.PROJECTS
+        ]
+        assert len(projects_relations) >= 1
+        # Check target is Party
+        target_names = [r.target_type.__name__ for r in projects_relations]
+        assert "Party" in target_names
+
+    def test_dia_projects_party(self):
+        """DigitalIdentityAttestation declares PROJECTS relation to Party."""
+
+        relations = get_semantic_relations(DigitalIdentityAttestation)
+        assert len(relations) >= 1
+        projects_relations = [
+            r for r in relations if r.relation_type == RelationType.PROJECTS
+        ]
+        assert len(projects_relations) >= 1
+        # Check target is Party
+        target_names = [r.target_type.__name__ for r in projects_relations]
+        assert "Party" in target_names

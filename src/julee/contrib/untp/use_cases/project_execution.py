@@ -8,17 +8,8 @@ One use case execution can produce multiple UNTP events (one per operation).
 """
 
 import importlib
-from datetime import datetime, timezone
 
 from pydantic import BaseModel
-
-from julee.core.decorators import use_case
-from julee.core.entities.operation_record import OperationRecord
-from julee.core.entities.use_case_execution import UseCaseExecution
-from julee.supply_chain.decorators import (
-    SupplyChainOperationType,
-    get_supply_chain_operation_type,
-)
 
 from julee.contrib.untp.entities.event import (
     AggregationEvent,
@@ -28,6 +19,13 @@ from julee.contrib.untp.entities.event import (
     TransformationEvent,
 )
 from julee.contrib.untp.entities.projection import ProjectionResult
+from julee.core.decorators import use_case
+from julee.core.entities.operation_record import OperationRecord
+from julee.core.entities.use_case_execution import UseCaseExecution
+from julee.supply_chain.decorators import (
+    SupplyChainOperationType,
+    get_supply_chain_operation_type,
+)
 
 
 class ProjectExecutionRequest(BaseModel):
@@ -39,7 +37,9 @@ class ProjectExecutionRequest(BaseModel):
 class ProjectExecutionResponse(BaseModel):
     """Response containing projected UNTP events."""
 
-    events: list[TransformationEvent | TransactionEvent | ObjectEvent | AggregationEvent]
+    events: list[
+        TransformationEvent | TransactionEvent | ObjectEvent | AggregationEvent
+    ]
     projection_results: list[ProjectionResult]
     execution_id: str
     event_count: int
@@ -126,7 +126,9 @@ def _project_operation(
                 action=EventAction.OBSERVE,
                 operation_id=operation.operation_id,
             )
-            event_type_name = "ObjectEvent"  # Fallback until we have transaction details
+            event_type_name = (
+                "ObjectEvent"  # Fallback until we have transaction details
+            )
 
         case SupplyChainOperationType.OBSERVATION:
             event = ObjectEvent.from_operation(
@@ -145,7 +147,9 @@ def _project_operation(
                 action=EventAction.ADD,
                 operation_id=operation.operation_id,
             )
-            event_type_name = "ObjectEvent"  # Fallback until we have aggregation details
+            event_type_name = (
+                "ObjectEvent"  # Fallback until we have aggregation details
+            )
 
         case _:
             return None, ProjectionResult(
@@ -181,7 +185,9 @@ class ProjectExecutionUseCase:
     def __init__(self) -> None:
         pass  # No dependencies needed for projection
 
-    async def execute(self, request: ProjectExecutionRequest) -> ProjectExecutionResponse:
+    async def execute(
+        self, request: ProjectExecutionRequest
+    ) -> ProjectExecutionResponse:
         """Project all operations in an execution to UNTP events.
 
         Args:

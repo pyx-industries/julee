@@ -5,8 +5,8 @@ Defines the interface for storing projection configuration.
 
 from typing import Protocol, runtime_checkable
 
-from julee.core.repositories.base import BaseRepository
 from julee.contrib.untp.entities.projection import ProjectionMapping
+from julee.core.repositories.base import BaseRepository
 
 
 @runtime_checkable
@@ -17,9 +17,7 @@ class ProjectionMappingRepository(BaseRepository[ProjectionMapping], Protocol):
     are projected to UNTP events.
     """
 
-    async def get_for_service_type(
-        self, service_type: str
-    ) -> ProjectionMapping | None:
+    async def get_for_service_type(self, service_type: str) -> ProjectionMapping | None:
         """Get the projection mapping for a specific service type.
 
         Uses pattern matching against service_type_pattern.
@@ -32,9 +30,7 @@ class ProjectionMappingRepository(BaseRepository[ProjectionMapping], Protocol):
         """
         ...
 
-    async def list_by_pattern_prefix(
-        self, prefix: str
-    ) -> list[ProjectionMapping]:
+    async def list_by_pattern_prefix(self, prefix: str) -> list[ProjectionMapping]:
         """Get all mappings with patterns starting with a prefix.
 
         Args:

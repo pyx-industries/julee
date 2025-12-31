@@ -9,8 +9,6 @@ Create, Update, Delete are handled by:
 - EmitCredentialUseCase (signs and stores credentials)
 """
 
-from julee.core.use_cases import generic_crud
-
 from julee.contrib.untp.entities.credential import (
     DigitalConformityCredential,
     DigitalProductPassport,
@@ -21,6 +19,7 @@ from julee.contrib.untp.repositories.credential import (
     ProductPassportRepository,
     TraceabilityEventRepository,
 )
+from julee.core.use_cases import generic_crud
 
 # Generate Get/List only for DTE
 generic_crud.generate(
