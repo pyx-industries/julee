@@ -12,7 +12,7 @@ Use cases are exposed as properties for filtering operations:
 import warnings
 from typing import TYPE_CHECKING
 
-from julee.hcd.infrastructure.repositories.memory.accelerator import (
+from julee.supply_chain.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
@@ -35,7 +35,6 @@ from julee.hcd.use_cases.crud import (
     CreateJourneyUseCase,
     CreateStoryUseCase,
     # Get use cases
-    GetAcceleratorUseCase,
     GetAppUseCase,
     GetCodeInfoUseCase,
     GetContribModuleUseCase,
@@ -45,7 +44,6 @@ from julee.hcd.use_cases.crud import (
     GetPersonaUseCase,
     GetStoryUseCase,
     # List use cases
-    ListAcceleratorsUseCase,
     ListAppsUseCase,
     ListContribModulesUseCase,
     ListEpicsUseCase,
@@ -58,10 +56,15 @@ from julee.hcd.use_cases.crud import (
     # Update use cases
     UpdateAppUseCase,
 )
+from julee.supply_chain.use_cases.crud import (
+    GetAcceleratorUseCase,
+    ListAcceleratorsUseCase,
+)
 
 from .adapters import SyncRepositoryAdapter
+from apps.sphinx.supply_chain.repositories import SphinxEnvAcceleratorRepository
+
 from .repositories import (
-    SphinxEnvAcceleratorRepository,
     SphinxEnvAppRepository,
     SphinxEnvCodeInfoRepository,
     SphinxEnvContribRepository,
@@ -76,7 +79,6 @@ if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
 
     from julee.hcd.entities import (
-        Accelerator,
         App,
         BoundedContextInfo,
         ContribModule,
@@ -86,6 +88,7 @@ if TYPE_CHECKING:
         Persona,
         Story,
     )
+    from julee.supply_chain.entities.accelerator import Accelerator
 
 
 def _deprecation_warning(repo_name: str) -> None:

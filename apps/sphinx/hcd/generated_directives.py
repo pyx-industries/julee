@@ -58,12 +58,6 @@ class GeneratedAppIndexPlaceholder(nodes.General, nodes.Element):
     pass
 
 
-class GeneratedAcceleratorIndexPlaceholder(nodes.General, nodes.Element):
-    """Placeholder for accelerator-index directive."""
-
-    pass
-
-
 class GeneratedIntegrationIndexPlaceholder(nodes.General, nodes.Element):
     """Placeholder for integration-index directive."""
 
@@ -174,22 +168,7 @@ GeneratedAppIndexDirective = generate_index_directive_from_build_fn(
 )
 
 
-# =============================================================================
-# Generated Accelerator Directives (build-function-based)
-# =============================================================================
-
-def _build_accelerator_index_wrapper(docname, ctx, **options):
-    """Wrap build_accelerator_index for factory compatibility."""
-    from .directives.accelerator import build_accelerator_index
-    return build_accelerator_index(docname, ctx)
-
-
-GeneratedAcceleratorIndexDirective = generate_index_directive_from_build_fn(
-    entity_name="Accelerator",
-    build_function=_build_accelerator_index_wrapper,
-    context_getter=get_hcd_context,
-    placeholder_class=GeneratedAcceleratorIndexPlaceholder,
-)
+# NOTE: GeneratedAcceleratorIndexDirective moved to apps.sphinx.supply_chain
 
 
 # =============================================================================

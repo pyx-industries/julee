@@ -2,9 +2,10 @@
 
 These repositories store data in app.env.hcd_storage, which is properly
 pickled between worker processes and merged back via env-merge-info event.
+
+Note: SphinxEnvAcceleratorRepository moved to apps.sphinx.supply_chain.repositories
 """
 
-from .accelerator import SphinxEnvAcceleratorRepository
 from .app import SphinxEnvAppRepository
 from .code_info import SphinxEnvCodeInfoRepository
 from .contrib import SphinxEnvContribRepository
@@ -15,7 +16,6 @@ from .persona import SphinxEnvPersonaRepository
 from .story import SphinxEnvStoryRepository
 
 __all__ = [
-    "SphinxEnvAcceleratorRepository",
     "SphinxEnvAppRepository",
     "SphinxEnvCodeInfoRepository",
     "SphinxEnvContribRepository",

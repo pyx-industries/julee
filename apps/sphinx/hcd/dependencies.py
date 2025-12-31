@@ -2,22 +2,18 @@
 
 Provides factory functions for creating handlers, services, and use cases
 used by the extension.
+
+Note: Accelerator handlers and use case factories moved to apps.sphinx.supply_chain.
 """
 
 from typing import TYPE_CHECKING
 
-from julee.hcd.use_cases.crud import (
-    CreateAcceleratorUseCase,
-    CreateEpicUseCase,
-)
+from julee.hcd.use_cases.crud import CreateEpicUseCase
 
 from .infrastructure.handlers import (
-    AcceleratorPlaceholderHandler,
     AppPlaceholderHandler,
     C4BridgePlaceholderHandler,
-    CodeLinksPlaceholderHandler,
     ContribPlaceholderHandler,
-    EntityDiagramPlaceholderHandler,
     EpicPlaceholderHandler,
     IntegrationPlaceholderHandler,
     JourneyPlaceholderHandler,
@@ -35,6 +31,8 @@ def get_placeholder_handlers() -> list["PlaceholderResolutionHandler"]:
     Returns handlers in the order they should be processed.
     Order matters for some cross-references.
 
+    Note: AcceleratorPlaceholderHandler moved to apps.sphinx.supply_chain.
+
     Returns:
         List of placeholder resolution handlers
     """
@@ -42,32 +40,19 @@ def get_placeholder_handlers() -> list["PlaceholderResolutionHandler"]:
         # Core entity handlers
         AppPlaceholderHandler(),
         EpicPlaceholderHandler(),
-        AcceleratorPlaceholderHandler(),
         IntegrationPlaceholderHandler(),
         PersonaPlaceholderHandler(),
         JourneyPlaceholderHandler(),
         ContribPlaceholderHandler(),
         # Cross-cutting handlers
         C4BridgePlaceholderHandler(),
-        CodeLinksPlaceholderHandler(),
-        EntityDiagramPlaceholderHandler(),
+        # NOTE: CodeLinksPlaceholderHandler and EntityDiagramPlaceholderHandler
+        # moved to apps.sphinx.supply_chain
     ]
 
 
 # Use Case Factories
 # These provide configured use case instances for directives
-
-
-def get_create_accelerator_use_case(context: "HCDContext") -> CreateAcceleratorUseCase:
-    """Get a CreateAcceleratorUseCase configured with context repositories.
-
-    Args:
-        context: HCD context with repositories
-
-    Returns:
-        Configured CreateAcceleratorUseCase instance
-    """
-    return CreateAcceleratorUseCase(context.accelerator_repo.async_repo)
 
 
 def get_create_epic_use_case(context: "HCDContext") -> CreateEpicUseCase:

@@ -1,9 +1,9 @@
-"""Code link directives for sphinx_hcd.
+"""Code link directives for sphinx_supply_chain.
 
 Provides directives that generate links to AutoAPI documentation:
 - list-accelerator-code: Links to accelerator domain/infrastructure code
-- list-app-code: Links to application code
-- list-contrib-code: Links to contrib module code
+- accelerator-entity-list: List of domain entities with links
+- accelerator-usecase-list: List of use cases with links
 - entity-diagram: PlantUML class diagram of domain entities
 
 Template-driven pattern (for code_links):
@@ -27,9 +27,8 @@ from docutils.parsers.rst import directives
 from jinja2 import Environment, FileSystemLoader
 
 from apps.sphinx.directive_factory import parse_rst_to_nodes
+from apps.sphinx.hcd.directives.base import HCDDirective
 from julee.hcd.use_cases.crud import GetCodeInfoRequest
-
-from .base import HCDDirective
 
 logger = logging.getLogger(__name__)
 

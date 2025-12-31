@@ -1,20 +1,11 @@
 """Sphinx directives for sphinx_hcd.
 
 Thin directive adapters that use domain models and repositories.
+
+Note: Accelerator directives moved to apps.sphinx.supply_chain.directives.accelerator
+Note: Code link directives moved to apps.sphinx.supply_chain.directives.code_links
 """
 
-from .accelerator import (
-    AcceleratorDependencyDiagramDirective,
-    AcceleratorDependencyDiagramPlaceholder,
-    AcceleratorsForAppDirective,
-    AcceleratorsForAppPlaceholder,
-    AcceleratorStatusDirective,
-    DefineAcceleratorDirective,
-    DefineAcceleratorPlaceholder,
-    DependentAcceleratorsDirective,
-    DependentAcceleratorsPlaceholder,
-    clear_accelerator_state,
-)
 from .app import (
     AppsForPersonaDirective,
     AppsForPersonaPlaceholder,
@@ -29,16 +20,6 @@ from .c4_bridge import (
     AppListByInterfacePlaceholder,
     C4ContainerDiagramDirective,
     C4ContainerDiagramPlaceholder,
-)
-from .code_links import (
-    AcceleratorCodePlaceholder,
-    AcceleratorEntityListDirective,
-    AcceleratorEntityListPlaceholder,
-    AcceleratorUseCaseListDirective,
-    AcceleratorUseCaseListPlaceholder,
-    EntityDiagramDirective,
-    EntityDiagramPlaceholder,
-    ListAcceleratorCodeDirective,
 )
 from .contrib import (
     ContribIndexDirective,
@@ -137,17 +118,6 @@ __all__ = [
     "DefineAppPlaceholder",
     "AppsForPersonaDirective",
     "AppsForPersonaPlaceholder",
-    # Accelerator directives
-    "DefineAcceleratorDirective",
-    "DefineAcceleratorPlaceholder",
-    "AcceleratorsForAppDirective",
-    "AcceleratorsForAppPlaceholder",
-    "DependentAcceleratorsDirective",
-    "DependentAcceleratorsPlaceholder",
-    "AcceleratorDependencyDiagramDirective",
-    "AcceleratorDependencyDiagramPlaceholder",
-    "AcceleratorStatusDirective",
-    "clear_accelerator_state",
     # Integration directives
     "DefineIntegrationDirective",
     "DefineIntegrationPlaceholder",
@@ -171,15 +141,5 @@ __all__ = [
     "ContribIndexPlaceholder",
     "ContribListDirective",
     "ContribListPlaceholder",
-    # Code link directives
-    "ListAcceleratorCodeDirective",
-    "AcceleratorCodePlaceholder",
-    # Entity diagram directives
-    "EntityDiagramDirective",
-    "EntityDiagramPlaceholder",
-    # Accelerator entity/usecase list directives
-    "AcceleratorEntityListDirective",
-    "AcceleratorEntityListPlaceholder",
-    "AcceleratorUseCaseListDirective",
-    "AcceleratorUseCaseListPlaceholder",
+    # Note: Code link directives moved to apps.sphinx.supply_chain.directives.code_links
 ]

@@ -1,4 +1,4 @@
-"""Accelerator directives for sphinx_hcd.
+"""Accelerator directives for sphinx_supply_chain.
 
 Provides directives for accelerators with code introspection:
 - define-accelerator: Define accelerator with metadata + introspected code
@@ -14,13 +14,18 @@ import os
 from docutils import nodes
 from docutils.parsers.rst import directives
 
+from apps.sphinx.hcd.directives.base import HCDDirective
+from apps.sphinx.hcd.node_builders import (
+    empty_result_paragraph,
+    entity_bullet_list,
+    link_list_paragraph,
+    metadata_paragraph,
+    problematic_paragraph,
+)
 from apps.sphinx.shared import path_to_root
-from julee.hcd.entities.accelerator import Accelerator
+from apps.sphinx.hcd.context import get_hcd_context
 from julee.hcd.use_cases.crud import (
-    CreateAcceleratorRequest,
-    GetAcceleratorRequest,
     GetAppRequest,
-    ListAcceleratorsRequest,
     ListAppsRequest,
     ListIntegrationsRequest,
 )
@@ -34,16 +39,16 @@ from julee.hcd.utils import (
     parse_integration_options,
     parse_list_option,
 )
-
-from ..dependencies import get_create_accelerator_use_case
-from ..node_builders import (
-    empty_result_paragraph,
-    entity_bullet_list,
-    link_list_paragraph,
-    metadata_paragraph,
-    problematic_paragraph,
+from julee.supply_chain.entities.accelerator import Accelerator
+from julee.supply_chain.use_cases.crud import (
+    CreateAcceleratorRequest,
+    CreateAcceleratorUseCase,
+    GetAcceleratorRequest,
+    ListAcceleratorsRequest,
 )
-from .base import HCDDirective
+
+from ..context import get_supply_chain_context
+from ..dependencies import get_create_accelerator_use_case
 
 
 class DefineAcceleratorPlaceholder(nodes.General, nodes.Element):
@@ -149,7 +154,8 @@ class DefineAcceleratorDirective(HCDDirective):
             docname=docname,
             solution_slug=self.solution_slug,
         )
-        use_case = get_create_accelerator_use_case(self.hcd_context)
+        supply_chain_ctx = get_supply_chain_context(self.env.app)
+        use_case = get_create_accelerator_use_case(supply_chain_ctx)
         response = use_case.execute_sync(request)
         accelerator = response.accelerator
 

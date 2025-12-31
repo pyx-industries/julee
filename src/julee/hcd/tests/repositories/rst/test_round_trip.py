@@ -10,17 +10,17 @@ from pathlib import Path
 
 import pytest
 
-from julee.hcd.entities.accelerator import (
-    Accelerator,
-    IntegrationReference,
-)
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.integration import Direction, Integration
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.entities.persona import Persona
 from julee.hcd.entities.story import Story
-from julee.hcd.infrastructure.repositories.rst.accelerator import (
+from julee.supply_chain.entities.accelerator import (
+    Accelerator,
+    IntegrationReference,
+)
+from julee.supply_chain.infrastructure.repositories.rst.accelerator import (
     RstAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.rst.app import RstAppRepository

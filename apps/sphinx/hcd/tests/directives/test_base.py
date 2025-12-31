@@ -106,14 +106,15 @@ class TestDirectiveImports:
         assert GeneratedAppIndexDirective is not None
 
     def test_accelerator_directives_import(self) -> None:
-        """Test accelerator directive imports."""
-        from apps.sphinx.hcd.directives.accelerator import (
+        """Test accelerator directive imports from supply_chain."""
+        # NOTE: Accelerator directives moved to apps.sphinx.supply_chain
+        from apps.sphinx.supply_chain.directives.accelerator import (
             AcceleratorDependencyDiagramDirective,
             AcceleratorsForAppDirective,
             AcceleratorStatusDirective,
             DefineAcceleratorDirective,
         )
-        from apps.sphinx.hcd.generated_directives import GeneratedAcceleratorIndexDirective
+        from apps.sphinx.supply_chain.generated_directives import GeneratedAcceleratorIndexDirective
 
         assert DefineAcceleratorDirective is not None
         assert AcceleratorsForAppDirective is not None

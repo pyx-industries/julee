@@ -3,9 +3,9 @@
 import logging
 from pathlib import Path
 
-from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.parsers.docutils_parser import ParsedDocument, parse_comma_list
-from julee.hcd.repositories.accelerator import AcceleratorRepository
+from julee.supply_chain.entities.accelerator import Accelerator, IntegrationReference
+from julee.supply_chain.repositories.accelerator import AcceleratorRepository
 
 from .base import RstRepositoryMixin
 

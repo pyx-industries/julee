@@ -1,12 +1,13 @@
-"""Handler implementations for sphinx_hcd extension."""
+"""Handler implementations for sphinx_hcd extension.
+
+Note: AcceleratorPlaceholderHandler, CodeLinksPlaceholderHandler,
+and EntityDiagramPlaceholderHandler moved to apps.sphinx.supply_chain.
+"""
 
 from .placeholder_resolution import (
-    AcceleratorPlaceholderHandler,
     AppPlaceholderHandler,
     C4BridgePlaceholderHandler,
-    CodeLinksPlaceholderHandler,
     ContribPlaceholderHandler,
-    EntityDiagramPlaceholderHandler,
     EpicPlaceholderHandler,
     IntegrationPlaceholderHandler,
     JourneyPlaceholderHandler,
@@ -14,12 +15,9 @@ from .placeholder_resolution import (
 )
 
 __all__ = [
-    "AcceleratorPlaceholderHandler",
     "AppPlaceholderHandler",
     "C4BridgePlaceholderHandler",
-    "CodeLinksPlaceholderHandler",
     "ContribPlaceholderHandler",
-    "EntityDiagramPlaceholderHandler",
     "EpicPlaceholderHandler",
     "IntegrationPlaceholderHandler",
     "JourneyPlaceholderHandler",

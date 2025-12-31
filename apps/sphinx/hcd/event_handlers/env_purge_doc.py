@@ -1,10 +1,11 @@
 """Env-purge-doc event handler for sphinx_hcd.
 
 Clears document-specific state when a document is re-read.
+
+Note: Accelerator state handled by apps.sphinx.supply_chain.event_handlers.
 """
 
 from ..directives import (
-    clear_accelerator_state,
     clear_epic_state,
     clear_journey_state,
 )
@@ -27,8 +28,7 @@ def on_env_purge_doc(app, env, docname):
     # Clear journey state for this document
     clear_journey_state(app, env, docname)
 
-    # Clear accelerator state for this document
-    clear_accelerator_state(app, env, docname)
+    # NOTE: Accelerator state handled by apps.sphinx.supply_chain
 
     # Clear documented apps tracker
     if hasattr(env, "documented_apps") and docname in env.documented_apps:
