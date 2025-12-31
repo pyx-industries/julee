@@ -13,6 +13,7 @@ from apps.sphinx.shared.services.unified_link_resolver import (
     LinkGroup,
     LinkResult,
     UnifiedLinkResolver,
+    _get_bc_slug_from_type,
 )
 
 
@@ -104,6 +105,57 @@ class TestLink:
         """Test default category."""
         link = Link(title="Test", href="test.html", slug="test")
         assert link.category == "default"
+
+    def test_bc_slug_and_relation_label(self) -> None:
+        """Test bc_slug and relation_label fields."""
+        link = Link(
+            title="Test Entity",
+            href="test/entity.html",
+            slug="test-entity",
+            category="semantic",
+            bc_slug="hcd",
+            relation_label="Projects",
+        )
+
+        assert link.bc_slug == "hcd"
+        assert link.relation_label == "Projects"
+
+    def test_default_bc_slug_and_relation_label(self) -> None:
+        """Test default values for bc_slug and relation_label."""
+        link = Link(title="Test", href="test.html", slug="test")
+        assert link.bc_slug == ""
+        assert link.relation_label == ""
+
+
+class TestGetBcSlugFromType:
+    """Tests for _get_bc_slug_from_type helper."""
+
+    def test_core_bc(self) -> None:
+        """Test extracting BC slug from core entity."""
+        from julee.core.entities.bounded_context import BoundedContext
+
+        bc_slug = _get_bc_slug_from_type(BoundedContext)
+        assert bc_slug == "core"
+
+    def test_hcd_bc(self) -> None:
+        """Test extracting BC slug from HCD entity."""
+        from julee.hcd.entities.persona import Persona
+
+        bc_slug = _get_bc_slug_from_type(Persona)
+        assert bc_slug == "hcd"
+
+    def test_supply_chain_bc(self) -> None:
+        """Test extracting BC slug from supply_chain entity."""
+        from julee.supply_chain.entities.accelerator import Accelerator
+
+        bc_slug = _get_bc_slug_from_type(Accelerator)
+        assert bc_slug == "supply_chain"
+
+    def test_non_julee_module(self) -> None:
+        """Test non-julee module returns unknown."""
+        # Built-in type has non-julee module
+        bc_slug = _get_bc_slug_from_type(str)
+        assert bc_slug == "unknown"
 
 
 class TestLinkGroup:

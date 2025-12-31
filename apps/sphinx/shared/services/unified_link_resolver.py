@@ -46,6 +46,29 @@ if TYPE_CHECKING:
 
 
 # =============================================================================
+# Helpers
+# =============================================================================
+
+
+def _get_bc_slug_from_type(entity_type: type) -> str:
+    """Extract bounded context slug from entity module path.
+
+    Pattern: julee.{bc_slug}.entities... -> bc_slug
+
+    Args:
+        entity_type: Entity class
+
+    Returns:
+        BC slug (e.g., "core", "hcd", "supply_chain")
+    """
+    module = entity_type.__module__
+    parts = module.split(".")
+    if len(parts) >= 2 and parts[0] == "julee":
+        return parts[1]
+    return "unknown"
+
+
+# =============================================================================
 # Data Structures
 # =============================================================================
 
@@ -59,12 +82,16 @@ class Link:
         href: Documentation URL (relative or absolute)
         slug: Entity slug for identification
         category: Classification (e.g., "framework", "solution", "semantic")
+        bc_slug: Bounded context slug of the linked entity (e.g., "core", "hcd")
+        relation_label: Relation label (e.g., "Projects", "Referenced by")
     """
 
     title: str
     href: str
     slug: str
     category: str = "default"
+    bc_slug: str = ""
+    relation_label: str = ""
 
 
 @dataclass
@@ -331,6 +358,7 @@ class UnifiedLinkResolver:
 
         result = []
         for rel_type, rel_edges in groups_by_type.items():
+            forward_label = get_forward_label(rel_type)
             links = []
             for edge in rel_edges:
                 # For outbound, we need the target's slug
@@ -344,13 +372,15 @@ class UnifiedLinkResolver:
                             href=href,
                             slug=target_slug,
                             category="semantic",
+                            bc_slug=_get_bc_slug_from_type(edge.target_type),
+                            relation_label=forward_label,
                         )
                     )
 
             if links:
                 result.append(
                     LinkGroup(
-                        label=get_forward_label(rel_type),
+                        label=forward_label,
                         links=links,
                         relation_type=rel_type,
                     )
@@ -383,6 +413,7 @@ class UnifiedLinkResolver:
 
         result = []
         for rel_type, rel_edges in groups_by_type.items():
+            inverse_label = get_inverse_label(rel_type)
             links = []
             for edge in rel_edges:
                 # Link to the source type's documentation
@@ -395,13 +426,15 @@ class UnifiedLinkResolver:
                         href=href,
                         slug=source_type.__name__.lower(),
                         category="semantic",
+                        bc_slug=_get_bc_slug_from_type(source_type),
+                        relation_label=inverse_label,
                     )
                 )
 
             if links:
                 result.append(
                     LinkGroup(
-                        label=get_inverse_label(rel_type),
+                        label=inverse_label,
                         links=links,
                         relation_type=rel_type,
                     )

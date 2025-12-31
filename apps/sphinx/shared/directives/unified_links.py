@@ -260,7 +260,10 @@ def _get_resolver(app: "Sphinx") -> Any:
 
 
 def _render_link_result(result: "LinkResult", docname: str) -> list[nodes.Node]:
-    """Render LinkResult to docutils nodes.
+    """Render LinkResult to docutils nodes with BC-grouped admonitions.
+
+    Semantic relations (outbound and inbound) are grouped by bounded context,
+    with one admonition per BC showing all relations to that BC.
 
     Args:
         result: LinkResult from resolver
@@ -269,9 +272,11 @@ def _render_link_result(result: "LinkResult", docname: str) -> list[nodes.Node]:
     Returns:
         List of docutils nodes
     """
+    from apps.sphinx.shared.services.unified_link_resolver import Link
+
     result_nodes: list[nodes.Node] = []
 
-    # Render instances (for hub pages)
+    # Render instances (for hub pages) - unchanged
     if result.instances:
         section = nodes.section()
         section["ids"] = [f"all-{result.entity_type_name.lower()}s"]
@@ -301,61 +306,45 @@ def _render_link_result(result: "LinkResult", docname: str) -> list[nodes.Node]:
 
         result_nodes.append(section)
 
-    # Render outbound relations
-    if result.outbound:
-        section = nodes.section()
-        section["ids"] = ["related-entities"]
+    # Collect all semantic links and group by BC
+    all_links: list[Link] = []
+    for group in result.outbound:
+        all_links.extend(group.links)
+    for group in result.inbound:
+        all_links.extend(group.links)
 
-        title = nodes.title()
-        title += nodes.Text("Related Entities")
-        section += title
+    if all_links:
+        # Group by BC
+        by_bc: dict[str, list[Link]] = {}
+        for link in all_links:
+            bc = link.bc_slug or "other"
+            by_bc.setdefault(bc, []).append(link)
 
-        for group in result.outbound:
-            if group.links:
+        # Render one admonition per BC
+        for bc_slug in sorted(by_bc.keys()):
+            links = by_bc[bc_slug]
+            bc_name = bc_slug.replace("_", " ").title()
+
+            admonition = nodes.admonition()
+            admonition["classes"].append("bc-links")
+
+            admon_title = nodes.title()
+            admon_title += nodes.Text(bc_name)
+            admonition += admon_title
+
+            bullet_list = nodes.bullet_list()
+            for link in links:
+                item = nodes.list_item()
                 para = nodes.paragraph()
-                para += nodes.strong(text=f"{group.label}:")
-                section += para
+                para += nodes.strong(text=f"{link.relation_label}: ")
+                ref = nodes.reference("", "", refuri=link.href)
+                ref += nodes.Text(link.title)
+                para += ref
+                item += para
+                bullet_list += item
 
-                bullet_list = nodes.bullet_list()
-                for link in group.links:
-                    item = nodes.list_item()
-                    para = nodes.paragraph()
-                    ref = nodes.reference("", "", refuri=link.href)
-                    ref += nodes.Text(link.title)
-                    para += ref
-                    item += para
-                    bullet_list += item
-                section += bullet_list
-
-        result_nodes.append(section)
-
-    # Render inbound relations
-    if result.inbound:
-        section = nodes.section()
-        section["ids"] = ["referenced-by"]
-
-        title = nodes.title()
-        title += nodes.Text("Referenced By")
-        section += title
-
-        for group in result.inbound:
-            if group.links:
-                para = nodes.paragraph()
-                para += nodes.strong(text=f"{group.label}:")
-                section += para
-
-                bullet_list = nodes.bullet_list()
-                for link in group.links:
-                    item = nodes.list_item()
-                    para = nodes.paragraph()
-                    ref = nodes.reference("", "", refuri=link.href)
-                    ref += nodes.Text(link.title)
-                    para += ref
-                    item += para
-                    bullet_list += item
-                section += bullet_list
-
-        result_nodes.append(section)
+            admonition += bullet_list
+            result_nodes.append(admonition)
 
     return result_nodes
 
