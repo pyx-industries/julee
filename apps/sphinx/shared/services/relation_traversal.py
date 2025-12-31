@@ -445,7 +445,7 @@ class RelationTraversal:
         """
         if entity_types is None:
             # Default HCD entity types
-            from julee.hcd.entities.accelerator import Accelerator
+            from julee.supply_chain.entities.accelerator import Accelerator
             from julee.hcd.entities.app import App
             from julee.hcd.entities.epic import Epic
             from julee.hcd.entities.integration import Integration
@@ -553,7 +553,7 @@ class RelationTraversal:
 
         if include_inverse:
             # Find inverse relations from other types
-            from julee.hcd.entities.accelerator import Accelerator
+            from julee.supply_chain.entities.accelerator import Accelerator
             from julee.hcd.entities.app import App
             from julee.hcd.entities.epic import Epic
             from julee.hcd.entities.integration import Integration
@@ -675,7 +675,7 @@ class RelationTraversal:
         Returns:
             Dict mapping HCD type names to lists of solution entity info
         """
-        from julee.hcd.entities.accelerator import Accelerator
+        from julee.supply_chain.entities.accelerator import Accelerator
         from julee.hcd.entities.app import App
         from julee.hcd.entities.epic import Epic
         from julee.hcd.entities.integration import Integration

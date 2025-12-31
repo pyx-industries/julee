@@ -1,5 +1,6 @@
-"""Supply chain repository protocols."""
+"""Supply chain repository protocols.
 
-from julee.supply_chain.repositories.accelerator import AcceleratorRepository
+Import directly from submodules:
 
-__all__ = ["AcceleratorRepository"]
+    from julee.supply_chain.repositories.accelerator import AcceleratorRepository
+"""

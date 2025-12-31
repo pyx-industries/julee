@@ -11,9 +11,9 @@ with discovered bounded contexts (from src/ directory scanning) to identify:
 from pydantic import BaseModel
 
 from julee.core.decorators import use_case
-from julee.hcd.entities.accelerator import AcceleratorValidationIssue
-from julee.hcd.repositories.accelerator import AcceleratorRepository
 from julee.hcd.repositories.code_info import CodeInfoRepository
+from julee.supply_chain.entities.accelerator import AcceleratorValidationIssue
+from julee.supply_chain.repositories.accelerator import AcceleratorRepository
 
 
 class ValidateAcceleratorsRequest(BaseModel):

@@ -505,7 +505,7 @@ def get_accelerator_repository():
     Returns:
         RST file-backed AcceleratorRepository
     """
-    from julee.hcd.infrastructure.repositories.rst.accelerator import (
+    from julee.supply_chain.infrastructure.repositories.rst.accelerator import (
         RstAcceleratorRepository,
     )
 

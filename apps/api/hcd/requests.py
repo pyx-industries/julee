@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+from julee.supply_chain.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.integration import (

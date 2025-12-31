@@ -9,8 +9,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..entities.accelerator import Accelerator, IntegrationReference
 from ..entities.epic import Epic
+from julee.supply_chain.entities.accelerator import Accelerator, IntegrationReference
 from ..entities.journey import Journey, JourneyStep, StepType
 
 logger = logging.getLogger(__name__)

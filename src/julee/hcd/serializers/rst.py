@@ -3,8 +3,8 @@
 Serializes Epic, Journey, and Accelerator domain objects to RST directive format.
 """
 
-from ..entities.accelerator import Accelerator
 from ..entities.epic import Epic
+from julee.supply_chain.entities.accelerator import Accelerator
 from ..entities.journey import Journey, StepType
 
 

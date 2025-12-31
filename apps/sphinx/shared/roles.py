@@ -215,7 +215,7 @@ def make_semantic_role(
 
     Example:
         from apps.sphinx.shared.documentation_mapping import get_documentation_mapping
-        from julee.hcd.entities.accelerator import Accelerator
+        from julee.supply_chain.entities.accelerator import Accelerator
 
         mapping = get_documentation_mapping()
         AcceleratorRole = make_semantic_role(Accelerator, mapping)

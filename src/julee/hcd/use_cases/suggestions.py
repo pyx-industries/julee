@@ -10,12 +10,12 @@ MCP tool names and response formats.
 
 from dataclasses import dataclass
 
-from julee.hcd.repositories.accelerator import AcceleratorRepository
 from julee.hcd.repositories.app import AppRepository
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.repositories.integration import IntegrationRepository
 from julee.hcd.repositories.journey import JourneyRepository
 from julee.hcd.repositories.story import StoryRepository
+from julee.supply_chain.repositories.accelerator import AcceleratorRepository
 
 __all__ = ["SuggestionRepositories"]
 

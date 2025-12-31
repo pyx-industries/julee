@@ -8,7 +8,7 @@ from apps.sphinx.hcd.context import (
     get_hcd_context,
     set_hcd_context,
 )
-from julee.hcd.entities.accelerator import Accelerator
+from julee.supply_chain.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.journey import Journey

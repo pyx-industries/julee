@@ -16,11 +16,11 @@ from docutils.parsers.rst import directives
 from julee.hcd.infrastructure.renderers import C4PlantUMLRenderer
 from julee.hcd.use_cases.c4_bridge import generate_c4_container_diagram
 from julee.hcd.use_cases.crud import (
-    ListAcceleratorsRequest,
     ListAppsRequest,
     ListContribModulesRequest,
     ListPersonasRequest,
 )
+from julee.supply_chain.use_cases.crud import ListAcceleratorsRequest
 
 from .base import HCDDirective
 

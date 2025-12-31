@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from julee.hcd.entities.accelerator import (
+from julee.supply_chain.entities.accelerator import (
     Accelerator,
     IntegrationReference,
 )

@@ -57,7 +57,7 @@ class TestRelationTraversal:
 
     def test_get_projected_type_accelerator(self):
         """Accelerator should project BoundedContext via PROJECTS."""
-        from julee.hcd.entities.accelerator import Accelerator
+        from julee.supply_chain.entities.accelerator import Accelerator
 
         traversal = RelationTraversal()
         projected = traversal.get_projected_type(Accelerator)

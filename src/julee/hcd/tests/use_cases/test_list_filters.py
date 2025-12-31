@@ -2,12 +2,12 @@
 
 import pytest
 
-from julee.hcd.entities.accelerator import Accelerator, IntegrationReference
+from julee.supply_chain.entities.accelerator import Accelerator, IntegrationReference
 from julee.hcd.entities.app import App
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.journey import Journey, JourneyStep
 from julee.hcd.entities.story import Story
-from julee.hcd.infrastructure.repositories.memory.accelerator import (
+from julee.supply_chain.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.memory.app import MemoryAppRepository
@@ -15,8 +15,6 @@ from julee.hcd.infrastructure.repositories.memory.epic import MemoryEpicReposito
 from julee.hcd.infrastructure.repositories.memory.journey import MemoryJourneyRepository
 from julee.hcd.infrastructure.repositories.memory.story import MemoryStoryRepository
 from julee.hcd.use_cases.crud import (
-    ListAcceleratorsRequest,
-    ListAcceleratorsUseCase,
     ListAppsRequest,
     ListAppsUseCase,
     ListEpicsRequest,
@@ -25,6 +23,10 @@ from julee.hcd.use_cases.crud import (
     ListJourneysUseCase,
     ListStoriesRequest,
     ListStoriesUseCase,
+)
+from julee.supply_chain.use_cases.crud import (
+    ListAcceleratorsRequest,
+    ListAcceleratorsUseCase,
 )
 
 

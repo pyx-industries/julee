@@ -29,7 +29,7 @@ from julee.hcd.use_cases.crud import (
     ListAppsRequest,
     ListIntegrationsRequest,
 )
-from julee.hcd.use_cases.resolve_accelerator_references import (
+from julee.supply_chain.use_cases.resolve_accelerator_references import (
     get_apps_for_accelerator,
     get_fed_by_accelerators,
     get_publish_integrations,

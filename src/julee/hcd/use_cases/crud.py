@@ -9,14 +9,12 @@ from typing import Any
 from pydantic import Field, field_validator
 
 from julee.core.use_cases import generic_crud
-from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.integration import Integration
 from julee.hcd.entities.journey import Journey
 from julee.hcd.entities.persona import Persona
 from julee.hcd.entities.story import Story
-from julee.hcd.repositories.accelerator import AcceleratorRepository
 from julee.hcd.repositories.app import AppRepository
 from julee.hcd.repositories.epic import EpicRepository
 from julee.hcd.repositories.integration import IntegrationRepository
@@ -164,17 +162,6 @@ class UpdateAppRequest(UpdateAppRequest):  # type: ignore[no-redef]  # noqa: F82
         if isinstance(v, str):
             return AppType.from_string(v)
         return v
-
-
-# =============================================================================
-# Accelerator - with filters
-# =============================================================================
-
-generic_crud.generate(
-    Accelerator,
-    AcceleratorRepository,
-    filters=["status"],
-)
 
 
 # =============================================================================

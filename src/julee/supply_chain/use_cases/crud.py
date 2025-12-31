@@ -8,7 +8,7 @@ from julee.supply_chain.entities.accelerator import Accelerator
 from julee.supply_chain.repositories.accelerator import AcceleratorRepository
 
 # Generate Accelerator CRUD - injects into module namespace
-generic_crud.generate(Accelerator, AcceleratorRepository)
+generic_crud.generate(Accelerator, AcceleratorRepository, filters=["status"])
 
 # Re-export for explicit imports (classes are now in module namespace)
 __all__ = [

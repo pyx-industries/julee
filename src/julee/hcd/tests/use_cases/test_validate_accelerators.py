@@ -2,9 +2,9 @@
 
 import pytest
 
-from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.code_info import BoundedContextInfo, ClassInfo
-from julee.hcd.infrastructure.repositories.memory.accelerator import (
+from julee.supply_chain.entities.accelerator import Accelerator
+from julee.supply_chain.infrastructure.repositories.memory.accelerator import (
     MemoryAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.memory.code_info import (

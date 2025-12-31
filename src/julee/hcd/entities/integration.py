@@ -74,7 +74,7 @@ class ExternalDependency(BaseModel):
         )
 
 
-@semantic_relation("julee.hcd.entities.accelerator.Accelerator", RelationType.PART_OF)
+@semantic_relation("julee.supply_chain.entities.accelerator.Accelerator", RelationType.PART_OF)
 class Integration(BaseModel):
     """Integration module entity.
 

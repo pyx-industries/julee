@@ -37,7 +37,7 @@ from julee.hcd.infrastructure.repositories.memory.persona import (
 from julee.hcd.services.epic_handlers import EpicCreatedHandler
 from julee.hcd.services.journey_handlers import JourneyCreatedHandler
 from julee.hcd.services.story_handlers import StoryCreatedHandler
-from julee.hcd.infrastructure.repositories.file.accelerator import (
+from julee.supply_chain.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.file.app import FileAppRepository
@@ -47,13 +47,14 @@ from julee.hcd.infrastructure.repositories.file.integration import (
 )
 from julee.hcd.infrastructure.repositories.file.journey import FileJourneyRepository
 from julee.hcd.infrastructure.repositories.file.story import FileStoryRepository
-from julee.hcd.use_cases.crud import (
-    # Accelerator
+from julee.supply_chain.use_cases.crud import (
     CreateAcceleratorUseCase,
     DeleteAcceleratorUseCase,
     GetAcceleratorUseCase,
     ListAcceleratorsUseCase,
     UpdateAcceleratorUseCase,
+)
+from julee.hcd.use_cases.crud import (
     # App
     CreateAppUseCase,
     DeleteAppUseCase,

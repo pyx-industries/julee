@@ -7,7 +7,7 @@ most responses wrap domain models rather than duplicating their structure.
 
 from pydantic import BaseModel
 
-from julee.hcd.entities.accelerator import Accelerator, AcceleratorValidationIssue
+from julee.supply_chain.entities.accelerator import Accelerator, AcceleratorValidationIssue
 from julee.hcd.entities.app import App
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.integration import Integration

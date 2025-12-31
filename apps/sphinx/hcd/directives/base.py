@@ -160,7 +160,7 @@ class HCDDirective(SphinxDirective):
         Uses make_entity_link with Accelerator entity type.
         Accelerator PROJECTS BoundedContext, so resolves to BC autoapi page.
         """
-        from julee.hcd.entities.accelerator import Accelerator
+        from julee.supply_chain.entities.accelerator import Accelerator
 
         return self.make_entity_link(Accelerator, accelerator_slug)
 

@@ -7,7 +7,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from julee.hcd.infrastructure.repositories.file.accelerator import (
+from julee.supply_chain.infrastructure.repositories.file.accelerator import (
     FileAcceleratorRepository,
 )
 from julee.hcd.infrastructure.repositories.file.app import FileAppRepository
@@ -19,14 +19,17 @@ from julee.hcd.infrastructure.repositories.file.journey import FileJourneyReposi
 from julee.hcd.infrastructure.repositories.file.story import FileStoryRepository
 from julee.hcd.infrastructure.repositories.memory.persona import MemoryPersonaRepository
 
-# All CRUD use cases from consolidated crud.py
-from julee.hcd.use_cases.crud import (
-    # Accelerator
+# Accelerator CRUD use cases from supply_chain
+from julee.supply_chain.use_cases.crud import (
     CreateAcceleratorUseCase,
     DeleteAcceleratorUseCase,
     GetAcceleratorUseCase,
     ListAcceleratorsUseCase,
     UpdateAcceleratorUseCase,
+)
+
+# All HCD CRUD use cases from consolidated crud.py
+from julee.hcd.use_cases.crud import (
     # App
     CreateAppUseCase,
     DeleteAppUseCase,

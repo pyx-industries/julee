@@ -9,7 +9,7 @@ from apps.sphinx.shared.documentation_mapping import (
 )
 from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
-from julee.hcd.entities.accelerator import Accelerator
+from julee.supply_chain.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.journey import Journey

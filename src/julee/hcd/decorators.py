@@ -38,7 +38,6 @@ from julee.core.entities.application import Application
 from julee.core.entities.bounded_context import BoundedContext
 
 # Import HCD entities for convenience decorators
-from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
 from julee.hcd.entities.epic import Epic
 from julee.hcd.entities.integration import Integration
@@ -54,15 +53,6 @@ def is_a_persona() -> Callable[[type], type]:
     in HCD terms.
     """
     return semantic_relation(Persona, RelationType.IS_A)
-
-
-def is_a_accelerator() -> Callable[[type], type]:
-    """Declare that the decorated class is_a Accelerator.
-
-    Use when a solution entity represents a business capability
-    accelerator in HCD terms.
-    """
-    return semantic_relation(Accelerator, RelationType.IS_A)
 
 
 def is_a_story() -> Callable[[type], type]:

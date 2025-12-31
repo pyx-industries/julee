@@ -6,8 +6,8 @@ that can be rendered into diagrams.
 
 from dataclasses import dataclass, field
 
-from julee.hcd.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App
+from julee.supply_chain.entities.accelerator import Accelerator
 from julee.hcd.entities.contrib import ContribModule
 from julee.hcd.entities.persona import Persona
 

@@ -1,5 +1,6 @@
-"""Supply chain domain entities."""
+"""Supply chain domain entities.
 
-from julee.supply_chain.entities.accelerator import Accelerator
+Import directly from submodules:
 
-__all__ = ["Accelerator"]
+    from julee.supply_chain.entities.accelerator import Accelerator
+"""

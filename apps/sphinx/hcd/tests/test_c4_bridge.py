@@ -1,7 +1,7 @@
 """Tests for C4 bridge use case and renderer."""
 
 
-from julee.hcd.entities.accelerator import Accelerator
+from julee.supply_chain.entities.accelerator import Accelerator
 from julee.hcd.entities.app import App, AppType
 from julee.hcd.entities.persona import Persona
 from julee.hcd.infrastructure.renderers import C4PlantUMLRenderer
