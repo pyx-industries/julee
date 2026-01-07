@@ -200,40 +200,67 @@ class LoggingOrphanStoryHandler:
         return Acknowledgement.wilco(warnings=["Story not in any epic"])
 ```
 
-**Coarse-grained handlers** wrap exactly ONE internal use case. They translate domain objects to requests, execute business logic via the use case, and process the response:
+**Coarse-grained handlers** trigger use cases. To avoid circular dependencies (handlers need use cases, use cases need handlers), use a **HandlerDispatcher** pattern with factories:
 
 ```python
-class StoryOrchestrationHandler:
-    """Coarse-grained: wraps one internal use case."""
+# Core infrastructure - generic OrchestrationHandler
+class OrchestrationHandler:
+    """Routes handler invocations to use cases via factories."""
 
     def __init__(
         self,
-        orchestration_use_case: StoryOrchestrationUseCase,
-        orphan_handler: OrphanStoryHandler,  # fine-grained delegate
+        routes: list[tuple[
+            Callable[[], UseCase],   # use case factory (lazy)
+            Callable[..., Request],  # request builder
+        ]],
     ):
-        self._use_case = orchestration_use_case
-        self._orphan_handler = orphan_handler
+        self._routes = routes
 
-    async def handle(self, story: Story) -> Acknowledgement:
-        # Translate domain object to request
-        request = StoryOrchestrationRequest(story=story)
-
-        # Execute internal use case (contains business logic)
-        response = await self._use_case.execute(request)
-
-        # Process response - delegate to fine-grained handlers
-        for condition in response.conditions:
-            if condition.type == "orphan":
-                await self._orphan_handler.handle(story)
-
+    async def handle(self, *args, **kwargs) -> Acknowledgement:
+        for get_use_case, build_request in self._routes:
+            use_case = get_use_case()  # lazy instantiation
+            request = build_request(*args, **kwargs)
+            await use_case.execute(request)
         return Acknowledgement.wilco()
 ```
 
-The internal use case contains the business logic (checking conditions, validating state). The handler is a thin translation layer that coordinates the use case with fine-grained delegates.
+The composition root wires factories, not instances:
+
+```python
+# dependencies.py - composition root
+def get_handler_dispatcher() -> HandlerDispatcher:
+    dispatcher = HandlerDispatcher()
+
+    # Fine-grained handler (no use case dependency)
+    dispatcher.register(OrphanStoryHandler, get_logging_orphan_handler())
+
+    # Coarse-grained handler (routes to use cases via factories)
+    dispatcher.register(
+        OrphanStoryHandler,
+        OrchestrationHandler(
+            routes=[
+                (get_assign_to_epic_use_case, lambda story: AssignToEpicRequest(story_slug=story.slug)),
+                (get_notify_team_use_case, lambda story: NotifyRequest(message=f"Orphan: {story.slug}")),
+            ]
+        ),
+    )
+    return dispatcher
+
+# Use case receives proxy from dispatcher
+def get_create_story_use_case() -> CreateStoryUseCase:
+    return CreateStoryUseCase(
+        get_story_repository(),
+        post_create_handler=get_handler_dispatcher().proxy_for(OrphanStoryHandler),
+    )
+```
+
+This solves two problems:
+1. **No circular dependencies** — factories are callables, not instances
+2. **Lazy instantiation** — use cases are created at `handle()` time, eliminating bootstrapping order constraints
 
 Which to use is a domain modelling decision:
 - Simple actions (log, notify) → fine-grained handler
-- Complex orchestration with business logic → coarse-grained handler with internal use case
+- Orchestration that triggers use cases → coarse-grained handler via dispatcher
 
 #### 6. Handler Protocol Placement: With the Entity
 
