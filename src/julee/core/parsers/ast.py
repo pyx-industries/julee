@@ -676,7 +676,7 @@ def _parse_pipeline_class(
 def parse_pipelines_from_file(
     file_path: Path,
     bounded_context: str = "",
-) -> list[Pipeline]:
+) -> "list[Pipeline]":
     """Extract pipeline information from a Python file.
 
     Args:
@@ -707,7 +707,7 @@ def parse_pipelines_from_file(
     return sorted(pipelines, key=lambda p: p.name)
 
 
-def parse_pipelines_from_bounded_context(context_dir: Path) -> list[Pipeline]:
+def parse_pipelines_from_bounded_context(context_dir: Path) -> "list[Pipeline]":
     """Extract pipelines from a bounded context.
 
     Looks for pipelines at:
