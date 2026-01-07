@@ -235,7 +235,18 @@ Which to use is a domain modelling decision:
 - Simple actions (log, notify) → fine-grained handler
 - Complex orchestration with business logic → coarse-grained handler with internal use case
 
-#### 6. Cross-BC Coordination Is Composition
+#### 6. Handler Protocol Placement: With the Entity
+
+When a handler protocol accepts an entity defined in a different BC than the use case that hands off to it, the protocol lives **with the entity's BC**, not the use case's BC.
+
+For example, if `CreateStoryUseCase` lives in BC-X but `Story` is defined in BC-Y, `OrphanStoryHandler` lives in BC-Y (with `Story`).
+
+Rationale:
+- Handler signatures like `handle(story: Story)` are semantically bound to `Story`
+- Multiple use cases may hand off to the same handler (e.g., `CreateStory` and `ImportStory` both produce orphan stories)
+- The dependency graph stays clean: the use case BC already depends on the entity BC, so no new edges are introduced
+
+#### 7. Cross-BC Coordination Is Composition
 
 When work in one bounded context should trigger work in another (e.g., Polling detects new data that should trigger CEAP document capture), this is wired at composition time by the solution provider.
 
@@ -268,7 +279,7 @@ class CeapDocumentCaptureHandler(NewDataHandler):
 
 Cross-BC coordination is explicit and visible in the solution's composition root.
 
-#### 7. Use Case Responsibility Is Limited
+#### 8. Use Case Responsibility Is Limited
 
 The use case knows:
 - "If the egg has a green dot, I give it to the green-dotted-egg-handler"
