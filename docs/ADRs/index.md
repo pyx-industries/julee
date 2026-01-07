@@ -14,3 +14,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [002](002-doctrine-test-architecture.md) | Doctrine Test Architecture | Draft | 2025-12-24 |
 | [007](007-semantic-relations.md) | Semantic Relations Decorator Pattern | Draft | 2026-01-07 |
 | [008](008-generic-crud-use-cases.md) | Generic CRUD Use Case Generators | Draft | 2026-01-07 |
+| [009](009-repository-service-distinction.md) | Repository vs Service Protocol Distinction | Draft | 2026-01-07 |
