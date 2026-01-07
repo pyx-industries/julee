@@ -26,20 +26,22 @@ from apps.admin.dependencies import (
     get_list_stories_use_case,
 )
 from julee.hcd.use_cases.crud import (
-    GetAcceleratorRequest,
     GetAppRequest,
     GetEpicRequest,
     GetIntegrationRequest,
     GetJourneyRequest,
     GetPersonaRequest,
     GetStoryRequest,
-    ListAcceleratorsRequest,
     ListAppsRequest,
     ListEpicsRequest,
     ListIntegrationsRequest,
     ListJourneysRequest,
     ListPersonasRequest,
     ListStoriesRequest,
+)
+from julee.supply_chain.use_cases.crud import (
+    GetAcceleratorRequest,
+    ListAcceleratorsRequest,
 )
 
 # Template environment
