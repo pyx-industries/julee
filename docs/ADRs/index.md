@@ -11,3 +11,4 @@ An ADR is a document that captures an important architectural decision made alon
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | [001](001-contrib-layout.md) | Contrib Module Layout | Draft | 2025-12-09 |
+| [002](002-doctrine-test-architecture.md) | Doctrine Test Architecture | Draft | 2025-12-24 |
