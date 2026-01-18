@@ -126,7 +126,7 @@ Only doctrine tests use MUST/MAY/MUST NOT language. Other tests are ordinary uni
 ### Negative
 
 1. **Rigidity**: Less flexibility than a permissive framework
-2. **Learning curve**: Developers must understand Clean Architecture concepts
+2. **Learning curve**: Developers must learn Clean Architecture concepts as they work with the framework and enforced doctrine.
 
 ### Neutral
 
