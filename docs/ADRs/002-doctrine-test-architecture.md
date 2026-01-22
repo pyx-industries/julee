@@ -112,6 +112,10 @@ Doctrine tests verify these constants contain expected values. This makes the ru
 
 Only doctrine tests use MUST/MAY/MUST NOT language. Other tests are ordinary unit/integration tests.
 
+### Doctrine vs Policy
+
+Not all architectural rules are equal. Some are universal axioms (doctrine) that define what julee concepts ARE. Others are strategic choices (policies) that can be adopted or skipped. See ADR 005 (Doctrine and Policy Separation) for the distinction and how policies are configured.
+
 ## Consequences
 
 ### Positive

@@ -10,7 +10,9 @@ Draft
 
 ## Context
 
-ADR 002 established that "tests ARE the doctrine" - test files both express and enforce architectural rules. This has worked well for the julee framework itself, but a gap has emerged: not all rules are equal.
+ADR 002 established that "tests ARE the doctrine" - test files both express and enforce architectural rules. This ADR extends ADR 002 by introducing a distinction between universal axioms (doctrine) and adoptable strategic choices (policy). ADR 002 establishes the mechanism; this ADR refines what qualifies as doctrine versus what should be a separately-adoptable policy.
+
+This has worked well for the julee framework itself, but a gap has emerged: not all rules are equal.
 
 When a developer creates a new solution using julee, they run `julee-admin doctrine verify` against their codebase. Currently, this runs all doctrine tests, including rules that are specific to julee's own structure (Sphinx documentation requirements, MCP framework usage, test organization patterns).
 

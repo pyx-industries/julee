@@ -10,34 +10,27 @@ Draft
 
 ## Context
 
-Use cases in the Julee framework currently have a `next_action()` method pattern that suggests follow-up operations after a use case completes. For example, after creating a story without an epic, the use case might suggest "assign to epic" as a next action.
+Reusable modules like the Polling contrib need to trigger domain-specific workflows without knowing what those workflows are. For example, when the Polling module detects new data at an endpoint, it should trigger downstream processing - but the Polling module cannot know whether that processing is CEAP document capture, data transformation, or something else entirely.
 
-This approach has problems:
+This creates a cross-bounded-context orchestration problem:
 
-1. **Mixed concerns**: Use cases know too much about workflow orchestration - which other use cases exist, how to construct their requests, and the business rules for when they're appropriate.
+1. **BC isolation**: Bounded contexts should not depend on each other's internals
+2. **Reusability**: Contrib modules must work with any solution, not specific BCs
+3. **Composition at deployment**: The "what happens next" decision belongs to the solution provider, not the reusable module
 
-2. **Wrong interface**: The `next_action()` pattern returns request/response objects (use case DTOs), but workflow decisions should be expressed in terms of domain objects.
+The question is: how does a use case hand off work to "whatever comes next" without knowing what that is?
 
-3. **Inverted responsibility**: Services translate between domain objects and use case requests. Use cases translate requests into domain operations. If "what comes next" is a domain-level decision, it belongs where domain context is understood.
+One approach is a bridge pipeline - an intermediate workflow that understands both sides. The Polling app used this pattern with `PollingDataPreparationPipeline`, which understood polling results and how to trigger CEAP. This works but requires an extra pipeline for every integration point.
 
-The current pattern:
-
-```python
-class CreateStoryUseCase:
-    def next_actions(self, response) -> list[SuggestedRequest]:
-        # Use case knows about other use cases and their requests
-        if not response.story.epic_slug:
-            return [AssignToEpicRequest(story_slug=response.story.slug)]
-        return []
-```
-
-This couples the use case to knowledge it shouldn't have.
+A cleaner approach is to inject the "what comes next" logic as a service dependency, letting the composition root wire up cross-BC coordination explicitly.
 
 ## Decision
 
 Use cases SHALL hand off domain conditions to **handler services** rather than computing next actions themselves.
 
-A handler is a service with a **domain interface** - it accepts domain objects, not requests. What the handler does internally (call other use cases, queue work, send notifications, dispatch to Temporal) is the handler's business.
+**Handlers are services.** They follow the same patterns as other services - a protocol in `services/`, implementations injected via DI. The term "handler" indicates a specific responsibility: accepting domain objects and deciding what to do with them. This is the "green-dotted-egg" principle: a use case recognizes a condition and hands off to a handler, without knowing what the handler does.
+
+A handler has a **domain interface** - it accepts domain objects, not requests. What the handler does internally (call other use cases, queue work, send notifications, dispatch to Temporal) is the handler's business.
 
 ### The Pattern
 
@@ -118,11 +111,12 @@ When orchestration is required (not optional), omit the `| None`.
 Handlers return `Acknowledgement` using radio communication semantics:
 
 - **Wilco** ("will comply"): Handler accepts and will process
-- **Roger** ("received"): Handler received but won't comply (with reason)
+- **Unable**: Handler cannot comply (resource constraints, invalid state, etc.)
+- **Roger** ("received"): Handler acknowledges receipt but makes no commitment about whether it will act - the wilco/unable distinction is not provided
 
 ```python
 class Acknowledgement(BaseModel):
-    will_comply: bool = True
+    will_comply: bool | None = None  # None = roger (no commitment either way)
     errors: list[str] = []
     warnings: list[str] = []
     info: list[str] = []
@@ -130,25 +124,33 @@ class Acknowledgement(BaseModel):
 
     @classmethod
     def wilco(cls, **messages) -> Acknowledgement:
-        """Will comply - handler accepts the handoff."""
+        """Will comply - handler accepts and will process."""
         return cls(will_comply=True, **messages)
 
     @classmethod
-    def roger(cls, reason: str, **messages) -> Acknowledgement:
-        """Received but won't comply - with explanation."""
-        return cls(will_comply=False, errors=[reason, *messages.get("errors", [])])
+    def unable(cls, **messages) -> Acknowledgement:
+        """Unable to comply - handler cannot process."""
+        return cls(will_comply=False, **messages)
+
+    @classmethod
+    def roger(cls, **messages) -> Acknowledgement:
+        """Received - acknowledged, no commitment about action."""
+        return cls(will_comply=None, **messages)
 ```
 
 Usage:
 ```python
-# Handler accepts
+# Handler accepts and will process
 return Acknowledgement.wilco()
 
 # Handler accepts with warnings
 return Acknowledgement.wilco(warnings=["Deprecated field used"])
 
-# Handler declines with reason
-return Acknowledgement.roger("Queue full, try again later")
+# Handler cannot comply
+return Acknowledgement.unable(errors=["Queue full, try again later"])
+
+# Handler acknowledges receipt, makes no commitment
+return Acknowledgement.roger(info=["Logged orphan story"])
 ```
 
 What happens after acknowledgement is the handler's business. It might:
@@ -158,7 +160,7 @@ What happens after acknowledgement is the handler's business. It might:
 - Send to a message broker
 - Do nothing (null handler for testing)
 
-The use case doesn't know or care.
+The use case doesn't know or care about how the handoff is handled, only whether it is handled.
 
 #### 4. Handler Signatures Vary
 
