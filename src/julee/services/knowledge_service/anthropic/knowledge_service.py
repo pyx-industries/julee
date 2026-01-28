@@ -10,6 +10,7 @@ Requirements:
     - ANTHROPIC_API_KEY environment variable must be set
 """
 
+import json
 import logging
 import os
 import time
@@ -227,8 +228,23 @@ class AnthropicKnowledgeService(KnowledgeService):
                         }
                     )
 
+            # Handle schema embedding if provided in metadata
+            output_schema = metadata.get("output_schema")
+            if output_schema:
+                # Build query with embedded schema (moved from use case layer)
+                schema_json = json.dumps(output_schema, indent=2)
+                enhanced_query_text = f"""{query_text}
+
+Please structure your response according to this JSON schema:
+{schema_json}
+
+Return only valid JSON that conforms to this schema, without any surrounding
+text or markdown formatting."""
+            else:
+                enhanced_query_text = query_text
+
             # Add the text query
-            content_parts.append({"type": "text", "text": query_text})
+            content_parts.append({"type": "text", "text": enhanced_query_text})
 
             # Prepare messages for the API
             messages = [{"role": "user", "content": content_parts}]
@@ -255,7 +271,7 @@ class AnthropicKnowledgeService(KnowledgeService):
             # Validate response has exactly one content block of type 'text'
             if len(response.content) != 1:
                 raise ValueError(
-                    f"Expected exactly 1 content block, got " f"{len(response.content)}"
+                    f"Expected exactly 1 content block, got {len(response.content)}"
                 )
 
             content_block = response.content[0]
@@ -280,9 +296,23 @@ class AnthropicKnowledgeService(KnowledgeService):
                 },
             )
 
-            # Structure the result with single text content
+            # Handle JSON parsing if schema was provided (moved from use case layer)
+            if output_schema:
+                try:
+                    parsed_response = json.loads(response_text.strip())
+                    response_value = parsed_response
+                except json.JSONDecodeError as e:
+                    raise ValueError(
+                        f"Knowledge service response must be valid JSON. "
+                        f"Complete response: {response_text} "
+                        f"Parse error: {e}"
+                    )
+            else:
+                response_value = response_text
+
+            # Structure the result with parsed or text content
             result_data = {
-                "response": response_text,
+                "response": response_value,
                 "model": model,
                 "service": "anthropic",
                 "sources": service_file_ids or [],
@@ -295,7 +325,7 @@ class AnthropicKnowledgeService(KnowledgeService):
 
             result = QueryResult(
                 query_id=query_id,
-                query_text=query_text,
+                query_text=enhanced_query_text if output_schema else query_text,
                 result_data=result_data,
                 execution_time_ms=execution_time_ms,
                 created_at=datetime.now(timezone.utc),

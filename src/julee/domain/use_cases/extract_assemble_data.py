@@ -414,19 +414,24 @@ class ExtractAssembleDataUseCase:
                     f"Document not registered with service {query.knowledge_service_id}"
                 )
 
-            # Execute the query with schema section embedded in the prompt
-            query_text = self._build_query_with_schema(query.prompt, schema_section)
+            # Pass schema section in metadata for knowledge service to handle
+            query_metadata = {
+                **(query.query_metadata or {}),
+                "output_schema": schema_section,
+            }
 
             query_result = await self.knowledge_service.execute_query(
                 config,
-                query_text,
+                query.prompt,
                 [service_file_id],
-                query.query_metadata,
+                query_metadata,
                 query.assistant_prompt,
             )
 
-            # Parse and store the result
-            result_data = self._parse_query_result(query_result.result_data)
+            # Knowledge service now returns parsed JSON directly
+            result_data = query_result.result_data.get("response")
+            if result_data is None:
+                raise ValueError("Knowledge service returned no response data")
             self._store_result_in_assembled_data(
                 assembled_data, schema_pointer, result_data
             )
@@ -484,34 +489,6 @@ class ExtractAssembleDataUseCase:
             return result
         except (jsonpointer.JsonPointerException, KeyError, TypeError) as e:
             raise ValueError(f"Cannot extract schema section '{schema_pointer}': {e}")
-
-    def _build_query_with_schema(self, base_prompt: str, schema_section: Any) -> str:
-        """Build the query text with embedded JSON schema section."""
-        schema_json = json.dumps(schema_section, indent=2)
-        return f"""{base_prompt}
-
-Please structure your response according to this JSON schema:
-{schema_json}
-
-Return only valid JSON that conforms to this schema, without any surrounding
-text or markdown formatting."""
-
-    def _parse_query_result(self, result_data: dict[str, Any]) -> Any:
-        """Parse the query result to extract the JSON response."""
-        response_text = result_data.get("response", "")
-        if not response_text:
-            raise ValueError("Empty response from knowledge service")
-
-        # Response must be valid JSON
-        try:
-            parsed_result = json.loads(response_text.strip())
-            return parsed_result
-        except json.JSONDecodeError as e:
-            raise ValueError(
-                f"Knowledge service response must be valid JSON. "
-                f"Complete response: {response_text} "
-                f"Parse error: {e}"
-            )
 
     def _store_result_in_assembled_data(
         self,
