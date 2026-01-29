@@ -205,6 +205,7 @@ class MemoryKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
+        output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
         query_metadata: dict[str, Any] | None = None,
         assistant_prompt: str | None = None,
@@ -214,9 +215,9 @@ class MemoryKnowledgeService(KnowledgeService):
         Args:
             config: KnowledgeServiceConfig for this operation
             query_text: The query to execute
+            output_schema: Optional JSON schema for structured response
             service_file_ids: Optional list of service file IDs for query
-            query_metadata: Optional service-specific metadata including
-                           output_schema for schema handling
+            query_metadata: Optional service-specific metadata
             assistant_prompt: Optional assistant message content (ignored in
                              memory implementation)
 
@@ -226,11 +227,9 @@ class MemoryKnowledgeService(KnowledgeService):
         Raises:
             ValueError: If no canned query results are available
         """
-        # Handle schema embedding if provided in metadata (same as Anthropic service)
-        metadata = query_metadata or {}
-        output_schema = metadata.get("output_schema")
+        # Handle schema embedding if provided (same as Anthropic service)
         if output_schema:
-            # Build query with embedded schema (moved from use case layer)
+            # Build query with embedded schema
             schema_json = json.dumps(output_schema, indent=2)
             enhanced_query_text = f"""{query_text}
 
@@ -239,8 +238,10 @@ Please structure your response according to this JSON schema:
 
 Return only valid JSON that conforms to this schema, without any surrounding
 text or markdown formatting."""
+            has_schema = True
         else:
             enhanced_query_text = query_text
+            has_schema = False
 
         logger.debug(
             "Executing query with MemoryKnowledgeService",
@@ -248,7 +249,7 @@ text or markdown formatting."""
                 "knowledge_service_id": config.knowledge_service_id,
                 "query_text": enhanced_query_text,
                 "document_count": (len(service_file_ids) if service_file_ids else 0),
-                "has_output_schema": output_schema is not None,
+                "has_output_schema": has_schema,
             },
         )
 
@@ -277,7 +278,7 @@ text or markdown formatting."""
         # Update the result to reflect the actual query parameters
         updated_result = QueryResult(
             query_id=result.query_id,
-            query_text=enhanced_query_text if output_schema else query_text,
+            query_text=enhanced_query_text if has_schema else query_text,
             result_data={
                 **result.result_data,
                 "response": response_value,

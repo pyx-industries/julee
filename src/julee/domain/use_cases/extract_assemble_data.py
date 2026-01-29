@@ -14,7 +14,6 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-import jsonpointer  # type: ignore
 import jsonschema
 import multihash
 
@@ -37,6 +36,7 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
+from .pointable_json_schema import PointableJSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -389,10 +389,9 @@ class ExtractAssembleDataUseCase:
             schema_pointer,
             query_id,
         ) in assembly_specification.knowledge_service_queries.items():
-            # Get the relevant schema section
-            schema_section = self._extract_schema_section(
-                assembly_specification.jsonschema, schema_pointer
-            )
+            # Use PointableJSONSchema to generate complete schema for pointer target
+            pointable_schema = PointableJSONSchema(assembly_specification.jsonschema)
+            output_schema = pointable_schema.schema_for_pointer(schema_pointer)
 
             # Get the query configuration
             query = queries[query_id]
@@ -414,17 +413,13 @@ class ExtractAssembleDataUseCase:
                     f"Document not registered with service {query.knowledge_service_id}"
                 )
 
-            # Pass schema section in metadata for knowledge service to handle
-            query_metadata = {
-                **(query.query_metadata or {}),
-                "output_schema": schema_section,
-            }
-
+            # Execute query with complete schema
             query_result = await self.knowledge_service.execute_query(
                 config,
                 query.prompt,
+                output_schema,
                 [service_file_id],
-                query_metadata,
+                query.query_metadata,
                 query.assistant_prompt,
             )
 
@@ -474,21 +469,6 @@ class ExtractAssembleDataUseCase:
         if not document:
             raise ValueError(f"Document not found: {document_id}")
         return document
-
-    def _extract_schema_section(
-        self, jsonschema: dict[str, Any], schema_pointer: str
-    ) -> Any:
-        """Extract relevant section of JSON schema using JSON Pointer."""
-        if not schema_pointer:
-            # Empty pointer refers to the entire schema
-            return jsonschema
-
-        try:
-            ptr = jsonpointer.JsonPointer(schema_pointer)
-            result = ptr.resolve(jsonschema)
-            return result
-        except (jsonpointer.JsonPointerException, KeyError, TypeError) as e:
-            raise ValueError(f"Cannot extract schema section '{schema_pointer}': {e}")
 
     def _store_result_in_assembled_data(
         self,

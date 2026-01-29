@@ -47,6 +47,7 @@ class ConfigurableKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
+        output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
         query_metadata: dict[str, Any] | None = None,
         assistant_prompt: str | None = None,
@@ -56,6 +57,7 @@ class ConfigurableKnowledgeService(KnowledgeService):
         return await service.execute_query(
             config=config,
             query_text=query_text,
+            output_schema=output_schema,
             service_file_ids=service_file_ids,
             query_metadata=query_metadata,
             assistant_prompt=assistant_prompt,

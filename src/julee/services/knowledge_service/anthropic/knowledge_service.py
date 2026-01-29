@@ -173,6 +173,7 @@ class AnthropicKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
+        output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
         query_metadata: dict[str, Any] | None = None,
         assistant_prompt: str | None = None,
@@ -182,6 +183,7 @@ class AnthropicKnowledgeService(KnowledgeService):
         Args:
             config: KnowledgeServiceConfig for this operation
             query_text: The query to execute
+            output_schema: Optional JSON schema for structured response
             service_file_ids: Optional list of Anthropic file IDs to provide
                              as context for the query
             query_metadata: Optional Anthropic-specific configuration such as
@@ -228,10 +230,9 @@ class AnthropicKnowledgeService(KnowledgeService):
                         }
                     )
 
-            # Handle schema embedding if provided in metadata
-            output_schema = metadata.get("output_schema")
+            # Handle schema embedding if provided
             if output_schema:
-                # Build query with embedded schema (moved from use case layer)
+                # Build query with embedded schema
                 schema_json = json.dumps(output_schema, indent=2)
                 enhanced_query_text = f"""{query_text}
 
@@ -296,7 +297,7 @@ text or markdown formatting."""
                 },
             )
 
-            # Handle JSON parsing if schema was provided (moved from use case layer)
+            # Handle JSON parsing if schema was provided
             if output_schema:
                 try:
                     parsed_response = json.loads(response_text.strip())

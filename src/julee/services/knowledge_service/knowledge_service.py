@@ -111,6 +111,7 @@ class KnowledgeService(Protocol):
         self,
         config: "KnowledgeServiceConfig",
         query_text: str,
+        output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
         query_metadata: dict[str, Any] | None = None,
         assistant_prompt: str | None = None,
@@ -124,6 +125,10 @@ class KnowledgeService(Protocol):
         Args:
             config: KnowledgeServiceConfig for the service to use
             query_text: The query to execute (natural language or structured)
+            output_schema: Optional JSON schema for structured response.
+                          When provided, the service will attempt to return
+                          results conforming to this schema using structured
+                          outputs or schema-guided prompting.
             service_file_ids: Optional list of service file IDs to provide as
                              context for the query. These are the IDs returned
                              by the knowledge service from register_file
