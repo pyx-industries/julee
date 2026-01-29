@@ -7,6 +7,7 @@ configurable canned query responses. Useful for testing and development
 scenarios where external service dependencies should be avoided.
 """
 
+import json
 import logging
 from collections import deque
 from datetime import datetime, timezone
@@ -204,6 +205,7 @@ class MemoryKnowledgeService(KnowledgeService):
         self,
         config: KnowledgeServiceConfig,
         query_text: str,
+        output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
         query_metadata: dict[str, Any] | None = None,
         assistant_prompt: str | None = None,
@@ -213,9 +215,9 @@ class MemoryKnowledgeService(KnowledgeService):
         Args:
             config: KnowledgeServiceConfig for this operation
             query_text: The query to execute
+            output_schema: Optional JSON schema for structured response
             service_file_ids: Optional list of service file IDs for query
-            query_metadata: Optional service-specific metadata (ignored in
-                           memory implementation)
+            query_metadata: Optional service-specific metadata
             assistant_prompt: Optional assistant message content (ignored in
                              memory implementation)
 
@@ -225,12 +227,29 @@ class MemoryKnowledgeService(KnowledgeService):
         Raises:
             ValueError: If no canned query results are available
         """
+        # Handle schema embedding if provided (same as Anthropic service)
+        if output_schema:
+            # Build query with embedded schema
+            schema_json = json.dumps(output_schema, indent=2)
+            enhanced_query_text = f"""{query_text}
+
+Please structure your response according to this JSON schema:
+{schema_json}
+
+Return only valid JSON that conforms to this schema, without any surrounding
+text or markdown formatting."""
+            has_schema = True
+        else:
+            enhanced_query_text = query_text
+            has_schema = False
+
         logger.debug(
             "Executing query with MemoryKnowledgeService",
             extra={
                 "knowledge_service_id": config.knowledge_service_id,
-                "query_text": query_text,
+                "query_text": enhanced_query_text,
                 "document_count": (len(service_file_ids) if service_file_ids else 0),
+                "has_output_schema": has_schema,
             },
         )
 
@@ -252,12 +271,17 @@ class MemoryKnowledgeService(KnowledgeService):
         # Pop and return the next canned result
         result = self._canned_query_results.popleft()
 
+        # For memory service, the canned response should already be a parsed object
+        # This maintains compatibility with existing tests regardless of schema presence
+        response_value = result.result_data.get("response")
+
         # Update the result to reflect the actual query parameters
         updated_result = QueryResult(
             query_id=result.query_id,
-            query_text=query_text,  # Use actual query text
+            query_text=enhanced_query_text if has_schema else query_text,
             result_data={
                 **result.result_data,
+                "response": response_value,
                 "queried_documents": service_file_ids or [],
                 "service": "memory",
                 "knowledge_service_id": config.knowledge_service_id,
