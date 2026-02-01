@@ -103,6 +103,10 @@ class AnthropicSchemaPreprocessor:
             ):
                 return True
 
+            # String format constraints
+            if self._has_unsupported_string_format(schema):
+                return True
+
             # Numerical constraints
             numerical_constraints = {
                 "minimum",
@@ -159,6 +163,7 @@ class AnthropicSchemaPreprocessor:
         self._fix_contains_constraint(schema, path, changes)
         self._fix_numerical_constraints(schema, path, changes)
         self._fix_string_constraints(schema, path, changes)
+        self._fix_string_format_constraints(schema, path, changes)
         self._fix_additional_properties_constraint(schema, path, changes)
         self._fix_recursive_schemas(schema, path, changes)
 
@@ -343,6 +348,33 @@ class AnthropicSchemaPreprocessor:
                     f"{location}.{constraint}: removed (not supported by Anthropic)"
                 )
                 changes.append(change_msg)
+
+    def _fix_string_format_constraints(
+        self, schema: dict[str, Any], path: str, changes: list[str]
+    ) -> None:
+        """
+        Fix string format constraints that are incompatible with Anthropic.
+
+        Anthropic does not support certain string formats like 'binary'.
+        We remove unsupported formats entirely.
+
+        Args:
+            schema: Schema dictionary to modify in-place
+            path: JSON path for tracking location of change
+            changes: List to accumulate change descriptions
+        """
+        # List of string formats not supported by Anthropic
+        unsupported_formats = ["binary"]
+
+        if (
+            schema.get("type") == "string"
+            and "format" in schema
+            and schema["format"] in unsupported_formats
+        ):
+            removed_format = schema.pop("format")
+            location = path if path else "root"
+            change_msg = f"{location}.format: removed '{removed_format}' (not supported by Anthropic)"
+            changes.append(change_msg)
 
     def _fix_additional_properties_constraint(
         self, schema: dict[str, Any], path: str, changes: list[str]
@@ -584,6 +616,16 @@ class AnthropicSchemaPreprocessor:
                             return True
 
         return False
+
+    def _has_unsupported_string_format(self, schema: dict[str, Any]) -> bool:
+        """Check if schema has unsupported string format."""
+        unsupported_formats = ["binary"]
+
+        return (
+            schema.get("type") == "string"
+            and "format" in schema
+            and schema["format"] in unsupported_formats
+        )
 
     def _has_contains_in_array_schema(self, schema: dict[str, Any]) -> bool:
         """Check if schema has contains property and is an array schema."""

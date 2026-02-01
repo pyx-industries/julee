@@ -564,6 +564,18 @@ class TestAnthropicSchemaPreprocessor:
                 ["minLength", "maxLength"],
                 2,
             ),
+            (
+                "string_binary_format",
+                {"type": "string", "format": "binary", "description": "Base64 data"},
+                ["format"],
+                1,
+            ),
+            (
+                "string_supported_format_preserved",
+                {"type": "string", "format": "uri", "description": "A URI"},
+                [],  # No removals - supported format
+                0,
+            ),
             # additionalProperties constraints
             (
                 "additionalProperties_true",
