@@ -34,7 +34,7 @@ from ..knowledge_service import (
 logger = logging.getLogger(__name__)
 
 # Default configuration constants
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-sonnet-4-5"
 DEFAULT_MAX_TOKENS = 4000
 
 
@@ -183,13 +183,13 @@ class AnthropicKnowledgeService(KnowledgeService):
         Args:
             config: KnowledgeServiceConfig for this operation
             query_text: The query to execute
-            output_schema: Optional JSON schema for structured response
+            output_schema: Optional JSON schema for inclusion in prompt (not used for structured outputs)
             service_file_ids: Optional list of Anthropic file IDs to provide
                              as context for the query
             query_metadata: Optional Anthropic-specific configuration such as
                            model, temperature, max_tokens, etc.
             assistant_prompt: Optional assistant message content to constrain
-                             or prime the model's response
+                             or prime the model's response.
 
         Returns:
             QueryResult with Anthropic query results
@@ -299,14 +299,30 @@ text or markdown formatting."""
 
             # Handle JSON parsing if schema was provided
             if output_schema:
+                # Determine the text to parse
+                if assistant_prompt and assistant_prompt.strip().startswith("{"):
+                    # Concatenate assistant prompt with response for JSON parsing
+                    json_text_to_parse = assistant_prompt + response_text
+                else:
+                    json_text_to_parse = response_text
+
                 try:
-                    parsed_response = json.loads(response_text.strip())
-                    response_value = parsed_response
+                    response_value = json.loads(json_text_to_parse.strip())
                 except json.JSONDecodeError as e:
+                    logger.error(
+                        f"Failed to parse JSON response when output schema was provided. "
+                        f"JSON text to parse: {json_text_to_parse[:500]}... "
+                        f"Parse error: {str(e)}",
+                        extra={
+                            "knowledge_service_id": config.knowledge_service_id,
+                            "query_id": query_id,
+                            "assistant_prompt": assistant_prompt,
+                            "response_text_preview": response_text[:100],
+                        },
+                    )
                     raise ValueError(
-                        f"Knowledge service response must be valid JSON. "
-                        f"Complete response: {response_text} "
-                        f"Parse error: {e}"
+                        f"Expected valid JSON response when output schema provided, "
+                        f"but failed to parse: {str(e)}"
                     )
             else:
                 response_value = response_text
@@ -326,7 +342,7 @@ text or markdown formatting."""
 
             result = QueryResult(
                 query_id=query_id,
-                query_text=enhanced_query_text if output_schema else query_text,
+                query_text=query_text,
                 result_data=result_data,
                 execution_time_ms=execution_time_ms,
                 created_at=datetime.now(timezone.utc),

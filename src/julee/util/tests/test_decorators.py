@@ -682,7 +682,7 @@ class TestWorkflowProxyIntegration:
 
         # Check instance attributes
         assert hasattr(proxy, "activity_timeout")
-        assert hasattr(proxy, "activity_fail_fast_retry_policy")
+        assert hasattr(proxy, "activity_default_retry_policy")
 
     def test_different_repositories_get_different_types(self) -> None:
         """Test that different repositories extract their respective types."""

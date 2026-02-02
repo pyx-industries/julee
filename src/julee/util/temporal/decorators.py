@@ -243,9 +243,9 @@ def temporal_workflow_proxy(
         retry_methods_set = set(retry_methods or [])
 
         # Create default retry policy for methods that need it
-        fail_fast_retry_policy = RetryPolicy(
+        default_retry_policy = RetryPolicy(
             initial_interval=timedelta(seconds=1),
-            maximum_attempts=1,
+            maximum_attempts=4,
             backoff_coefficient=1.0,
             maximum_interval=timedelta(seconds=1),
         )
@@ -315,7 +315,7 @@ def temporal_workflow_proxy(
 
                     # Add retry policy if this method needs it
                     if method_name in retry_methods_set:
-                        retry_policy = fail_fast_retry_policy
+                        retry_policy = default_retry_policy
 
                     # Log the call
                     logger.debug(
@@ -408,7 +408,7 @@ def temporal_workflow_proxy(
             super(cls, proxy_self).__init__()
             # Set instance variables for consistency with manual pattern
             proxy_self.activity_timeout = timedelta(seconds=default_timeout_seconds)
-            proxy_self.activity_fail_fast_retry_policy = fail_fast_retry_policy
+            proxy_self.activity_default_retry_policy = default_retry_policy
             logger.debug(f"Initialized {cls.__name__}")
 
         cls.__init__ = __init__
