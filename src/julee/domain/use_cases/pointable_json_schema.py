@@ -6,7 +6,7 @@ extracting targeted schema sections while preserving important root metadata nee
 for proper JSON Schema validation and structured outputs.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from jsonpointer import JsonPointer
 
@@ -19,7 +19,7 @@ class PointableJSONSchema:
     root metadata like $schema, $id, definitions, etc.
     """
 
-    def __init__(self, root_schema: Dict[str, Any]) -> None:
+    def __init__(self, root_schema: dict[str, Any]) -> None:
         """Initialize with the complete root schema.
 
         Args:
@@ -27,7 +27,7 @@ class PointableJSONSchema:
         """
         self.root_schema = root_schema
 
-    def schema_for_pointer(self, json_pointer: str) -> Dict[str, Any]:
+    def schema_for_pointer(self, json_pointer: str) -> dict[str, Any]:
         """Generate a standalone schema for the given JSON pointer target.
 
         This method extracts the target schema section using the JSON pointer

@@ -245,7 +245,7 @@ class TestMemoryKnowledgeService:
         memory_service.add_canned_query_result(sample_query_result)
 
         result = await memory_service.execute_query(
-            knowledge_service_config, query_text, document_ids
+            knowledge_service_config, query_text, service_file_ids=document_ids
         )
 
         # Should return updated result with actual query parameters
