@@ -319,3 +319,146 @@ class TestAnthropicKnowledgeService:
             assert call_args[1]["model"] == anthropic_ks_module.DEFAULT_MODEL
             assert call_args[1]["max_tokens"] == anthropic_ks_module.DEFAULT_MAX_TOKENS
             assert "temperature" not in call_args[1]  # Not set by default
+
+    @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
+    async def test_execute_query_with_json_assistant_prompt(
+        self,
+        knowledge_service_config: KnowledgeServiceConfig,
+    ) -> None:
+        """Test execute_query with assistant prompt that starts with { for JSON parsing."""
+        # Mock response that would be concatenated with {
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_content_block = MagicMock()
+        mock_content_block.type = "text"
+        mock_content_block.text = '"name": "John", "age": 30}'
+        mock_response.content = [mock_content_block]
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 20
+        mock_response.stop_reason = "end_turn"
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+        ) as mock_anthropic:
+            mock_anthropic.return_value = mock_client
+
+            service = anthropic_ks.AnthropicKnowledgeService()
+
+            query_text = "What is the person's data?"
+            output_schema = {
+                "type": "object",
+                "properties": {"name": {"type": "string"}, "age": {"type": "number"}},
+                "required": ["name", "age"],
+                "additionalProperties": False,
+            }
+            assistant_prompt = "{"
+
+            result = await service.execute_query(
+                knowledge_service_config,
+                query_text,
+                output_schema=output_schema,
+                assistant_prompt=assistant_prompt,
+            )
+
+            # Verify the response was parsed as JSON after concatenation
+            assert result.result_data["response"] == {"name": "John", "age": 30}
+            assert isinstance(result.result_data["response"], dict)
+
+            # Verify API call included assistant message
+            mock_client.messages.create.assert_called_once()
+            call_args = mock_client.messages.create.call_args
+            messages = call_args[1]["messages"]
+            assert len(messages) == 2
+            assert messages[0]["role"] == "user"
+            assert messages[1]["role"] == "assistant"
+            assert messages[1]["content"] == "{"
+
+    @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
+    async def test_execute_query_with_schema_but_no_assistant_prompt(
+        self,
+        knowledge_service_config: KnowledgeServiceConfig,
+    ) -> None:
+        """Test execute_query with schema but no assistant prompt - should parse response directly."""
+        # Mock response with complete JSON
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_content_block = MagicMock()
+        mock_content_block.type = "text"
+        mock_content_block.text = '{"name": "Jane", "age": 25}'
+        mock_response.content = [mock_content_block]
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 20
+        mock_response.stop_reason = "end_turn"
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+        ) as mock_anthropic:
+            mock_anthropic.return_value = mock_client
+
+            service = anthropic_ks.AnthropicKnowledgeService()
+
+            query_text = "What is the person's data?"
+            output_schema = {
+                "type": "object",
+                "properties": {"name": {"type": "string"}, "age": {"type": "number"}},
+                "required": ["name", "age"],
+                "additionalProperties": False,
+            }
+
+            result = await service.execute_query(
+                knowledge_service_config,
+                query_text,
+                output_schema=output_schema,
+            )
+
+            # Verify the response was parsed as JSON directly
+            assert result.result_data["response"] == {"name": "Jane", "age": 25}
+            assert isinstance(result.result_data["response"], dict)
+
+            # Verify API call had no assistant message
+            mock_client.messages.create.assert_called_once()
+            call_args = mock_client.messages.create.call_args
+            messages = call_args[1]["messages"]
+            assert len(messages) == 1
+            assert messages[0]["role"] == "user"
+
+    @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"})
+    async def test_execute_query_json_parse_error_with_schema(
+        self,
+        knowledge_service_config: KnowledgeServiceConfig,
+    ) -> None:
+        """Test execute_query raises ValueError when JSON parsing fails with schema."""
+        # Mock response with invalid JSON
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_content_block = MagicMock()
+        mock_content_block.type = "text"
+        mock_content_block.text = '"name": "John", invalid json}'
+        mock_response.content = [mock_content_block]
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 20
+        mock_response.stop_reason = "end_turn"
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch(
+            "julee.services.knowledge_service.anthropic.knowledge_service.AsyncAnthropic"
+        ) as mock_anthropic:
+            mock_anthropic.return_value = mock_client
+
+            service = anthropic_ks.AnthropicKnowledgeService()
+
+            output_schema = {"type": "object", "additionalProperties": False}
+            assistant_prompt = "{"
+
+            with pytest.raises(
+                ValueError,
+                match="Expected valid JSON response when output schema provided",
+            ):
+                await service.execute_query(
+                    knowledge_service_config,
+                    "Test query",
+                    output_schema=output_schema,
+                    assistant_prompt=assistant_prompt,
+                )
