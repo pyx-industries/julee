@@ -242,7 +242,7 @@ class TestKnowledgeServiceQueryMetadata:
     def test_query_metadata_accepts_custom_values(self) -> None:
         """Test that query_metadata can accept custom service values."""
         metadata = {
-            "model": "claude-sonnet-4-20250514",
+            "model": "claude-sonnet-4-5",
             "max_tokens": 4000,
             "temperature": 0.1,
         }
@@ -256,7 +256,7 @@ class TestKnowledgeServiceQueryMetadata:
         )
 
         assert query.query_metadata == metadata
-        assert query.query_metadata["model"] == "claude-sonnet-4-20250514"
+        assert query.query_metadata["model"] == "claude-sonnet-4-5"
         assert query.query_metadata["max_tokens"] == 4000
         assert query.query_metadata["temperature"] == 0.1
 
@@ -289,7 +289,7 @@ class TestKnowledgeServiceQueryMetadata:
     def test_query_metadata_roundtrip_serialization(self) -> None:
         """Test query_metadata survives JSON roundtrip serialization."""
         metadata = {
-            "model": "claude-sonnet-4-20250514",
+            "model": "claude-sonnet-4-5",
             "max_tokens": 2000,
             "temperature": 0.0,
             "citations": True,
