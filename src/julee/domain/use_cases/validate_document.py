@@ -507,6 +507,7 @@ class ValidateDocumentUseCase:
             query_result = await self.knowledge_service.execute_query(
                 config,
                 query.prompt,
+                None,  # output_schema
                 [service_file_id],
                 query.query_metadata,
                 query.assistant_prompt,
@@ -654,6 +655,7 @@ class ValidateDocumentUseCase:
             transformation_result = await self.knowledge_service.execute_query(
                 config,
                 query.prompt,
+                None,  # output_schema
                 [service_file_id],
                 query.query_metadata,
                 query.assistant_prompt,

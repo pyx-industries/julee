@@ -14,7 +14,6 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-import jsonpointer  # type: ignore
 import jsonschema
 import multihash
 
@@ -37,6 +36,7 @@ from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
+from .pointable_json_schema import PointableJSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -389,10 +389,9 @@ class ExtractAssembleDataUseCase:
             schema_pointer,
             query_id,
         ) in assembly_specification.knowledge_service_queries.items():
-            # Get the relevant schema section
-            schema_section = self._extract_schema_section(
-                assembly_specification.jsonschema, schema_pointer
-            )
+            # Use PointableJSONSchema to generate complete schema for pointer target
+            pointable_schema = PointableJSONSchema(assembly_specification.jsonschema)
+            output_schema = pointable_schema.schema_for_pointer(schema_pointer)
 
             # Get the query configuration
             query = queries[query_id]
@@ -414,19 +413,20 @@ class ExtractAssembleDataUseCase:
                     f"Document not registered with service {query.knowledge_service_id}"
                 )
 
-            # Execute the query with schema section embedded in the prompt
-            query_text = self._build_query_with_schema(query.prompt, schema_section)
-
+            # Execute query with complete schema
             query_result = await self.knowledge_service.execute_query(
                 config,
-                query_text,
+                query.prompt,
+                output_schema,
                 [service_file_id],
                 query.query_metadata,
                 query.assistant_prompt,
             )
 
-            # Parse and store the result
-            result_data = self._parse_query_result(query_result.result_data)
+            # Knowledge service now returns parsed JSON directly
+            result_data = query_result.result_data.get("response")
+            if result_data is None:
+                raise ValueError("Knowledge service returned no response data")
             self._store_result_in_assembled_data(
                 assembled_data, schema_pointer, result_data
             )
@@ -469,49 +469,6 @@ class ExtractAssembleDataUseCase:
         if not document:
             raise ValueError(f"Document not found: {document_id}")
         return document
-
-    def _extract_schema_section(
-        self, jsonschema: dict[str, Any], schema_pointer: str
-    ) -> Any:
-        """Extract relevant section of JSON schema using JSON Pointer."""
-        if not schema_pointer:
-            # Empty pointer refers to the entire schema
-            return jsonschema
-
-        try:
-            ptr = jsonpointer.JsonPointer(schema_pointer)
-            result = ptr.resolve(jsonschema)
-            return result
-        except (jsonpointer.JsonPointerException, KeyError, TypeError) as e:
-            raise ValueError(f"Cannot extract schema section '{schema_pointer}': {e}")
-
-    def _build_query_with_schema(self, base_prompt: str, schema_section: Any) -> str:
-        """Build the query text with embedded JSON schema section."""
-        schema_json = json.dumps(schema_section, indent=2)
-        return f"""{base_prompt}
-
-Please structure your response according to this JSON schema:
-{schema_json}
-
-Return only valid JSON that conforms to this schema, without any surrounding
-text or markdown formatting."""
-
-    def _parse_query_result(self, result_data: dict[str, Any]) -> Any:
-        """Parse the query result to extract the JSON response."""
-        response_text = result_data.get("response", "")
-        if not response_text:
-            raise ValueError("Empty response from knowledge service")
-
-        # Response must be valid JSON
-        try:
-            parsed_result = json.loads(response_text.strip())
-            return parsed_result
-        except json.JSONDecodeError as e:
-            raise ValueError(
-                f"Knowledge service response must be valid JSON. "
-                f"Complete response: {response_text} "
-                f"Parse error: {e}"
-            )
 
     def _store_result_in_assembled_data(
         self,

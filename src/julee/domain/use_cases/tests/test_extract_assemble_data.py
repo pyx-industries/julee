@@ -107,7 +107,7 @@ class TestExtractAssembleDataUseCase:
                 QueryResult(
                     query_id="result-1",
                     query_text="Extract the title from this document",
-                    result_data={"response": '"Test Meeting"'},
+                    result_data={"response": "Test Meeting"},
                     execution_time_ms=100,
                     created_at=datetime.now(timezone.utc),
                 ),
@@ -115,7 +115,7 @@ class TestExtractAssembleDataUseCase:
                     query_id="result-2",
                     query_text="Extract a summary from this document",
                     result_data={
-                        "response": ('"This was a test meeting about important topics"')
+                        "response": "This was a test meeting about important topics"
                     },
                     execution_time_ms=150,
                     created_at=datetime.now(timezone.utc),
@@ -356,6 +356,147 @@ class TestExtractAssembleDataUseCase:
             assembled_data["summary"]
             == "This was a test meeting about important topics"
         )
+
+    async def test_schema_passed_in_metadata(
+        self,
+        configured_use_case: ExtractAssembleDataUseCase,
+        document_repo: MemoryDocumentRepository,
+        assembly_repo: MemoryAssemblyRepository,
+        assembly_specification_repo: MemoryAssemblySpecificationRepository,
+        knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
+        knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
+    ) -> None:
+        """Test that schema sections are passed in query metadata instead of embedded in prompt."""
+        # Arrange - Create test document
+        content_text = "Sample meeting transcript for testing"
+        content_bytes = content_text.encode("utf-8")
+        document = Document(
+            document_id="doc-123",
+            original_filename="test_transcript.txt",
+            content_type="text/plain",
+            size_bytes=len(content_bytes),
+            content_multihash="test-hash-123",
+            status=DocumentStatus.CAPTURED,
+            content=ContentStream(io.BytesIO(content_bytes)),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        await document_repo.save(document)
+
+        # Create assembly specification with simple schema
+        schema = {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string"},
+            },
+            "required": ["title"],
+        }
+
+        assembly_spec = AssemblySpecification(
+            assembly_specification_id="spec-123",
+            name="Test Assembly",
+            applicability="Test documents",
+            jsonschema=schema,
+            status=AssemblySpecificationStatus.ACTIVE,
+            knowledge_service_queries={
+                "/properties/title": "query-1",
+            },
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        await assembly_specification_repo.save(assembly_spec)
+
+        # Create knowledge service config
+        ks_config = KnowledgeServiceConfig(
+            knowledge_service_id="ks-123",
+            name="Test Knowledge Service",
+            description="Test service",
+            service_api=ServiceApi.ANTHROPIC,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        await knowledge_service_config_repo.save(ks_config)
+
+        # Create knowledge service query
+        query1 = KnowledgeServiceQuery(
+            query_id="query-1",
+            name="Extract Title",
+            knowledge_service_id="ks-123",
+            prompt="Extract the title from this document",
+            query_metadata={"max_tokens": 100, "temperature": 0.1},
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        await knowledge_service_query_repo.save(query1)
+
+        # Mock knowledge service to capture the actual call parameters
+        captured_calls = []
+
+        async def mock_execute_query(
+            config,
+            query_text,
+            output_schema=None,
+            service_file_ids=None,
+            query_metadata=None,
+            assistant_prompt=None,
+        ):
+            captured_calls.append(
+                {
+                    "config": config,
+                    "query_text": query_text,
+                    "output_schema": output_schema,
+                    "service_file_ids": service_file_ids,
+                    "query_metadata": query_metadata,
+                    "assistant_prompt": assistant_prompt,
+                }
+            )
+            # Return a mock result
+            return QueryResult(
+                query_id="mock-result",
+                query_text=query_text,
+                result_data={"response": "Mock Title"},
+                execution_time_ms=100,
+                created_at=datetime.now(timezone.utc),
+            )
+
+        # Replace the knowledge service execute_query method
+        original_execute_query = configured_use_case.knowledge_service.execute_query
+        configured_use_case.knowledge_service.execute_query = mock_execute_query
+
+        try:
+            # Act
+            await configured_use_case.assemble_data(
+                document_id="doc-123",
+                assembly_specification_id="spec-123",
+                workflow_id="test-workflow-schema",
+            )
+
+            # Assert - Verify the call was made with schema in metadata
+            assert len(captured_calls) == 1
+            call = captured_calls[0]
+
+            # Verify query text is clean (no embedded schema)
+            assert call["query_text"] == "Extract the title from this document"
+            assert "JSON schema" not in call["query_text"]
+            assert "Please structure your response" not in call["query_text"]
+
+            # Verify complete schema is passed as output_schema parameter
+            assert call["output_schema"] is not None
+            expected_schema = {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {"title": {"type": "string"}},
+                "required": ["title"],
+            }  # Complete schema generated by PointableJSONSchema
+            assert call["output_schema"] == expected_schema
+
+            # Verify original metadata is preserved (without output_schema)
+            assert call["query_metadata"]["max_tokens"] == 100
+            assert call["query_metadata"]["temperature"] == 0.1
+
+        finally:
+            # Restore original method
+            configured_use_case.knowledge_service.execute_query = original_execute_query
 
     @pytest.mark.asyncio
     async def test_assembly_fails_when_specification_not_found(
