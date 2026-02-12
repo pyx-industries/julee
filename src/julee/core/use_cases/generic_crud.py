@@ -680,11 +680,14 @@ class UpdateUseCase(Generic[E, R]):
         if self.update_fields:
             data = {k: v for k, v in data.items() if k in self.update_fields}
 
-        # Apply update
+        # Apply update - use apply_update() if available, otherwise
+        # reconstruct via model_validate() to ensure validators run.
+        # (model_copy() skips model validators, which can bypass
+        # invariants like auto-setting timestamps on state transitions.)
         if hasattr(entity, "apply_update"):
             updated = entity.apply_update(**data)
         else:
-            updated = entity.model_copy(update=data)
+            updated = type(entity).model_validate({**entity.model_dump(), **data})
 
         await self.repo.save(updated)
 
