@@ -17,12 +17,17 @@ from temporalio.client import (
     ScheduleActionStartWorkflow,
     ScheduleAlreadyRunningError,
     ScheduleIntervalSpec,
+    ScheduleOverlapPolicy,
+    SchedulePolicy,
     ScheduleSpec,
     ScheduleUpdate,
     ScheduleUpdateInput,
 )
 
-from julee.contrib.polling.domain.models.polling_config import PollingConfig
+from julee.contrib.polling.domain.models.polling_config import (
+    PollingConfig,
+    SchedulingPolicy,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +104,13 @@ class PollingManager:
 
         schedule_id = f"poll-{endpoint_id}"
 
+        # Map Julee scheduling policy to Temporal overlap policy
+        temporal_overlap_policy = (
+            ScheduleOverlapPolicy.SKIP
+            if config.scheduling_policy == SchedulingPolicy.SKIP_IF_RUNNING
+            else ScheduleOverlapPolicy.ALLOW_ALL
+        )
+
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
                 "NewDataDetectionPipeline",
@@ -111,6 +123,7 @@ class PollingManager:
                     ScheduleIntervalSpec(every=timedelta(seconds=interval_seconds))
                 ]
             ),
+            policy=SchedulePolicy(overlap=temporal_overlap_policy),
         )
 
         try:

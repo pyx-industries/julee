@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "julee"
-version = "0.1.8"
+version = "0.1.9"
 description = "Julee - Clean architecture for accountable and transparent digital supply chains"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "GPL-3.0"}
+license = "GPL-3.0"
 authors = [
     {name = "Pyx Industries", email = "chris@pyx.io"}
 ]
@@ -16,7 +16,7 @@ keywords = ["temporal", "workflow", "document-processing", "ai", "supply-chain"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
