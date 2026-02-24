@@ -11,9 +11,11 @@ import logging
 from typing import Any
 
 from temporalio import workflow
-from temporalio.workflow import ParentClosePolicy
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+from julee.contrib.polling.domain.services.polling_result_handler import (
+    PollingResultHandler,
+)
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
@@ -29,17 +31,18 @@ class NewDataDetectionPipeline:
     This workflow:
     1. Polls an endpoint using the configured polling service
     2. Compares result with previous completion to detect changes
-    3. Triggers downstream processing when new data is detected
+    3. Hands off to result handler when new data is detected
     4. Returns completion result for next scheduled execution
 
     The workflow uses Temporal's schedule last completion result feature
     to automatically receive the previous execution's result for comparison.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, result_handler: PollingResultHandler) -> None:
         self.current_step = "initialized"
         self.endpoint_id: str | None = None
         self.has_new_data: bool = False
+        self._result_handler = result_handler
 
     @workflow.query
     def get_current_step(self) -> str:
@@ -56,73 +59,22 @@ class NewDataDetectionPipeline:
         """Query method to check if new data was detected."""
         return self.has_new_data
 
-    async def trigger_downstream_pipeline(
-        self,
-        downstream_pipeline: str,
-        previous_data: bytes | None,
-        new_data: bytes,
-    ) -> bool:
-        """
-        Trigger downstream pipeline workflow.
-
-        Args:
-            downstream_pipeline: Name of the downstream workflow to trigger
-            previous_data: Previous content (None if first run)
-            new_data: New content that was detected
-
-        Returns:
-            True if successfully triggered, False otherwise
-        """
-        try:
-            # Start child workflow for downstream processing with abandon policy
-            await workflow.start_child_workflow(
-                downstream_pipeline,  # This would be the workflow class name
-                args=[previous_data, new_data],
-                id=f"downstream-{self.endpoint_id}-{workflow.info().workflow_id}",
-                task_queue="downstream-processing-queue",
-                parent_close_policy=ParentClosePolicy.ABANDON,
-            )
-
-            workflow.logger.info(
-                "Downstream pipeline triggered successfully",
-                extra={
-                    "endpoint_id": self.endpoint_id,
-                    "downstream_pipeline": downstream_pipeline,
-                },
-            )
-            return True
-
-        except Exception as e:
-            workflow.logger.error(
-                "Failed to trigger downstream pipeline",
-                extra={
-                    "endpoint_id": self.endpoint_id,
-                    "downstream_pipeline": downstream_pipeline,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-            )
-            # Don't fail the polling workflow if downstream trigger fails
-            return False
-
     @workflow.run
     async def run(
         self,
         config: PollingConfig | dict[str, Any],
-        downstream_pipeline: str | None = None,
     ) -> dict[str, Any]:
         """
         Execute the new data detection workflow.
 
         Args:
             config: Configuration for the polling operation (PollingConfig or dict from schedule)
-            downstream_pipeline: Optional pipeline to trigger when new data detected
 
         Returns:
             Completion result containing polling result and detection metadata
 
         Raises:
-            RuntimeError: If polling or downstream processing fails after retries
+            RuntimeError: If polling fails after retries
         """
         # Convert dict to PollingConfig if needed (for schedule compatibility)
         # Temporal schedules serialize arguments as dicts, not Pydantic models
@@ -186,21 +138,20 @@ class NewDataDetectionPipeline:
                 f"previous_hash: {previous_hash[:8] if previous_hash else 'None'}..."
             )
 
-            # Step 3: Trigger downstream processing if new data detected
-            downstream_triggered = False
-            if has_new_data and downstream_pipeline:
-                self.current_step = "triggering_downstream"
+            # Step 3: Hand off to result handler if new data detected
+            handler_acknowledgement = None
+            if has_new_data:
+                self.current_step = "handling_new_data"
 
                 workflow.logger.info(
-                    "Triggering downstream pipeline",
+                    "Handing off new data to result handler",
                     extra={
                         "endpoint_id": self.endpoint_id,
-                        "downstream_pipeline": downstream_pipeline,
                         "content_length": len(current_content),
                     },
                 )
 
-                # Get previous data for comparison
+                # Get previous data for handler
                 previous_data = None
                 if previous_completion and "polling_result" in previous_completion:
                     prev_content_str = previous_completion["polling_result"].get(
@@ -211,7 +162,7 @@ class NewDataDetectionPipeline:
                             previous_data = prev_content_str.encode("utf-8")
                         except (UnicodeDecodeError, AttributeError) as e:
                             workflow.logger.error(
-                                "Failed to decode previous content for downstream pipeline",
+                                "Failed to decode previous content for handler",
                                 extra={
                                     "endpoint_id": self.endpoint_id,
                                     "error": str(e),
@@ -221,24 +172,38 @@ class NewDataDetectionPipeline:
                             raise RuntimeError(
                                 f"Previous content is corrupted or invalid: {e}"
                             )
-                    elif previous_hash:
-                        # We have previous run but no content - this is an error
-                        workflow.logger.error(
-                            "Previous content not available for downstream pipeline but previous hash exists",
-                            extra={
-                                "endpoint_id": self.endpoint_id,
-                                "previous_hash": previous_hash,
-                            },
-                        )
-                        raise RuntimeError(
-                            "Previous content is missing from completion result but is required for downstream pipeline"
-                        )
 
-                downstream_triggered = await self.trigger_downstream_pipeline(
-                    downstream_pipeline,
-                    previous_data,
-                    current_content,
-                )
+                try:
+                    handler_acknowledgement = (
+                        await self._result_handler.handle_new_data(
+                            endpoint_id=self.endpoint_id,
+                            previous_data=previous_data,
+                            new_data=current_content,
+                            content_hash=current_hash,
+                        )
+                    )
+
+                    # Log handler response
+                    workflow.logger.info(
+                        f"Handler response: {handler_acknowledgement}",
+                        extra={
+                            "endpoint_id": self.endpoint_id,
+                            "handler_response": str(handler_acknowledgement),
+                            "handler_info": handler_acknowledgement.info,
+                        },
+                    )
+
+                except Exception as e:
+                    workflow.logger.error(
+                        "Handler failed to process new data",
+                        extra={
+                            "endpoint_id": self.endpoint_id,
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                        },
+                    )
+                    # Don't fail the polling workflow if handler fails
+                    # handler_acknowledgement remains None to indicate handler exception
 
             self.current_step = "completed"
 
@@ -256,7 +221,7 @@ class NewDataDetectionPipeline:
                     "previous_hash": previous_hash,
                     "current_hash": current_hash,
                 },
-                "downstream_triggered": downstream_triggered,
+                "handler_acknowledgement": handler_acknowledgement,
                 "endpoint_id": self.endpoint_id,
                 "completed_at": workflow.now().isoformat(),
             }
@@ -266,7 +231,7 @@ class NewDataDetectionPipeline:
                 extra={
                     "endpoint_id": self.endpoint_id,
                     "has_new_data": has_new_data,
-                    "downstream_triggered": downstream_triggered,
+                    "handler_acknowledgement": handler_acknowledgement,
                 },
             )
 
