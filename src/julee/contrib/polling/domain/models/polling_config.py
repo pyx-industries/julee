@@ -18,6 +18,13 @@ class PollingProtocol(str, Enum):
     HTTP = "http"
 
 
+class SchedulingPolicy(str, Enum):
+    """Scheduling policy for polling operations."""
+
+    ALLOW_OVERLAP = "allow_overlap"
+    SKIP_IF_RUNNING = "skip_if_running"
+
+
 class PollingConfig(BaseModel):
     """Configuration for a polling operation."""
 
@@ -26,6 +33,10 @@ class PollingConfig(BaseModel):
     connection_params: dict[str, Any] = Field(default_factory=dict)
     polling_params: dict[str, Any] = Field(default_factory=dict)
     timeout_seconds: int | None = Field(default=30)
+    scheduling_policy: SchedulingPolicy = Field(
+        default=SchedulingPolicy.ALLOW_OVERLAP,
+        description="Policy for handling overlapping polling operations",
+    )
 
 
 class PollingResult(BaseModel):
