@@ -76,7 +76,10 @@ class PollDataUseCase:
 
         # Step 3: Extract previous hash
         previous_hash: str | None = None
-        if request.previous_completion and "polling_result" in request.previous_completion:
+        if (
+            request.previous_completion
+            and "polling_result" in request.previous_completion
+        ):
             previous_hash = request.previous_completion["polling_result"].get(
                 "content_hash"
             )
@@ -88,7 +91,10 @@ class PollDataUseCase:
         handler_acknowledgement = None
         if has_new_data and self._handler is not None:
             previous_data: bytes | None = None
-            if request.previous_completion and "polling_result" in request.previous_completion:
+            if (
+                request.previous_completion
+                and "polling_result" in request.previous_completion
+            ):
                 prev_content_str = request.previous_completion["polling_result"].get(
                     "content"
                 )
