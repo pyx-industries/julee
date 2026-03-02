@@ -12,6 +12,7 @@ import logging
 from pydantic import BaseModel
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+from julee.contrib.polling.domain.services.new_data_analyzer import NewDataAnalyzer
 from julee.contrib.polling.domain.services.poller import PollerService
 from julee.contrib.polling.domain.services.polling_result_handler import (
     PollingResultHandler,
@@ -35,19 +36,23 @@ class PollDataUseCase:
     1. Poll the endpoint via the injected PollerService
     2. Compute the SHA-256 hash of the response content
     3. Compare with the previous run's hash (from previous_completion)
-    4. If content has changed, delegate to the optional PollingResultHandler
-    5. Return a completion result dict in the same shape that
+    4. If content has changed and an analyzer is set, identify new item IDs
+    5. Delegate to the optional PollingResultHandler with the item IDs
+    6. Return a completion result dict in the same shape that
        NewDataDetectionPipeline returns, so Temporal schedule
        last-completion-result works unchanged.
+
     """
 
     def __init__(
         self,
         poller: PollerService,
-        handler: PollingResultHandler | None = None,
+        handler: PollingResultHandler,
+        analyzer: NewDataAnalyzer,
     ) -> None:
         self._poller = poller
         self._handler = handler
+        self._analyzer = analyzer
 
     async def execute(self, request: PollDataRequest) -> dict:
         """
@@ -74,8 +79,9 @@ class PollDataUseCase:
         current_content = polling_result.content
         current_hash = hashlib.sha256(current_content).hexdigest()
 
-        # Step 3: Extract previous hash
+        # Step 3: Extract previous hash and content
         previous_hash: str | None = None
+        previous_data: bytes | None = None
         if (
             request.previous_completion
             and "polling_result" in request.previous_completion
@@ -83,34 +89,30 @@ class PollDataUseCase:
             previous_hash = request.previous_completion["polling_result"].get(
                 "content_hash"
             )
+            prev_content_str = request.previous_completion["polling_result"].get(
+                "content"
+            )
+            if prev_content_str:
+                previous_data = prev_content_str.encode("utf-8")
 
         # Step 4: Detect change
         has_new_data = previous_hash != current_hash
 
-        # Step 5: Invoke handler if new data detected
+        # Step 5: Analyze and invoke handler if new data detected
         handler_acknowledgement = None
-        if has_new_data and self._handler is not None:
-            previous_data: bytes | None = None
-            if (
-                request.previous_completion
-                and "polling_result" in request.previous_completion
-            ):
-                prev_content_str = request.previous_completion["polling_result"].get(
-                    "content"
-                )
-                if prev_content_str:
-                    previous_data = prev_content_str.encode("utf-8")
-
+        if has_new_data:
             try:
+                item_ids = await self._analyzer.identify_new_items(
+                    previous_data, current_content
+                )
                 handler_acknowledgement = await self._handler.handle_new_data(
                     endpoint_id,
-                    previous_data,
-                    current_content,
+                    item_ids,
                     current_hash,
                 )
             except Exception as e:
                 logger.error(
-                    "Handler raised an exception; continuing without ack",
+                    "Analyzer or handler raised an exception; continuing without ack",
                     extra={
                         "endpoint_id": endpoint_id,
                         "error": str(e),

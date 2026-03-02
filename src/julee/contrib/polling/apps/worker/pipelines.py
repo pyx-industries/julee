@@ -7,11 +7,13 @@ and reliable execution for endpoint polling and change detection.
 """
 
 import logging
+from abc import abstractmethod
 from typing import Any
 
 from temporalio import workflow
 
 from julee.contrib.polling.domain.models.polling_config import PollingConfig
+from julee.contrib.polling.domain.services.new_data_analyzer import NewDataAnalyzer
 from julee.contrib.polling.domain.services.polling_result_handler import (
     PollingResultHandler,
 )
@@ -31,14 +33,15 @@ class NewDataDetectionPipeline:
     This workflow:
     1. Polls an endpoint using the configured polling service
     2. Compares result with previous completion to detect changes
-    3. Hands off to result handler when new data is detected
-    4. Returns completion result for next scheduled execution
+    3. Runs the analyzer to identify new item IDs (if provided)
+    4. Hands off to result handler when new data is detected
+    5. Returns completion result for next scheduled execution
 
     The workflow uses Temporal's schedule last completion result feature
     to automatically receive the previous execution's result for comparison.
 
-    Subclasses override get_handler() to supply the appropriate handler
-    for each polling use case (credential, product, etc.).
+    Subclasses must implement get_handler() and get_analyzer() to supply the
+    appropriate objects for each polling use case (credential, product, etc.).
     """
 
     def __init__(self) -> None:
@@ -46,14 +49,15 @@ class NewDataDetectionPipeline:
         self.endpoint_id: str | None = None
         self.has_new_data: bool = False
 
-    def get_handler(self) -> PollingResultHandler | None:
-        """
-        Return the PollingResultHandler for this pipeline.
+    @abstractmethod
+    def get_handler(self) -> PollingResultHandler:
+        """Return the PollingResultHandler for this pipeline."""
+        ...
 
-        Subclasses override this method to provide a handler.
-        The base implementation returns None (detect only, no handoff).
-        """
-        return None
+    @abstractmethod
+    def get_analyzer(self) -> NewDataAnalyzer:
+        """Return the NewDataAnalyzer for this pipeline."""
+        ...
 
     @workflow.query
     def get_current_step(self) -> str:
@@ -117,6 +121,7 @@ class NewDataDetectionPipeline:
             use_case = PollDataUseCase(
                 poller=WorkflowPollerServiceProxy(),
                 handler=self.get_handler(),
+                analyzer=self.get_analyzer(),
             )
             result = await use_case.execute(request)
 
