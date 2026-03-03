@@ -78,7 +78,7 @@ class PollingManager:
         endpoint_id: str,
         config: PollingConfig,
         interval_seconds: int,
-        downstream_pipeline: str | None = None,
+        workflow_name: str = "NewDataDetectionPipeline",
     ) -> str:
         """
         Start polling an HTTP endpoint at regular intervals.
@@ -87,7 +87,9 @@ class PollingManager:
             endpoint_id: Unique identifier for this polling operation
             config: Configuration for the polling operation
             interval_seconds: How often to poll (in seconds)
-            downstream_pipeline: Optional pipeline to trigger when new data detected
+            workflow_name: Name of the Temporal workflow to schedule.
+                           Defaults to "NewDataDetectionPipeline"; override
+                           to use a subclass registered under a different name.
 
         Returns:
             Schedule ID that was created
@@ -113,8 +115,8 @@ class PollingManager:
 
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
-                "NewDataDetectionPipeline",
-                args=[config, downstream_pipeline],
+                workflow_name,
+                args=[config],
                 id=f"{schedule_id}-{{.timestamp}}",
                 task_queue=self._task_queue,
             ),
@@ -156,7 +158,7 @@ class PollingManager:
             "schedule_id": schedule_id,
             "config": config,
             "interval_seconds": interval_seconds,
-            "downstream_pipeline": downstream_pipeline,
+            "workflow_name": workflow_name,
         }
 
         return schedule_id
@@ -209,7 +211,7 @@ class PollingManager:
                     "interval_seconds": poll_info["interval_seconds"],
                     "endpoint_identifier": poll_info["config"].endpoint_identifier,
                     "polling_protocol": poll_info["config"].polling_protocol.value,
-                    "downstream_pipeline": poll_info.get("downstream_pipeline"),
+                    "workflow_name": poll_info.get("workflow_name"),
                 }
             )
 
@@ -246,7 +248,7 @@ class PollingManager:
             "schedule_id": schedule_id,
             "interval_seconds": poll_info["interval_seconds"],
             "is_paused": schedule_description.schedule.state.paused,
-            "downstream_pipeline": poll_info.get("downstream_pipeline"),
+            "workflow_name": poll_info.get("workflow_name"),
         }
 
     async def pause_polling(self, endpoint_id: str) -> bool:
