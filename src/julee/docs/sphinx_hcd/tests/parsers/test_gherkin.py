@@ -142,8 +142,7 @@ class TestParseFeatureFile:
         """Test parsing a feature file."""
         feature_dir = temp_project / "tests" / "e2e" / "my-app" / "features"
         feature_file = feature_dir / "submit.feature"
-        feature_file.write_text(
-            """Feature: Submit Form
+        feature_file.write_text("""Feature: Submit Form
 
   As a User
   I want to submit a form
@@ -153,8 +152,7 @@ class TestParseFeatureFile:
     Given I fill the form
     When I submit
     Then it succeeds
-"""
-        )
+""")
 
         story = parse_feature_file(feature_file, temp_project)
 
