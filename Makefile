@@ -114,8 +114,8 @@ format-python:
 # Update requirements files with exact pins from pyproject.toml
 update-requirements:
 	@echo "Updating requirements files from pyproject.toml..."
-	pip-compile --resolver=backtracking pyproject.toml --output-file requirements.txt
-	pip-compile --resolver=backtracking --extra dev pyproject.toml --output-file requirements-dev.txt
+	pip-compile --resolver=backtracking --upgrade pyproject.toml --output-file requirements.txt
+	pip-compile --resolver=backtracking --upgrade --extra dev pyproject.toml --output-file requirements-dev.txt
 	@echo "Requirements updated! Review changes before committing."
 
 # Help target

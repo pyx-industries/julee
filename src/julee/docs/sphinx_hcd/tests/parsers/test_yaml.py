@@ -73,16 +73,14 @@ class TestParseAppManifest:
         app_dir = temp_project / "apps" / "staff-portal"
         app_dir.mkdir(parents=True)
         manifest = app_dir / "app.yaml"
-        manifest.write_text(
-            """
+        manifest.write_text("""
 name: Staff Portal
 type: staff
 status: live
 description: Portal for staff members
 accelerators:
   - user-auth
-"""
-        )
+""")
 
         app = parse_app_manifest(manifest)
 
@@ -156,32 +154,26 @@ class TestScanAppManifests:
         # Create app1
         app1_dir = apps_dir / "staff-portal"
         app1_dir.mkdir()
-        (app1_dir / "app.yaml").write_text(
-            """
+        (app1_dir / "app.yaml").write_text("""
 name: Staff Portal
 type: staff
-"""
-        )
+""")
 
         # Create app2
         app2_dir = apps_dir / "customer-portal"
         app2_dir.mkdir()
-        (app2_dir / "app.yaml").write_text(
-            """
+        (app2_dir / "app.yaml").write_text("""
 name: Customer Portal
 type: external
-"""
-        )
+""")
 
         # Create app3 (member tool)
         app3_dir = apps_dir / "member-tool"
         app3_dir.mkdir()
-        (app3_dir / "app.yaml").write_text(
-            """
+        (app3_dir / "app.yaml").write_text("""
 name: Member Tool
 type: member-tool
-"""
-        )
+""")
 
         return tmp_path
 
@@ -269,8 +261,7 @@ class TestParseIntegrationManifest:
         int_dir = temp_project / "integrations" / "pilot_data_collection"
         int_dir.mkdir(parents=True)
         manifest = int_dir / "integration.yaml"
-        manifest.write_text(
-            """
+        manifest.write_text("""
 slug: pilot-data
 name: Pilot Data Collection
 description: Collects pilot data from external systems
@@ -279,8 +270,7 @@ depends_on:
   - name: Pilot API
     url: https://pilot.example.com
   - name: Data Lake
-"""
-        )
+""")
 
         integration = parse_integration_manifest(manifest)
 
@@ -382,32 +372,26 @@ class TestScanIntegrationManifests:
         # Create inbound integration
         int1_dir = integrations_dir / "pilot_data"
         int1_dir.mkdir()
-        (int1_dir / "integration.yaml").write_text(
-            """
+        (int1_dir / "integration.yaml").write_text("""
 name: Pilot Data
 direction: inbound
-"""
-        )
+""")
 
         # Create outbound integration
         int2_dir = integrations_dir / "analytics_export"
         int2_dir.mkdir()
-        (int2_dir / "integration.yaml").write_text(
-            """
+        (int2_dir / "integration.yaml").write_text("""
 name: Analytics Export
 direction: outbound
-"""
-        )
+""")
 
         # Create bidirectional integration
         int3_dir = integrations_dir / "data_sync"
         int3_dir.mkdir()
-        (int3_dir / "integration.yaml").write_text(
-            """
+        (int3_dir / "integration.yaml").write_text("""
 name: Data Sync
 direction: bidirectional
-"""
-        )
+""")
 
         return tmp_path
 
