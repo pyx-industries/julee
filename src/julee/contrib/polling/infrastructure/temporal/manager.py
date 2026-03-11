@@ -8,6 +8,7 @@ implementation.
 """
 
 import logging
+from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from typing import Any
 
@@ -24,6 +25,7 @@ from temporalio.client import (
     ScheduleUpdateInput,
 )
 
+from julee.contrib.polling.apps.worker.pipelines import NewDataDetectionPipeline
 from julee.contrib.polling.domain.models.polling_config import (
     PollingConfig,
     SchedulingPolicy,
@@ -78,7 +80,7 @@ class PollingManager:
         endpoint_id: str,
         config: PollingConfig,
         interval_seconds: int,
-        workflow_name: str = "NewDataDetectionPipeline",
+        workflow: str | Callable[..., Awaitable[Any]] = NewDataDetectionPipeline.run,
     ) -> str:
         """
         Start polling an HTTP endpoint at regular intervals.
@@ -115,7 +117,7 @@ class PollingManager:
 
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
-                workflow_name,
+                workflow,
                 args=[config],
                 id=f"{schedule_id}-{{.timestamp}}",
                 task_queue=self._task_queue,
@@ -158,7 +160,7 @@ class PollingManager:
             "schedule_id": schedule_id,
             "config": config,
             "interval_seconds": interval_seconds,
-            "workflow_name": workflow_name,
+            "workflow": workflow,
         }
 
         return schedule_id
@@ -211,7 +213,7 @@ class PollingManager:
                     "interval_seconds": poll_info["interval_seconds"],
                     "endpoint_identifier": poll_info["config"].endpoint_identifier,
                     "polling_protocol": poll_info["config"].polling_protocol.value,
-                    "workflow_name": poll_info.get("workflow_name"),
+                    "workflow": poll_info.get("workflow"),
                 }
             )
 
