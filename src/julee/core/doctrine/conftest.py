@@ -42,7 +42,7 @@ def _get_search_root(project_root: Path) -> str:
     if config.search_root is None:
         raise ValueError(
             f"search_root not configured in [tool.julee] section of "
-            f"{project_root}/pyproject.toml. Add: search_root = \"src/your_package\""
+            f'{project_root}/pyproject.toml. Add: search_root = "src/your_package"'
         )
     return config.search_root
 
