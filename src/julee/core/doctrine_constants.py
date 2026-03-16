@@ -69,8 +69,17 @@ APP_BC_ORGANIZATION_EXCLUDES: Final[frozenset[str]] = frozenset(
 """Subdirectory names excluded when detecting BC-based app organisation."""
 
 RESERVED_WORDS: Final[frozenset[str]] = frozenset(
-    {APPS_ROOT, DEPLOYMENTS_ROOT, DOCS_ROOT, CONTRIB_DIR,
-     "core", "shared", "tests", "utils", "common"}
+    {
+        APPS_ROOT,
+        DEPLOYMENTS_ROOT,
+        DOCS_ROOT,
+        CONTRIB_DIR,
+        "core",
+        "shared",
+        "tests",
+        "utils",
+        "common",
+    }
 )
 """Directory names that are not bounded contexts."""
 
