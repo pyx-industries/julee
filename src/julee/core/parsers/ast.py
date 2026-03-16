@@ -22,8 +22,6 @@ if TYPE_CHECKING:
     from julee.core.entities.code_info import (
         BoundedContextInfo,
         ClassInfo,
-        FieldInfo,
-        MethodInfo,
     )
     from julee.core.entities.pipeline import Pipeline
 
@@ -49,7 +47,12 @@ def _griffe_load_file(py_file: Path) -> griffe.Module | None:
 
 
 def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo":
-    from julee.core.entities.code_info import ClassInfo, FieldInfo, MethodInfo, ParameterInfo
+    from julee.core.entities.code_info import (
+        ClassInfo,
+        FieldInfo,
+        MethodInfo,
+        ParameterInfo,
+    )
 
     docstring = cls.docstring.value.split("\n")[0].strip() if cls.docstring else ""
 
@@ -75,9 +78,14 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
             for p in member.parameters
             if p.name != "self"
             and p.kind
-            not in (griffe.ParameterKind.var_positional, griffe.ParameterKind.var_keyword)
+            not in (
+                griffe.ParameterKind.var_positional,
+                griffe.ParameterKind.var_keyword,
+            )
         ]
-        method_doc = member.docstring.value.split("\n")[0].strip() if member.docstring else ""
+        method_doc = (
+            member.docstring.value.split("\n")[0].strip() if member.docstring else ""
+        )
         methods.append(
             MethodInfo(
                 name=member.name,
@@ -138,7 +146,9 @@ def parse_python_classes(
     for py_file in directory.glob(pattern):
         if py_file.name.startswith("_"):
             continue
-        if exclude_tests and (py_file.name.startswith("test_") or "/tests/" in str(py_file)):
+        if exclude_tests and (
+            py_file.name.startswith("test_") or "/tests/" in str(py_file)
+        ):
             continue
         if py_file.name in exclude_files:
             continue
@@ -334,7 +344,9 @@ def _method_delegates_to_use_case(
 
     for node in ast.walk(method_node):
         if isinstance(node, ast.Assign):
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+            if isinstance(node.value, ast.Call) and isinstance(
+                node.value.func, ast.Name
+            ):
                 if node.value.func.id.endswith(USE_CASE_SUFFIX):
                     use_case_instantiated = node.value.func.id
         if isinstance(node, ast.Await):
@@ -358,7 +370,10 @@ def _method_calls_method(
             call_node = node
         if call_node and isinstance(call_node.func, ast.Attribute):
             if call_node.func.attr == target_method:
-                if isinstance(call_node.func.value, ast.Name) and call_node.func.value.id == "self":
+                if (
+                    isinstance(call_node.func.value, ast.Name)
+                    and call_node.func.value.id == "self"
+                ):
                     return True
     return False
 
@@ -399,7 +414,9 @@ def _parse_pipeline_class(
 
     if run_method:
         has_run_decorator = _has_decorator(run_method, "workflow.run")
-        delegates_to_use_case, wrapped_use_case = _method_delegates_to_use_case(run_method)
+        delegates_to_use_case, wrapped_use_case = _method_delegates_to_use_case(
+            run_method
+        )
 
     run_next_method = _find_method(class_node, "run_next")
     has_run_next_method = run_next_method is not None
@@ -408,7 +425,9 @@ def _parse_pipeline_class(
     sets_dispatches_on_response = False
 
     if run_next_method:
-        run_next_has_workflow_decorator = _has_decorator(run_next_method, "workflow.run")
+        run_next_has_workflow_decorator = _has_decorator(
+            run_next_method, "workflow.run"
+        )
     if run_method:
         run_calls_run_next = _method_calls_method(run_method, "run_next")
         sets_dispatches_on_response = _method_sets_dispatches(run_method)
@@ -419,7 +438,9 @@ def _parse_pipeline_class(
             params = [
                 ParameterInfo(
                     name=arg.arg,
-                    type_annotation=ast.unparse(arg.annotation) if arg.annotation else "",
+                    type_annotation=(
+                        ast.unparse(arg.annotation) if arg.annotation else ""
+                    ),
                 )
                 for arg in node.args.args
                 if arg.arg != "self"
@@ -493,6 +514,8 @@ def parse_pipelines_from_bounded_context(context_dir: Path) -> "list[Pipeline]":
         if worker_dir.exists():
             for py_file in worker_dir.glob("*.py"):
                 if not py_file.name.startswith("_"):
-                    pipelines.extend(parse_pipelines_from_file(py_file, bounded_context))
+                    pipelines.extend(
+                        parse_pipelines_from_file(py_file, bounded_context)
+                    )
 
     return sorted(pipelines, key=lambda p: p.name)
