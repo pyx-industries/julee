@@ -23,7 +23,6 @@ class ListResponsesResponse(ListCodeArtifactsResponse):
     """Response from listing response classes."""
 
 
-
 class ListResponsesUseCase:
     """Use case for listing response classes."""
 
