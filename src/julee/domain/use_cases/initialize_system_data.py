@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import BaseModel
 
 from julee.domain.models.assembly_specification import (
     AssemblySpecification,
@@ -43,6 +44,14 @@ from julee.domain.repositories.knowledge_service_query import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class InitializeSystemDataRequest(BaseModel):
+    pass
+
+
+class InitializeSystemDataResponse(BaseModel):
+    pass
 
 
 class InitializeSystemDataUseCase:
@@ -81,7 +90,9 @@ class InitializeSystemDataUseCase:
         self.assembly_spec_repo = assembly_specification_repository
         self.logger = logging.getLogger("InitializeSystemDataUseCase")
 
-    async def execute(self) -> None:
+    async def execute(
+        self, request: InitializeSystemDataRequest | None = None
+    ) -> InitializeSystemDataResponse:
         """
         Execute system data initialization.
 
@@ -100,6 +111,7 @@ class InitializeSystemDataUseCase:
             await self._ensure_assembly_specifications_exist()
 
             self.logger.info("System data initialization completed successfully")
+            return InitializeSystemDataResponse()
 
         except Exception as e:
             self.logger.error(

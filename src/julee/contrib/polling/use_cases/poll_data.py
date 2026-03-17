@@ -28,6 +28,17 @@ class PollDataRequest(BaseModel):
     previous_completion: dict | None = None
 
 
+class PollDataResponse(BaseModel):
+    """Output for PollDataUseCase."""
+
+    endpoint_id: str
+    content_hash: str
+    content: str
+    polled_at: str
+    new_items_found: bool
+    items_processed: int
+
+
 class PollDataUseCase:
     """
     Use case for polling an endpoint and detecting new data.
@@ -38,9 +49,8 @@ class PollDataUseCase:
     3. Compare with the previous run's hash (from previous_completion)
     4. If content has changed and an analyzer is set, identify new item IDs
     5. Delegate to the optional PollingResultHandler with the item IDs
-    6. Return a completion result dict in the same shape that
-       NewDataDetectionPipeline returns, so Temporal schedule
-       last-completion-result works unchanged.
+    6. Return a PollDataResponse; the pipeline builds the Temporal
+       last-completion-result dict from it.
 
     """
 
@@ -54,7 +64,7 @@ class PollDataUseCase:
         self._handler = handler
         self._analyzer = analyzer
 
-    async def execute(self, request: PollDataRequest) -> dict:
+    async def execute(self, request: PollDataRequest) -> PollDataResponse:
         """
         Execute the poll-and-detect use case.
 
@@ -64,9 +74,7 @@ class PollDataUseCase:
                      for the first run).
 
         Returns:
-            Completion result dict with keys:
-              polling_result, detection_result, handler_acknowledgement,
-              endpoint_id
+            PollDataResponse with polling outcome and detection results.
         """
         config = request.config
         endpoint_id = config.endpoint_identifier
@@ -99,13 +107,14 @@ class PollDataUseCase:
         has_new_data = previous_hash != current_hash
 
         # Step 5: Analyze and invoke handler if new data detected
-        handler_acknowledgement = None
+        items_processed = 0
         if has_new_data:
             try:
                 item_ids = await self._analyzer.identify_new_items(
                     previous_data, current_content
                 )
-                handler_acknowledgement = await self._handler.handle_new_data(
+                items_processed = len(item_ids)
+                await self._handler.handle_new_data(
                     endpoint_id,
                     item_ids,
                     current_hash,
@@ -120,22 +129,13 @@ class PollDataUseCase:
                     },
                     exc_info=True,
                 )
-                # handler_acknowledgement stays None to signal the exception
 
         # Step 6: Return completion result
-        return {
-            "polling_result": {
-                "success": polling_result.success,
-                "content_hash": current_hash,
-                "content": current_content.decode("utf-8", errors="ignore"),
-                "polled_at": polled_at,
-                "content_length": len(current_content),
-            },
-            "detection_result": {
-                "has_new_data": has_new_data,
-                "previous_hash": previous_hash,
-                "current_hash": current_hash,
-            },
-            "handler_acknowledgement": handler_acknowledgement,
-            "endpoint_id": endpoint_id,
-        }
+        return PollDataResponse(
+            endpoint_id=endpoint_id,
+            content_hash=current_hash,
+            content=current_content.decode("utf-8", errors="ignore"),
+            polled_at=polled_at,
+            new_items_found=has_new_data,
+            items_processed=items_processed,
+        )
