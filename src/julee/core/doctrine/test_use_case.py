@@ -5,6 +5,7 @@ The assertions enforce them.
 """
 
 import importlib
+import inspect
 
 import pytest
 
@@ -214,5 +215,154 @@ class TestUseCaseStructure:
                     violations.append(f"{ctx}.{name}: missing {expected_response}")
 
         assert not violations, "Use cases missing matching responses:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_execute_MUST_accept_matching_request(self, repo):
+        """execute() MUST declare its first parameter as {Prefix}Request.
+
+        Ensures the request class is part of the method's contract, not
+        just present in the module.
+        """
+        use_case = ListUseCasesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        bounded_contexts = await repo.list_all()
+        import_paths = {bc.slug: bc.import_path for bc in bounded_contexts}
+
+        violations = []
+        suffix_len = len(USE_CASE_SUFFIX)
+        for artifact in response.artifacts:
+            name = artifact.artifact.name
+            ctx = artifact.bounded_context
+            if name in GENERIC_BASE_CLASSES:
+                continue
+            if not name.endswith(USE_CASE_SUFFIX):
+                continue
+
+            prefix = name[:-suffix_len]
+            expected_request = f"{prefix}{REQUEST_SUFFIX}"
+
+            bc_import_path = import_paths.get(ctx)
+            cls = (
+                _resolve_class(bc_import_path, artifact.artifact.file, name)
+                if bc_import_path
+                else None
+            )
+
+            if cls is not None:
+                execute = getattr(cls, "execute", None)
+                if not callable(execute):
+                    continue
+                sig = inspect.signature(execute)
+                params = [p for p in sig.parameters.values() if p.name != "self"]
+                if not params:
+                    violations.append(
+                        f"{ctx}.{name}: execute() has no request parameter"
+                    )
+                    continue
+                annotation = params[0].annotation
+                actual_name = (
+                    annotation.__name__
+                    if hasattr(annotation, "__name__")
+                    else str(annotation)
+                )
+            else:
+                # Fall back to AST-parsed signature
+                execute_method = next(
+                    (m for m in artifact.artifact.methods if m.name == "execute"),
+                    None,
+                )
+                if execute_method is None:
+                    continue
+                if not execute_method.parameters:
+                    violations.append(
+                        f"{ctx}.{name}: execute() has no request parameter"
+                    )
+                    continue
+                actual_name = execute_method.parameters[0].type_annotation
+
+            if actual_name != expected_request:
+                violations.append(
+                    f"{ctx}.{name}: execute() first parameter is '{actual_name}'"
+                    f", expected '{expected_request}'"
+                )
+
+        assert not violations, "Use cases with wrong request type:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_execute_MUST_return_matching_response(self, repo):
+        """execute() MUST declare its return type as {Prefix}Response.
+
+        Ensures the response class is actually wired into execute(), not
+        just present in the module.
+        """
+        use_case = ListUseCasesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        bounded_contexts = await repo.list_all()
+        import_paths = {bc.slug: bc.import_path for bc in bounded_contexts}
+
+        violations = []
+        suffix_len = len(USE_CASE_SUFFIX)
+        for artifact in response.artifacts:
+            name = artifact.artifact.name
+            ctx = artifact.bounded_context
+            if name in GENERIC_BASE_CLASSES:
+                continue
+            if not name.endswith(USE_CASE_SUFFIX):
+                continue
+
+            prefix = name[:-suffix_len]
+            expected_response = f"{prefix}{RESPONSE_SUFFIX}"
+
+            bc_import_path = import_paths.get(ctx)
+            cls = (
+                _resolve_class(bc_import_path, artifact.artifact.file, name)
+                if bc_import_path
+                else None
+            )
+
+            if cls is not None:
+                execute = getattr(cls, "execute", None)
+                if not callable(execute):
+                    continue
+                sig = inspect.signature(execute)
+                return_annotation = sig.return_annotation
+                if return_annotation is inspect.Parameter.empty:
+                    violations.append(
+                        f"{ctx}.{name}: execute() has no return annotation"
+                    )
+                    continue
+                actual_name = (
+                    return_annotation.__name__
+                    if hasattr(return_annotation, "__name__")
+                    else str(return_annotation)
+                )
+            else:
+                # Fall back to AST-parsed signature
+                execute_method = next(
+                    (m for m in artifact.artifact.methods if m.name == "execute"),
+                    None,
+                )
+                if execute_method is None:
+                    continue
+                if not execute_method.return_type:
+                    violations.append(
+                        f"{ctx}.{name}: execute() has no return annotation"
+                    )
+                    continue
+                actual_name = execute_method.return_type
+
+            if actual_name != expected_response:
+                violations.append(
+                    f"{ctx}.{name}: execute() returns '{actual_name}'"
+                    f", expected '{expected_response}'"
+                )
+
+        assert not violations, "Use cases with wrong return type:\n" + "\n".join(
             violations
         )

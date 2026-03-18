@@ -91,7 +91,7 @@ class InitializeSystemDataUseCase:
         self.logger = logging.getLogger("InitializeSystemDataUseCase")
 
     async def execute(
-        self, request: InitializeSystemDataRequest | None = None
+        self, request: InitializeSystemDataRequest
     ) -> InitializeSystemDataResponse:
         """
         Execute system data initialization.
