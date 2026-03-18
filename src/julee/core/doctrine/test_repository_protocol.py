@@ -88,7 +88,8 @@ class TestRepositoryProtocolBinding:
                     f"also references {sorted(foreign_entities)}"
                 )
 
-        assert not violations, (
-            "Repository protocols referencing multiple entity types:\n"
-            + "\n".join(violations)
+        assert (
+            not violations
+        ), "Repository protocols referencing multiple entity types:\n" + "\n".join(
+            violations
         )
