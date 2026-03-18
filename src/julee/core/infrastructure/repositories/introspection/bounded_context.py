@@ -235,14 +235,16 @@ class FilesystemBoundedContextRepository:
                 continue
             if _is_gitignored(candidate, self.project_root):
                 continue
-            if candidate.name in RESERVED_WORDS:
-                continue
             if not self._is_python_package(candidate):
                 continue
 
+            # Reserved words cannot be bounded contexts themselves, but may
+            # still be nested solution containers (e.g. contrib/, apps/).
+            is_reserved = candidate.name in RESERVED_WORDS
+
             markers = self._detect_markers(candidate)
 
-            if self._is_bounded_context(markers):
+            if not is_reserved and self._is_bounded_context(markers):
                 # It's a bounded context
                 is_contrib = candidate.name == CONTRIB_DIR
                 context = BoundedContext(
