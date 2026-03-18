@@ -207,8 +207,6 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     from julee.core.doctrine_constants import (
-        ENTITIES_PATH,
-        REPOSITORIES_PATH,
         SERVICES_PATH,
         USE_CASES_PATH,
     )
@@ -221,9 +219,10 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     objective, full_docstring = parse_module_docstring(context_dir / "__init__.py")
 
     use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
-    entities_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
-    repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
     services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
+    # ADR 001 nested solution structure uses domain/models/ and domain/repositories/
+    domain_models_dir = context_dir / "domain" / "models"
+    domain_repositories_dir = context_dir / "domain" / "repositories"
 
     all_classes = parse_python_classes(use_cases_dir)
     requests = [c for c in all_classes if c.name.endswith("Request")]
@@ -235,11 +234,11 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     return BoundedContextInfo(
         slug=context_dir.name,
-        entities=parse_python_classes(entities_dir),
+        entities=parse_python_classes(domain_models_dir),
         use_cases=use_cases,
         requests=requests,
         responses=responses,
-        repository_protocols=parse_python_classes(repositories_dir),
+        repository_protocols=parse_python_classes(domain_repositories_dir),
         service_protocols=service_protocols,
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,

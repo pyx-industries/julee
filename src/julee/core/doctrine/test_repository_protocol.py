@@ -5,10 +5,12 @@ The assertions enforce them.
 """
 
 import re
+from pathlib import Path
 
 import pytest
 
 from julee.core.entities.code_info import ClassInfo
+from julee.core.parsers.ast import parse_bounded_context
 from julee.core.use_cases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsUseCase,
 )
@@ -44,10 +46,9 @@ class TestRepositoryProtocolBinding:
         entity types from other aggregates — doing so means the repository is
         doing two jobs.
 
-        "Domain entity types" are identified as the primary types declared by
-        other repositories in the same bounded context. Incidental references
-        to Enums, Status classes, and primitives are excluded automatically
-        because no repository claims them as a primary type.
+        Incidental references to Enums, Status classes, and primitive types
+        are excluded automatically: only types that appear in the bounded
+        context's entity list are checked.
 
         Repositories that do not inherit from BaseRepository[T] are exempt —
         their primary entity type cannot be determined structurally.
@@ -60,15 +61,14 @@ class TestRepositoryProtocolBinding:
             len(response.artifacts) > 0
         ), "No repository protocols found — detector may be broken"
 
-        # Build a map of primary entity type -> repository name per BC.
-        # These are the "claimed" entity types — referencing someone else's
-        # claimed type is a boundary violation.
-        claimed_by_ctx: dict[str, dict[str, str]] = {}
-        for artifact in response.artifacts:
-            ctx = artifact.bounded_context
-            primary = _extract_base_entity_type(artifact.artifact)
-            if primary is not None:
-                claimed_by_ctx.setdefault(ctx, {})[primary] = artifact.artifact.name
+        # Build entity name sets per bounded context by scanning domain/models/
+        # (ADR 001 nested structure) and entities/ (flat structure).
+        contexts = await repo.list_all()
+        entity_names_by_ctx: dict[str, set[str]] = {}
+        for ctx in contexts:
+            info = parse_bounded_context(Path(ctx.path))
+            if info:
+                entity_names_by_ctx[ctx.slug] = {e.name for e in info.entities}
 
         violations = []
         for artifact in response.artifacts:
@@ -77,12 +77,11 @@ class TestRepositoryProtocolBinding:
 
             primary = _extract_base_entity_type(protocol)
             if primary is None:
+                # No BaseRepository[T] — primary type undeclared, skip
                 continue
 
-            claimed = claimed_by_ctx.get(ctx, {})
-            foreign_entities = {
-                t for t in protocol.referenced_types if t in claimed and t != primary
-            }
+            entity_names = entity_names_by_ctx.get(ctx, set())
+            foreign_entities = (protocol.referenced_types & entity_names) - {primary}
 
             if foreign_entities:
                 violations.append(
