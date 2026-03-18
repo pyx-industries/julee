@@ -16,11 +16,11 @@ import logging
 
 from typing_extensions import override
 
-from julee.domain.models.document import Document
-from julee.domain.models.knowledge_service_config import (
+from julee.contrib.ceap.domain.models.document import Document
+from julee.contrib.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.repositories.document import DocumentRepository
+from julee.contrib.ceap.domain.repositories.document import DocumentRepository
 from julee.services.knowledge_service.factory import (
     ConfigurableKnowledgeService,
 )

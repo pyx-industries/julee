@@ -15,10 +15,10 @@ key.
 
 import logging
 
-from julee.domain.models.knowledge_service_config import (
+from julee.contrib.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.repositories.knowledge_service_config import (
+from julee.contrib.ceap.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
 

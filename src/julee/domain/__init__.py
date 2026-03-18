@@ -12,11 +12,11 @@ Subpackages:
 
 Import domain components using package imports for convenience, e.g.:
     # Models from the models package
-    from julee.domain.models import Document, Assembly, Policy
+    from julee.contrib.ceap.domain.models import Document, Assembly, Policy
 
     # Repository protocols from the repositories package
-    from julee.domain.repositories import DocumentRepository
+    from julee.contrib.ceap.domain.repositories import DocumentRepository
 
     # Use cases from the use_cases package
-    from julee.domain.use_cases import ValidateDocumentUseCase
+    from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
 """

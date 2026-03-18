@@ -1,17 +1,5 @@
 """
 Use cases for julee domain.
 
-This package contains use case classes that orchestrate business logic
-for the Capture, Extract, Assemble, Publish workflow while remaining
-framework-agnostic following Clean Architecture principles.
+CEAP use cases have moved to julee.contrib.ceap.use_cases.
 """
-
-from .extract_assemble_data import ExtractAssembleDataUseCase
-from .initialize_system_data import InitializeSystemDataUseCase
-from .validate_document import ValidateDocumentUseCase
-
-__all__ = [
-    "ExtractAssembleDataUseCase",
-    "InitializeSystemDataUseCase",
-    "ValidateDocumentUseCase",
-]
