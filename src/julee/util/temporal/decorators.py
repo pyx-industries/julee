@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from julee.domain.repositories.base import BaseRepository
+from julee.repositories.base import BaseRepository
 
 from .activities import discover_protocol_methods
 
