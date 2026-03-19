@@ -13,8 +13,8 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
-from julee.domain.models.document import Document
-from julee.domain.models.knowledge_service_config import (
+from julee.contrib.ceap.domain.models.document import Document
+from julee.contrib.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
 

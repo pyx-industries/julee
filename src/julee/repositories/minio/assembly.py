@@ -12,8 +12,8 @@ the large payload handling pattern from the architectural guidelines.
 
 import logging
 
-from julee.domain.models.assembly import Assembly
-from julee.domain.repositories.assembly import AssemblyRepository
+from julee.contrib.ceap.domain.models.assembly import Assembly
+from julee.contrib.ceap.domain.repositories.assembly import AssemblyRepository
 
 from .client import MinioClient, MinioRepositoryMixin
 

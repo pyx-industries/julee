@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 from temporalio.client import Client
 
 from julee.api.dependencies import get_temporal_client
-from julee.workflows.extract_assemble import (
+from julee.contrib.ceap.apps.worker.extract_assemble import (
     EXTRACT_ASSEMBLE_RETRY_POLICY,
     ExtractAssembleWorkflow,
 )
