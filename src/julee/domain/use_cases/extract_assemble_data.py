@@ -16,6 +16,7 @@ from typing import Any
 
 import jsonschema
 import multihash
+from pydantic import BaseModel
 
 from julee.domain.models import (
     Assembly,
@@ -39,6 +40,16 @@ from .decorators import try_use_case_step
 from .pointable_json_schema import PointableJSONSchema
 
 logger = logging.getLogger(__name__)
+
+
+class ExtractAssembleDataRequest(BaseModel):
+    document_id: str
+    assembly_specification_id: str
+    workflow_id: str
+
+
+class ExtractAssembleDataResponse(BaseModel):
+    assembly: Assembly
 
 
 class ExtractAssembleDataUseCase:
@@ -128,6 +139,16 @@ class ExtractAssembleDataUseCase:
             knowledge_service_config_repo,
             KnowledgeServiceConfigRepository,  # type: ignore[type-abstract]
         )
+
+    async def execute(
+        self, request: ExtractAssembleDataRequest
+    ) -> ExtractAssembleDataResponse:
+        assembly = await self.assemble_data(
+            request.document_id,
+            request.assembly_specification_id,
+            request.workflow_id,
+        )
+        return ExtractAssembleDataResponse(assembly=assembly)
 
     async def assemble_data(
         self,

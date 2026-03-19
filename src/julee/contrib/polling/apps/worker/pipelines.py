@@ -20,7 +20,10 @@ from julee.contrib.polling.domain.services.polling_result_handler import (
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
-from julee.contrib.polling.use_cases.poll_data import PollDataRequest, PollDataUseCase
+from julee.contrib.polling.use_cases.poll_data import (
+    PollDataRequest,
+    PollDataUseCase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -123,15 +126,11 @@ class NewDataDetectionPipeline:
                 handler=self.get_handler(),
                 analyzer=self.get_analyzer(),
             )
-            result = await use_case.execute(request)
+            response = await use_case.execute(request)
 
-            self.endpoint_id = result.get("endpoint_id", self.endpoint_id)
-            self.has_new_data = result.get("detection_result", {}).get(
-                "has_new_data", False
-            )
+            self.endpoint_id = response.endpoint_id
+            self.has_new_data = response.new_items_found
             self.current_step = "completed"
-
-            result["completed_at"] = workflow.now().isoformat()
 
             workflow.logger.info(
                 "New data detection pipeline completed successfully",
@@ -141,7 +140,19 @@ class NewDataDetectionPipeline:
                 },
             )
 
-            return result
+            return {
+                "polling_result": {
+                    "content_hash": response.content_hash,
+                    "content": response.content,
+                    "polled_at": response.polled_at,
+                },
+                "detection_result": {
+                    "has_new_data": response.new_items_found,
+                    "current_hash": response.content_hash,
+                },
+                "endpoint_id": response.endpoint_id,
+                "completed_at": workflow.now().isoformat(),
+            }
 
         except Exception as e:
             self.current_step = "failed"

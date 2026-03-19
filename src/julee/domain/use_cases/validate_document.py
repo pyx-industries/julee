@@ -15,6 +15,7 @@ from collections.abc import Callable
 from datetime import datetime
 
 import multihash
+from pydantic import BaseModel
 
 from julee.domain.models import (
     ContentStream,
@@ -40,6 +41,15 @@ from julee.util.validation import ensure_repository_protocol
 from .decorators import try_use_case_step
 
 logger = logging.getLogger(__name__)
+
+
+class ValidateDocumentRequest(BaseModel):
+    document_id: str
+    policy_id: str
+
+
+class ValidateDocumentResponse(BaseModel):
+    validation: DocumentPolicyValidation
 
 
 class ValidateDocumentUseCase:
@@ -129,6 +139,14 @@ class ValidateDocumentUseCase:
             DocumentPolicyValidationRepository,  # type: ignore[type-abstract]
         )
         self.now_fn = now_fn
+
+    async def execute(
+        self, request: ValidateDocumentRequest
+    ) -> ValidateDocumentResponse:
+        validation = await self.validate_document(
+            request.document_id, request.policy_id
+        )
+        return ValidateDocumentResponse(validation=validation)
 
     async def validate_document(
         self, document_id: str, policy_id: str
