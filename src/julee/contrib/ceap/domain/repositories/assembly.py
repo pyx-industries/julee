@@ -30,7 +30,7 @@ stubs that delegate to activities for durability and proper error handling.
 from typing import Protocol, runtime_checkable
 
 from julee.contrib.ceap.domain.models import Assembly
-from julee.domain.repositories.base import BaseRepository
+from julee.repositories.base import BaseRepository
 
 
 @runtime_checkable

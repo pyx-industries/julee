@@ -35,7 +35,7 @@ from typing import Protocol, runtime_checkable
 from julee.contrib.ceap.domain.models.knowledge_service_config import (
     KnowledgeServiceConfig,
 )
-from julee.domain.repositories.base import BaseRepository
+from julee.repositories.base import BaseRepository
 
 
 @runtime_checkable

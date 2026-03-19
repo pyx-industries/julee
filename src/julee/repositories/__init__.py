@@ -2,7 +2,7 @@
 Repository implementations and infrastructure.
 
 This package contains concrete implementations of the repository interfaces
-defined in julee.domain.repositories.
+defined in julee.contrib.ceap.domain.repositories.
 
 Implementation packages:
 
