@@ -206,10 +206,7 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
-    from julee.core.doctrine_constants import (
-        SERVICES_PATH,
-        USE_CASES_PATH,
-    )
+    from julee.core.doctrine_constants import USE_CASES_PATH
     from julee.core.entities.code_info import BoundedContextInfo
 
     context_dir = Path(context_dir_str)
@@ -219,18 +216,20 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     objective, full_docstring = parse_module_docstring(context_dir / "__init__.py")
 
     use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
-    services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
-    # ADR 001 nested solution structure uses domain/models/ and domain/repositories/
+    # ADR 001 nested solution structure uses domain/models/, domain/repositories/,
+    # and domain/services/
     domain_models_dir = context_dir / "domain" / "models"
     domain_repositories_dir = context_dir / "domain" / "repositories"
+    domain_services_dir = context_dir / "domain" / "services"
 
     all_classes = parse_python_classes(use_cases_dir)
     requests = [c for c in all_classes if c.name.endswith("Request")]
     responses = [c for c in all_classes if c.name.endswith("Response")]
     use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
 
-    all_service_classes = parse_python_classes(services_dir)
+    all_service_classes = parse_python_classes(domain_services_dir)
     service_protocols = [c for c in all_service_classes if c.name.endswith("Service")]
+    handler_protocols = [c for c in all_service_classes if c.name.endswith("Handler")]
 
     return BoundedContextInfo(
         slug=context_dir.name,
@@ -240,6 +239,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         responses=responses,
         repository_protocols=parse_python_classes(domain_repositories_dir),
         service_protocols=service_protocols,
+        handler_protocols=handler_protocols,
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,
