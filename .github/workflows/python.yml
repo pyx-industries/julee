@@ -31,7 +31,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Lint
-        run: uv run make lint-python
+        run: make lint-python
 
   unit:
     name: Unit
@@ -48,7 +48,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Test
-        run: uv run make test-python-unit
+        run: make test-python-unit
 
   doctrine:
     name: Doctrine
@@ -65,4 +65,4 @@ jobs:
         run: uv sync --extra dev
 
       - name: Doctrine tests
-        run: PYTHONPATH=src uv run pytest src/julee/core/doctrine/
+        run: PYTHONPATH=src pytest src/julee/core/doctrine/
