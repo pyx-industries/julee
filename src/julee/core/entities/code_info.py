@@ -157,7 +157,11 @@ class BoundedContextInfo(BaseModel):
     @property
     def protocol_count(self) -> int:
         """Get total number of protocols (repository + service + handler)."""
-        return len(self.repository_protocols) + len(self.service_protocols) + len(self.handler_protocols)
+        return (
+            len(self.repository_protocols)
+            + len(self.service_protocols)
+            + len(self.handler_protocols)
+        )
 
     @property
     def pipeline_count(self) -> int:

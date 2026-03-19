@@ -312,9 +312,10 @@ class TestUseCaseStructure:
                     f"{artifact.bounded_context}.{artifact.artifact.name}"
                 )
 
-        assert not violations, (
-            "Use cases defining forbidden next_action() method:\n"
-            + "\n".join(violations)
+        assert (
+            not violations
+        ), "Use cases defining forbidden next_action() method:\n" + "\n".join(
+            violations
         )
 
     @pytest.mark.asyncio

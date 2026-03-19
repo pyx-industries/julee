@@ -42,7 +42,8 @@ class TestHandlerProtocolStructure:
                         f", expected 'Acknowledgement'"
                     )
 
-        assert not violations, (
-            "Handler protocol methods not returning Acknowledgement:\n"
-            + "\n".join(violations)
+        assert (
+            not violations
+        ), "Handler protocol methods not returning Acknowledgement:\n" + "\n".join(
+            violations
         )
