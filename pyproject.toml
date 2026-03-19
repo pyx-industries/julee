@@ -70,8 +70,6 @@ dev = [
     "pre-commit>=3.0.0",
     # Security
     "bandit",
-    # Dependency management
-    "pip-tools>=7.0.0",
     # Database (for testing)
     "asyncpg",
     # Sphinx (for sphinx_hcd tests)
