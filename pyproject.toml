@@ -46,6 +46,8 @@ dependencies = [
     "six>=1.16.0",
     "jsonschema>=4.0.0",
     "jsonpointer>=3.0.0",
+    # Code introspection (doctrine tests, CLI)
+    "griffe>=1.0.0,<2",
 ]
 
 [project.optional-dependencies]
@@ -201,6 +203,12 @@ module = [
     "temporalio.*",
 ]
 ignore_missing_imports = true
+
+[tool.julee]
+# julee is itself a julee solution
+search_root = "src/julee"
+docs_root = "docs"
+skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
