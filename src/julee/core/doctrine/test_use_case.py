@@ -294,6 +294,30 @@ class TestUseCaseStructure:
         )
 
     @pytest.mark.asyncio
+    async def test_use_cases_MUST_NOT_define_next_action(self, repo):
+        """Use case classes MUST NOT define a next_action() method.
+
+        next_action() is the superseded orchestration pattern (pre-ADR 003).
+        Use cases should hand off domain conditions to injected handler
+        services instead of computing what happens next themselves.
+        """
+        use_case = ListUseCasesUseCase(repo)
+        response = await use_case.execute(ListCodeArtifactsRequest())
+
+        violations = []
+        for artifact in response.artifacts:
+            method_names = [m.name for m in artifact.artifact.methods]
+            if "next_action" in method_names:
+                violations.append(
+                    f"{artifact.bounded_context}.{artifact.artifact.name}"
+                )
+
+        assert not violations, (
+            "Use cases defining forbidden next_action() method:\n"
+            + "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
     async def test_execute_MUST_return_matching_response(self, repo):
         """execute() MUST declare its return type as {Prefix}Response.
 

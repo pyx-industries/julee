@@ -129,6 +129,7 @@ class BoundedContextInfo(BaseModel):
     responses: list[ClassInfo] = Field(default_factory=list)
     repository_protocols: list[ClassInfo] = Field(default_factory=list)
     service_protocols: list[ClassInfo] = Field(default_factory=list)
+    handler_protocols: list[ClassInfo] = Field(default_factory=list)
     pipelines: list[Pipeline] = Field(default_factory=list)
     has_infrastructure: bool = False
     code_dir: str = ""
@@ -155,8 +156,8 @@ class BoundedContextInfo(BaseModel):
 
     @property
     def protocol_count(self) -> int:
-        """Get total number of protocols (repository + service)."""
-        return len(self.repository_protocols) + len(self.service_protocols)
+        """Get total number of protocols (repository + service + handler)."""
+        return len(self.repository_protocols) + len(self.service_protocols) + len(self.handler_protocols)
 
     @property
     def pipeline_count(self) -> int:
@@ -201,6 +202,8 @@ class BoundedContextInfo(BaseModel):
             parts.append(f"{len(self.repository_protocols)} repository protocols")
         if self.service_protocols:
             parts.append(f"{len(self.service_protocols)} service protocols")
+        if self.handler_protocols:
+            parts.append(f"{len(self.handler_protocols)} handler protocols")
         if self.pipelines:
             parts.append(f"{len(self.pipelines)} pipelines")
         return ", ".join(parts) if parts else "empty"
