@@ -14,6 +14,8 @@ from temporalio.common import RetryPolicy
 
 from julee.contrib.ceap.domain.models.assembly import Assembly
 from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.core.infrastructure.temporal.clock import TemporalClockService
+from julee.core.infrastructure.temporal.execution import TemporalExecutionService
 from julee.repositories.temporal.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,
@@ -114,8 +116,8 @@ class ExtractAssembleWorkflow:
             # Create workflow-safe knowledge service proxy
             knowledge_service = WorkflowKnowledgeServiceProxy()  # type: ignore[abstract]
 
-            # Create the use case with workflow-safe repositories
-            # The use case remains completely unaware it's running in workflow
+            # Create the use case with workflow-safe repositories and services.
+            # The use case remains completely unaware it's running in a workflow.
             use_case = ExtractAssembleDataUseCase(
                 document_repo=document_repo,
                 assembly_repo=assembly_repo,
@@ -123,7 +125,8 @@ class ExtractAssembleWorkflow:
                 knowledge_service_query_repo=knowledge_service_query_repo,
                 knowledge_service_config_repo=knowledge_service_config_repo,
                 knowledge_service=knowledge_service,
-                now_fn=workflow.now,
+                clock_service=TemporalClockService(),
+                execution_service=TemporalExecutionService(),
             )
 
             workflow.logger.debug(
@@ -136,13 +139,12 @@ class ExtractAssembleWorkflow:
 
             self.current_step = "executing_assembly"
 
-            # Execute the assembly process with workflow durability
+            # Execute the assembly process with workflow durability.
             # All repository calls inside the use case will be executed as
-            # Temporal activities with automatic retry and state persistence
+            # Temporal activities with automatic retry and state persistence.
             assembly = await use_case.assemble_data(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
-                workflow_id=workflow.info().workflow_id,
             )
 
             # Store the assembly ID for queries

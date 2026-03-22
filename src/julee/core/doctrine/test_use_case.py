@@ -6,6 +6,7 @@ The assertions enforce them.
 
 import importlib
 import inspect
+from pathlib import Path
 
 import pytest
 
@@ -390,4 +391,73 @@ class TestUseCaseStructure:
 
         assert not violations, "Use cases with wrong return type:\n" + "\n".join(
             violations
+        )
+
+
+class TestExecutionAgnosticism:
+    """Doctrine about execution-agnosticism in use cases (ADR 004).
+
+    Use cases must not couple to specific execution frameworks like Temporal.
+    Time and execution identity must be injected via service protocols
+    instead of being accessed directly.
+    """
+
+    @pytest.mark.asyncio
+    async def test_use_case_files_MUST_NOT_call_datetime_now(self, repo):
+        """Use case files MUST NOT call datetime.now(), datetime.utcnow(), or datetime.today().
+
+        Use cases needing the current time MUST inject ClockService and call
+        clock_service.now() instead. Direct datetime calls couple the use case
+        to system time, making deterministic testing impossible and breaking
+        Temporal's replay guarantee.
+        """
+        contexts = await repo.list_all()
+
+        forbidden_patterns = ["datetime.now(", "datetime.utcnow(", "datetime.today("]
+        violations = []
+
+        for ctx in contexts:
+            uc_dir = Path(ctx.path) / "use_cases"
+            if not uc_dir.exists():
+                continue
+            for py_file in uc_dir.rglob("*.py"):
+                if any(part == "tests" for part in py_file.parts):
+                    continue
+                content = py_file.read_text()
+                for pattern in forbidden_patterns:
+                    if pattern in content:
+                        violations.append(
+                            f"{ctx.slug}/{py_file.name}: contains '{pattern}'"
+                        )
+                        break
+
+        assert not violations, (
+            "Use case files calling datetime directly (use ClockService instead):\n"
+            + "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_use_case_files_MUST_NOT_import_temporalio(self, repo):
+        """Use case files MUST NOT import from temporalio.
+
+        Temporal coupling belongs in the infrastructure layer (worker/pipelines),
+        not use cases. Use cases must remain framework-agnostic so they can run
+        in any execution context.
+        """
+        contexts = await repo.list_all()
+
+        violations = []
+        for ctx in contexts:
+            uc_dir = Path(ctx.path) / "use_cases"
+            if not uc_dir.exists():
+                continue
+            for py_file in uc_dir.rglob("*.py"):
+                if any(part == "tests" for part in py_file.parts):
+                    continue
+                content = py_file.read_text()
+                if "import temporalio" in content or "from temporalio" in content:
+                    violations.append(f"{ctx.slug}/{py_file.name}")
+
+        assert not violations, (
+            "Use case files importing from temporalio:\n" + "\n".join(violations)
         )
