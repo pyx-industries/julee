@@ -456,9 +456,7 @@ class TestExecutionAgnosticism:
                     continue
                 content = py_file.read_text()
                 if "import temporalio" in content or "from temporalio" in content:
-                    violations.append(
-                        f"{ctx.slug}/{py_file.relative_to(ctx.path)}"
-                    )
+                    violations.append(f"{ctx.slug}/{py_file.relative_to(ctx.path)}")
 
         assert (
             not violations
