@@ -458,6 +458,6 @@ class TestExecutionAgnosticism:
                 if "import temporalio" in content or "from temporalio" in content:
                     violations.append(f"{ctx.slug}/{py_file.name}")
 
-        assert not violations, (
-            "Use case files importing from temporalio:\n" + "\n".join(violations)
-        )
+        assert (
+            not violations
+        ), "Use case files importing from temporalio:\n" + "\n".join(violations)

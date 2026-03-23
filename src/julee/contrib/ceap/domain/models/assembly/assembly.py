@@ -46,9 +46,7 @@ class Assembly(BaseModel):
     input_document_id: str = Field(
         description="ID of the input document to assemble from"
     )
-    execution_id: str = Field(
-        description="Execution ID that created this assembly"
-    )
+    execution_id: str = Field(description="Execution ID that created this assembly")
 
     # Assembly process tracking
     status: AssemblyStatus = AssemblyStatus.PENDING

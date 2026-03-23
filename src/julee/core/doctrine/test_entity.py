@@ -32,9 +32,7 @@ class TestEntityNaming:
             for entity in info.entities:
                 for field in entity.fields:
                     if field.name == "workflow_id":
-                        violations.append(
-                            f"{ctx.slug}.{entity.name}.{field.name}"
-                        )
+                        violations.append(f"{ctx.slug}.{entity.name}.{field.name}")
 
         assert not violations, (
             "Entity fields named 'workflow_id' (use 'execution_id' instead):\n"
