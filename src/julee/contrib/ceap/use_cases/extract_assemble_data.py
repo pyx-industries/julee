@@ -10,8 +10,6 @@ instances following the Clean Architecture principles.
 import hashlib
 import json
 import logging
-from collections.abc import Callable
-from datetime import datetime, timezone
 from typing import Any
 
 import jsonschema
@@ -33,6 +31,8 @@ from julee.contrib.ceap.domain.repositories import (
     KnowledgeServiceConfigRepository,
     KnowledgeServiceQueryRepository,
 )
+from julee.core.services import ClockService, ExecutionService, SystemClockService
+from julee.core.services.execution import DefaultExecutionService
 from julee.services import KnowledgeService
 from julee.util.validation import ensure_repository_protocol, validate_parameter_types
 
@@ -45,7 +45,6 @@ logger = logging.getLogger(__name__)
 class ExtractAssembleDataRequest(BaseModel):
     document_id: str
     assembly_specification_id: str
-    workflow_id: str
 
 
 class ExtractAssembleDataResponse(BaseModel):
@@ -88,7 +87,8 @@ class ExtractAssembleDataUseCase:
         knowledge_service_query_repo: KnowledgeServiceQueryRepository,
         knowledge_service_config_repo: KnowledgeServiceConfigRepository,
         knowledge_service: KnowledgeService,
-        now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        clock_service: ClockService | None = None,
+        execution_service: ExecutionService | None = None,
     ) -> None:
         """Initialize extract and assemble data use case.
 
@@ -103,7 +103,12 @@ class ExtractAssembleDataUseCase:
                 configuration operations
             knowledge_service: Knowledge service instance for external
                 operations
-            now_fn: Function to get current time (for workflow compatibility)
+            clock_service: Service for obtaining the current time.
+                Defaults to SystemClockService. Inject TemporalClockService
+                inside Temporal workflows for deterministic replay.
+            execution_service: Service for obtaining the execution ID.
+                Defaults to DefaultExecutionService. Inject
+                TemporalExecutionService inside Temporal workflows.
 
         .. note::
 
@@ -122,7 +127,10 @@ class ExtractAssembleDataUseCase:
             DocumentRepository,  # type: ignore[type-abstract]
         )
         self.knowledge_service = knowledge_service
-        self.now_fn = now_fn
+        self._clock_service: ClockService = clock_service or SystemClockService()
+        self._execution_service: ExecutionService = (
+            execution_service or DefaultExecutionService()
+        )
         self.assembly_repo = ensure_repository_protocol(
             assembly_repo,
             AssemblyRepository,  # type: ignore[type-abstract]
@@ -146,7 +154,6 @@ class ExtractAssembleDataUseCase:
         assembly = await self.assemble_data(
             request.document_id,
             request.assembly_specification_id,
-            request.workflow_id,
         )
         return ExtractAssembleDataResponse(assembly=assembly)
 
@@ -154,7 +161,6 @@ class ExtractAssembleDataUseCase:
         self,
         document_id: str,
         assembly_specification_id: str,
-        workflow_id: str,
     ) -> Assembly:
         """
         Assemble a document according to its specification and create a new
@@ -175,7 +181,6 @@ class ExtractAssembleDataUseCase:
         Args:
             document_id: ID of the document to assemble
             assembly_specification_id: ID of the specification to use
-            workflow_id: Temporal workflow ID that creates this assembly
 
         Returns:
             New Assembly with the assembled document iteration
@@ -185,12 +190,13 @@ class ExtractAssembleDataUseCase:
             RuntimeError: If assembly processing fails
 
         """
+        execution_id = self._execution_service.get_execution_id()
         logger.debug(
             "Starting data assembly use case",
             extra={
                 "document_id": document_id,
                 "assembly_specification_id": assembly_specification_id,
-                "workflow_id": workflow_id,
+                "execution_id": execution_id,
             },
         )
 
@@ -205,15 +211,16 @@ class ExtractAssembleDataUseCase:
         )
 
         # Step 3: Store the initial assembly
+        now = self._clock_service.now()
         assembly = Assembly(
             assembly_id=assembly_id,
             assembly_specification_id=assembly_specification_id,
             input_document_id=document_id,
-            workflow_id=workflow_id,
+            execution_id=execution_id,
             status=AssemblyStatus.IN_PROGRESS,
             assembled_document_id=None,
-            created_at=self.now_fn(),
-            updated_at=self.now_fn(),
+            created_at=now,
+            updated_at=now,
         )
         await self.assembly_repo.save(assembly)
 
@@ -563,6 +570,7 @@ class ExtractAssembleDataUseCase:
         assembled_content = json.dumps(assembled_data, indent=2)
         content_bytes = assembled_content.encode("utf-8")
 
+        now = self._clock_service.now()
         assembled_document = Document(
             document_id=document_id,
             original_filename=(
@@ -573,8 +581,8 @@ class ExtractAssembleDataUseCase:
             content_multihash=self._calculate_multihash_from_content(content_bytes),
             status=DocumentStatus.ASSEMBLED,
             content_bytes=assembled_content,
-            created_at=self.now_fn(),
-            updated_at=self.now_fn(),
+            created_at=now,
+            updated_at=now,
         )
 
         # Save the document

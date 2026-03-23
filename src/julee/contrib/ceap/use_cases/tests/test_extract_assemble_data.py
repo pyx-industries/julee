@@ -180,7 +180,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -211,7 +210,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -236,7 +234,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id=document_id,
                 assembly_specification_id=assembly_specification_id,
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -329,7 +326,6 @@ class TestExtractAssembleDataUseCase:
         result = await configured_use_case.assemble_data(
             document_id="doc-123",
             assembly_specification_id="spec-123",
-            workflow_id="test-workflow-success",
         )
 
         # Assert
@@ -468,7 +464,6 @@ class TestExtractAssembleDataUseCase:
             await configured_use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
-                workflow_id="test-workflow-schema",
             )
 
             # Assert - Verify the call was made with schema in metadata
@@ -508,7 +503,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="nonexistent-spec",
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -536,7 +530,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id="nonexistent-doc",
                 assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -583,7 +576,6 @@ class TestExtractAssembleDataUseCase:
             await use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
             )
 
     @pytest.mark.asyncio
@@ -687,5 +679,4 @@ class TestExtractAssembleDataUseCase:
             await test_use_case.assemble_data(
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
-                workflow_id="test-workflow-123",
             )
