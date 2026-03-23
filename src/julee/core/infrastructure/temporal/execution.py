@@ -4,6 +4,8 @@ Returns the Temporal workflow ID as the execution identifier. Import this
 only in workflow code — it must not be used outside a Temporal workflow context.
 """
 
+from temporalio import workflow
+
 
 class TemporalExecutionService:
     """ExecutionService implementation for Temporal workflows.
@@ -15,6 +17,4 @@ class TemporalExecutionService:
 
     def get_execution_id(self) -> str:
         """Return the Temporal workflow ID for this execution."""
-        from temporalio import workflow
-
         return workflow.info().workflow_id
