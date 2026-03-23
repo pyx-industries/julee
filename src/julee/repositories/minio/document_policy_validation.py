@@ -61,7 +61,7 @@ class MinioDocumentPolicyValidationRepository(
     async def save(self, validation: DocumentPolicyValidation) -> None:
         """Save a document policy validation to Minio."""
         # Update timestamps
-        self.update_timestamps(validation)
+        validation = self.update_timestamps(validation)
 
         self.put_json_object(
             bucket_name=self.validations_bucket,

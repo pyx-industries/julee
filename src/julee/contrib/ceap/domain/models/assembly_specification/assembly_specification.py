@@ -13,13 +13,16 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 import jsonpointer  # type: ignore
 import jsonschema
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class AssemblySpecificationStatus(str, Enum):
@@ -31,7 +34,7 @@ class AssemblySpecificationStatus(str, Enum):
     DEPRECATED = "deprecated"
 
 
-class AssemblySpecification(BaseModel):
+class AssemblySpecification(Entity):
     """Assembly specification configuration that defines how to assemble
     documents of a specific type.
 
@@ -57,14 +60,14 @@ class AssemblySpecification(BaseModel):
         "service for document-assembly matching"
     )
 
-    jsonschema: dict[str, Any] = Field(
+    jsonschema: Mapping[str, Any] = Field(
         description="JSON Schema defining the structure of data to be "
         "extracted for this assembly"
     )
 
     # AssemblySpecification configuration
     status: AssemblySpecificationStatus = AssemblySpecificationStatus.ACTIVE
-    knowledge_service_queries: dict[str, str] = Field(
+    knowledge_service_queries: Mapping[str, str] = Field(
         default_factory=dict,
         description="Mapping from JSON Pointer paths to "
         "KnowledgeServiceQuery IDs. Keys are JSON Pointer strings "

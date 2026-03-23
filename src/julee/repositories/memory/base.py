@@ -146,7 +146,7 @@ class MemoryRepositoryMixin(Generic[T]):
         )
 
         # Update timestamps
-        self.update_timestamps(entity)
+        entity = self.update_timestamps(entity)
 
         # Store the entity (idempotent - will overwrite if exists)
         self.storage_dict[entity_id] = entity
@@ -183,25 +183,35 @@ class MemoryRepositoryMixin(Generic[T]):
 
         return entity_id
 
-    def update_timestamps(self, entity: T) -> None:
-        """Update timestamps on an entity (created_at if None, always
-        updated_at).
+    def update_timestamps(self, entity: T) -> T:
+        """Return a copy of the entity with timestamps updated.
+
+        Sets created_at if currently None (new entity), and always sets
+        updated_at to the current time.
 
         Args:
             entity: Pydantic model with created_at and updated_at fields
+
+        Returns:
+            New entity instance with updated timestamps (or original if no
+            timestamp fields are present)
         """
         now = datetime.now(timezone.utc)
 
-        # Set created_at if it's None (for new objects)
+        updates: dict[str, Any] = {}
+
         if (
             hasattr(entity, "created_at")
             and getattr(entity, "created_at", None) is None
         ):
-            entity.created_at = now
+            updates["created_at"] = now
 
-        # Always update updated_at
         if hasattr(entity, "updated_at"):
-            entity.updated_at = now
+            updates["updated_at"] = now
+
+        if updates:
+            return entity.model_copy(update=updates)  # type: ignore[return-value]
+        return entity
 
     def _add_entity_specific_log_data(
         self, entity: T, log_data: dict[str, Any]

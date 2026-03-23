@@ -8,12 +8,14 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+from pydantic import Field, ValidationInfo, field_validator, model_validator
+
+from julee.core.entities.entity import Entity
 
 from julee.contrib.ceap.domain.models.custom_fields.content_stream import (
     ContentStream,
@@ -55,7 +57,7 @@ class DocumentStatus(str, Enum):
 
 
 @delegate_to_content("read", "seek", "tell")
-class Document(BaseModel):
+class Document(Entity):
     """Complete document entity including content and metadata.
 
     This is the primary domain model that represents a complete document
@@ -78,7 +80,7 @@ class Document(BaseModel):
     # Document processing state
     status: DocumentStatus = DocumentStatus.CAPTURED
     knowledge_service_id: str | None = None
-    assembly_types: list[str] = Field(default_factory=list)
+    assembly_types: tuple[str, ...] = Field(default_factory=tuple)
 
     # Timestamps
     created_at: datetime | None = Field(
@@ -89,7 +91,7 @@ class Document(BaseModel):
     )
 
     # Additional data and content stream
-    additional_metadata: dict[str, Any] = Field(default_factory=dict)
+    additional_metadata: Mapping[str, Any] = Field(default_factory=dict)
     content: ContentStream | None = Field(default=None, exclude=True)
 
     content_bytes: bytes | None = Field(

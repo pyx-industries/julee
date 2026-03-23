@@ -452,10 +452,10 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.PASSED
         assert result.passed is True
-        assert result.validation_scores == [
+        assert result.validation_scores == (
             ("quality-query", 85),
             ("clarity-query", 75),
-        ]
+        )
         assert result.completed_at is not None
         assert result.error_message is None
 
@@ -684,10 +684,10 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.PASSED
         assert result.passed is True
-        assert result.validation_scores == [("quality-query", 60)]  # Initial scores
-        assert result.post_transform_validation_scores == [
-            ("quality-query", 85)
-        ]  # Final scores
+        assert result.validation_scores == (("quality-query", 60),)  # Initial scores
+        assert result.post_transform_validation_scores == (
+            ("quality-query", 85),
+        )  # Final scores
         assert result.transformed_document_id is not None
         assert result.completed_at is not None
 
@@ -835,10 +835,10 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.FAILED
         assert result.passed is False
-        assert result.validation_scores == [("quality-query", 40)]  # Initial scores
-        assert result.post_transform_validation_scores == [
-            ("quality-query", 70)
-        ]  # Final scores still fail
+        assert result.validation_scores == (("quality-query", 40),)  # Initial scores
+        assert result.post_transform_validation_scores == (
+            ("quality-query", 70),
+        )  # Final scores still fail
         assert result.transformed_document_id is not None
         assert result.completed_at is not None
 
@@ -946,7 +946,7 @@ class TestValidateDocumentUseCase:
         assert isinstance(result, DocumentPolicyValidation)
         assert result.status == DocumentPolicyValidationStatus.PASSED
         assert result.passed is True
-        assert result.validation_scores == [("quality-query", 90)]
+        assert result.validation_scores == (("quality-query", 90),)
         assert result.post_transform_validation_scores is None  # No transformation
         assert result.transformed_document_id is None  # No transformation
         assert result.completed_at is not None

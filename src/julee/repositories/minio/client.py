@@ -480,22 +480,32 @@ class MinioRepositoryMixin:
             )
             raise
 
-    def update_timestamps(self, model: Any) -> None:
-        """Update timestamps on a model (created_at if None, always
-        updated_at).
+    def update_timestamps(self, model: Any) -> Any:
+        """Return a copy of the model with timestamps updated.
+
+        Sets created_at if currently None (new entity), and always sets
+        updated_at to the current time.
 
         Args:
             model: Pydantic model with created_at and updated_at fields
+
+        Returns:
+            New model instance with updated timestamps (or original if no
+            timestamp fields are present)
         """
         now = datetime.now(timezone.utc)
 
-        # Set created_at if it's None (for new objects)
-        if hasattr(model, "created_at") and getattr(model, "created_at", None) is None:
-            model.created_at = now
+        updates: dict[str, Any] = {}
 
-        # Always update updated_at
+        if hasattr(model, "created_at") and getattr(model, "created_at", None) is None:
+            updates["created_at"] = now
+
         if hasattr(model, "updated_at"):
-            model.updated_at = now
+            updates["updated_at"] = now
+
+        if updates:
+            return model.model_copy(update=updates)
+        return model
 
     def generate_id_with_prefix(self, prefix: str) -> str:
         """Generate a unique ID with the given prefix and log the generation.

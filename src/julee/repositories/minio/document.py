@@ -171,7 +171,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
         )
 
         # Update timestamp
-        self.update_timestamps(document)
+        document = self.update_timestamps(document)
 
         try:
             # Handle content_string conversion (only if no content provided)
@@ -190,7 +190,9 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                         "calculated_multihash": calculated_multihash,
                     },
                 )
-                document.content_multihash = calculated_multihash
+                document = document.model_copy(
+                    update={"content_multihash": calculated_multihash}
+                )
 
             # Store metadata second (atomic operation)
             await self._store_metadata(document)

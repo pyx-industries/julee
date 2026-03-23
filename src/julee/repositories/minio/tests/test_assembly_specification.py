@@ -184,7 +184,7 @@ class TestMinioAssemblySpecificationRepositoryStatusManagement:
         await specification_repo.save(sample_specification)
 
         # Update status to draft
-        sample_specification.status = AssemblySpecificationStatus.DRAFT
+        sample_specification = sample_specification.model_copy(update={"status": AssemblySpecificationStatus.DRAFT})
         await specification_repo.save(sample_specification)
 
         # Verify update
@@ -195,7 +195,7 @@ class TestMinioAssemblySpecificationRepositoryStatusManagement:
         assert retrieved.status == AssemblySpecificationStatus.DRAFT
 
         # Update to deprecated
-        sample_specification.status = AssemblySpecificationStatus.DEPRECATED
+        sample_specification = sample_specification.model_copy(update={"status": AssemblySpecificationStatus.DEPRECATED})
         await specification_repo.save(sample_specification)
 
         # Verify final state
@@ -237,12 +237,11 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
         await specification_repo.save(specification)
 
         # Activate specification
-        specification.status = AssemblySpecificationStatus.ACTIVE
-        specification.version = "1.0.0"
+        specification = specification.model_copy(update={"status": AssemblySpecificationStatus.ACTIVE, "version": "1.0.0"})
         await specification_repo.save(specification)
 
         # Deprecate specification
-        specification.status = AssemblySpecificationStatus.DEPRECATED
+        specification = specification.model_copy(update={"status": AssemblySpecificationStatus.DEPRECATED})
         await specification_repo.save(specification)
 
         # Verify can still be retrieved directly

@@ -16,7 +16,9 @@ and type safety, following the patterns established in the sample project.
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class PolicyStatus(str, Enum):
@@ -28,7 +30,7 @@ class PolicyStatus(str, Enum):
     DEPRECATED = "deprecated"
 
 
-class Policy(BaseModel):
+class Policy(Entity):
     """Policy configuration that defines validation and
     transformation criteria for documents.
 
@@ -55,12 +57,12 @@ class Policy(BaseModel):
 
     # Policy configuration
     status: PolicyStatus = PolicyStatus.ACTIVE
-    validation_scores: list[tuple[str, int]] = Field(
+    validation_scores: tuple[tuple[str, int], ...] = Field(
         description="List of (knowledge_service_query_id, required_score) "
         "tuples where required_score is between 0 and 100. All scores "
         "must be met or exceeded for the policy to pass"
     )
-    transformation_queries: list[str] | None = Field(
+    transformation_queries: tuple[str, ...] | None = Field(
         default=None,
         description="Optional list of knowledge service query IDs for "
         "transformations to apply before re-validation. If not provided "
@@ -99,14 +101,14 @@ class Policy(BaseModel):
     @classmethod
     def validation_scores_must_be_valid(
         cls, v: list[tuple[str, int]]
-    ) -> list[tuple[str, int]]:
-        if not isinstance(v, list):
+    ) -> tuple[tuple[str, int], ...]:
+        if not isinstance(v, (list, tuple)):
             raise ValueError("Validation scores must be a list")
 
         if not v:
             raise ValueError("Validation scores list cannot be empty")
 
-        validated_scores = []
+        validated_scores: list[tuple[str, int]] = []
         query_ids_seen = set()
 
         for item in v:
@@ -142,24 +144,24 @@ class Policy(BaseModel):
 
             validated_scores.append((query_id, required_score))
 
-        return validated_scores
+        return tuple(validated_scores)
 
     @field_validator("transformation_queries")
     @classmethod
     def transformation_queries_must_be_valid(
         cls, v: list[str] | None
-    ) -> list[str] | None:
+    ) -> tuple[str, ...] | None:
         if v is None:
             return v
 
-        if not isinstance(v, list):
+        if not isinstance(v, (list, tuple)):
             raise ValueError("Transformation queries must be a list or None")
 
         # Empty list is valid - means no transformations
         if not v:
-            return v
+            return tuple()
 
-        validated_queries = []
+        validated_queries: list[str] = []
         query_ids_seen = set()
 
         for query_id in v:
@@ -178,7 +180,7 @@ class Policy(BaseModel):
 
             validated_queries.append(query_id)
 
-        return validated_queries
+        return tuple(validated_queries)
 
     @field_validator("version")
     @classmethod

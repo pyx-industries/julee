@@ -192,9 +192,12 @@ class TestKnowledgeServiceQueriesEndpoint:
         # Save a query to the repository
         await memory_repo.save(sample_knowledge_service_query)
 
-        # Verify it can be retrieved
+        # Verify it can be retrieved (repo updates timestamps on save, so compare key fields)
         retrieved = await memory_repo.get(sample_knowledge_service_query.query_id)
-        assert retrieved == sample_knowledge_service_query
+        assert retrieved is not None
+        assert retrieved.query_id == sample_knowledge_service_query.query_id
+        assert retrieved.name == sample_knowledge_service_query.name
+        assert retrieved.prompt == sample_knowledge_service_query.prompt
 
         # This shows we can store and retrieve queries from the repository
 

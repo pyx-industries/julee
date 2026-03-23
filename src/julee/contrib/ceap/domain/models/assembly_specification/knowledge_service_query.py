@@ -15,13 +15,16 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
-class KnowledgeServiceQuery(BaseModel):
+class KnowledgeServiceQuery(Entity):
     """Knowledge service query configuration for extracting specific data.
 
     A KnowledgeServiceQuery represents a specific extraction operation that
@@ -78,7 +81,7 @@ class KnowledgeServiceQuery(BaseModel):
     )
 
     # Service-specific configuration
-    query_metadata: dict[str, Any] | None = Field(
+    query_metadata: Mapping[str, Any] | None = Field(
         default_factory=dict,
         description="Service-specific metadata and configuration options "
         "such as model selection, temperature, max_tokens, etc. "

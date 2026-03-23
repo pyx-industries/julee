@@ -54,7 +54,7 @@ class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):
     async def save(self, policy: Policy) -> None:
         """Save a policy to Minio."""
         # Update timestamps
-        self.update_timestamps(policy)
+        policy = self.update_timestamps(policy)
 
         self.put_json_object(
             bucket_name=self.policies_bucket,

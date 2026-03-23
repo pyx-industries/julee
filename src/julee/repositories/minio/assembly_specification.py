@@ -64,7 +64,7 @@ class MinioAssemblySpecificationRepository(
     async def save(self, assembly_specification: AssemblySpecification) -> None:
         """Save an assembly specification to Minio."""
         # Update timestamps
-        self.update_timestamps(assembly_specification)
+        assembly_specification = self.update_timestamps(assembly_specification)
 
         object_name = f"spec/{assembly_specification.assembly_specification_id}"
 

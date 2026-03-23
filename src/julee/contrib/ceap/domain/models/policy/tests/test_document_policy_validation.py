@@ -38,7 +38,7 @@ class TestDocumentPolicyValidationValidation:
         assert validation.input_document_id is not None
         assert validation.policy_id is not None
         assert validation.status == DocumentPolicyValidationStatus.PENDING
-        assert validation.validation_scores == []
+        assert validation.validation_scores == ()
         assert validation.transformed_document_id is None
         assert validation.post_transform_validation_scores is None
         assert validation.validation_id is not None
@@ -70,15 +70,15 @@ class TestDocumentPolicyValidationValidation:
         assert validation.input_document_id == "doc-123"
         assert validation.policy_id == "policy-456"
         assert validation.status == DocumentPolicyValidationStatus.PASSED
-        assert validation.validation_scores == [
+        assert validation.validation_scores == (
             ("query1", 85),
             ("query2", 92),
-        ]
+        )
         assert validation.transformed_document_id == "doc-123-transformed"
-        assert validation.post_transform_validation_scores == [
+        assert validation.post_transform_validation_scores == (
             ("query1", 95),
             ("query2", 88),
-        ]
+        )
         assert validation.started_at == started_at
         assert validation.completed_at == completed_at
         assert validation.passed is True
@@ -224,7 +224,7 @@ class TestValidationScores:
             policy_id="policy-456",
             validation_scores=[],
         )
-        assert validation.validation_scores == []
+        assert validation.validation_scores == ()
 
     def test_valid_validation_scores(self) -> None:
         """Test valid validation_scores."""
@@ -235,7 +235,7 @@ class TestValidationScores:
             policy_id="policy-456",
             validation_scores=scores,
         )
-        assert validation.validation_scores == scores
+        assert validation.validation_scores == tuple(scores)
 
     def test_validation_scores_with_valid_integers(self) -> None:
         """Test that validation_scores work with valid integer scores."""
@@ -245,10 +245,10 @@ class TestValidationScores:
             policy_id="policy-456",
             validation_scores=[("query1", 85), ("query2", 92)],
         )
-        assert validation.validation_scores == [
+        assert validation.validation_scores == (
             ("query1", 85),
             ("query2", 92),
-        ]
+        )
 
     def test_validation_scores_query_id_validation(self) -> None:
         """Test validation_scores query_id validation."""
@@ -309,10 +309,10 @@ class TestValidationScores:
             policy_id="policy-456",
             validation_scores=[("query1", 0), ("query2", 100)],
         )
-        assert validation.validation_scores == [
+        assert validation.validation_scores == (
             ("query1", 0),
             ("query2", 100),
-        ]
+        )
 
     def test_validation_scores_no_duplicates(self) -> None:
         """Test that validation_scores cannot have duplicate query_ids."""
@@ -349,7 +349,7 @@ class TestPostTransformValidationScores:
             policy_id="policy-456",
             post_transform_validation_scores=[],
         )
-        assert validation.post_transform_validation_scores == []
+        assert validation.post_transform_validation_scores == ()
 
     def test_valid_post_transform_scores(self) -> None:
         """Test valid post_transform_validation_scores."""
@@ -360,7 +360,7 @@ class TestPostTransformValidationScores:
             policy_id="policy-456",
             post_transform_validation_scores=scores,
         )
-        assert validation.post_transform_validation_scores == scores
+        assert validation.post_transform_validation_scores == tuple(scores)
 
     def test_post_transform_scores_validation_rules(self) -> None:
         """Test that post_transform_validation_scores follows same rules as

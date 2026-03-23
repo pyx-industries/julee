@@ -121,9 +121,11 @@ class TestMinioKnowledgeServiceConfigRepositoryUpdates:
         await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
         # Update the config
-        sample_knowledge_service_config.name = "Updated Test Service"
-        sample_knowledge_service_config.description = (
-            "Updated description for the test service"
+        sample_knowledge_service_config = sample_knowledge_service_config.model_copy(
+            update={
+                "name": "Updated Test Service",
+                "description": "Updated description for the test service",
+            }
         )
         await knowledge_service_config_repo.save(sample_knowledge_service_config)
 
@@ -276,8 +278,12 @@ class TestMinioKnowledgeServiceConfigRepositoryRoundtrip:
         assert retrieved.service_api == ServiceApi.ANTHROPIC
 
         # Update the configuration
-        config.name = "Updated Lifecycle Service"
-        config.description = "Updated description after lifecycle test"
+        config = config.model_copy(
+            update={
+                "name": "Updated Lifecycle Service",
+                "description": "Updated description after lifecycle test",
+            }
+        )
         await knowledge_service_config_repo.save(config)
 
         # Final verification
@@ -329,7 +335,7 @@ class TestMinioKnowledgeServiceConfigRepositoryRoundtrip:
         assert retrieved2.description == "Second test service"
 
         # Update one config and verify the other is unchanged
-        config1.name = "Updated Service One"
+        config1 = config1.model_copy(update={"name": "Updated Service One"})
         await knowledge_service_config_repo.save(config1)
 
         retrieved1_updated = await knowledge_service_config_repo.get("ks-test-1")
