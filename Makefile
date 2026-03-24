@@ -15,11 +15,11 @@ lint-python:
 # Python unit tests
 test-python-unit:
 	@echo "Running Python unit tests..."
-	pytest -m unit
+	uv run pytest -m unit
 
 # Fast Python quality checks (for pre-commit)
 quality-fast-python: lint-python
-	pytest --asyncio-mode=auto -x -m unit --no-cov -q
+	uv run pytest --asyncio-mode=auto -x -m unit --no-cov -q
 
 # Full quality suite (for post-commit/CI)
 quality-full: reports quality-types quality-security test-unit test-e2e
@@ -45,7 +45,7 @@ quality-security: reports
 # Unit tests with coverage
 test-unit: reports
 	@echo "Running unit tests with coverage..."
-	pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e"
+	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e"
 
 # E2E test setup (starts ephemeral infrastructure)
 e2e-test-setup: reports
