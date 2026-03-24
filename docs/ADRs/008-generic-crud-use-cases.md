@@ -2,11 +2,15 @@
 
 ## Status
 
-Draft
+Accepted
 
 ## Date
 
 2026-01-07
+
+## Revision
+
+2026-03-24
 
 ## Context
 
@@ -33,11 +37,13 @@ The challenge is reducing boilerplate while:
 
 ## Decision
 
-The framework SHALL provide generic CRUD base classes and a `generate()` factory function that creates doctrine-compliant use cases with minimal boilerplate.
+The framework SHALL provide generic CRUD base classes and a build-time code generator that produces plain Python files from entity and repository definitions.
+
+Generated files are placed in a `.generated/` directory within each bounded context, gitignored, and regenerated as part of `make install`. Because the generator is deterministic (same entity + repository definitions → same output), the generated files are fully derivable from tracked source — the same model as compiled artifacts.
 
 ### Base Classes for Inheritance
 
-For cases requiring customization, generic base classes enable subclassing:
+Generic base classes parameterized by entity type `E` and repository type `R` provide the implementations that generated classes inherit from:
 
 ```python
 from julee.core.use_cases import generic_crud
@@ -51,37 +57,27 @@ class ListStoriesUseCase(generic_crud.ListUseCase[Story, StoryRepository]):
     """List all stories."""
 ```
 
-Base classes are parameterized by entity type `E` and repository type `R`, providing:
-- Type-safe repository injection
-- Standard execute() method implementation
-- Auto-derived response field names (e.g., `response.story`, `response.stories`)
+For cases not requiring customization, the code generator emits subclasses like these automatically.
 
-### The generate() Factory
+### The Code Generator
 
-For standard CRUD without customization, a single call generates all classes:
+`julee/core/use_cases/generate_crud.py` is a CLI script (or callable from `make install`) that accepts an entity name, repository name, and optional filter list, and writes a `.generated/use_cases/crud_{entity_snake}.py` file into the target bounded context:
 
-```python
-from julee.core.use_cases import generic_crud
-
-generic_crud.generate(
-    Story,
-    StoryRepository,
-    filters=["app_slug", "persona"],
-)
-
-# Generates and injects into module namespace:
-# - GetStoryRequest, GetStoryResponse, GetStoryUseCase
-# - ListStoriesRequest, ListStoriesResponse, ListStoriesUseCase
-# - CreateStoryRequest, CreateStoryResponse, CreateStoryUseCase
-# - UpdateStoryRequest, UpdateStoryResponse, UpdateStoryUseCase
-# - DeleteStoryRequest, DeleteStoryResponse, DeleteStoryUseCase
+```bash
+uv run python -m julee.core.use_cases.generate_crud \
+    --entity Story \
+    --repo StoryRepository \
+    --filters app_slug persona \
+    --out src/julee/hcd/.generated/use_cases/
 ```
 
 The generator:
-1. Uses repository protocol to infer Request/Response properties
-2. Applies pluralization rules (`Story` → `Stories`, `Journey` → `Journeys`)
-3. Injects classes into the calling module's namespace
-4. Supports optional `filters` parameter for List filtering
+1. Inspects the repository Protocol to derive filter parameter names and types
+2. Applies naming rules (`Story` → `Stories`, `SoftwareSystem` → `software_systems`)
+3. Writes a single `.py` file containing all 15 classes (5 operations × Request + Response + UseCase)
+4. Pipes output through `ruff format` for consistent style
+
+The generated file is ordinary Python — fully visible to IDEs, debuggable with standard tools, and readable by developers who want to understand what the pattern produces.
 
 ### Auto-Derived Field Names
 
@@ -95,11 +91,9 @@ Response classes automatically derive field names from entity types:
 {"stories": [...]}
 ```
 
-This is achieved through:
+Naming helpers in the generator:
 - `_to_snake_case()` - converts `SoftwareSystem` to `software_system`
 - `_pluralize()` - converts `story` to `stories` (handles consonant+y, -s, -x, -ch)
-- Custom `__getattr__` for attribute access (`response.stories`)
-- Custom `model_serializer` for JSON output
 
 ### Filterable Lists
 
@@ -118,15 +112,7 @@ class StoryRepository(Protocol):
     ) -> list[Story]: ...
 ```
 
-The `make_list_request()` helper introspects repository signatures to generate matching request classes:
-
-```python
-ListStoriesRequest = generic_crud.make_list_request(
-    "ListStoriesRequest",
-    StoryRepository,
-)
-# Generates request with app_slug and persona filter fields
-```
+The generator introspects the repository Protocol signature to emit matching request fields.
 
 ### Handler Integration
 
@@ -150,30 +136,26 @@ class CreateUseCase(Generic[E, R]):
 
 ### Customization Points
 
-Generated classes can be customized by:
-
-1. **Subclassing base classes** - for custom execute() logic
+1. **Subclassing base classes** - write a hand-rolled use case that extends the generic base
 2. **Entity methods** - `from_create_data()`, `apply_update()` for creation/update logic
-3. **Replacing generated classes** - define your own after generate() call
-4. **Selective generation** - `generate(..., delete=False, update=False)`
+3. **Selective generation** - pass `--no-delete`, `--no-update` flags to the generator
+4. **Override after generation** - import the generated class and subclass it; the generator will not overwrite hand-rolled files
 
 ## Consequences
 
 ### Positive
 
-1. **Reduced boilerplate** - one line generates 15 doctrine-compliant classes
-2. **Consistent patterns** - all CRUD operations follow identical structure
-3. **Doctrine compliance** - generated classes satisfy all doctrine requirements
-4. **Type safety preserved** - generics maintain type checking
-5. **Customizable** - base classes allow override when needed
-6. **Repository-driven filters** - list filters derived from repository protocol
+1. **Full IDE support** - generated files are plain Python; autocomplete, go-to-definition, and refactoring all work
+2. **Debuggable** - stack traces reference real file lines in `.generated/`, not generic base class internals
+3. **Clean diffs** - generated files are gitignored and never appear in PRs
+4. **No magic** - the generation step is explicit and inspectable; running it produces readable output
+5. **Doctrine compliance** - generated classes satisfy all doctrine requirements via base class inheritance
+6. **Consistent patterns** - all CRUD operations follow identical structure
 
 ### Negative
 
-1. **IDE limitations** - generated classes may not appear in autocomplete until runtime
-2. **Debugging complexity** - stack traces include generic base classes
-3. **Magic behavior** - namespace injection is implicit
-4. **Learning curve** - developers must understand the generation pattern
+1. **Build step required** - `make install` must be run before the generated files exist
+2. **Generator must be kept current** - changes to base class interfaces require regenerating affected files
 
 ### Neutral
 
@@ -184,36 +166,49 @@ Generated classes can be customized by:
 
 ### Core Module
 
-`julee/core/use_cases/generic_crud.py` provides:
+`julee/core/use_cases/generic_crud.py` provides the base classes:
 
-- Base classes: `GetUseCase`, `ListUseCase`, `FilterableListUseCase`, `PaginatedListUseCase`, `CreateUseCase`, `UpdateUseCase`, `DeleteUseCase`
-- Request bases: `GetRequest`, `ListRequest`, `PaginatedListRequest`, `CreateRequest`, `UpdateRequest`, `DeleteRequest`
-- Response bases: `GetResponse`, `ListResponse`, `PaginatedListResponse`, `CreateResponse`, `UpdateResponse`, `DeleteResponse`
-- Helpers: `generate()`, `make_list_request()`, `extract_filter_params()`
+- `GetUseCase`, `ListUseCase`, `FilterableListUseCase`, `PaginatedListUseCase`, `CreateUseCase`, `UpdateUseCase`, `DeleteUseCase`
+- `GetRequest`, `ListRequest`, `PaginatedListRequest`, `CreateRequest`, `UpdateRequest`, `DeleteRequest`
+- `GetResponse`, `ListResponse`, `PaginatedListResponse`, `CreateResponse`, `UpdateResponse`, `DeleteResponse`
 
-### Usage Pattern
+`julee/core/use_cases/generate_crud.py` provides the CLI generator.
 
-Bounded contexts create a `use_cases/crud.py` module:
+### Directory Convention
 
-```python
-"""CRUD use cases for HCD entities."""
+```
+src/
+  julee/
+    hcd/
+      entities/
+        story.py          # tracked
+      repositories/
+        story.py          # tracked
+      .generated/
+        use_cases/
+          crud_story.py   # gitignored, regenerated by make install
+```
 
-from julee.core.use_cases import generic_crud
-from julee.hcd.entities import Story, Epic, Persona
-from julee.hcd.repositories import StoryRepository, EpicRepository, PersonaRepository
+`.gitignore` contains `**/.generated/`.
 
-generic_crud.generate(Story, StoryRepository, filters=["app_slug", "persona"])
-generic_crud.generate(Epic, EpicRepository, filters=["app_slug"])
-generic_crud.generate(Persona, PersonaRepository)
+### Makefile Integration
+
+```makefile
+generate-crud:
+    @echo "Generating CRUD use cases..."
+    uv run python -m julee.core.use_cases.generate_crud --all src/
+
+install: generate-crud
+    uv sync --extra dev
 ```
 
 ## Alternatives Considered
 
-### 1. Code Generation Scripts
+### 1. Runtime Namespace Injection (previously the chosen approach)
 
-Generate Python files at build time.
+Generate classes at module load time and inject them into the calling module's namespace via `generate()`.
 
-**Rejected**: Creates files that drift from source of truth, complicates version control, requires build step.
+**Rejected**: IDEs cannot discover injected names until the module is imported at runtime, breaking autocomplete and go-to-definition. Stack traces reference generic base classes rather than meaningful locations. The implicit namespace mutation is opaque to readers of the calling module.
 
 ### 2. Metaclass-Based Generation
 
@@ -236,6 +231,12 @@ class Story(BaseModel):
 Require all CRUD classes to be hand-written.
 
 **Rejected**: Excessive boilerplate discourages doctrine compliance and obscures business logic.
+
+### 5. Generated Files Committed to Version Control
+
+Store generated files in a `.generated/` directory tracked by git, using `.gitattributes` to mark them as generated so GitHub collapses them in PR diffs.
+
+**Rejected**: Generated files still appear in PRs (collapsed, but present). Developers can accidentally edit them and the edit persists until the next regeneration. Keeping them out of VCS entirely is cleaner — the files are derivable from tracked source, so committing them adds noise without benefit.
 
 ## References
 
