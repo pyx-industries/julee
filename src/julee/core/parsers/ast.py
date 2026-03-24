@@ -197,6 +197,32 @@ def parse_module_docstring(module_path: Path) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _imported_class_names(directory: Path) -> set[str]:
+    """Return names imported into any non-private file in directory.
+
+    Scans import statements (not class definitions) so that re-exported
+    Request/Response classes satisfy doctrine checks even when they are
+    defined outside the use_cases directory (e.g. in _generated/).
+    """
+    if not directory.exists():
+        return set()
+    names: set[str] = set()
+    for py_file in directory.glob("**/*.py"):
+        if py_file.name.startswith("_"):
+            continue
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ImportFrom):
+                continue
+            for alias in node.names:
+                local_name = alias.asname if alias.asname else alias.name
+                names.add(local_name.split(".")[-1])
+    return names
+
+
 def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
     result = context_dir
     for part in path_tuple:
@@ -223,6 +249,19 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     domain_services_dir = context_dir / "domain" / "services"
 
     all_classes = parse_python_classes(use_cases_dir)
+    defined_names = {c.name for c in all_classes}
+
+    # Also collect names imported into use_cases files so that Request/Response
+    # classes defined elsewhere (e.g. _generated/) satisfy doctrine checks.
+    # Only augments Request/Response — UseCase imports are typically dependencies,
+    # not definitions, so they must remain class-definition-only.
+    imported = _imported_class_names(use_cases_dir)
+    for name in sorted(imported - defined_names):
+        if not name.startswith("_") and name.endswith(("Request", "Response")):
+            from julee.core.entities.code_info import ClassInfo
+
+            all_classes.append(ClassInfo(name=name))
+
     requests = [c for c in all_classes if c.name.endswith("Request")]
     responses = [c for c in all_classes if c.name.endswith("Response")]
     use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
