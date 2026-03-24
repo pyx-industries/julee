@@ -183,7 +183,9 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update status
-        sample_policy = sample_policy.model_copy(update={"status": PolicyStatus.INACTIVE})
+        sample_policy = sample_policy.model_copy(
+            update={"status": PolicyStatus.INACTIVE}
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
@@ -202,10 +204,14 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update validation scores
-        sample_policy = sample_policy.model_copy(update={"validation_scores": [
-            ("new-quality-check", 85),
-            ("advanced-validation", 95),
-        ]})
+        sample_policy = sample_policy.model_copy(
+            update={
+                "validation_scores": [
+                    ("new-quality-check", 85),
+                    ("advanced-validation", 95),
+                ]
+            }
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
@@ -226,7 +232,9 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update transformation queries
-        sample_policy = sample_policy.model_copy(update={"transformation_queries": ("new-transform",)})
+        sample_policy = sample_policy.model_copy(
+            update={"transformation_queries": ("new-transform",)}
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
@@ -308,7 +316,9 @@ class TestMemoryPolicyRepositoryEdgeCases:
         assert retrieved.status == PolicyStatus.DRAFT
 
         # Activate policy
-        policy = policy.model_copy(update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"})
+        policy = policy.model_copy(
+            update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"}
+        )
         await policy_repo.save(policy)
 
         retrieved = await policy_repo.get("lifecycle-policy")
@@ -431,7 +441,9 @@ class TestMemoryPolicyRepositoryRoundtrip:
         await policy_repo.save(policy)
 
         # Activate policy
-        policy = policy.model_copy(update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"})
+        policy = policy.model_copy(
+            update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"}
+        )
         await policy_repo.save(policy)
 
         # Final verification

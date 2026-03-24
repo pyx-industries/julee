@@ -106,7 +106,12 @@ class TestMinioAssemblyRepositoryDirectCompletion:
         await assembly_repo.save(sample_assembly)
 
         # Complete assembly using model_copy (new approach)
-        sample_assembly = sample_assembly.model_copy(update={"assembled_document_id": "output-doc-123", "status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={
+                "assembled_document_id": "output-doc-123",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify completion by retrieving again
@@ -126,13 +131,23 @@ class TestMinioAssemblyRepositoryDirectCompletion:
         await assembly_repo.save(sample_assembly)
 
         # Complete assembly first time
-        sample_assembly = sample_assembly.model_copy(update={"assembled_document_id": "output-doc-456", "status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={
+                "assembled_document_id": "output-doc-456",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(sample_assembly)
 
         first_updated_at = sample_assembly.updated_at
 
         # "Complete" same assembly again with same values (idempotent)
-        sample_assembly = sample_assembly.model_copy(update={"assembled_document_id": "output-doc-456", "status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={
+                "assembled_document_id": "output-doc-456",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify state and that updated_at changed (save updates timestamp)
@@ -159,7 +174,9 @@ class TestMinioAssemblyRepositoryStatusUpdates:
         await assembly_repo.save(sample_assembly)
 
         # Update status
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.IN_PROGRESS})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.IN_PROGRESS}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify update
@@ -168,7 +185,9 @@ class TestMinioAssemblyRepositoryStatusUpdates:
         assert retrieved.status == AssemblyStatus.IN_PROGRESS
 
         # Update to completed
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.COMPLETED}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify final state
@@ -203,11 +222,18 @@ class TestMinioAssemblyRepositoryStatusUpdates:
     ) -> None:
         """Test that save operations preserve assembled_document_id."""
         # Set assembled document first
-        sample_assembly = sample_assembly.model_copy(update={"assembled_document_id": "test-doc-123", "status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={
+                "assembled_document_id": "test-doc-123",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(sample_assembly)
 
         # Update other fields and save again
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.FAILED})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.FAILED}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify assembled_document_id is preserved
@@ -244,11 +270,18 @@ class TestMinioAssemblyRepositoryEdgeCases:
         await assembly_repo.save(sample_assembly)
 
         # Start processing
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.IN_PROGRESS})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.IN_PROGRESS}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Set assembled document using model_copy
-        sample_assembly = sample_assembly.model_copy(update={"assembled_document_id": "final-output-doc", "status": AssemblyStatus.COMPLETED})
+        sample_assembly = sample_assembly.model_copy(
+            update={
+                "assembled_document_id": "final-output-doc",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify final state
@@ -276,11 +309,15 @@ class TestMinioAssemblyRepositoryEdgeCases:
         await assembly_repo.save(sample_assembly)
 
         # Start processing
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.IN_PROGRESS})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.IN_PROGRESS}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Mark as failed (without setting assembled document)
-        sample_assembly = sample_assembly.model_copy(update={"status": AssemblyStatus.FAILED})
+        sample_assembly = sample_assembly.model_copy(
+            update={"status": AssemblyStatus.FAILED}
+        )
         await assembly_repo.save(sample_assembly)
 
         # Verify final state - no assembled document
@@ -320,7 +357,12 @@ class TestMinioAssemblyRepositoryRoundtrip:
         await assembly_repo.save(assembly)
 
         # Complete assembly with output document
-        assembly = assembly.model_copy(update={"assembled_document_id": "final-output-document", "status": AssemblyStatus.COMPLETED})
+        assembly = assembly.model_copy(
+            update={
+                "assembled_document_id": "final-output-document",
+                "status": AssemblyStatus.COMPLETED,
+            }
+        )
         await assembly_repo.save(assembly)
 
         final_assembly = await assembly_repo.get(assembly_id)

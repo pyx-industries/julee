@@ -207,7 +207,9 @@ class TestMinioDocumentRepositoryStore:
 
         # Deliberately set an incorrect multihash to test correction
         correct_multihash = sample_document.content_multihash
-        sample_document = sample_document.model_copy(update={"content_multihash": "incorrect_hash_12345"})
+        sample_document = sample_document.model_copy(
+            update={"content_multihash": "incorrect_hash_12345"}
+        )
 
         # Act
         await repository.save(sample_document)
@@ -363,7 +365,9 @@ class TestMinioDocumentRepositoryUpdate:
         original_updated_at = sample_document.updated_at
 
         # Modify document
-        sample_document = sample_document.model_copy(update={"status": DocumentStatus.EXTRACTED})
+        sample_document = sample_document.model_copy(
+            update={"status": DocumentStatus.EXTRACTED}
+        )
 
         # Act
         await repository.save(sample_document)

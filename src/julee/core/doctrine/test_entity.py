@@ -44,8 +44,8 @@ class TestEntityImmutability:
                 if "Entity" not in entity.bases:
                     violations.append(f"{ctx.slug}.{entity.name}")
 
-        assert not violations, (
-            "Entity classes not extending Entity:\n" + "\n".join(violations)
+        assert not violations, "Entity classes not extending Entity:\n" + "\n".join(
+            violations
         )
 
     @pytest.mark.asyncio

@@ -159,7 +159,7 @@ class Policy(Entity):
 
         # Empty list is valid - means no transformations
         if not v:
-            return tuple()
+            return ()
 
         validated_queries: list[str] = []
         query_ids_seen = set()

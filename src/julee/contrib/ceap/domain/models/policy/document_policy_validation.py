@@ -137,7 +137,7 @@ class DocumentPolicyValidation(Entity):
 
         # Empty list is valid for pending validations
         if not v:
-            return tuple()
+            return ()
 
         return cls._validate_score_tuples(v, "validation_scores")
 
@@ -154,7 +154,7 @@ class DocumentPolicyValidation(Entity):
 
         # Empty list is valid
         if not v:
-            return tuple()
+            return ()
 
         return cls._validate_score_tuples(v, "post_transform_validation_scores")
 
