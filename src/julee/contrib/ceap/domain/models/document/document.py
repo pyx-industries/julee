@@ -15,11 +15,10 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
-from julee.core.entities.entity import Entity
-
 from julee.contrib.ceap.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
+from julee.core.entities.entity import Entity
 
 
 def delegate_to_content(*method_names: str) -> Callable[[type], type]:
