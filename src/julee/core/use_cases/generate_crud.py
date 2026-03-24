@@ -23,7 +23,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Naming helpers
 # ---------------------------------------------------------------------------
@@ -80,8 +79,18 @@ def _extra_entity_imports(
     Handles composite annotations like list[Foo], Foo|None, dict[str, Any].
     """
     safe = {
-        "str", "int", "float", "bool", "None", "Any", "Optional",
-        "list", "dict", "tuple", "set", "frozenset",
+        "str",
+        "int",
+        "float",
+        "bool",
+        "None",
+        "Any",
+        "Optional",
+        "list",
+        "dict",
+        "tuple",
+        "set",
+        "frozenset",
     }
     extra: set[str] = set()
     for _, type_str in all_fields:
@@ -134,7 +143,9 @@ class Get{entity}UseCase(GetUseCase[{entity}, {entity}Repository]):
 """
 
 
-def _list_section(entity: str, snake: str, plural_snake: str, plural_entity: str) -> str:
+def _list_section(
+    entity: str, snake: str, plural_snake: str, plural_entity: str
+) -> str:
     return f"""\
 class List{plural_entity}Request(BaseModel):
     \"\"\"Request for listing all {plural_entity}.\"\"\"
@@ -210,7 +221,6 @@ def _update_section(
     update_fields: list[tuple[str, str]],
 ) -> str:
     field_lines = _field_lines(update_fields)
-    update_keys = ", ".join(f'"{name}"' for name, _ in update_fields)
     return f"""\
 class Update{entity}Request(BaseModel):
     \"\"\"Request for updating a {entity}.\"\"\"
