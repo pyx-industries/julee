@@ -23,6 +23,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import inflect as inflect_lib
+
+_inflect = inflect_lib.engine()
+
 # ---------------------------------------------------------------------------
 # Naming helpers
 # ---------------------------------------------------------------------------
@@ -35,14 +39,8 @@ def _to_snake(name: str) -> str:
 
 
 def _pluralize(word: str) -> str:
-    """Simple English pluralisation (snake_case words)."""
-    if word.endswith("y") and len(word) > 1 and word[-2] not in "aeiou":
-        return word[:-1] + "ies"
-    if word.endswith(("s", "x")):
-        return word + "es"
-    if word.endswith("ch") or word.endswith("sh"):
-        return word + "es"
-    return word + "s"
+    """Pluralise a snake_case word using inflect."""
+    return _inflect.plural(word)
 
 
 def _parse_fields(fields_str: str | None) -> list[tuple[str, str]]:
