@@ -153,6 +153,7 @@ class List{plural_entity}Response(BaseModel):
     \"\"\"Response for listing all {plural_entity}.\"\"\"
 
     {plural_snake}: list[{entity}]
+    total_count: int
 
 
 class List{plural_entity}UseCase(ListUseCase[{entity}, {entity}Repository]):
@@ -165,7 +166,7 @@ class List{plural_entity}UseCase(ListUseCase[{entity}, {entity}Repository]):
     async def execute(self, request: List{plural_entity}Request) -> List{plural_entity}Response:
         \"\"\"Execute the list {plural_snake} use case.\"\"\"
         entities = await self._list_all()
-        return List{plural_entity}Response({plural_snake}=entities)
+        return List{plural_entity}Response({plural_snake}=entities, total_count=len(entities))
 """
 
 
