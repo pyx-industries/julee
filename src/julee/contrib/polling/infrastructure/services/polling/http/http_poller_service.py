@@ -6,6 +6,7 @@ REST API endpoints, webhooks, and other HTTP-based data sources.
 """
 
 import hashlib
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from typing import Any
 
@@ -21,15 +22,21 @@ from julee.contrib.polling.domain.services.poller import PollerService
 class HttpPollerService(PollerService):
     """HTTP implementation of PollerService protocol."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        header_factory: Callable[[], Awaitable[dict[str, str]]] | None = None,
+    ) -> None:
         self.client = httpx.AsyncClient()
+        self._header_factory = header_factory
 
     async def poll_endpoint(self, config: PollingConfig) -> PollingResult:
         """Poll an HTTP endpoint."""
         try:
             # Extract HTTP-specific params
             url = config.connection_params["url"]
-            headers = config.connection_params.get("headers", {})
+            headers = dict(config.connection_params.get("headers", {}))
+            if self._header_factory:
+                headers.update(await self._header_factory())
             method = config.polling_params.get("method", "GET")
             auth_params = config.connection_params.get("auth", {})
 

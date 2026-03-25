@@ -11,6 +11,7 @@ without requiring the core framework to know about specific contrib modules.
 """
 
 import logging
+from collections.abc import Awaitable, Callable
 
 from julee.util.temporal.decorators import temporal_activity_registration
 
@@ -31,8 +32,11 @@ class TemporalPollerService(HttpPollerService):
     observability for polling operations within workflow contexts.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(
+        self,
+        header_factory: Callable[[], Awaitable[dict[str, str]]] | None = None,
+    ) -> None:
+        super().__init__(header_factory=header_factory)
         self.logger: logging.Logger = logging.getLogger(__name__)
 
 
