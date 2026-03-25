@@ -16,7 +16,9 @@ and type safety, following the patterns established in the sample project.
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class ServiceApi(str, Enum):
@@ -25,7 +27,7 @@ class ServiceApi(str, Enum):
     ANTHROPIC = "anthropic"
 
 
-class KnowledgeServiceConfig(BaseModel):
+class KnowledgeServiceConfig(Entity):
     """Knowledge service configuration that defines how to interact with
     an external knowledge/AI service.
 

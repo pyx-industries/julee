@@ -182,9 +182,9 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
         # Verify transformation data is preserved
         assert retrieved is not None
         assert retrieved.transformed_document_id == "doc-transformed"
-        assert retrieved.post_transform_validation_scores == [("final-check", 85)]
+        assert retrieved.post_transform_validation_scores == (("final-check", 85),)
         assert retrieved.passed is True
-        assert retrieved.validation_scores == [("initial-check", 70)]
+        assert retrieved.validation_scores == (("initial-check", 70),)
 
     @pytest.mark.asyncio
     async def test_repository_logger_configuration(

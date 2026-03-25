@@ -91,7 +91,7 @@ class MinioKnowledgeServiceQueryRepository(
         )
 
         # Update the updated_at timestamp
-        self.update_timestamps(query)
+        query = self.update_timestamps(query)
 
         object_name = f"query/{query.query_id}"
 

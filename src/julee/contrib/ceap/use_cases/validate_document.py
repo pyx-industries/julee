@@ -216,7 +216,9 @@ class ValidateDocumentUseCase:
 
         try:
             # Step 4: Update status to in progress
-            validation.status = DocumentPolicyValidationStatus.IN_PROGRESS
+            validation = validation.model_copy(
+                update={"status": DocumentPolicyValidationStatus.IN_PROGRESS}
+            )
             await self.document_policy_validation_repo.save(validation)
 
             # Step 5: Retrieve all queries needed for this policy
@@ -236,8 +238,12 @@ class ValidateDocumentUseCase:
             )
 
             # Step 9: Update validation with scores
-            validation.validation_scores = validation_scores
-            validation.status = DocumentPolicyValidationStatus.VALIDATION_COMPLETE
+            validation = validation.model_copy(
+                update={
+                    "validation_scores": validation_scores,
+                    "status": DocumentPolicyValidationStatus.VALIDATION_COMPLETE,
+                }
+            )
             await self.document_policy_validation_repo.save(validation)
 
             # Step 10: Check if transformations are needed
@@ -285,7 +291,11 @@ class ValidateDocumentUseCase:
 
             # Step 11: Initial validation failed and transformations are
             # available
-            validation.status = DocumentPolicyValidationStatus.TRANSFORMATION_REQUIRED
+            validation = validation.model_copy(
+                update={
+                    "status": DocumentPolicyValidationStatus.TRANSFORMATION_REQUIRED
+                }
+            )
             await self.document_policy_validation_repo.save(validation)
 
             logger.info(
@@ -299,8 +309,10 @@ class ValidateDocumentUseCase:
             )
 
             # Step 12: Apply transformations
-            validation.status = (
-                DocumentPolicyValidationStatus.TRANSFORMATION_IN_PROGRESS
+            validation = validation.model_copy(
+                update={
+                    "status": DocumentPolicyValidationStatus.TRANSFORMATION_IN_PROGRESS
+                }
             )
             await self.document_policy_validation_repo.save(validation)
 
@@ -311,8 +323,12 @@ class ValidateDocumentUseCase:
                 document_registrations,
             )
 
-            validation.transformed_document_id = transformed_document.document_id
-            validation.status = DocumentPolicyValidationStatus.TRANSFORMATION_COMPLETE
+            validation = validation.model_copy(
+                update={
+                    "transformed_document_id": transformed_document.document_id,
+                    "status": DocumentPolicyValidationStatus.TRANSFORMATION_COMPLETE,
+                }
+            )
             await self.document_policy_validation_repo.save(validation)
 
             # Step 13: Register transformed document with knowledge services
@@ -323,7 +339,9 @@ class ValidateDocumentUseCase:
             )
 
             # Step 14: Re-run validation queries on transformed document
-            validation.status = DocumentPolicyValidationStatus.IN_PROGRESS
+            validation = validation.model_copy(
+                update={"status": DocumentPolicyValidationStatus.IN_PROGRESS}
+            )
             await self.document_policy_validation_repo.save(validation)
 
             post_transform_validation_scores = await self._execute_validation_queries(
@@ -378,10 +396,14 @@ class ValidateDocumentUseCase:
 
         except Exception as e:
             # Mark validation as failed due to error
-            validation.status = DocumentPolicyValidationStatus.ERROR
-            validation.error_message = str(e)
-            validation.passed = False
-            validation.completed_at = self.now_fn()
+            validation = validation.model_copy(
+                update={
+                    "status": DocumentPolicyValidationStatus.ERROR,
+                    "error_message": str(e),
+                    "passed": False,
+                    "completed_at": self.now_fn(),
+                }
+            )
             await self.document_policy_validation_repo.save(validation)
 
             logger.error(

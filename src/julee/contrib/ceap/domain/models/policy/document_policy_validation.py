@@ -20,7 +20,9 @@ and type safety, following the patterns established in the sample project.
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class DocumentPolicyValidationStatus(str, Enum):
@@ -37,7 +39,7 @@ class DocumentPolicyValidationStatus(str, Enum):
     ERROR = "error"
 
 
-class DocumentPolicyValidation(BaseModel):
+class DocumentPolicyValidation(Entity):
     """Represents the validation of a document against a policy configuration.
 
     A DocumentPolicyValidation tracks the complete lifecycle of validating
@@ -70,8 +72,8 @@ class DocumentPolicyValidation(BaseModel):
     status: DocumentPolicyValidationStatus = DocumentPolicyValidationStatus.PENDING
 
     # Initial validation results
-    validation_scores: list[tuple[str, int]] = Field(
-        default_factory=list,
+    validation_scores: tuple[tuple[str, int], ...] = Field(
+        default_factory=tuple,
         description="List of (knowledge_service_query_id, actual_score) "
         "tuples representing the scores achieved during initial validation. "
         "Scores are between 0 and 100",
@@ -84,7 +86,7 @@ class DocumentPolicyValidation(BaseModel):
         "applied. Only present if the policy includes transformation queries "
         "and they were executed",
     )
-    post_transform_validation_scores: list[tuple[str, int]] | None = Field(
+    post_transform_validation_scores: tuple[tuple[str, int], ...] | None = Field(
         default=None,
         description="List of (knowledge_service_query_id, actual_score) "
         "tuples representing scores achieved after transformation. "
@@ -129,13 +131,13 @@ class DocumentPolicyValidation(BaseModel):
     @classmethod
     def validation_scores_must_be_valid(
         cls, v: list[tuple[str, int]]
-    ) -> list[tuple[str, int]]:
-        if not isinstance(v, list):
+    ) -> tuple[tuple[str, int], ...]:
+        if not isinstance(v, (list, tuple)):
             raise ValueError("Validation scores must be a list")
 
         # Empty list is valid for pending validations
         if not v:
-            return v
+            return ()
 
         return cls._validate_score_tuples(v, "validation_scores")
 
@@ -143,16 +145,16 @@ class DocumentPolicyValidation(BaseModel):
     @classmethod
     def post_transform_scores_must_be_valid(
         cls, v: list[tuple[str, int]] | None
-    ) -> list[tuple[str, int]] | None:
+    ) -> tuple[tuple[str, int], ...] | None:
         if v is None:
             return v
 
-        if not isinstance(v, list):
+        if not isinstance(v, (list, tuple)):
             raise ValueError("Post-transform validation scores must be a list or None")
 
         # Empty list is valid
         if not v:
-            return v
+            return ()
 
         return cls._validate_score_tuples(v, "post_transform_validation_scores")
 
@@ -179,9 +181,9 @@ class DocumentPolicyValidation(BaseModel):
     @classmethod
     def _validate_score_tuples(
         cls, scores: list[tuple[str, int]], field_name: str
-    ) -> list[tuple[str, int]]:
+    ) -> tuple[tuple[str, int], ...]:
         """Helper method to validate score tuple lists."""
-        validated_scores = []
+        validated_scores: list[tuple[str, int]] = []
         query_ids_seen = set()
 
         for item in scores:
@@ -217,4 +219,4 @@ class DocumentPolicyValidation(BaseModel):
 
             validated_scores.append((query_id, actual_score))
 
-        return validated_scores
+        return tuple(validated_scores)

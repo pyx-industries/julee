@@ -33,7 +33,7 @@ class TestPolicy:
         assert policy.policy_id == "policy-001"
         assert policy.title == "Content Quality Policy"
         assert policy.description == "Validates content meets quality standards"
-        assert policy.validation_scores == [("quality-check-query", 80)]
+        assert policy.validation_scores == (("quality-check-query", 80),)
         assert policy.transformation_queries is None
         assert policy.status == PolicyStatus.ACTIVE
         assert policy.version == "0.1.0"
@@ -58,14 +58,14 @@ class TestPolicy:
             ],
         )
 
-        assert policy.validation_scores == [
+        assert policy.validation_scores == (
             ("grammar-check-query", 85),
             ("clarity-check-query", 75),
-        ]
-        assert policy.transformation_queries == [
+        )
+        assert policy.transformation_queries == (
             "grammar-fix-query",
             "clarity-improvement-query",
-        ]
+        )
         assert policy.is_validation_only is False
         assert policy.has_transformations is True
 
@@ -90,8 +90,8 @@ class TestPolicy:
         assert policy.title == "Complete Policy"
         assert policy.description == "A policy with all fields specified"
         assert policy.status == PolicyStatus.DRAFT
-        assert policy.validation_scores == [("test-query", 90)]
-        assert policy.transformation_queries == ["transform-query"]
+        assert policy.validation_scores == (("test-query", 90),)
+        assert policy.transformation_queries == ("transform-query",)
         assert policy.version == "1.0.0"
         assert policy.created_at == created_at
         assert policy.updated_at == updated_at
@@ -209,7 +209,7 @@ class TestPolicy:
                 description="Test description",
                 validation_scores="not-a-list",  # type: ignore
             )
-        assert "Input should be a valid list" in str(exc_info.value)
+        assert "Input should be a valid tuple" in str(exc_info.value)
 
         # Invalid tuple length should fail
         with pytest.raises(ValidationError) as exc_info:
@@ -295,7 +295,7 @@ class TestPolicy:
             description="Test description",
             validation_scores=[("  query-id  ", 80)],
         )
-        assert policy.validation_scores == [("query-id", 80)]
+        assert policy.validation_scores == (("query-id", 80),)
 
         # Boundary values should work
         policy = Policy(
@@ -307,10 +307,10 @@ class TestPolicy:
                 ("max-score", 100),
             ],
         )
-        assert policy.validation_scores == [
+        assert policy.validation_scores == (
             ("min-score", 0),
             ("max-score", 100),
-        ]
+        )
 
     def test_transformation_queries_validation(self) -> None:
         """Test transformation queries validation."""
@@ -333,7 +333,7 @@ class TestPolicy:
             validation_scores=[("test-query", 80)],
             transformation_queries=[],
         )
-        assert policy.transformation_queries == []
+        assert policy.transformation_queries == ()
         assert policy.is_validation_only is True
 
         # Non-list should fail
@@ -345,7 +345,7 @@ class TestPolicy:
                 validation_scores=[("test-query", 80)],
                 transformation_queries="not-a-list",  # type: ignore
             )
-        assert "Input should be a valid list" in str(exc_info.value)
+        assert "Input should be a valid tuple" in str(exc_info.value)
 
         # Non-string query ID should fail
         with pytest.raises(ValidationError) as exc_info:
@@ -392,7 +392,7 @@ class TestPolicy:
             validation_scores=[("test-query", 80)],
             transformation_queries=["  query-1  ", "  query-2  "],
         )
-        assert policy.transformation_queries == ["query-1", "query-2"]
+        assert policy.transformation_queries == ("query-1", "query-2")
         assert policy.has_transformations is True
 
     def test_version_validation(self) -> None:

@@ -9,8 +9,8 @@ install:
 # Python linting
 lint-python:
 	@echo "Linting Python code..."
-	black --check src/julee/
-	ruff check src/julee/
+	uv run black --check src/julee/
+	uv run ruff check src/julee/
 
 # Python unit tests
 test-python-unit:
@@ -113,8 +113,8 @@ clean:
 # Format Python code
 format-python:
 	@echo "Formatting Python code..."
-	black src/julee/
-	ruff check --fix src/julee/
+	uv run black src/julee/
+	uv run ruff check --fix src/julee/
 
 # Update uv.lock from pyproject.toml
 update-requirements:

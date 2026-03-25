@@ -207,14 +207,18 @@ class TestMinioDocumentRepositoryStore:
 
         # Deliberately set an incorrect multihash to test correction
         correct_multihash = sample_document.content_multihash
-        sample_document.content_multihash = "incorrect_hash_12345"
+        sample_document = sample_document.model_copy(
+            update={"content_multihash": "incorrect_hash_12345"}
+        )
 
         # Act
         await repository.save(sample_document)
 
-        # Assert multihash was corrected to the calculated value
-        assert sample_document.content_multihash == correct_multihash
-        assert sample_document.content_multihash != "incorrect_hash_12345"
+        # Assert multihash was corrected in the stored document
+        stored = await repository.get(sample_document.document_id)
+        assert stored is not None
+        assert stored.content_multihash == correct_multihash
+        assert stored.content_multihash != "incorrect_hash_12345"
 
         # Verify content is stored under the calculated multihash
         content_objects = fake_minio_client.get_stored_objects("documents-content")
@@ -361,21 +365,21 @@ class TestMinioDocumentRepositoryUpdate:
         original_updated_at = sample_document.updated_at
 
         # Modify document
-        sample_document.status = DocumentStatus.EXTRACTED
+        sample_document = sample_document.model_copy(
+            update={"status": DocumentStatus.EXTRACTED}
+        )
 
         # Act
         await repository.save(sample_document)
 
-        # Assert updated_at was changed
-        assert sample_document.updated_at != original_updated_at
-        if original_updated_at and sample_document.updated_at:
-            assert sample_document.updated_at > original_updated_at
-
-        # Verify document was actually updated in storage
+        # Verify document was actually updated in storage with new timestamp
         retrieved_doc = await repository.get(sample_document.document_id)
         assert retrieved_doc is not None
         assert retrieved_doc.status == DocumentStatus.EXTRACTED
-        assert retrieved_doc.updated_at == sample_document.updated_at
+        # Repository updates updated_at on save — verify it changed
+        assert retrieved_doc.updated_at != original_updated_at
+        if original_updated_at and retrieved_doc.updated_at:
+            assert retrieved_doc.updated_at > original_updated_at
 
 
 class TestMinioDocumentRepositoryGenerateId:

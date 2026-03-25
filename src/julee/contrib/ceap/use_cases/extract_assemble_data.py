@@ -251,8 +251,12 @@ class ExtractAssembleDataUseCase:
             )
 
             # Step 8: Set the assembled document and return
-            assembly.assembled_document_id = assembled_document_id
-            assembly.status = AssemblyStatus.COMPLETED
+            assembly = assembly.model_copy(
+                update={
+                    "assembled_document_id": assembled_document_id,
+                    "status": AssemblyStatus.COMPLETED,
+                }
+            )
             await self.assembly_repo.save(assembly)
 
             logger.info(
@@ -267,7 +271,7 @@ class ExtractAssembleDataUseCase:
 
         except Exception as e:
             # Mark assembly as failed
-            assembly.status = AssemblyStatus.FAILED
+            assembly = assembly.model_copy(update={"status": AssemblyStatus.FAILED})
             await self.assembly_repo.save(assembly)
 
             logger.error(

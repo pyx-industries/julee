@@ -54,7 +54,7 @@ class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):
     async def save(self, assembly: Assembly) -> None:
         """Save assembly metadata (status, updated_at, etc.)."""
         # Update timestamp
-        self.update_timestamps(assembly)
+        assembly = self.update_timestamps(assembly)
 
         self.put_json_object(
             bucket_name=self.assembly_bucket,

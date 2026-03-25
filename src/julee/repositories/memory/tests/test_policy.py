@@ -125,7 +125,7 @@ class TestMemoryPolicyRepositoryPolicyTypes:
         assert retrieved is not None
         assert retrieved.is_validation_only is True
         assert retrieved.has_transformations is False
-        assert retrieved.transformation_queries == []
+        assert retrieved.transformation_queries == ()
 
     @pytest.mark.asyncio
     async def test_transformation_policy(
@@ -183,7 +183,9 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update status
-        sample_policy.status = PolicyStatus.INACTIVE
+        sample_policy = sample_policy.model_copy(
+            update={"status": PolicyStatus.INACTIVE}
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
@@ -202,10 +204,14 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update validation scores
-        sample_policy.validation_scores = [
-            ("new-quality-check", 85),
-            ("advanced-validation", 95),
-        ]
+        sample_policy = sample_policy.model_copy(
+            update={
+                "validation_scores": [
+                    ("new-quality-check", 85),
+                    ("advanced-validation", 95),
+                ]
+            }
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
@@ -226,13 +232,15 @@ class TestMemoryPolicyRepositoryUpdates:
         await policy_repo.save(sample_policy)
 
         # Update transformation queries
-        sample_policy.transformation_queries = ["new-transform"]
+        sample_policy = sample_policy.model_copy(
+            update={"transformation_queries": ("new-transform",)}
+        )
         await policy_repo.save(sample_policy)
 
         # Verify update
         retrieved = await policy_repo.get(sample_policy.policy_id)
         assert retrieved is not None
-        assert retrieved.transformation_queries == ["new-transform"]
+        assert retrieved.transformation_queries == ("new-transform",)
         assert retrieved.has_transformations is True
 
     @pytest.mark.asyncio
@@ -308,8 +316,9 @@ class TestMemoryPolicyRepositoryEdgeCases:
         assert retrieved.status == PolicyStatus.DRAFT
 
         # Activate policy
-        policy.status = PolicyStatus.ACTIVE
-        policy.version = "1.0.0"
+        policy = policy.model_copy(
+            update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"}
+        )
         await policy_repo.save(policy)
 
         retrieved = await policy_repo.get("lifecycle-policy")
@@ -318,7 +327,7 @@ class TestMemoryPolicyRepositoryEdgeCases:
         assert retrieved.version == "1.0.0"
 
         # Deprecate policy
-        policy.status = PolicyStatus.DEPRECATED
+        policy = policy.model_copy(update={"status": PolicyStatus.DEPRECATED})
         await policy_repo.save(policy)
 
         retrieved = await policy_repo.get("lifecycle-policy")
@@ -362,7 +371,7 @@ class TestMemoryPolicyRepositoryEdgeCases:
         assert retrieved2.has_transformations is True
 
         # Update one policy and verify the other is unchanged
-        policy1.title = "Updated First Policy"
+        policy1 = policy1.model_copy(update={"title": "Updated First Policy"})
         await policy_repo.save(policy1)
 
         retrieved1_updated = await policy_repo.get("policy-1")
@@ -432,8 +441,9 @@ class TestMemoryPolicyRepositoryRoundtrip:
         await policy_repo.save(policy)
 
         # Activate policy
-        policy.status = PolicyStatus.ACTIVE
-        policy.version = "1.0.0"
+        policy = policy.model_copy(
+            update={"status": PolicyStatus.ACTIVE, "version": "1.0.0"}
+        )
         await policy_repo.save(policy)
 
         # Final verification

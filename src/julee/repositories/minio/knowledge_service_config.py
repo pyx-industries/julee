@@ -80,7 +80,7 @@ class MinioKnowledgeServiceConfigRepository(
             knowledge_service: Complete KnowledgeServiceConfig to save
         """
         # Update timestamps
-        self.update_timestamps(knowledge_service)
+        knowledge_service = self.update_timestamps(knowledge_service)
 
         object_name = f"config/{knowledge_service.knowledge_service_id}"
 

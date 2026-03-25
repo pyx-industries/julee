@@ -5,11 +5,14 @@ This module contains the core domain models for polling operations,
 including configuration and result models.
 """
 
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class PollingProtocol(str, Enum):
@@ -25,13 +28,13 @@ class SchedulingPolicy(str, Enum):
     SKIP_IF_RUNNING = "skip_if_running"
 
 
-class PollingConfig(BaseModel):
+class PollingConfig(Entity):
     """Configuration for a polling operation."""
 
     endpoint_identifier: str = Field(description="Unique identifier for this endpoint")
     polling_protocol: PollingProtocol
-    connection_params: dict[str, Any] = Field(default_factory=dict)
-    polling_params: dict[str, Any] = Field(default_factory=dict)
+    connection_params: Mapping[str, Any] = Field(default_factory=dict)
+    polling_params: Mapping[str, Any] = Field(default_factory=dict)
     timeout_seconds: int | None = Field(default=30)
     scheduling_policy: SchedulingPolicy = Field(
         default=SchedulingPolicy.ALLOW_OVERLAP,
@@ -39,12 +42,12 @@ class PollingConfig(BaseModel):
     )
 
 
-class PollingResult(BaseModel):
+class PollingResult(Entity):
     """Result of a polling operation."""
 
     success: bool
     content: bytes
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata: Mapping[str, Any] = Field(default_factory=dict)
     polled_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     content_hash: str | None = None
     error_message: str | None = None

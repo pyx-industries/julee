@@ -15,7 +15,9 @@ and type safety, following the patterns established in the sample project.
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
 class AssemblyStatus(str, Enum):
@@ -28,7 +30,7 @@ class AssemblyStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class Assembly(BaseModel):
+class Assembly(Entity):
     """Assembly process that links a specification with input document and
     produces an assembled document.
 
