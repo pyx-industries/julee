@@ -48,6 +48,7 @@ dependencies = [
     "jsonpointer>=3.0.0",
     # Code introspection (doctrine tests, CLI)
     "griffe>=1.0.0,<2",
+    "inflect>=7.5.0",
 ]
 
 [project.optional-dependencies]
