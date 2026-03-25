@@ -417,17 +417,17 @@ class TestExecutionAgnosticism:
         violations = []
 
         for ctx in contexts:
-            uc_dir = Path(ctx.path) / "use_cases"
-            if not uc_dir.exists():
-                continue
-            for py_file in uc_dir.rglob("*.py"):
-                if any(part == "tests" for part in py_file.parts):
+            for py_file in Path(ctx.path).rglob("*.py"):
+                parts = py_file.parts
+                if any(part == "tests" for part in parts):
+                    continue
+                if not any(part == "use_cases" for part in parts):
                     continue
                 content = py_file.read_text()
                 for pattern in forbidden_patterns:
                     if pattern in content:
                         violations.append(
-                            f"{ctx.slug}/{py_file.name}: contains '{pattern}'"
+                            f"{ctx.slug}/{py_file.relative_to(ctx.path)}: contains '{pattern}'"
                         )
                         break
 
@@ -448,15 +448,15 @@ class TestExecutionAgnosticism:
 
         violations = []
         for ctx in contexts:
-            uc_dir = Path(ctx.path) / "use_cases"
-            if not uc_dir.exists():
-                continue
-            for py_file in uc_dir.rglob("*.py"):
-                if any(part == "tests" for part in py_file.parts):
+            for py_file in Path(ctx.path).rglob("*.py"):
+                parts = py_file.parts
+                if any(part == "tests" for part in parts):
+                    continue
+                if not any(part == "use_cases" for part in parts):
                     continue
                 content = py_file.read_text()
                 if "import temporalio" in content or "from temporalio" in content:
-                    violations.append(f"{ctx.slug}/{py_file.name}")
+                    violations.append(f"{ctx.slug}/{py_file.relative_to(ctx.path)}")
 
         assert (
             not violations
