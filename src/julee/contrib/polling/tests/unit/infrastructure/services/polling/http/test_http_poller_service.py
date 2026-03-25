@@ -168,6 +168,68 @@ class TestHttpPollerServicePollEndpoint:
             assert captured_request.headers["Authorization"] == "Bearer token123"
 
     @pytest.mark.asyncio
+    async def test_poll_endpoint_uses_header_factory_when_set(self):
+        """Test that header_factory is called and its headers override config headers."""
+        captured_request = None
+
+        def handler(request):
+            nonlocal captured_request
+            captured_request = request
+            return httpx.Response(status_code=200, content=b"ok")
+
+        mock_transport = httpx.MockTransport(handler)
+
+        async def factory() -> dict[str, str]:
+            return {"Authorization": "Bearer fresh-token"}
+
+        async with HttpPollerService(header_factory=factory) as service:
+            service.client = httpx.AsyncClient(transport=mock_transport)
+
+            config = PollingConfig(
+                endpoint_identifier="test-api",
+                polling_protocol=PollingProtocol.HTTP,
+                connection_params={
+                    "url": "https://example.com/api",
+                    "headers": {"Authorization": "Bearer stale-token", "X-Custom": "keep"},
+                },
+            )
+
+            result = await service.poll_endpoint(config)
+
+            assert result.success is True
+            assert captured_request.headers["Authorization"] == "Bearer fresh-token"
+            assert captured_request.headers["X-Custom"] == "keep"
+
+    @pytest.mark.asyncio
+    async def test_poll_endpoint_skips_header_factory_when_none(self):
+        """Test that config headers are used unchanged when no factory is set."""
+        captured_request = None
+
+        def handler(request):
+            nonlocal captured_request
+            captured_request = request
+            return httpx.Response(status_code=200, content=b"ok")
+
+        mock_transport = httpx.MockTransport(handler)
+
+        async with HttpPollerService() as service:
+            service.client = httpx.AsyncClient(transport=mock_transport)
+
+            config = PollingConfig(
+                endpoint_identifier="test-api",
+                polling_protocol=PollingProtocol.HTTP,
+                connection_params={
+                    "url": "https://example.com/api",
+                    "headers": {"Authorization": "Bearer static-token"},
+                },
+            )
+
+            result = await service.poll_endpoint(config)
+
+            assert result.success is True
+            assert captured_request.headers["Authorization"] == "Bearer static-token"
+
+    @pytest.mark.asyncio
     async def test_poll_endpoint_with_dict_config(self):
         """Test that poll_endpoint works with dict config (for schedule compatibility)."""
 
