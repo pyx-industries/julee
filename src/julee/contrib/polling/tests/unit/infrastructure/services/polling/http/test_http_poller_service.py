@@ -190,7 +190,10 @@ class TestHttpPollerServicePollEndpoint:
                 polling_protocol=PollingProtocol.HTTP,
                 connection_params={
                     "url": "https://example.com/api",
-                    "headers": {"Authorization": "Bearer stale-token", "X-Custom": "keep"},
+                    "headers": {
+                        "Authorization": "Bearer stale-token",
+                        "X-Custom": "keep",
+                    },
                 },
             )
 
