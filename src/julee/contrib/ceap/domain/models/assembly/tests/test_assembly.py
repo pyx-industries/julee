@@ -20,7 +20,7 @@ Design decisions documented:
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -31,7 +31,7 @@ from .factories import AssemblyFactory
 
 pytestmark = pytest.mark.unit
 
-_NOW = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+_NOW = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 
 class TestAssemblyInstantiation:
@@ -196,8 +196,8 @@ class TestAssemblyDefaults:
 
     def test_assembly_custom_values(self) -> None:
         """Test Assembly with custom non-default values."""
-        custom_created_at = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        custom_updated_at = datetime(2023, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
+        custom_created_at = datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC)
+        custom_updated_at = datetime(2023, 1, 2, 12, 0, 0, tzinfo=UTC)
 
         custom_assembly = Assembly(
             assembly_id="custom-id",

@@ -6,7 +6,7 @@ KnowledgeService implementations based on configuration.
 """
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -44,8 +44,8 @@ def test_document() -> Document:
         content_multihash="test-hash-123",
         status=DocumentStatus.CAPTURED,
         content=content_stream,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 

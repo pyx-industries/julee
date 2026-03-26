@@ -13,7 +13,7 @@ Tests focus on:
 - Edge cases and error conditions
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -49,8 +49,8 @@ class TestDocumentPolicyValidationValidation:
 
     def test_full_valid_validation(self) -> None:
         """Test creating a fully populated DocumentPolicyValidation."""
-        started_at = datetime.now(timezone.utc)
-        completed_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
+        completed_at = datetime.now(UTC)
 
         validation = DocumentPolicyValidation(
             validation_id="val-789",

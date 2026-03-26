@@ -15,7 +15,7 @@ import logging
 import os
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from anthropic import AsyncAnthropic
@@ -141,7 +141,7 @@ class AnthropicKnowledgeService(KnowledgeService):
                     "content_multihash": document.content_multihash,
                     "anthropic_file_id": anthropic_file_id,
                 },
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
             logger.info(
@@ -345,7 +345,7 @@ text or markdown formatting."""
                 query_text=query_text,
                 result_data=result_data,
                 execution_time_ms=execution_time_ms,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
             logger.info(

@@ -5,7 +5,7 @@ This module provides factory_boy factories for creating test instances of
 Policy domain objects with sensible defaults.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from factory.base import Factory
 from factory.declarations import LazyFunction
@@ -40,7 +40,7 @@ class DocumentPolicyValidationFactory(Factory):
     post_transform_validation_scores = None
 
     # Validation metadata
-    started_at = LazyFunction(lambda: datetime.now(timezone.utc))
+    started_at = LazyFunction(lambda: datetime.now(UTC))
     completed_at = None
     error_message = None
 
