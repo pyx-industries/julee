@@ -5,7 +5,7 @@ This module provides factory_boy factories for creating test instances of
 AssemblySpecification domain objects with sensible defaults.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from factory.base import Factory
@@ -55,8 +55,8 @@ class AssemblyFactory(Factory):
     version = "0.1.0"
 
     # Timestamps
-    created_at = LazyFunction(lambda: datetime.now(timezone.utc))
-    updated_at = LazyFunction(lambda: datetime.now(timezone.utc))
+    created_at = LazyFunction(lambda: datetime.now(UTC))
+    updated_at = LazyFunction(lambda: datetime.now(UTC))
 
 
 class KnowledgeServiceQueryFactory(Factory):
@@ -75,5 +75,5 @@ class KnowledgeServiceQueryFactory(Factory):
     prompt = "Extract test data from the document"
 
     # Timestamps
-    created_at = LazyFunction(lambda: datetime.now(timezone.utc))
-    updated_at = LazyFunction(lambda: datetime.now(timezone.utc))
+    created_at = LazyFunction(lambda: datetime.now(UTC))
+    updated_at = LazyFunction(lambda: datetime.now(UTC))

@@ -9,7 +9,7 @@ These tests use the actual YAML fixture file to validate the real
 integration rather than mocking the file system operations.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -107,8 +107,8 @@ def sample_anthropic_config() -> KnowledgeServiceConfig:
         name="Anthropic Claude",
         description="Claude 3 for general text analysis and extraction",
         service_api=ServiceApi.ANTHROPIC,
-        created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-        updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
+        updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
     )
 
 

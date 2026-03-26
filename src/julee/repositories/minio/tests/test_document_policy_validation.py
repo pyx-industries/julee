@@ -7,7 +7,7 @@ repository that differs from the inherited mixins. Uses the fake client to
 avoid external dependencies during testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -55,8 +55,8 @@ def sample_validation() -> DocumentPolicyValidation:
             ("quality-check-query", 95),
             ("completeness-check", 88),
         ],
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
+        completed_at=datetime.now(UTC),
         passed=True,
     )
 
@@ -139,7 +139,7 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
     ) -> None:
         """Test that save operation preserves existing timestamps."""
         # Create validation with specific timestamps
-        original_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        original_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
         validation = DocumentPolicyValidation(
             validation_id="validation-timestamp-test",
             input_document_id="doc-timestamp",

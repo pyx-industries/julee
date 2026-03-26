@@ -14,8 +14,8 @@ and type safety, following the patterns established in the sample project.
 """
 
 from collections.abc import Mapping
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 import jsonpointer  # type: ignore
@@ -25,7 +25,7 @@ from pydantic import Field, field_validator
 from julee.core.entities.entity import Entity
 
 
-class AssemblySpecificationStatus(str, Enum):
+class AssemblySpecificationStatus(StrEnum):
     """Status of an assembly specification configuration."""
 
     ACTIVE = "active"
@@ -77,12 +77,8 @@ class AssemblySpecification(Entity):
 
     # AssemblySpecification metadata
     version: str = Field(default="0.1.0", description="Assembly definition version")
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    updated_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
     # May later add a detailed description, change log, additional metadata
     # Timestamps
 

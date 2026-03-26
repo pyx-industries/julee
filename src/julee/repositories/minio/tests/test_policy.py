@@ -6,7 +6,7 @@ implementation, using the fake client to avoid external dependencies during
 testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -44,8 +44,8 @@ def sample_policy() -> Policy:
         ],
         transformation_queries=["improve-quality", "fix-grammar"],
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -62,8 +62,8 @@ def validation_only_policy() -> Policy:
         ],
         transformation_queries=[],  # Empty list - validation only
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -319,8 +319,8 @@ class TestMinioPolicyRepositoryComplexScenarios:
             validation_scores=[("lifecycle-check", 80)],
             transformation_queries=["lifecycle-transform"],
             version="0.1.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -405,8 +405,8 @@ class TestMinioPolicyRepositoryComplexScenarios:
             ],
             transformation_queries=["transformación", "преобразование"],
             version="1.0.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save and retrieve
@@ -476,8 +476,8 @@ class TestMinioPolicyRepositoryRoundtrip:
             validation_scores=[("round-trip-check", 85)],
             transformation_queries=["round-trip-transform"],
             version="0.1.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -515,8 +515,8 @@ class TestMinioPolicyRepositoryRoundtrip:
             ],
             transformation_queries=["transform-1", "transform-2"],
             version="2.0.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save and retrieve

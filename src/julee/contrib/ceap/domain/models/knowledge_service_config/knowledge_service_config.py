@@ -13,15 +13,15 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from pydantic import Field, field_validator
 
 from julee.core.entities.entity import Entity
 
 
-class ServiceApi(str, Enum):
+class ServiceApi(StrEnum):
     """Supported knowledge service APIs."""
 
     ANTHROPIC = "anthropic"
@@ -50,12 +50,8 @@ class KnowledgeServiceConfig(Entity):
     )
 
     # Timestamps
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    updated_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("knowledge_service_id")
     @classmethod

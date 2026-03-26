@@ -5,7 +5,7 @@ This module provides factory_boy factories for creating test instances of
 Assembly domain objects with sensible defaults.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from factory.base import Factory
 from factory.declarations import LazyFunction
@@ -34,5 +34,5 @@ class AssemblyFactory(Factory):
     assembled_document_id = None
 
     # Timestamps
-    created_at = LazyFunction(lambda: datetime.now(timezone.utc))
-    updated_at = LazyFunction(lambda: datetime.now(timezone.utc))
+    created_at = LazyFunction(lambda: datetime.now(UTC))
+    updated_at = LazyFunction(lambda: datetime.now(UTC))

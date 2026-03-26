@@ -6,7 +6,7 @@ focusing on the core functionality of listing documents with pagination.
 """
 
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi import FastAPI
@@ -60,8 +60,8 @@ def sample_documents() -> list[Document]:
             size_bytes=1024,
             content_multihash="QmTest1",
             status=DocumentStatus.CAPTURED,
-            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             additional_metadata={"type": "test"},
             content_bytes="test content",
         ),
@@ -72,8 +72,8 @@ def sample_documents() -> list[Document]:
             size_bytes=2048,
             content_multihash="QmTest2",
             status=DocumentStatus.REGISTERED,
-            created_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC),
             additional_metadata={"type": "report"},
             content_bytes="pdf content",
         ),

@@ -13,7 +13,7 @@ These routes are mounted at the root level in the main app.
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 from minio import Minio
@@ -133,6 +133,6 @@ async def health_check() -> HealthCheckResponse:
     # Return response with string timestamp as expected by frontend
     return HealthCheckResponse(
         status=overall_status,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         services=services,
     )

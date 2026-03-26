@@ -6,7 +6,7 @@ system time or any specific execution framework.
 See ADR 004: Execution-Agnostic Use Cases.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 
@@ -32,4 +32,4 @@ class SystemClockService:
 
     def now(self) -> datetime:
         """Return the current system time in UTC."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)

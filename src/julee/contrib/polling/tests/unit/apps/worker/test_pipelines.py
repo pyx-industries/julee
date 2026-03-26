@@ -11,7 +11,7 @@ workflow orchestration logic and temporal behaviors.
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -56,25 +56,25 @@ def mock_polling_results():
         "first_data": PollingResult(
             success=True,
             content=b"first response data",
-            polled_at=datetime.now(timezone.utc),
+            polled_at=datetime.now(UTC),
             content_hash=hashlib.sha256(b"first response data").hexdigest(),
         ),
         "changed_data": PollingResult(
             success=True,
             content=b"changed response data",
-            polled_at=datetime.now(timezone.utc),
+            polled_at=datetime.now(UTC),
             content_hash=hashlib.sha256(b"changed response data").hexdigest(),
         ),
         "same_data": PollingResult(
             success=True,
             content=b"first response data",  # Same as first_data
-            polled_at=datetime.now(timezone.utc),
+            polled_at=datetime.now(UTC),
             content_hash=hashlib.sha256(b"first response data").hexdigest(),
         ),
         "failed_polling": PollingResult(
             success=False,
             content=b"",
-            polled_at=datetime.now(timezone.utc),
+            polled_at=datetime.now(UTC),
             error_message="Connection timeout",
         ),
     }
@@ -87,7 +87,7 @@ async def mock_poll_endpoint(config: PollingConfig) -> PollingResult:
     return PollingResult(
         success=True,
         content=b"default mock response",
-        polled_at=datetime.now(timezone.utc),
+        polled_at=datetime.now(UTC),
     )
 
 
@@ -107,7 +107,7 @@ class TestNewDataDetectionPipelineFirstRun:
             return PollingResult(
                 success=True,
                 content=content_str.encode(),
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_str.encode()).hexdigest(),
             )
 
@@ -157,7 +157,7 @@ class TestNewDataDetectionPipelineFirstRun:
             return PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
@@ -217,7 +217,7 @@ class TestNewDataDetectionPipelineSubsequentRuns:
             return PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
@@ -278,7 +278,7 @@ class TestNewDataDetectionPipelineSubsequentRuns:
             return PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
@@ -352,7 +352,7 @@ class TestNewDataDetectionPipelineWorkflowQueries:
             return PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
@@ -449,7 +449,7 @@ class TestNewDataDetectionPipelineErrorHandling:
             return PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
 
@@ -512,7 +512,7 @@ class TestNewDataDetectionPipelineIntegration:
             result = PollingResult(
                 success=True,
                 content=content_bytes,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 content_hash=hashlib.sha256(content_bytes).hexdigest(),
             )
             response_index = min(response_index + 1, len(responses) - 1)

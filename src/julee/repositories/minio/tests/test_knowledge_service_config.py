@@ -6,7 +6,7 @@ configuration repository implementation, using the fake client to avoid
 external dependencies during testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -45,8 +45,8 @@ def sample_knowledge_service_config() -> KnowledgeServiceConfig:
         name="Test Anthropic Service",
         description="A test knowledge service using Anthropic API",
         service_api=ServiceApi.ANTHROPIC,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 

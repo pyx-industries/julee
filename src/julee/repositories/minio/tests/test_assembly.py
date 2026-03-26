@@ -6,7 +6,7 @@ repository implementation, using the fake client to avoid external
 dependencies during testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -40,8 +40,8 @@ def sample_assembly() -> Assembly:
         execution_id="test-execution-123",
         status=AssemblyStatus.PENDING,
         assembled_document_id=None,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -347,8 +347,8 @@ class TestMinioAssemblyRepositoryRoundtrip:
             execution_id="test-execution-success",
             status=AssemblyStatus.PENDING,
             assembled_document_id=None,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_repo.save(assembly)
 
@@ -394,8 +394,8 @@ class TestMinioAssemblyRepositoryRoundtrip:
             execution_id="test-execution-failure",
             status=AssemblyStatus.PENDING,
             assembled_document_id=None,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_repo.save(assembly)
 

@@ -6,7 +6,7 @@ Document domain objects with sensible defaults.
 """
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from factory.base import Factory
@@ -59,8 +59,8 @@ class DocumentFactory(Factory):
     assembly_types: list[str] = []
 
     # Timestamps
-    created_at = LazyFunction(lambda: datetime.now(timezone.utc))
-    updated_at = LazyFunction(lambda: datetime.now(timezone.utc))
+    created_at = LazyFunction(lambda: datetime.now(UTC))
+    updated_at = LazyFunction(lambda: datetime.now(UTC))
 
     # Additional data
     additional_metadata: dict[str, Any] = {}

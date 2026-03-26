@@ -6,7 +6,7 @@ query repository implementation, using the fake client to avoid external
 dependencies during testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -46,15 +46,15 @@ def sample_query() -> KnowledgeServiceQuery:
         prompt="Extract key information from the document",
         assistant_prompt="Format the response as JSON",
         query_metadata={"temperature": 0.2, "max_tokens": 1000},
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
 @pytest.fixture
 def sample_queries() -> list[KnowledgeServiceQuery]:
     """Create multiple sample queries for testing list operations."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return [
         KnowledgeServiceQuery(
             query_id="query-001",
@@ -299,8 +299,8 @@ class TestMinioKnowledgeServiceQueryRepositoryEdgeCases:
             prompt="Main prompt only",
             assistant_prompt=None,
             query_metadata={},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         await query_repo.save(query)
@@ -321,8 +321,8 @@ class TestMinioKnowledgeServiceQueryRepositoryEdgeCases:
             prompt="Test prompt",
             assistant_prompt="Test assistant prompt",
             query_metadata={},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         await query_repo.save(query)
@@ -350,8 +350,8 @@ class TestMinioKnowledgeServiceQueryRepositoryEdgeCases:
             prompt="Test prompt",
             assistant_prompt="Test assistant prompt",
             query_metadata=complex_metadata,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         await query_repo.save(query)
@@ -379,8 +379,8 @@ class TestMinioKnowledgeServiceQueryRepositoryFullWorkflow:
             prompt="Initial prompt",
             assistant_prompt="Initial assistant prompt",
             query_metadata={"version": 1},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save initial query

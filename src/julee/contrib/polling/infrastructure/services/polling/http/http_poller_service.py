@@ -7,7 +7,7 @@ REST API endpoints, webhooks, and other HTTP-based data sources.
 
 import hashlib
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -59,7 +59,7 @@ class HttpPollerService(PollerService):
                 success=success,
                 content=content if success else b"",
                 content_hash=content_hash if success else None,
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 metadata={
                     "status_code": response.status_code,
                     "response_headers": dict(response.headers),
@@ -73,7 +73,7 @@ class HttpPollerService(PollerService):
                 success=False,
                 content=b"",
                 error_message=str(e),
-                polled_at=datetime.now(timezone.utc),
+                polled_at=datetime.now(UTC),
                 metadata={"error_type": type(e).__name__},
             )
 

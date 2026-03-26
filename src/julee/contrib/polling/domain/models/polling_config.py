@@ -6,8 +6,8 @@ including configuration and result models.
 """
 
 from collections.abc import Mapping
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import Field, field_validator
@@ -15,13 +15,13 @@ from pydantic import Field, field_validator
 from julee.core.entities.entity import Entity
 
 
-class PollingProtocol(str, Enum):
+class PollingProtocol(StrEnum):
     """Supported polling protocols."""
 
     HTTP = "http"
 
 
-class SchedulingPolicy(str, Enum):
+class SchedulingPolicy(StrEnum):
     """Scheduling policy for polling operations."""
 
     ALLOW_OVERLAP = "allow_overlap"
@@ -48,7 +48,7 @@ class PollingResult(Entity):
     success: bool
     content: bytes
     metadata: Mapping[str, Any] = Field(default_factory=dict)
-    polled_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    polled_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     content_hash: str | None = None
     error_message: str | None = None
 

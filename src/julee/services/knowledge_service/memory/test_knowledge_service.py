@@ -7,7 +7,7 @@ canned query response functionality.
 """
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -41,8 +41,8 @@ def test_document() -> Document:
         content_multihash="test-hash-123",
         status=DocumentStatus.CAPTURED,
         content=content_stream,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -173,8 +173,8 @@ class TestMemoryKnowledgeService:
             content_multihash="test-hash-2",
             status=DocumentStatus.CAPTURED,
             content=content_stream,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         result1 = await memory_service.register_file(
@@ -335,7 +335,7 @@ class TestMemoryKnowledgeService:
         assert original_created_at is not None
         assert result.created_at > original_created_at
         assert (
-            datetime.now(timezone.utc) - result.created_at
+            datetime.now(UTC) - result.created_at
         ).total_seconds() < 5  # Should be very recent
 
     def test_initialization_with_config(

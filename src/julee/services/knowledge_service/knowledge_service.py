@@ -11,7 +11,7 @@ Concrete implementations of this protocol are provided for different external
 services (Anthropic, OpenAI, etc.) and are created via factory functions.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -42,9 +42,7 @@ class QueryResult(BaseModel):
         default=None,
         description="Time taken to execute the query in milliseconds",
     )
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class FileRegistrationResult(BaseModel):
@@ -58,9 +56,7 @@ class FileRegistrationResult(BaseModel):
         default_factory=dict,
         description="Additional metadata from the registration process",
     )
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
 
 
 @runtime_checkable

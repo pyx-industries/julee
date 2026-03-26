@@ -8,7 +8,7 @@ following the Clean Architecture principles.
 
 import io
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -85,8 +85,8 @@ class TestExtractAssembleDataUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         return MemoryKnowledgeService(ks_config)
 
@@ -99,8 +99,8 @@ class TestExtractAssembleDataUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         memory_service = MemoryKnowledgeService(ks_config)
@@ -111,7 +111,7 @@ class TestExtractAssembleDataUseCase:
                     query_text="Extract the title from this document",
                     result_data={"response": "Test Meeting"},
                     execution_time_ms=100,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 ),
                 QueryResult(
                     query_id="result-2",
@@ -120,7 +120,7 @@ class TestExtractAssembleDataUseCase:
                         "response": "This was a test meeting about important topics"
                     },
                     execution_time_ms=150,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 ),
             ]
         )
@@ -208,8 +208,8 @@ class TestExtractAssembleDataUseCase:
             jsonschema={"type": "object", "properties": {}},
             status=AssemblySpecificationStatus.ACTIVE,
             knowledge_service_queries={},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -269,8 +269,8 @@ class TestExtractAssembleDataUseCase:
             content_multihash="test-hash-123",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -294,8 +294,8 @@ class TestExtractAssembleDataUseCase:
                 "/properties/title": "query-1",
                 "/properties/summary": "query-2",
             },
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -305,8 +305,8 @@ class TestExtractAssembleDataUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -317,8 +317,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_id="ks-123",
             prompt="Extract the title from this document",
             query_metadata={"max_tokens": 100},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         query2 = KnowledgeServiceQuery(
             query_id="query-2",
@@ -326,8 +326,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_id="ks-123",
             prompt="Extract a summary from this document",
             query_metadata={"max_tokens": 200},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(query1)
         await knowledge_service_query_repo.save(query2)
@@ -385,8 +385,8 @@ class TestExtractAssembleDataUseCase:
             content_multihash="test-hash-123",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -408,8 +408,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_queries={
                 "/properties/title": "query-1",
             },
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -419,8 +419,8 @@ class TestExtractAssembleDataUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -431,8 +431,8 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_id="ks-123",
             prompt="Extract the title from this document",
             query_metadata={"max_tokens": 100, "temperature": 0.1},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(query1)
 
@@ -463,7 +463,7 @@ class TestExtractAssembleDataUseCase:
                 query_text=query_text,
                 result_data={"response": "Mock Title"},
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Replace the knowledge service execute_query method
@@ -531,8 +531,8 @@ class TestExtractAssembleDataUseCase:
             jsonschema={"type": "object", "properties": {}},
             status=AssemblySpecificationStatus.ACTIVE,
             knowledge_service_queries={},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -562,8 +562,8 @@ class TestExtractAssembleDataUseCase:
             content_multihash="test-hash",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -577,8 +577,8 @@ class TestExtractAssembleDataUseCase:
             },
             status=AssemblySpecificationStatus.ACTIVE,
             knowledge_service_queries={"/properties/title": "nonexistent-query"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -610,8 +610,8 @@ class TestExtractAssembleDataUseCase:
             content_multihash="test-hash",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -632,8 +632,8 @@ class TestExtractAssembleDataUseCase:
             jsonschema=schema,
             status=AssemblySpecificationStatus.ACTIVE,
             knowledge_service_queries={"/properties/title": "query-1"},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await assembly_specification_repo.save(assembly_spec)
 
@@ -643,8 +643,8 @@ class TestExtractAssembleDataUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -653,8 +653,8 @@ class TestExtractAssembleDataUseCase:
             name="Extract Title",
             knowledge_service_id="ks-123",
             prompt="Extract the title",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(query)
 
@@ -668,7 +668,7 @@ class TestExtractAssembleDataUseCase:
                     "response": '"Test"'
                 },  # Only returns title, missing "count" field
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 

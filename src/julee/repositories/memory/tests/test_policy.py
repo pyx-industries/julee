@@ -6,7 +6,7 @@ repository implementation, following the testing patterns established in the
 project.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -36,8 +36,8 @@ def sample_policy() -> Policy:
         ],
         transformation_queries=["improve-quality", "fix-grammar"],
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -54,8 +54,8 @@ def validation_only_policy() -> Policy:
         ],
         transformation_queries=[],  # Empty list - validation only
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -435,8 +435,8 @@ class TestMemoryPolicyRepositoryRoundtrip:
             validation_scores=[("round-trip-check", 85)],
             transformation_queries=["round-trip-transform"],
             version="0.1.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 

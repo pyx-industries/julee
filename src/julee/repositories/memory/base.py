@@ -19,7 +19,7 @@ Classes using this mixin must provide:
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
@@ -196,7 +196,7 @@ class MemoryRepositoryMixin(Generic[T]):
             New entity instance with updated timestamps (or original if no
             timestamp fields are present)
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         updates: dict[str, Any] = {}
 

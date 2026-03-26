@@ -13,14 +13,14 @@ and type safety, following the patterns established in the sample project.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import Field, field_validator
 
 from julee.core.entities.entity import Entity
 
 
-class AssemblyStatus(str, Enum):
+class AssemblyStatus(StrEnum):
     """Status of an assembly process."""
 
     PENDING = "pending"

@@ -5,7 +5,7 @@ These tests verify the behavior of Policy domain objects,
 including validation, serialization, and business logic.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -71,8 +71,8 @@ class TestPolicy:
 
     def test_create_policy_with_all_fields(self) -> None:
         """Test creating a policy with all fields specified."""
-        created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        updated_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
+        created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+        updated_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC)
 
         policy = Policy(
             policy_id="policy-003",

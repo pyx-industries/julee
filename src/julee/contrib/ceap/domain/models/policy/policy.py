@@ -13,15 +13,15 @@ All domain models use Pydantic BaseModel for validation, serialization,
 and type safety, following the patterns established in the sample project.
 """
 
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from pydantic import Field, field_validator
 
 from julee.core.entities.entity import Entity
 
 
-class PolicyStatus(str, Enum):
+class PolicyStatus(StrEnum):
     """Status of a policy configuration."""
 
     ACTIVE = "active"
@@ -71,9 +71,7 @@ class Policy(Entity):
 
     # Policy metadata
     version: str = Field(default="0.1.0", description="Policy version")
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime | None = Field(default=None)
 
     @field_validator("policy_id")

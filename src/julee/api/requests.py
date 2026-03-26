@@ -7,7 +7,7 @@ to domain model class methods and reuse field descriptions to avoid
 duplication while maintaining single source of truth in the domain layer.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
@@ -90,7 +90,7 @@ class CreateAssemblySpecificationRequest(BaseModel):
         Returns:
             AssemblySpecification: Complete domain object with system fields
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return AssemblySpecification(
             assembly_specification_id=assembly_specification_id,
             name=self.name,
@@ -163,7 +163,7 @@ class CreateKnowledgeServiceQueryRequest(BaseModel):
         Returns:
             KnowledgeServiceQuery: Complete domain object with system fields
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return KnowledgeServiceQuery(
             query_id=query_id,
             name=self.name,

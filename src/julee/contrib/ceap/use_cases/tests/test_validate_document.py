@@ -7,7 +7,7 @@ following the Clean Architecture principles.
 """
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -85,8 +85,8 @@ class TestValidateDocumentUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         return MemoryKnowledgeService(ks_config)
 
@@ -109,7 +109,7 @@ class TestValidateDocumentUseCase:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=knowledge_service,
-            now_fn=lambda: datetime.now(timezone.utc),
+            now_fn=lambda: datetime.now(UTC),
         )
 
     def _create_configured_use_case(
@@ -130,7 +130,7 @@ class TestValidateDocumentUseCase:
             policy_repo=policy_repo,
             document_policy_validation_repo=document_policy_validation_repo,
             knowledge_service=memory_service,
-            now_fn=lambda: datetime.now(timezone.utc),
+            now_fn=lambda: datetime.now(UTC),
         )
 
     @pytest.mark.asyncio
@@ -166,8 +166,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-123",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -222,8 +222,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -233,8 +233,8 @@ class TestValidateDocumentUseCase:
             description="Policy with non-existent query",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("nonexistent-query", 80)],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -266,8 +266,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -278,8 +278,8 @@ class TestValidateDocumentUseCase:
             description="Policy for testing score parsing",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("query-1", 80)],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -289,8 +289,8 @@ class TestValidateDocumentUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -299,8 +299,8 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-123",
             prompt="Rate the quality of this document",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(query)
 
@@ -312,7 +312,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document",
                 result_data={"response": "not a number"},  # Invalid score format
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -357,8 +357,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-123",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -372,8 +372,8 @@ class TestValidateDocumentUseCase:
                 ("quality-query", 80),
                 ("clarity-query", 70),
             ],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -383,8 +383,8 @@ class TestValidateDocumentUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -395,8 +395,8 @@ class TestValidateDocumentUseCase:
             knowledge_service_id="ks-123",
             prompt="Rate the quality of this document on a scale of 0-100",
             query_metadata={"max_tokens": 10},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         clarity_query = KnowledgeServiceQuery(
             query_id="clarity-query",
@@ -404,8 +404,8 @@ class TestValidateDocumentUseCase:
             knowledge_service_id="ks-123",
             prompt="Rate the clarity of this document on a scale of 0-100",
             query_metadata={"max_tokens": 10},
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         await knowledge_service_query_repo.save(clarity_query)
@@ -420,7 +420,7 @@ class TestValidateDocumentUseCase:
                     "scale of 0-100",
                     result_data={"response": "85"},  # Passes requirement of 80
                     execution_time_ms=100,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 ),
                 QueryResult(
                     query_id="result-2",
@@ -428,7 +428,7 @@ class TestValidateDocumentUseCase:
                     "scale of 0-100",
                     result_data={"response": "75"},  # Passes requirement of 70
                     execution_time_ms=150,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 ),
             ]
         )
@@ -489,8 +489,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-456",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -501,8 +501,8 @@ class TestValidateDocumentUseCase:
             description="Requires high quality scores",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 90)],  # High requirement
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -512,8 +512,8 @@ class TestValidateDocumentUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -522,8 +522,8 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-456",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
 
@@ -535,7 +535,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a " "scale of 0-100",
                 result_data={"response": "60"},  # Fails requirement of 90
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -576,8 +576,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-transform-1",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -589,8 +589,8 @@ class TestValidateDocumentUseCase:
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
             transformation_queries=["improvement-query"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -600,8 +600,8 @@ class TestValidateDocumentUseCase:
             name="Transform Knowledge Service",
             description="Service with transformation capability",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -611,16 +611,16 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-transform-1",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         improvement_query = KnowledgeServiceQuery(
             query_id="improvement-query",
             name="Document Improvement",
             knowledge_service_id="ks-transform-1",
             prompt="Improve this document to make it higher quality",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         await knowledge_service_query_repo.save(improvement_query)
@@ -635,7 +635,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "60"},  # Initial score fails
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -650,7 +650,7 @@ class TestValidateDocumentUseCase:
                     'clarity."}'
                 },
                 execution_time_ms=200,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -661,7 +661,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "85"},  # Post-transform score passes
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -728,8 +728,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-transform-2",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -741,8 +741,8 @@ class TestValidateDocumentUseCase:
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 95)],  # Very high requirement
             transformation_queries=["improvement-query"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -752,8 +752,8 @@ class TestValidateDocumentUseCase:
             name="Transform Knowledge Service",
             description="Service with transformation capability",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -763,16 +763,16 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-transform-2",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         improvement_query = KnowledgeServiceQuery(
             query_id="improvement-query",
             name="Document Improvement",
             knowledge_service_id="ks-transform-2",
             prompt="Try to improve this document",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         await knowledge_service_query_repo.save(improvement_query)
@@ -787,7 +787,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "40"},  # Initial score fails
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -801,7 +801,7 @@ class TestValidateDocumentUseCase:
                     'but still poor quality document."}'
                 },
                 execution_time_ms=200,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -812,7 +812,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "70"},  # Still fails requirement of 95
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -865,8 +865,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-no-transform",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -878,8 +878,8 @@ class TestValidateDocumentUseCase:
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
             transformation_queries=["improvement-query"],  # Available but unused
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -889,8 +889,8 @@ class TestValidateDocumentUseCase:
             name="Knowledge Service",
             description="Service description",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -900,16 +900,16 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-no-transform",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         improvement_query = KnowledgeServiceQuery(
             query_id="improvement-query",
             name="Document Improvement",
             knowledge_service_id="ks-no-transform",
             prompt="This query should not be called",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         await knowledge_service_query_repo.save(improvement_query)
@@ -923,7 +923,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "90"},  # Passes initial validation
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -973,8 +973,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-invalid-json",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -986,8 +986,8 @@ class TestValidateDocumentUseCase:
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
             transformation_queries=["bad-transform-query"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -997,8 +997,8 @@ class TestValidateDocumentUseCase:
             name="Invalid JSON Service",
             description="Service that returns invalid JSON",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -1008,16 +1008,16 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-invalid-json",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         bad_transform_query = KnowledgeServiceQuery(
             query_id="bad-transform-query",
             name="Bad Transform Query",
             knowledge_service_id="ks-invalid-json",
             prompt="Transform this document",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         await knowledge_service_query_repo.save(bad_transform_query)
@@ -1032,7 +1032,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate the quality of this document on a scale " "of 0-100",
                 result_data={"response": "50"},  # Fails, triggers transformation
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -1043,7 +1043,7 @@ class TestValidateDocumentUseCase:
                 query_text="Transform this document",
                 result_data={"response": "This is not valid JSON at all!"},
                 execution_time_ms=200,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 
@@ -1089,8 +1089,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-missing-query",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -1102,8 +1102,8 @@ class TestValidateDocumentUseCase:
             status=PolicyStatus.ACTIVE,
             validation_scores=[("quality-query", 80)],
             transformation_queries=["nonexistent-transform-query"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -1113,8 +1113,8 @@ class TestValidateDocumentUseCase:
             name="Missing Query Service",
             description="Service config",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -1124,8 +1124,8 @@ class TestValidateDocumentUseCase:
             name="Quality Check",
             knowledge_service_id="ks-missing-query",
             prompt="Rate the quality of this document on a scale of 0-100",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(quality_query)
         # Note: NOT saving the transformation query
@@ -1160,8 +1160,8 @@ class TestValidateDocumentUseCase:
             content_multihash="test-hash-789",
             status=DocumentStatus.CAPTURED,
             content=ContentStream(io.BytesIO(content_bytes)),
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await document_repo.save(document)
 
@@ -1172,8 +1172,8 @@ class TestValidateDocumentUseCase:
             description="Test policy for out-of-range scores",
             status=PolicyStatus.ACTIVE,
             validation_scores=[("test-query", 80)],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await policy_repo.save(policy)
 
@@ -1183,8 +1183,8 @@ class TestValidateDocumentUseCase:
             name="Test Knowledge Service",
             description="Test service",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_config_repo.save(ks_config)
 
@@ -1193,8 +1193,8 @@ class TestValidateDocumentUseCase:
             name="Test Query",
             knowledge_service_id="ks-789",
             prompt="Rate this document",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await knowledge_service_query_repo.save(test_query)
 
@@ -1206,7 +1206,7 @@ class TestValidateDocumentUseCase:
                 query_text="Rate this document",
                 result_data={"response": "150"},  # Out of normal 0-100 range
                 execution_time_ms=100,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
         )
 

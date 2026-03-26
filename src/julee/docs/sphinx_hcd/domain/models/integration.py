@@ -4,14 +4,14 @@ Represents an integration module in the HCD documentation system.
 Integrations are defined via YAML manifests in integrations/*/integration.yaml.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
 from ...utils import normalize_name
 
 
-class Direction(str, Enum):
+class Direction(StrEnum):
     """Integration data flow direction."""
 
     INBOUND = "inbound"

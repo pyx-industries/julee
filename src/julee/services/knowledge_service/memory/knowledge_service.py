@@ -10,7 +10,7 @@ scenarios where external service dependencies should be avoided.
 import json
 import logging
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from julee.contrib.ceap.domain.models.document import Document
@@ -183,7 +183,7 @@ class MemoryKnowledgeService(KnowledgeService):
                 "content_type": document.content_type,
                 "size_bytes": document.size_bytes,
             },
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
         # Store in memory dictionary keyed by knowledge_service_file_id
@@ -287,7 +287,7 @@ text or markdown formatting."""
                 "knowledge_service_id": config.knowledge_service_id,
             },
             execution_time_ms=result.execution_time_ms,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
         logger.info(

@@ -9,8 +9,8 @@ and type safety, following the patterns established in the sample project.
 """
 
 from collections.abc import Callable, Mapping
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
@@ -41,7 +41,7 @@ def delegate_to_content(*method_names: str) -> Callable[[type], type]:
     return decorator
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     """Status of a document through the Capture, Extract, Assemble, Publish
     pipeline."""
 
@@ -82,12 +82,8 @@ class Document(Entity):
     assembly_types: tuple[str, ...] = Field(default_factory=tuple)
 
     # Timestamps
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    updated_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
 
     # Additional data and content stream
     additional_metadata: Mapping[str, Any] = Field(default_factory=dict)
