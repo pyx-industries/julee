@@ -6,7 +6,7 @@ repository implementation, focusing on functionality specific to this
 repository that differs from the inherited mixins.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -45,8 +45,8 @@ def sample_validation() -> DocumentPolicyValidation:
             ("quality-check-query", 95),
             ("completeness-check", 88),
         ],
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
+        completed_at=datetime.now(UTC),
         passed=True,
     )
 

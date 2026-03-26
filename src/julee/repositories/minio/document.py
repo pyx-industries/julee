@@ -15,7 +15,7 @@ import hashlib
 import io
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import multihash  # type: ignore[import-untyped]
 from minio.error import S3Error  # type: ignore[import-untyped]
@@ -104,7 +104,7 @@ class MinioDocumentRepository(DocumentRepository, MinioRepositoryMixin):
                     extra={
                         "document_id": document_id,
                         "content_multihash": content_multihash,
-                        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                        "retrieved_at": datetime.now(UTC).isoformat(),
                     },
                 )
 

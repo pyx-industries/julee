@@ -148,7 +148,7 @@ exclude_lines = [
 [tool.ruff]
 # Ruff is used for linting only. Formatting is handled by black.
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 exclude = [
     ".git",
     ".venv",
@@ -184,7 +184,7 @@ ignore = [
 known-first-party = ["julee"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

@@ -13,7 +13,7 @@ code duplication and ensure consistent error handling and logging.
 
 import io
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import (
     Any,
     BinaryIO,
@@ -493,7 +493,7 @@ class MinioRepositoryMixin:
             New model instance with updated timestamps (or original if no
             timestamp fields are present)
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         updates: dict[str, Any] = {}
 
@@ -517,7 +517,7 @@ class MinioRepositoryMixin:
             Unique ID string in format "{prefix}-{uuid}"
         """
         import uuid
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         generated_id = f"{prefix}-{uuid.uuid4()}"
 
@@ -526,7 +526,7 @@ class MinioRepositoryMixin:
             extra={
                 "generated_id": generated_id,
                 "prefix": prefix,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
             },
         )
 
