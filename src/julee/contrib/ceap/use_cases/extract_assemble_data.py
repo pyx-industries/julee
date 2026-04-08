@@ -10,8 +10,11 @@ instances following the Clean Architecture principles.
 import hashlib
 import json
 import logging
+from collections.abc import Mapping
 from typing import Any
 
+import httpx
+import jsonpointer
 import jsonschema
 import multihash
 from pydantic import BaseModel
@@ -40,6 +43,36 @@ from .decorators import try_use_case_step
 from .pointable_json_schema import PointableJSONSchema
 
 logger = logging.getLogger(__name__)
+
+
+async def _resolve_jsonschema(schema: Mapping[str, Any]) -> dict[str, Any]:
+    """Fetch and resolve a bare $ref schema; return inline schemas unchanged.
+
+    If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL afresh,
+    navigates to the fragment, and bundles the parent $defs so internal $ref
+    values remain valid. Otherwise returns the schema as-is. Re-fetching on
+    every query ensures the latest published version of the schema is used.
+    """
+    if not (len(schema) == 1 and "$ref" in schema):
+        return dict(schema)
+
+    url, _, fragment = schema["$ref"].partition("#")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        full_schema = response.json()
+
+    if not fragment:
+        return full_schema
+
+    target = jsonpointer.resolve_pointer(full_schema, fragment)
+    if not isinstance(target, dict):
+        raise ValueError(f"$ref fragment '{fragment}' did not resolve to a JSON object")
+    result = dict(target)
+    parent_defs = full_schema.get("$defs", {})
+    if parent_defs:
+        result["$defs"] = {**parent_defs, **result.get("$defs", {})}
+    return result
 
 
 class ExtractAssembleDataRequest(BaseModel):
@@ -414,6 +447,12 @@ class ExtractAssembleDataUseCase:
         # Initialize the result data structure
         assembled_data: dict[str, Any] = {}
 
+        # Resolve $ref schemas afresh on every query so any published patch
+        # to the external schema is picked up automatically.
+        resolved_jsonschema = await _resolve_jsonschema(
+            assembly_specification.jsonschema
+        )
+
         # Process each knowledge service query
         # TODO: This is where we may want to fan-out/fan-in to do these
         # in parallel.
@@ -422,7 +461,7 @@ class ExtractAssembleDataUseCase:
             query_id,
         ) in assembly_specification.knowledge_service_queries.items():
             # Use PointableJSONSchema to generate complete schema for pointer target
-            pointable_schema = PointableJSONSchema(assembly_specification.jsonschema)
+            pointable_schema = PointableJSONSchema(resolved_jsonschema)
             output_schema = pointable_schema.schema_for_pointer(schema_pointer)
 
             # Get the query configuration
@@ -464,7 +503,7 @@ class ExtractAssembleDataUseCase:
             )
 
         # Validate the assembled data against the JSON schema
-        self._validate_assembled_data(assembled_data, assembly_specification)
+        self._validate_assembled_data(assembled_data, resolved_jsonschema)
 
         # Create the assembled document
         assembled_document_id = await self._create_assembled_document(
@@ -597,26 +636,16 @@ class ExtractAssembleDataUseCase:
     def _validate_assembled_data(
         self,
         assembled_data: dict[str, Any],
-        assembly_specification: AssemblySpecification,
+        resolved_jsonschema: dict[str, Any],
     ) -> None:
         """Validate that the assembled data conforms to the JSON schema."""
         try:
-            jsonschema.validate(assembled_data, assembly_specification.jsonschema)
-            logger.debug(
-                "Assembled data validation passed",
-                extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
-                },
-            )
+            jsonschema.validate(assembled_data, resolved_jsonschema)
+            logger.debug("Assembled data validation passed")
         except jsonschema.ValidationError as e:
             logger.error(
                 "Assembled data validation failed",
                 extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
                     "validation_error": str(e),
                     "error_path": (list(e.absolute_path) if e.absolute_path else []),
                     "schema_path": (list(e.schema_path) if e.schema_path else []),
@@ -628,12 +657,7 @@ class ExtractAssembleDataUseCase:
         except jsonschema.SchemaError as e:
             logger.error(
                 "JSON schema is invalid",
-                extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
-                    "schema_error": str(e),
-                },
+                extra={"schema_error": str(e)},
             )
             raise ValueError(
                 f"Invalid JSON schema in assembly specification: {e.message}"

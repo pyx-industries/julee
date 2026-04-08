@@ -18,11 +18,37 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
+import httpx
 import jsonpointer  # type: ignore
 import jsonschema
 from pydantic import Field, field_validator
 
 from julee.core.entities.entity import Entity
+
+
+def _fetch_and_resolve_ref(ref: str) -> dict[str, Any]:
+    """Fetch an external $ref URL and return the resolved schema dict.
+
+    Handles an optional JSON Pointer fragment (e.g. #/$defs/Product) by
+    extracting the target sub-schema and bundling parent $defs so internal
+    $ref values remain valid.
+    """
+    url, _, fragment = ref.partition("#")
+    response = httpx.get(url)
+    response.raise_for_status()
+    full_schema = response.json()
+
+    if not fragment:
+        return full_schema
+
+    target = jsonpointer.resolve_pointer(full_schema, fragment)
+    if not isinstance(target, dict):
+        raise ValueError(f"$ref fragment '{fragment}' did not resolve to a JSON object")
+    result = dict(target)
+    parent_defs = full_schema.get("$defs", {})
+    if parent_defs:
+        result["$defs"] = {**parent_defs, **result.get("$defs", {})}
+    return result
 
 
 class AssemblySpecificationStatus(str, Enum):
@@ -113,11 +139,24 @@ class AssemblySpecification(Entity):
         if not isinstance(v, dict):
             raise ValueError("JSON Schema must be a dictionary")
 
-        # Basic validation that it looks like a JSON schema
+        if len(v) == 1 and "$ref" in v:
+            # Resolve the ref to validate it produces a valid schema,
+            # but store the original $ref unchanged.
+            try:
+                resolved = _fetch_and_resolve_ref(v["$ref"])
+            except Exception as e:
+                raise ValueError(f"Could not resolve $ref '{v['$ref']}': {e}")
+            if "type" not in resolved:
+                raise ValueError("Resolved $ref schema must have a 'type' field")
+            try:
+                jsonschema.Draft7Validator.check_schema(resolved)
+            except jsonschema.SchemaError as e:
+                raise ValueError(f"Invalid JSON Schema at $ref: {e.message}")
+            return v
+
         if "type" not in v:
             raise ValueError("JSON Schema must have a 'type' field")
 
-        # Validate that it's a proper JSON Schema using jsonschema library
         try:
             jsonschema.Draft7Validator.check_schema(v)
         except jsonschema.SchemaError as e:
@@ -137,6 +176,18 @@ class AssemblySpecification(Entity):
         jsonschema_value = info.data.get("jsonschema")
         if not jsonschema_value:
             raise ValueError("Cannot validate schema pointers without jsonschema field")
+
+        # If jsonschema is a bare $ref, resolve it to validate pointers against
+        # the actual schema content
+        if (
+            isinstance(jsonschema_value, dict)
+            and len(jsonschema_value) == 1
+            and "$ref" in jsonschema_value
+        ):
+            try:
+                jsonschema_value = _fetch_and_resolve_ref(jsonschema_value["$ref"])
+            except Exception as e:
+                raise ValueError(f"Could not resolve $ref for pointer validation: {e}")
 
         cleaned_queries = {}
         for schema_pointer, query_id in v.items():
