@@ -27,6 +27,7 @@ from julee.repositories.minio.knowledge_service_query import (
 from julee.repositories.minio.policy import (
     MinioPolicyRepository,
 )
+from julee.repositories.http.schema import HttpRemoteSchemaRepository
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
@@ -37,6 +38,7 @@ from julee.repositories.temporal.activity_names import (
     KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE,
     KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE,
     POLICY_ACTIVITY_BASE,
+    REMOTE_SCHEMA_ACTIVITY_BASE,
 )
 from julee.util.temporal.decorators import temporal_activity_registration
 
@@ -98,6 +100,13 @@ class TemporalMinioDocumentPolicyValidationRepository(
     pass
 
 
+@temporal_activity_registration(REMOTE_SCHEMA_ACTIVITY_BASE)
+class TemporalHttpRemoteSchemaRepository(HttpRemoteSchemaRepository):
+    """Temporal activity wrapper for HttpRemoteSchemaRepository."""
+
+    pass
+
+
 # Export the temporal repository classes for use in worker.py
 __all__ = [
     "TemporalMinioAssemblyRepository",
@@ -111,4 +120,5 @@ __all__ = [
     "DOCUMENT_ACTIVITY_BASE",
     "KNOWLEDGE_SERVICE_CONFIG_ACTIVITY_BASE",
     "KNOWLEDGE_SERVICE_QUERY_ACTIVITY_BASE",
+    "TemporalHttpRemoteSchemaRepository",
 ]

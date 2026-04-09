@@ -26,13 +26,14 @@ from julee.contrib.ceap.domain.models import (
 )
 from julee.contrib.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
-from julee.contrib.ceap.use_cases.extract_assemble_data import _resolve_jsonschema
+from julee.repositories.http.schema import HttpRemoteSchemaRepository
 from julee.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
     MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
+    MemoryRemoteSchemaRepository,
 )
 from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (
@@ -126,6 +127,11 @@ class TestExtractAssembleDataUseCase:
         return memory_service
 
     @pytest.fixture
+    def remote_schema_repo(self) -> MemoryRemoteSchemaRepository:
+        """Create a memory RemoteSchemaRepository for testing."""
+        return MemoryRemoteSchemaRepository()
+
+    @pytest.fixture
     def use_case(
         self,
         document_repo: MemoryDocumentRepository,
@@ -134,6 +140,7 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         knowledge_service: MemoryKnowledgeService,
+        remote_schema_repo: MemoryRemoteSchemaRepository,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with memory repository
         dependencies."""
@@ -144,6 +151,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=knowledge_service,
+            remote_schema_repo=remote_schema_repo,
         )
 
     @pytest.fixture
@@ -155,6 +163,7 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         configured_knowledge_service: MemoryKnowledgeService,
+        remote_schema_repo: MemoryRemoteSchemaRepository,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with configured knowledge service
         for full workflow tests."""
@@ -165,6 +174,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=configured_knowledge_service,
+            remote_schema_repo=remote_schema_repo,
         )
 
     @pytest.mark.asyncio
@@ -670,6 +680,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=memory_service,
+            remote_schema_repo=MemoryRemoteSchemaRepository(),
         )
 
         # Act & Assert
@@ -684,7 +695,18 @@ class TestExtractAssembleDataUseCase:
 
 
 class TestResolveJsonSchema:
-    """Tests for the _resolve_jsonschema async helper."""
+    """Tests for ExtractAssembleDataUseCase._resolve_jsonschema."""
+
+    def _make_use_case(self, remote_schema_repo) -> ExtractAssembleDataUseCase:
+        return ExtractAssembleDataUseCase(
+            document_repo=MemoryDocumentRepository(),
+            assembly_repo=MemoryAssemblyRepository(),
+            assembly_specification_repo=MemoryAssemblySpecificationRepository(),
+            knowledge_service_query_repo=MemoryKnowledgeServiceQueryRepository(),
+            knowledge_service_config_repo=MemoryKnowledgeServiceConfigRepository(),
+            knowledge_service=AsyncMock(),
+            remote_schema_repo=remote_schema_repo,
+        )
 
     @pytest.mark.asyncio
     async def test_inline_schema_returned_unchanged(self) -> None:
@@ -693,7 +715,8 @@ class TestResolveJsonSchema:
             "type": "object",
             "properties": {"x": {"type": "string"}},
         }
-        result = await _resolve_jsonschema(schema)
+        use_case = self._make_use_case(MemoryRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema(schema)
         assert result == schema
 
     @pytest.mark.asyncio
@@ -701,13 +724,16 @@ class TestResolveJsonSchema:
         """A bare $ref is fetched over HTTP and the resolved schema is returned."""
         served = {"type": "object", "properties": {"y": {"type": "integer"}}}
         url = schema_server.register("/schema.json", served)
-        result = await _resolve_jsonschema({"$ref": url})
+        use_case = self._make_use_case(HttpRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema({"$ref": url})
         assert result == served
 
     @pytest.mark.asyncio
     async def test_ref_with_fragment_extracts_sub_schema(self, schema_server) -> None:
         """A $ref with a fragment extracts the target sub-schema and bundles
         the parent $defs so internal $refs remain valid."""
+        from julee.repositories.http.schema import HttpRemoteSchemaRepository
+
         full_schema = {
             "$defs": {
                 "Address": {
@@ -724,7 +750,8 @@ class TestResolveJsonSchema:
             }
         }
         url = schema_server.register("/people.json", full_schema)
-        result = await _resolve_jsonschema({"$ref": f"{url}#/$defs/Person"})
+        use_case = self._make_use_case(HttpRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema({"$ref": f"{url}#/$defs/Person"})
 
         assert result["type"] == "object"
         assert "name" in result["properties"]

@@ -13,7 +13,6 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-import httpx
 import jsonschema
 import multihash
 from pydantic import BaseModel
@@ -33,6 +32,7 @@ from julee.contrib.ceap.domain.repositories import (
     DocumentRepository,
     KnowledgeServiceConfigRepository,
     KnowledgeServiceQueryRepository,
+    RemoteSchemaRepository,
 )
 from julee.core.services import ClockService, ExecutionService, SystemClockService
 from julee.core.services.execution import DefaultExecutionService
@@ -43,25 +43,6 @@ from .decorators import try_use_case_step
 from .pointable_json_schema import PointableJSONSchema
 
 logger = logging.getLogger(__name__)
-
-
-async def _resolve_jsonschema(schema: Mapping[str, Any]) -> dict[str, Any]:
-    """Fetch and resolve a bare $ref schema; return inline schemas unchanged.
-
-    If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL afresh
-    and delegates fragment extraction to extract_schema_from_fetched.
-    Re-fetching on every query ensures the latest published version is used.
-    """
-    if not (len(schema) == 1 and "$ref" in schema):
-        return dict(schema)
-
-    url, _, fragment = schema["$ref"].partition("#")
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        full_schema = response.json()
-
-    return extract_schema_from_fetched(full_schema, fragment)
 
 
 class ExtractAssembleDataRequest(BaseModel):
@@ -109,6 +90,7 @@ class ExtractAssembleDataUseCase:
         knowledge_service_query_repo: KnowledgeServiceQueryRepository,
         knowledge_service_config_repo: KnowledgeServiceConfigRepository,
         knowledge_service: KnowledgeService,
+        remote_schema_repo: RemoteSchemaRepository,
         clock_service: ClockService | None = None,
         execution_service: ExecutionService | None = None,
     ) -> None:
@@ -149,6 +131,10 @@ class ExtractAssembleDataUseCase:
             DocumentRepository,  # type: ignore[type-abstract]
         )
         self.knowledge_service = knowledge_service
+        self.remote_schema_repo = ensure_repository_protocol(
+            remote_schema_repo,
+            RemoteSchemaRepository,  # type: ignore[type-abstract]
+        )
         self._clock_service: ClockService = clock_service or SystemClockService()
         self._execution_service: ExecutionService = (
             execution_service or DefaultExecutionService()
@@ -401,6 +387,20 @@ class ExtractAssembleDataUseCase:
             queries[query_id] = query
         return queries
 
+    async def _resolve_jsonschema(self, schema: Mapping[str, Any]) -> dict[str, Any]:
+        """Fetch and resolve a bare $ref schema; return inline schemas unchanged.
+
+        If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL via
+        the injected remote_schema_repo (a Temporal activity in workflow context)
+        and delegates fragment extraction to extract_schema_from_fetched.
+        Re-fetching on every query ensures the latest published version is used.
+        """
+        if not (len(schema) == 1 and "$ref" in schema):
+            return dict(schema)
+        url, _, fragment = schema["$ref"].partition("#")
+        full_schema = await self.remote_schema_repo.fetch(url)
+        return extract_schema_from_fetched(full_schema, fragment)
+
     @try_use_case_step("assembly_iteration")
     async def _assemble_iteration(
         self,
@@ -438,7 +438,7 @@ class ExtractAssembleDataUseCase:
 
         # Resolve $ref schemas afresh on every query so any published patch
         # to the external schema is picked up automatically.
-        resolved_jsonschema = await _resolve_jsonschema(
+        resolved_jsonschema = await self._resolve_jsonschema(
             assembly_specification.jsonschema
         )
 
