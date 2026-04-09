@@ -26,6 +26,7 @@ from julee.contrib.ceap.domain.models import (
 )
 from julee.contrib.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.contrib.ceap.use_cases.extract_assemble_data import _resolve_jsonschema
 from julee.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
@@ -680,3 +681,54 @@ class TestExtractAssembleDataUseCase:
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
             )
+
+
+class TestResolveJsonSchema:
+    """Tests for the _resolve_jsonschema async helper."""
+
+    @pytest.mark.asyncio
+    async def test_inline_schema_returned_unchanged(self) -> None:
+        """An inline schema dict is returned as-is without any HTTP calls."""
+        schema = {
+            "type": "object",
+            "properties": {"x": {"type": "string"}},
+        }
+        result = await _resolve_jsonschema(schema)
+        assert result == schema
+
+    @pytest.mark.asyncio
+    async def test_ref_schema_fetched_and_resolved(self, schema_server) -> None:
+        """A bare $ref is fetched over HTTP and the resolved schema is returned."""
+        served = {"type": "object", "properties": {"y": {"type": "integer"}}}
+        url = schema_server.register("/schema.json", served)
+        result = await _resolve_jsonschema({"$ref": url})
+        assert result == served
+
+    @pytest.mark.asyncio
+    async def test_ref_with_fragment_extracts_sub_schema(
+        self, schema_server
+    ) -> None:
+        """A $ref with a fragment extracts the target sub-schema and bundles
+        the parent $defs so internal $refs remain valid."""
+        full_schema = {
+            "$defs": {
+                "Address": {
+                    "type": "object",
+                    "properties": {"street": {"type": "string"}},
+                },
+                "Person": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "address": {"$ref": "#/$defs/Address"},
+                    },
+                },
+            }
+        }
+        url = schema_server.register("/people.json", full_schema)
+        result = await _resolve_jsonschema({"$ref": f"{url}#/$defs/Person"})
+
+        assert result["type"] == "object"
+        assert "name" in result["properties"]
+        # Parent $defs must be bundled so the internal #/$defs/Address ref works
+        assert "Address" in result["$defs"]
