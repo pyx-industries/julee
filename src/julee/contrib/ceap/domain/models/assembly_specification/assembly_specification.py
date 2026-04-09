@@ -22,18 +22,7 @@ import jsonpointer  # type: ignore
 import jsonschema
 from pydantic import Field, field_validator
 
-from julee.contrib.ceap._schema_ref import extract_schema_from_fetched
 from julee.core.entities.entity import Entity
-
-
-def _fetch_and_resolve_ref(ref: str) -> dict[str, Any]:
-    """Fetch an external $ref URL and return the resolved schema dict."""
-    import httpx
-
-    url, _, fragment = ref.partition("#")
-    response = httpx.get(url)
-    response.raise_for_status()
-    return extract_schema_from_fetched(response.json(), fragment)
 
 
 class AssemblySpecificationStatus(str, Enum):
@@ -125,18 +114,10 @@ class AssemblySpecification(Entity):
             raise ValueError("JSON Schema must be a dictionary")
 
         if len(v) == 1 and "$ref" in v:
-            # Resolve the ref to validate it produces a valid schema,
-            # but store the original $ref unchanged.
-            try:
-                resolved = _fetch_and_resolve_ref(v["$ref"])
-            except Exception as e:
-                raise ValueError(f"Could not resolve $ref '{v['$ref']}': {e}")
-            if "type" not in resolved:
-                raise ValueError("Resolved $ref schema must have a 'type' field")
-            try:
-                jsonschema.Draft7Validator.check_schema(resolved)
-            except jsonschema.SchemaError as e:
-                raise ValueError(f"Invalid JSON Schema at $ref: {e.message}")
+            # Bare $ref — accept as-is. Resolution and schema validation
+            # happen at assembly time via RemoteSchemaRepository, not here.
+            if not isinstance(v["$ref"], str) or not v["$ref"].strip():
+                raise ValueError("$ref value must be a non-empty string")
             return v
 
         if "type" not in v:
@@ -162,17 +143,11 @@ class AssemblySpecification(Entity):
         if not jsonschema_value:
             raise ValueError("Cannot validate schema pointers without jsonschema field")
 
-        # If jsonschema is a bare $ref, resolve it to validate pointers against
-        # the actual schema content
-        if (
+        is_ref_schema = (
             isinstance(jsonschema_value, dict)
             and len(jsonschema_value) == 1
             and "$ref" in jsonschema_value
-        ):
-            try:
-                jsonschema_value = _fetch_and_resolve_ref(jsonschema_value["$ref"])
-            except Exception as e:
-                raise ValueError(f"Could not resolve $ref for pointer validation: {e}")
+        )
 
         cleaned_queries = {}
         for schema_pointer, query_id in v.items():
@@ -180,20 +155,25 @@ class AssemblySpecification(Entity):
             if not isinstance(schema_pointer, str):
                 raise ValueError("Schema pointer keys must be strings")
 
-            # Validate JSON Pointer format and that it exists in the schema
+            # Validate JSON Pointer format; existence against the resolved
+            # schema is only possible for inline schemas (not bare $refs —
+            # those are resolved at assembly time via RemoteSchemaRepository).
             try:
                 if schema_pointer == "":
                     # Empty string is valid - refers to root of schema
                     pass
+                elif is_ref_schema:
+                    # Format validation only — can't check existence without
+                    # fetching the remote schema
+                    jsonpointer.JsonPointer(schema_pointer)
                 else:
-                    # Use jsonpointer to validate format and existence
                     ptr = jsonpointer.JsonPointer(schema_pointer)
                     ptr.resolve(jsonschema_value)
             except jsonpointer.JsonPointerException as e:
                 raise ValueError(f"Invalid JSON Pointer '{schema_pointer}': {e}")
             except (KeyError, IndexError, TypeError):
                 raise ValueError(
-                    f"JSON Pointer '{schema_pointer}' does not exist in " f"schema"
+                    f"JSON Pointer '{schema_pointer}' does not exist in schema"
                 )
 
             # Validate query ID values
