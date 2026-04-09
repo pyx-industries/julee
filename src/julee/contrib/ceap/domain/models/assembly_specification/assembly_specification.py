@@ -18,7 +18,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-import httpx
 import jsonpointer  # type: ignore
 import jsonschema
 from pydantic import Field, field_validator
@@ -29,6 +28,8 @@ from julee.core.entities.entity import Entity
 
 def _fetch_and_resolve_ref(ref: str) -> dict[str, Any]:
     """Fetch an external $ref URL and return the resolved schema dict."""
+    import httpx
+
     url, _, fragment = ref.partition("#")
     response = httpx.get(url)
     response.raise_for_status()
