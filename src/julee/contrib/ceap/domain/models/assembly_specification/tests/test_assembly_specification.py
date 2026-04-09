@@ -539,15 +539,19 @@ class TestAssemblyRefSchemaValidation:
         )
         assert spec.jsonschema == {"$ref": ref}
 
-    def test_ref_to_unresolvable_url_raises(self) -> None:
-        """A $ref that cannot be fetched raises a ValidationError."""
-        with pytest.raises(ValidationError, match="Could not resolve"):
-            AssemblySpecification(
-                assembly_specification_id="bad-ref-test",
-                name="Bad Ref Test",
-                applicability="Testing invalid $ref",
-                jsonschema={"$ref": _UNRESOLVABLE_URL},
-            )
+    def test_ref_to_unresolvable_url_is_accepted(self) -> None:
+        """A $ref pointing at an unresolvable URL is accepted as-is.
+
+        Resolution is deferred to assembly time via RemoteSchemaRepository;
+        the domain model does not fetch remote schemas during construction.
+        """
+        spec = AssemblySpecification(
+            assembly_specification_id="bad-ref-test",
+            name="Bad Ref Test",
+            applicability="Testing invalid $ref",
+            jsonschema={"$ref": _UNRESOLVABLE_URL},
+        )
+        assert spec.jsonschema == {"$ref": _UNRESOLVABLE_URL}
 
     def test_ref_survives_serialisation_roundtrip(self, schema_server) -> None:
         """The $ref value is preserved through model_dump_json and
@@ -566,38 +570,42 @@ class TestAssemblyRefSchemaValidation:
         restored = AssemblySpecification(**data)
         assert restored.jsonschema == {"$ref": url}
 
-    def test_knowledge_service_queries_validated_against_resolved_ref(
-        self, schema_server
-    ) -> None:
-        """JSON Pointer keys in knowledge_service_queries are checked against
-        the resolved $ref content, so valid pointers are accepted."""
-        url = schema_server.register(
-            "/product.json",
-            {"type": "object", "properties": {"sku": {"type": "string"}}},
-        )
+    def test_knowledge_service_queries_format_validated_for_ref_schema(self) -> None:
+        """JSON Pointer keys in knowledge_service_queries are format-validated
+        for bare $ref schemas; existence against the resolved schema is deferred
+        to assembly time via RemoteSchemaRepository."""
         spec = AssemblySpecification(
             assembly_specification_id="ksq-ref-test",
             name="KSQ Ref Test",
             applicability="Testing pointer validation against $ref",
-            jsonschema={"$ref": url},
+            jsonschema={"$ref": _UNRESOLVABLE_URL},
             knowledge_service_queries={"/properties/sku": "extract-sku"},
         )
         assert spec.knowledge_service_queries == {"/properties/sku": "extract-sku"}
 
-    def test_knowledge_service_queries_rejects_pointer_absent_from_resolved_ref(
-        self, schema_server
-    ) -> None:
-        """A JSON Pointer that does not exist in the resolved $ref schema is
-        rejected, even though the bare $ref dict has no such path."""
-        url = schema_server.register(
-            "/product.json",
-            {"type": "object", "properties": {"sku": {"type": "string"}}},
+    def test_knowledge_service_queries_pointer_absent_from_ref_is_accepted(self) -> None:
+        """A JSON Pointer that would not exist in the resolved $ref schema is
+        still accepted at construction time; existence checking is deferred to
+        assembly time when the remote schema can actually be fetched."""
+        spec = AssemblySpecification(
+            assembly_specification_id="deferred-pointer-test",
+            name="Deferred Pointer Test",
+            applicability="Testing pointer deferral for $ref schemas",
+            jsonschema={"$ref": _UNRESOLVABLE_URL},
+            knowledge_service_queries={"/properties/nonexistent": "query-1"},
         )
-        with pytest.raises(ValidationError, match="nonexistent"):
+        assert spec.knowledge_service_queries == {"/properties/nonexistent": "query-1"}
+
+    def test_knowledge_service_queries_rejects_malformed_pointer_for_ref_schema(
+        self,
+    ) -> None:
+        """A malformed JSON Pointer (not starting with /) is rejected even for
+        bare $ref schemas, since format validation still applies."""
+        with pytest.raises(ValidationError):
             AssemblySpecification(
-                assembly_specification_id="bad-pointer-test",
-                name="Bad Pointer Test",
-                applicability="Testing pointer rejection against $ref",
-                jsonschema={"$ref": url},
-                knowledge_service_queries={"/properties/nonexistent": "query-1"},
+                assembly_specification_id="bad-format-test",
+                name="Bad Format Test",
+                applicability="Testing malformed pointer rejection",
+                jsonschema={"$ref": _UNRESOLVABLE_URL},
+                knowledge_service_queries={"not-a-pointer": "query-1"},
             )
