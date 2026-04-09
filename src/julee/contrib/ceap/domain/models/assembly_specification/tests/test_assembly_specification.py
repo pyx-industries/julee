@@ -583,7 +583,9 @@ class TestAssemblyRefSchemaValidation:
         )
         assert spec.knowledge_service_queries == {"/properties/sku": "extract-sku"}
 
-    def test_knowledge_service_queries_pointer_absent_from_ref_is_accepted(self) -> None:
+    def test_knowledge_service_queries_pointer_absent_from_ref_is_accepted(
+        self,
+    ) -> None:
         """A JSON Pointer that would not exist in the resolved $ref schema is
         still accepted at construction time; existence checking is deferred to
         assembly time when the remote schema can actually be fetched."""
