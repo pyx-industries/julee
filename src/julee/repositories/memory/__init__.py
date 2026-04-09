@@ -19,6 +19,7 @@ from .document_policy_validation import (
 from .knowledge_service_config import MemoryKnowledgeServiceConfigRepository
 from .knowledge_service_query import MemoryKnowledgeServiceQueryRepository
 from .policy import MemoryPolicyRepository
+from .remote_schema import MemoryRemoteSchemaRepository
 
 __all__ = [
     "MemoryAssemblyRepository",
@@ -28,4 +29,5 @@ __all__ = [
     "MemoryKnowledgeServiceConfigRepository",
     "MemoryKnowledgeServiceQueryRepository",
     "MemoryPolicyRepository",
+    "MemoryRemoteSchemaRepository",
 ]

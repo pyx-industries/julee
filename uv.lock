@@ -933,7 +933,7 @@ wheels = [
 
 [[package]]
 name = "julee"
-version = "0.1.14"
+version = "0.1.16"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
@@ -941,6 +941,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "fastapi-pagination" },
     { name = "griffe" },
+    { name = "httpx" },
     { name = "inflect" },
     { name = "jinja2" },
     { name = "jsonpointer" },
@@ -1001,6 +1002,7 @@ requires-dist = [
     { name = "fastapi-pagination", specifier = ">=0.12.0" },
     { name = "furo", marker = "extra == 'docs'", specifier = ">=2023.9.10" },
     { name = "griffe", specifier = ">=1.0.0,<2" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "inflect", specifier = ">=7.5.0" },
     { name = "jinja2", specifier = ">=3.0.0" },

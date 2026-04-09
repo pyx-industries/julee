@@ -10,12 +10,14 @@ instances following the Clean Architecture principles.
 import hashlib
 import json
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import jsonschema
 import multihash
 from pydantic import BaseModel
 
+from julee.contrib.ceap._schema_ref import extract_schema_from_fetched
 from julee.contrib.ceap.domain.models import (
     Assembly,
     AssemblySpecification,
@@ -30,6 +32,7 @@ from julee.contrib.ceap.domain.repositories import (
     DocumentRepository,
     KnowledgeServiceConfigRepository,
     KnowledgeServiceQueryRepository,
+    RemoteSchemaRepository,
 )
 from julee.core.services import ClockService, ExecutionService, SystemClockService
 from julee.core.services.execution import DefaultExecutionService
@@ -87,6 +90,7 @@ class ExtractAssembleDataUseCase:
         knowledge_service_query_repo: KnowledgeServiceQueryRepository,
         knowledge_service_config_repo: KnowledgeServiceConfigRepository,
         knowledge_service: KnowledgeService,
+        remote_schema_repo: RemoteSchemaRepository,
         clock_service: ClockService | None = None,
         execution_service: ExecutionService | None = None,
     ) -> None:
@@ -127,6 +131,10 @@ class ExtractAssembleDataUseCase:
             DocumentRepository,  # type: ignore[type-abstract]
         )
         self.knowledge_service = knowledge_service
+        self.remote_schema_repo = ensure_repository_protocol(
+            remote_schema_repo,
+            RemoteSchemaRepository,  # type: ignore[type-abstract]
+        )
         self._clock_service: ClockService = clock_service or SystemClockService()
         self._execution_service: ExecutionService = (
             execution_service or DefaultExecutionService()
@@ -379,6 +387,20 @@ class ExtractAssembleDataUseCase:
             queries[query_id] = query
         return queries
 
+    async def _resolve_jsonschema(self, schema: Mapping[str, Any]) -> dict[str, Any]:
+        """Fetch and resolve a bare $ref schema; return inline schemas unchanged.
+
+        If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL via
+        the injected remote_schema_repo (a Temporal activity in workflow context)
+        and delegates fragment extraction to extract_schema_from_fetched.
+        Re-fetching on every query ensures the latest published version is used.
+        """
+        if not (len(schema) == 1 and "$ref" in schema):
+            return dict(schema)
+        url, _, fragment = schema["$ref"].partition("#")
+        full_schema = await self.remote_schema_repo.fetch(url)
+        return extract_schema_from_fetched(full_schema, fragment)
+
     @try_use_case_step("assembly_iteration")
     async def _assemble_iteration(
         self,
@@ -414,6 +436,12 @@ class ExtractAssembleDataUseCase:
         # Initialize the result data structure
         assembled_data: dict[str, Any] = {}
 
+        # Resolve $ref schemas afresh on every query so any published patch
+        # to the external schema is picked up automatically.
+        resolved_jsonschema = await self._resolve_jsonschema(
+            assembly_specification.jsonschema
+        )
+
         # Process each knowledge service query
         # TODO: This is where we may want to fan-out/fan-in to do these
         # in parallel.
@@ -422,7 +450,7 @@ class ExtractAssembleDataUseCase:
             query_id,
         ) in assembly_specification.knowledge_service_queries.items():
             # Use PointableJSONSchema to generate complete schema for pointer target
-            pointable_schema = PointableJSONSchema(assembly_specification.jsonschema)
+            pointable_schema = PointableJSONSchema(resolved_jsonschema)
             output_schema = pointable_schema.schema_for_pointer(schema_pointer)
 
             # Get the query configuration
@@ -464,7 +492,7 @@ class ExtractAssembleDataUseCase:
             )
 
         # Validate the assembled data against the JSON schema
-        self._validate_assembled_data(assembled_data, assembly_specification)
+        self._validate_assembled_data(assembled_data, resolved_jsonschema)
 
         # Create the assembled document
         assembled_document_id = await self._create_assembled_document(
@@ -597,26 +625,16 @@ class ExtractAssembleDataUseCase:
     def _validate_assembled_data(
         self,
         assembled_data: dict[str, Any],
-        assembly_specification: AssemblySpecification,
+        resolved_jsonschema: dict[str, Any],
     ) -> None:
         """Validate that the assembled data conforms to the JSON schema."""
         try:
-            jsonschema.validate(assembled_data, assembly_specification.jsonschema)
-            logger.debug(
-                "Assembled data validation passed",
-                extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
-                },
-            )
+            jsonschema.validate(assembled_data, resolved_jsonschema)
+            logger.debug("Assembled data validation passed")
         except jsonschema.ValidationError as e:
             logger.error(
                 "Assembled data validation failed",
                 extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
                     "validation_error": str(e),
                     "error_path": (list(e.absolute_path) if e.absolute_path else []),
                     "schema_path": (list(e.schema_path) if e.schema_path else []),
@@ -628,12 +646,7 @@ class ExtractAssembleDataUseCase:
         except jsonschema.SchemaError as e:
             logger.error(
                 "JSON schema is invalid",
-                extra={
-                    "assembly_specification_id": (
-                        assembly_specification.assembly_specification_id
-                    ),
-                    "schema_error": str(e),
-                },
+                extra={"schema_error": str(e)},
             )
             raise ValueError(
                 f"Invalid JSON schema in assembly specification: {e.message}"

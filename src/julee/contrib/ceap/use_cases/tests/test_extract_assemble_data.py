@@ -26,12 +26,14 @@ from julee.contrib.ceap.domain.models import (
 )
 from julee.contrib.ceap.domain.models.knowledge_service_config import ServiceApi
 from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.repositories.http.schema import HttpRemoteSchemaRepository
 from julee.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
     MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
+    MemoryRemoteSchemaRepository,
 )
 from julee.services.knowledge_service import QueryResult
 from julee.services.knowledge_service.memory import (
@@ -125,6 +127,11 @@ class TestExtractAssembleDataUseCase:
         return memory_service
 
     @pytest.fixture
+    def remote_schema_repo(self) -> MemoryRemoteSchemaRepository:
+        """Create a memory RemoteSchemaRepository for testing."""
+        return MemoryRemoteSchemaRepository()
+
+    @pytest.fixture
     def use_case(
         self,
         document_repo: MemoryDocumentRepository,
@@ -133,6 +140,7 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         knowledge_service: MemoryKnowledgeService,
+        remote_schema_repo: MemoryRemoteSchemaRepository,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with memory repository
         dependencies."""
@@ -143,6 +151,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=knowledge_service,
+            remote_schema_repo=remote_schema_repo,
         )
 
     @pytest.fixture
@@ -154,6 +163,7 @@ class TestExtractAssembleDataUseCase:
         knowledge_service_query_repo: MemoryKnowledgeServiceQueryRepository,
         knowledge_service_config_repo: MemoryKnowledgeServiceConfigRepository,
         configured_knowledge_service: MemoryKnowledgeService,
+        remote_schema_repo: MemoryRemoteSchemaRepository,
     ) -> ExtractAssembleDataUseCase:
         """Create ExtractAssembleDataUseCase with configured knowledge service
         for full workflow tests."""
@@ -164,6 +174,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=configured_knowledge_service,
+            remote_schema_repo=remote_schema_repo,
         )
 
     @pytest.mark.asyncio
@@ -669,6 +680,7 @@ class TestExtractAssembleDataUseCase:
             knowledge_service_query_repo=knowledge_service_query_repo,
             knowledge_service_config_repo=knowledge_service_config_repo,
             knowledge_service=memory_service,
+            remote_schema_repo=MemoryRemoteSchemaRepository(),
         )
 
         # Act & Assert
@@ -680,3 +692,68 @@ class TestExtractAssembleDataUseCase:
                 document_id="doc-123",
                 assembly_specification_id="spec-123",
             )
+
+
+class TestResolveJsonSchema:
+    """Tests for ExtractAssembleDataUseCase._resolve_jsonschema."""
+
+    def _make_use_case(self, remote_schema_repo) -> ExtractAssembleDataUseCase:
+        return ExtractAssembleDataUseCase(
+            document_repo=MemoryDocumentRepository(),
+            assembly_repo=MemoryAssemblyRepository(),
+            assembly_specification_repo=MemoryAssemblySpecificationRepository(),
+            knowledge_service_query_repo=MemoryKnowledgeServiceQueryRepository(),
+            knowledge_service_config_repo=MemoryKnowledgeServiceConfigRepository(),
+            knowledge_service=AsyncMock(),
+            remote_schema_repo=remote_schema_repo,
+        )
+
+    @pytest.mark.asyncio
+    async def test_inline_schema_returned_unchanged(self) -> None:
+        """An inline schema dict is returned as-is without any HTTP calls."""
+        schema = {
+            "type": "object",
+            "properties": {"x": {"type": "string"}},
+        }
+        use_case = self._make_use_case(MemoryRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema(schema)
+        assert result == schema
+
+    @pytest.mark.asyncio
+    async def test_ref_schema_fetched_and_resolved(self, schema_server) -> None:
+        """A bare $ref is fetched over HTTP and the resolved schema is returned."""
+        served = {"type": "object", "properties": {"y": {"type": "integer"}}}
+        url = schema_server.register("/schema.json", served)
+        use_case = self._make_use_case(HttpRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema({"$ref": url})
+        assert result == served
+
+    @pytest.mark.asyncio
+    async def test_ref_with_fragment_extracts_sub_schema(self, schema_server) -> None:
+        """A $ref with a fragment extracts the target sub-schema and bundles
+        the parent $defs so internal $refs remain valid."""
+        from julee.repositories.http.schema import HttpRemoteSchemaRepository
+
+        full_schema = {
+            "$defs": {
+                "Address": {
+                    "type": "object",
+                    "properties": {"street": {"type": "string"}},
+                },
+                "Person": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "address": {"$ref": "#/$defs/Address"},
+                    },
+                },
+            }
+        }
+        url = schema_server.register("/people.json", full_schema)
+        use_case = self._make_use_case(HttpRemoteSchemaRepository())
+        result = await use_case._resolve_jsonschema({"$ref": f"{url}#/$defs/Person"})
+
+        assert result["type"] == "object"
+        assert "name" in result["properties"]
+        # Parent $defs must be bundled so the internal #/$defs/Address ref works
+        assert "Address" in result["$defs"]

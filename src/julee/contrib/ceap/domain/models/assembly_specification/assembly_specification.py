@@ -113,11 +113,16 @@ class AssemblySpecification(Entity):
         if not isinstance(v, dict):
             raise ValueError("JSON Schema must be a dictionary")
 
-        # Basic validation that it looks like a JSON schema
+        if len(v) == 1 and "$ref" in v:
+            # Bare $ref — accept as-is. Resolution and schema validation
+            # happen at assembly time via RemoteSchemaRepository, not here.
+            if not isinstance(v["$ref"], str) or not v["$ref"].strip():
+                raise ValueError("$ref value must be a non-empty string")
+            return v
+
         if "type" not in v:
             raise ValueError("JSON Schema must have a 'type' field")
 
-        # Validate that it's a proper JSON Schema using jsonschema library
         try:
             jsonschema.Draft7Validator.check_schema(v)
         except jsonschema.SchemaError as e:
@@ -138,26 +143,37 @@ class AssemblySpecification(Entity):
         if not jsonschema_value:
             raise ValueError("Cannot validate schema pointers without jsonschema field")
 
+        is_ref_schema = (
+            isinstance(jsonschema_value, dict)
+            and len(jsonschema_value) == 1
+            and "$ref" in jsonschema_value
+        )
+
         cleaned_queries = {}
         for schema_pointer, query_id in v.items():
             # Validate schema pointer keys are strings
             if not isinstance(schema_pointer, str):
                 raise ValueError("Schema pointer keys must be strings")
 
-            # Validate JSON Pointer format and that it exists in the schema
+            # Validate JSON Pointer format; existence against the resolved
+            # schema is only possible for inline schemas (not bare $refs —
+            # those are resolved at assembly time via RemoteSchemaRepository).
             try:
                 if schema_pointer == "":
                     # Empty string is valid - refers to root of schema
                     pass
+                elif is_ref_schema:
+                    # Format validation only — can't check existence without
+                    # fetching the remote schema
+                    jsonpointer.JsonPointer(schema_pointer)
                 else:
-                    # Use jsonpointer to validate format and existence
                     ptr = jsonpointer.JsonPointer(schema_pointer)
                     ptr.resolve(jsonschema_value)
             except jsonpointer.JsonPointerException as e:
                 raise ValueError(f"Invalid JSON Pointer '{schema_pointer}': {e}")
             except (KeyError, IndexError, TypeError):
                 raise ValueError(
-                    f"JSON Pointer '{schema_pointer}' does not exist in " f"schema"
+                    f"JSON Pointer '{schema_pointer}' does not exist in schema"
                 )
 
             # Validate query ID values

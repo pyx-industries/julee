@@ -22,6 +22,7 @@ from julee.repositories.temporal.proxies import (
     WorkflowDocumentRepositoryProxy,
     WorkflowKnowledgeServiceConfigRepositoryProxy,
     WorkflowKnowledgeServiceQueryRepositoryProxy,
+    WorkflowRemoteSchemaRepositoryProxy,
 )
 from julee.services.temporal.proxies import (
     WorkflowKnowledgeServiceProxy,
@@ -127,6 +128,7 @@ class ExtractAssembleWorkflow:
                 knowledge_service_query_repo=knowledge_service_query_repo,
                 knowledge_service_config_repo=knowledge_service_config_repo,
                 knowledge_service=knowledge_service,
+                remote_schema_repo=WorkflowRemoteSchemaRepositoryProxy(),  # type: ignore[abstract]
                 clock_service=clock_service,
                 execution_service=execution_service,
             )
