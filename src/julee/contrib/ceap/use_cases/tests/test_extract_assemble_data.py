@@ -705,9 +705,7 @@ class TestResolveJsonSchema:
         assert result == served
 
     @pytest.mark.asyncio
-    async def test_ref_with_fragment_extracts_sub_schema(
-        self, schema_server
-    ) -> None:
+    async def test_ref_with_fragment_extracts_sub_schema(self, schema_server) -> None:
         """A $ref with a fragment extracts the target sub-schema and bundles
         the parent $defs so internal $refs remain valid."""
         full_schema = {

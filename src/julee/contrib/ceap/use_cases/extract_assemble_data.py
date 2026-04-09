@@ -14,11 +14,11 @@ from collections.abc import Mapping
 from typing import Any
 
 import httpx
-import jsonpointer
 import jsonschema
 import multihash
 from pydantic import BaseModel
 
+from julee.contrib.ceap._schema_ref import extract_schema_from_fetched
 from julee.contrib.ceap.domain.models import (
     Assembly,
     AssemblySpecification,
@@ -48,10 +48,9 @@ logger = logging.getLogger(__name__)
 async def _resolve_jsonschema(schema: Mapping[str, Any]) -> dict[str, Any]:
     """Fetch and resolve a bare $ref schema; return inline schemas unchanged.
 
-    If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL afresh,
-    navigates to the fragment, and bundles the parent $defs so internal $ref
-    values remain valid. Otherwise returns the schema as-is. Re-fetching on
-    every query ensures the latest published version of the schema is used.
+    If the schema is exactly {"$ref": "url#/fragment"}, fetches the URL afresh
+    and delegates fragment extraction to extract_schema_from_fetched.
+    Re-fetching on every query ensures the latest published version is used.
     """
     if not (len(schema) == 1 and "$ref" in schema):
         return dict(schema)
@@ -62,17 +61,7 @@ async def _resolve_jsonschema(schema: Mapping[str, Any]) -> dict[str, Any]:
         response.raise_for_status()
         full_schema = response.json()
 
-    if not fragment:
-        return full_schema
-
-    target = jsonpointer.resolve_pointer(full_schema, fragment)
-    if not isinstance(target, dict):
-        raise ValueError(f"$ref fragment '{fragment}' did not resolve to a JSON object")
-    result = dict(target)
-    parent_defs = full_schema.get("$defs", {})
-    if parent_defs:
-        result["$defs"] = {**parent_defs, **result.get("$defs", {})}
-    return result
+    return extract_schema_from_fetched(full_schema, fragment)
 
 
 class ExtractAssembleDataRequest(BaseModel):

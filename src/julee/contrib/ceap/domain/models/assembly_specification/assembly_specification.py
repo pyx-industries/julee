@@ -23,32 +23,16 @@ import jsonpointer  # type: ignore
 import jsonschema
 from pydantic import Field, field_validator
 
+from julee.contrib.ceap._schema_ref import extract_schema_from_fetched
 from julee.core.entities.entity import Entity
 
 
 def _fetch_and_resolve_ref(ref: str) -> dict[str, Any]:
-    """Fetch an external $ref URL and return the resolved schema dict.
-
-    Handles an optional JSON Pointer fragment (e.g. #/$defs/Product) by
-    extracting the target sub-schema and bundling parent $defs so internal
-    $ref values remain valid.
-    """
+    """Fetch an external $ref URL and return the resolved schema dict."""
     url, _, fragment = ref.partition("#")
     response = httpx.get(url)
     response.raise_for_status()
-    full_schema = response.json()
-
-    if not fragment:
-        return full_schema
-
-    target = jsonpointer.resolve_pointer(full_schema, fragment)
-    if not isinstance(target, dict):
-        raise ValueError(f"$ref fragment '{fragment}' did not resolve to a JSON object")
-    result = dict(target)
-    parent_defs = full_schema.get("$defs", {})
-    if parent_defs:
-        result["$defs"] = {**parent_defs, **result.get("$defs", {})}
-    return result
+    return extract_schema_from_fetched(response.json(), fragment)
 
 
 class AssemblySpecificationStatus(str, Enum):
