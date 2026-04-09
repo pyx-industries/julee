@@ -10,6 +10,7 @@ The classes follow the naming pattern documented in systemPatterns.org:
 - Each repository type gets its own activity prefix
 """
 
+from julee.repositories.http.schema import HttpRemoteSchemaRepository
 from julee.repositories.minio.assembly import MinioAssemblyRepository
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
@@ -27,7 +28,6 @@ from julee.repositories.minio.knowledge_service_query import (
 from julee.repositories.minio.policy import (
     MinioPolicyRepository,
 )
-from julee.repositories.http.schema import HttpRemoteSchemaRepository
 
 # Import activity name bases from shared module
 from julee.repositories.temporal.activity_names import (
