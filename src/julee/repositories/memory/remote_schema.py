@@ -1,7 +1,9 @@
 from typing import Any
 
+from julee.contrib.ceap.domain.repositories.remote_schema import RemoteSchemaRepository
 
-class MemoryRemoteSchemaRepository:
+
+class MemoryRemoteSchemaRepository(RemoteSchemaRepository):
     def __init__(self, schemas: dict[str, dict] | None = None) -> None:
         self._schemas: dict[str, dict] = schemas or {}
 
