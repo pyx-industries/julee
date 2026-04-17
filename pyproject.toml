@@ -147,6 +147,7 @@ exclude_lines = [
 ]
 
 [tool.ruff]
+# Ruff is used for linting only. Formatting is handled by black.
 line-length = 88
 target-version = "py310"
 exclude = [
