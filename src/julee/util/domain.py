@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import (
     BaseModel,
@@ -14,9 +14,7 @@ class FileMetadata(BaseModel):
     filename: str | None = None
     content_type: str | None = None
     size_bytes: int | None = None
-    uploaded_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    uploaded_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, str] = Field(default_factory=dict)
 
 

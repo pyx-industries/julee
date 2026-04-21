@@ -8,7 +8,7 @@ just mocking method calls.
 """
 
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import wraps
 from typing import Any, BinaryIO
 from unittest.mock import Mock
@@ -142,7 +142,7 @@ class FakeMinioClient(MinioClient):
             version_id=None,
             etag="fake-etag",
             http_headers=HTTPHeaderDict(),
-            last_modified=datetime.now(timezone.utc),
+            last_modified=datetime.now(UTC),
             location=f"/{bucket_name}/{object_name}",
         )
 
@@ -167,7 +167,7 @@ class FakeMinioClient(MinioClient):
         return Object(
             bucket_name=bucket_name,
             object_name=object_name,
-            last_modified=datetime.now(timezone.utc),
+            last_modified=datetime.now(UTC),
             etag="fake-etag",
             size=obj_info["size"],
             content_type=obj_info["content_type"],

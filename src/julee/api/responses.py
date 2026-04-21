@@ -8,19 +8,19 @@ only response models that are specific to API concerns and not represented
 by existing domain models.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
 
-class ServiceStatus(str, Enum):
+class ServiceStatus(StrEnum):
     """Service status enumeration."""
 
     UP = "up"
     DOWN = "down"
 
 
-class SystemStatus(str, Enum):
+class SystemStatus(StrEnum):
     """Overall system status enumeration."""
 
     HEALTHY = "healthy"

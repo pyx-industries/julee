@@ -5,14 +5,14 @@ Journeys are defined via RST directives and track a persona's path
 through the system to achieve a goal.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
 from ...utils import normalize_name
 
 
-class StepType(str, Enum):
+class StepType(StrEnum):
     """Type of journey step."""
 
     STORY = "story"

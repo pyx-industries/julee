@@ -16,7 +16,7 @@ and type safety, following the patterns established in the sample project.
 """
 
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import Field, field_validator
@@ -95,12 +95,8 @@ class KnowledgeServiceQuery(Entity):
         "allowing control over response format and structure.",
     )
 
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    updated_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("query_id")
     @classmethod

@@ -7,7 +7,7 @@ pagination, and response formats.
 """
 
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -54,24 +54,24 @@ def sample_configs() -> list[KnowledgeServiceConfig]:
             name="Anthropic Claude",
             description="Claude 3 for general text analysis and extraction",
             service_api=ServiceApi.ANTHROPIC,
-            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
         ),
         KnowledgeServiceConfig(
             knowledge_service_id="openai-gpt4",
             name="OpenAI GPT-4",
             description="GPT-4 for comprehensive text understanding",
             service_api=ServiceApi.ANTHROPIC,  # Only enum value available
-            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
         ),
         KnowledgeServiceConfig(
             knowledge_service_id="memory-service",
             name="Memory Service",
             description="In-memory service for testing and development",
             service_api=ServiceApi.ANTHROPIC,  # Only enum value available
-            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
         ),
     ]
 

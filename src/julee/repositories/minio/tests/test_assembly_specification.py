@@ -6,7 +6,7 @@ specification repository implementation, using the fake client to avoid
 external dependencies during testing.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -70,8 +70,8 @@ def sample_specification() -> AssemblySpecification:
             "/properties/action_items": "extract-action-items",
         },
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -88,8 +88,8 @@ def inactive_specification() -> AssemblySpecification:
         },
         status=AssemblySpecificationStatus.INACTIVE,
         version="1.0.0",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -235,8 +235,8 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
             status=AssemblySpecificationStatus.DRAFT,
             knowledge_service_queries={"/properties/test_field": "test-query"},
             version="0.1.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await specification_repo.save(specification)
 
@@ -346,8 +346,8 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
             status=AssemblySpecificationStatus.ACTIVE,
             knowledge_service_queries=complex_queries,
             version="2.0.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save and retrieve
@@ -385,8 +385,8 @@ class TestMinioAssemblySpecificationRepositoryComplexScenarios:
                 "/properties/метаданные": "query-metadata",
             },
             version="1.0.0",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Save and retrieve

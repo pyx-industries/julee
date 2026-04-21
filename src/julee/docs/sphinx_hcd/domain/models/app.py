@@ -4,14 +4,14 @@ Represents an application in the HCD documentation system.
 Apps are defined via YAML manifests in apps/*/app.yaml.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
 from ...utils import normalize_name
 
 
-class AppType(str, Enum):
+class AppType(StrEnum):
     """Application type classification."""
 
     STAFF = "staff"
