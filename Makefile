@@ -27,15 +27,13 @@ test-doctrine:
 	@echo "Running doctrine tests..."
 	uv run pytest src/julee/core/doctrine/
 
-# Doctrine tests against each kit in this workspace. Not in `check` yet:
-# julee-viewpoints still has one violation, its use cases being functions
-# rather than UseCase classes with a Request and Response.
+# Doctrine tests against each kit in this workspace
 test-doctrine-kits:
 	@echo "Running doctrine tests for julee-viewpoints..."
 	JULEE_TARGET=viewpoints uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
-check: lint-python typecheck test-python-unit test-doctrine
+check: lint-python typecheck test-python-unit test-doctrine test-doctrine-kits
 
 # Build the documentation
 docs:
@@ -114,10 +112,10 @@ update-requirements:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
+	@echo "  check           - The checks CI runs (lint, types, unit, doctrine, kits)"
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
-	@echo "  test-doctrine-kits - Doctrine tests against the kits (not yet clean)"
+	@echo "  test-doctrine-kits - Doctrine tests against the kits in this workspace"
 	@echo "  lint-python     - Python linting (black, ruff)"
 	@echo "  test-python-unit - Python unit tests"
 	@echo "  quality-fast-python - Fast Python quality checks (lint + unit tests)"

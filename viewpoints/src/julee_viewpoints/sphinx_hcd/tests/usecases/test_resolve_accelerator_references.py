@@ -1,5 +1,7 @@
 """Tests for resolve_accelerator_references use case."""
 
+import pytest
+
 from julee_viewpoints.sphinx_hcd.domain.models.accelerator import (
     Accelerator,
     IntegrationReference,
@@ -12,8 +14,9 @@ from julee_viewpoints.sphinx_hcd.domain.models.code_info import (
 from julee_viewpoints.sphinx_hcd.domain.models.integration import Direction, Integration
 from julee_viewpoints.sphinx_hcd.domain.models.journey import Journey, JourneyStep
 from julee_viewpoints.sphinx_hcd.domain.models.story import Story
-from julee_viewpoints.sphinx_hcd.domain.usecases.resolve_accelerator_references import (
-    get_accelerator_cross_references,
+from julee_viewpoints.sphinx_hcd.usecases.resolve_accelerator_references import (
+    ResolveAcceleratorReferencesRequest,
+    ResolveAcceleratorReferencesUseCase,
     get_apps_for_accelerator,
     get_code_info_for_accelerator,
     get_dependent_accelerators,
@@ -439,11 +442,12 @@ class TestGetCodeInfoForAccelerator:
         assert result is None
 
 
-class TestGetAcceleratorCrossReferences:
-    """Test get_accelerator_cross_references function."""
+class TestResolveAcceleratorReferencesUseCase:
+    """Test the use case that resolves everything an accelerator connects to."""
 
-    def test_cross_references(self) -> None:
-        """Test getting all cross-references for an accelerator."""
+    @pytest.mark.asyncio
+    async def test_cross_references(self) -> None:
+        """Every relationship an accelerator has comes back together."""
         accelerator = create_accelerator(
             "vocab-builder",
             sources_from=["kafka"],
@@ -463,21 +467,23 @@ class TestGetAcceleratorCrossReferences:
         ]
         code_infos = [create_code_info("vocab-builder")]
 
-        result = get_accelerator_cross_references(
-            accelerator,
-            accelerators,
-            apps,
-            stories,
-            journeys,
-            integrations,
-            code_infos,
+        response = await ResolveAcceleratorReferencesUseCase().execute(
+            ResolveAcceleratorReferencesRequest(
+                accelerator=accelerator,
+                accelerators=tuple(accelerators),
+                apps=tuple(apps),
+                stories=tuple(stories),
+                journeys=tuple(journeys),
+                integrations=tuple(integrations),
+                code_infos=tuple(code_infos),
+            )
         )
 
-        assert len(result["apps"]) == 1
-        assert len(result["stories"]) == 1
-        assert len(result["journeys"]) == 1
-        assert len(result["source_integrations"]) == 1
-        assert len(result["publish_integrations"]) == 1
-        assert len(result["dependents"]) == 1
-        assert len(result["fed_by"]) == 1
-        assert result["code_info"] is not None
+        assert len(response.apps) == 1
+        assert len(response.stories) == 1
+        assert len(response.journeys) == 1
+        assert len(response.source_integrations) == 1
+        assert len(response.publish_integrations) == 1
+        assert len(response.dependents) == 1
+        assert len(response.fed_by) == 1
+        assert response.code_info is not None

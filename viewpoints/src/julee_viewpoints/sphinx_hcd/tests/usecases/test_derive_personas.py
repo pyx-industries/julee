@@ -5,7 +5,7 @@ import pytest
 from julee_viewpoints.sphinx_hcd.domain.models.app import App, AppType
 from julee_viewpoints.sphinx_hcd.domain.models.epic import Epic
 from julee_viewpoints.sphinx_hcd.domain.models.story import Story
-from julee_viewpoints.sphinx_hcd.domain.usecases.derive_personas import (
+from julee_viewpoints.sphinx_hcd.usecases.derive_personas import (
     derive_personas,
     derive_personas_by_app_type,
     get_apps_for_persona,

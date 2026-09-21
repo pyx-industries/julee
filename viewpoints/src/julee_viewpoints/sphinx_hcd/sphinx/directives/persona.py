@@ -13,7 +13,7 @@ from typing import Any
 
 from docutils import nodes
 
-from ...domain.usecases import (
+from ...usecases import (
     derive_personas,
     derive_personas_by_app_type,
     get_epics_for_persona,

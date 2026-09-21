@@ -3,12 +3,14 @@
 Finds stories, personas, journeys, and epics related to an app.
 """
 
-from ...utils import normalize_name
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.journey import Journey
-from ..models.persona import Persona
-from ..models.story import Story
+from pydantic import BaseModel
+
+from ..domain.models.app import App
+from ..domain.models.epic import Epic
+from ..domain.models.journey import Journey
+from ..domain.models.persona import Persona
+from ..domain.models.story import Story
+from ..utils import normalize_name
 from .derive_personas import derive_personas
 
 
@@ -117,28 +119,50 @@ def get_epics_for_app(
     return sorted(matching, key=lambda e: e.slug)
 
 
-def get_app_cross_references(
-    app: App,
-    stories: list[Story],
-    epics: list[Epic],
-    journeys: list[Journey],
-) -> dict:
-    """Get all cross-references for an app.
+class ResolveAppReferencesRequest(BaseModel):
+    """What an app's references are resolved against."""
 
-    Convenience function to get all related entities at once.
+    app: App
+    stories: tuple[Story, ...] = ()
+    epics: tuple[Epic, ...] = ()
+    journeys: tuple[Journey, ...] = ()
 
-    Args:
-        app: App to find references for
-        stories: All Story entities
-        epics: All Epic entities
-        journeys: All Journey entities
 
-    Returns:
-        Dict with keys: stories, personas, journeys, epics
+class ResolveAppReferencesResponse(BaseModel):
+    """Everything an app is connected to."""
+
+    stories: tuple[Story, ...] = ()
+    personas: tuple[Persona, ...] = ()
+    journeys: tuple[Journey, ...] = ()
+    epics: tuple[Epic, ...] = ()
+
+
+class ResolveAppReferencesUseCase:
+    """Resolve everything an app is connected to at once.
+
+    An app's page shows its stories, the personas who use it, and the
+    journeys and epics those stories belong to. All four are derived from
+    the same set of stories, so they are resolved together.
     """
-    return {
-        "stories": get_stories_for_app(app, stories),
-        "personas": get_personas_for_app(app, stories, epics),
-        "journeys": get_journeys_for_app(app, stories, journeys),
-        "epics": get_epics_for_app(app, stories, epics),
-    }
+
+    async def execute(
+        self, request: ResolveAppReferencesRequest
+    ) -> ResolveAppReferencesResponse:
+        """Resolve an app's references.
+
+        Args:
+            request: The app, and the entities to search
+
+        Returns:
+            The stories, personas, journeys and epics connected to the app
+        """
+        stories = list(request.stories)
+        epics = list(request.epics)
+        return ResolveAppReferencesResponse(
+            stories=tuple(get_stories_for_app(request.app, stories)),
+            personas=tuple(get_personas_for_app(request.app, stories, epics)),
+            journeys=tuple(
+                get_journeys_for_app(request.app, stories, list(request.journeys))
+            ),
+            epics=tuple(get_epics_for_app(request.app, stories, epics)),
+        )

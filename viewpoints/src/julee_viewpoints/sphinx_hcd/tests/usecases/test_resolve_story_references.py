@@ -1,13 +1,16 @@
 """Tests for resolve_story_references use case."""
 
+import pytest
+
 from julee_viewpoints.sphinx_hcd.domain.models.epic import Epic
 from julee_viewpoints.sphinx_hcd.domain.models.journey import Journey, JourneyStep
 from julee_viewpoints.sphinx_hcd.domain.models.story import Story
-from julee_viewpoints.sphinx_hcd.domain.usecases.resolve_story_references import (
+from julee_viewpoints.sphinx_hcd.usecases.resolve_story_references import (
+    ResolveStoryReferencesRequest,
+    ResolveStoryReferencesUseCase,
     get_epics_for_story,
     get_journeys_for_story,
     get_related_stories,
-    get_story_cross_references,
 )
 
 
@@ -203,11 +206,12 @@ class TestGetRelatedStories:
         assert titles == ["Alpha Story", "Zebra Story"]
 
 
-class TestGetStoryCrossReferences:
-    """Test get_story_cross_references function."""
+class TestResolveStoryReferencesUseCase:
+    """Test the use case that resolves every reference to a story."""
 
-    def test_cross_references(self) -> None:
-        """Test getting all cross-references for a story."""
+    @pytest.mark.asyncio
+    async def test_cross_references(self) -> None:
+        """A story's epics, journeys and related stories come back together."""
         stories = [
             create_story("Upload Document"),
             create_story("Review Vocabulary"),
@@ -221,9 +225,16 @@ class TestGetStoryCrossReferences:
             create_journey("build-vocabulary", ["Upload Document"]),
         ]
 
-        result = get_story_cross_references(stories[0], stories, epics, journeys)
+        response = await ResolveStoryReferencesUseCase().execute(
+            ResolveStoryReferencesRequest(
+                story=stories[0],
+                stories=tuple(stories),
+                epics=tuple(epics),
+                journeys=tuple(journeys),
+            )
+        )
 
-        assert len(result["epics"]) == 1
-        assert len(result["journeys"]) == 1
-        assert len(result["related_stories"]) == 1
-        assert result["related_stories"][0].feature_title == "Review Vocabulary"
+        assert len(response.epics) == 1
+        assert len(response.journeys) == 1
+        assert len(response.related_stories) == 1
+        assert response.related_stories[0].feature_title == "Review Vocabulary"
