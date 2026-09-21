@@ -99,7 +99,7 @@ class BoundedContext(BaseModel):
     def import_path(self) -> str:
         """Get the Python import path for this context.
 
-        Example: "julee.hcd" or "julee.contrib.polling"
+        Example: "julee.contrib.ceap" or "julee_polling"
         """
         parts = Path(self.path).parts
         # Find the last 'src' and take everything after it

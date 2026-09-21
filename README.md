@@ -23,9 +23,19 @@ Julee installs a small kernel. Add what a solution uses:
 | `temporal` | the Temporal integration |
 | `api` | FastAPI applications |
 | `minio` | MinIO object storage |
-| `sphinx` | the Sphinx extensions |
 | `ceap` | the CEAP contrib module |
-| `polling` | the polling contrib module |
+
+Domain code ships separately, as kits. Install one and adopt it:
+
+```toml
+[tool.julee]
+kits = ["polling"]
+```
+
+- [julee-viewpoints](viewpoints/): code-outward documentation, in this repository.
+- [julee-kits](https://github.com/pyx-industries/julee-kits): the domain kits, starting with `julee-polling`.
+
+See [ADR 012](docs/ADRs/012-framework-and-kits.md).
 
 ## Runtime Dependencies
 
