@@ -2,7 +2,11 @@
 
 ## Status
 
-Draft
+Draft. Amended by [ADR 012](./012-framework-and-kits.md): `contrib` is no
+longer a reserved word, and julee is no longer an example of a nested
+solution, because its domain code ships as kits. Nested solutions remain
+available to any solution that wants one, and are recognised by their
+shape rather than by name.
 
 ## Date
 

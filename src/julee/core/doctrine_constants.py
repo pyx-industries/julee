@@ -42,9 +42,6 @@ INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 # RESERVED DIRECTORY NAMES
 # =============================================================================
 
-CONTRIB_DIR: Final[str] = "contrib"
-"""Directory for batteries-included contrib modules."""
-
 APPS_ROOT: Final[str] = "apps"
 """Root directory for application entry points."""
 
@@ -75,7 +72,6 @@ RESERVED_WORDS: Final[frozenset[str]] = frozenset(
         APPS_ROOT,
         DEPLOYMENTS_ROOT,
         DOCS_ROOT,
-        CONTRIB_DIR,
         "core",
         "shared",
         "tests",

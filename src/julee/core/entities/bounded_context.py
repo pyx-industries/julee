@@ -68,12 +68,15 @@ class BoundedContext(BaseModel):
     )
 
     # Classification
-    is_contrib: bool = Field(
+    is_nested: bool = Field(
         default=False,
-        description="True if this is a contrib (batteries-included) module",
+        description="True if discovered inside a nested solution rather than "
+        "at the top level of the search root",
     )
     is_viewpoint: bool = Field(
-        default=False, description="True if this is a viewpoint accelerator (hcd, c4)"
+        default=False,
+        description="True if this context describes a solution rather than "
+        "implementing a domain. Declared by the kit that provides it",
     )
 
     # Structure

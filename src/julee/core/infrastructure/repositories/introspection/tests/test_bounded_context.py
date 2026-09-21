@@ -205,44 +205,60 @@ class TestStructuralMarkers:
 
 
 # =============================================================================
-# Nested solutions (e.g. contrib/)
+# Nested solutions: a package that holds bounded contexts without being one
 # =============================================================================
 
 
 class TestNestedSolutions:
     """Tests for discovery of BCs inside nested solution containers."""
 
-    async def test_discovers_bcs_inside_contrib(self, tmp_path):
+    async def test_discovers_bcs_inside_a_nested_solution(self, tmp_path):
+        """Any package holding contexts without being one is a container.
+
+        No directory name is special about this: the shape decides.
+        """
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        contrib = search / "contrib"
-        contrib.mkdir()
-        (contrib / "__init__.py").write_text("")
-        _make_bc(contrib, "polling", layers=("usecases",))
-        _make_bc(contrib, "ceap", layers=("domain/models",))
+        plugins = search / "plugins"
+        plugins.mkdir()
+        (plugins / "__init__.py").write_text("")
+        _make_bc(plugins, "polling", layers=("usecases",))
+        _make_bc(plugins, "ceap", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert "polling" in slugs
         assert "ceap" in slugs
 
-    async def test_contrib_bcs_have_is_contrib_true(self, tmp_path):
+    async def test_nested_bcs_are_marked_nested(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        contrib = search / "contrib"
-        contrib.mkdir()
-        (contrib / "__init__.py").write_text("")
-        _make_bc(contrib, "polling", layers=("domain/models",))
+        plugins = search / "plugins"
+        plugins.mkdir()
+        (plugins / "__init__.py").write_text("")
+        _make_bc(plugins, "polling", layers=("domain/models",))
         contexts = await repo.list_all()
         polling = [c for c in contexts if c.slug == "polling"][0]
-        assert polling.is_contrib is True
+        assert polling.is_nested is True
 
-    async def test_top_level_bc_has_is_contrib_false(self, tmp_path):
+    async def test_top_level_bcs_are_not_marked_nested(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
         _make_bc(search, "billing", layers=("domain/models",))
         contexts = await repo.list_all()
         billing = [c for c in contexts if c.slug == "billing"][0]
-        assert billing.is_contrib is False
+        assert billing.is_nested is False
+
+    async def test_a_package_named_contrib_is_no_longer_special(self, tmp_path):
+        """contrib was a reserved word while julee had one (ADR 012 step 7).
+
+        A directory of that name is now read like any other: a bounded
+        context if it has the layers, a container if it holds contexts.
+        """
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        _make_bc(search, "contrib", layers=("domain/models",))
+        contexts = await repo.list_all()
+        assert "contrib" in [c.slug for c in contexts]
 
 
 # =============================================================================
