@@ -209,6 +209,7 @@ async def run_pipeline(
         handled = await handle.query(RecordingPipeline.get_handled)
     return result, handled
 
+
 # Each test starts a Temporal test server, so these are integration tests
 # however fast they look. Run them with -m integration.
 pytestmark = pytest.mark.integration
