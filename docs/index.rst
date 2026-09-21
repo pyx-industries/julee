@@ -36,10 +36,14 @@ Quick Start
 Install Julee from `PyPI <https://pypi.org/project/julee/>`_::
 
     pip install julee            # the framework: pydantic only
-    pip install "julee[all]"     # every integration and the contrib modules
+    pip install "julee[all]"     # every integration
 
 Julee installs a small kernel. Add what your solution uses, with the
-``doctrine``, ``temporal``, ``api``, ``minio`` and ``ceap`` extras.
+``doctrine``, ``temporal``, ``api`` and ``minio`` extras.
+
+Domain code ships as kits, which a solution installs and then adopts in
+``[tool.julee] kits``. See `julee-kits
+<https://github.com/pyx-industries/julee-kits>`_.
 
 Julee applications require: `Temporal <https://temporal.io/>`_ (workflow orchestration), S3-compatible object storage (e.g. MinIO), PostgreSQL (for Temporal).
 
@@ -48,14 +52,11 @@ See :doc:`architecture/framework` to understand Julee's philosophy, or :doc:`arc
 Example Application
 -------------------
 
-This repository includes a reference application that demonstrates how to build with Julee. The example implements a meeting minutes extraction system using the CEAP contrib module and shows:
-
-- How to structure a Julee application
-- Workflow implementation patterns
-- Knowledge service integration
-- Storage configuration
-
-The example is deployable with Docker Compose—run ``docker compose up --build`` to explore.
+The `CEAP kit <https://github.com/pyx-industries/julee-kits/tree/master/ceap>`_
+is the reference application: a meeting minutes extraction system that shows
+how a solution is structured, how use cases become durable pipelines, how a
+knowledge service is integrated and how storage is configured. It ships a
+Docker Compose stack to explore it with.
 
 Documentation Contents
 ----------------------

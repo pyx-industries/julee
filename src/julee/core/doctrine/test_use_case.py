@@ -59,7 +59,13 @@ class TestUseCaseNaming:
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
-        # Canary: ensure we're actually scanning use cases
+        # A target with no bounded contexts has nothing to check: julee
+        # itself is one, now that its domain code ships as kits. A target
+        # that has contexts but no use cases in them is a broken detector,
+        # so the canary still holds there.
+        if not await repo.list_all():
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
         assert (
             len(response.artifacts) > 0
         ), "No use cases found - detector may be broken"

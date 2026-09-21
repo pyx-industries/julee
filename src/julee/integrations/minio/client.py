@@ -28,10 +28,7 @@ from minio.error import S3Error
 from pydantic import BaseModel
 from urllib3.response import BaseHTTPResponse
 
-# Import ContentStream here to avoid circular imports
-from julee.contrib.ceap.domain.models.custom_fields.content_stream import (
-    ContentStream,
-)
+from julee.core.entities.content_stream import ContentStream
 
 T = TypeVar("T", bound=BaseModel)
 

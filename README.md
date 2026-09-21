@@ -12,7 +12,7 @@ Julee is a Python framework for building resilient, auditable business processes
 
 ```bash
 pip install julee            # the framework: pydantic only
-pip install "julee[all]"     # every integration and the contrib modules
+pip install "julee[all]"     # every integration
 ```
 
 Julee installs a small kernel. Add what a solution uses:
@@ -23,7 +23,6 @@ Julee installs a small kernel. Add what a solution uses:
 | `temporal` | the Temporal integration |
 | `api` | FastAPI applications |
 | `minio` | MinIO object storage |
-| `ceap` | the CEAP contrib module |
 
 Domain code ships separately, as kits. Install one and adopt it:
 
@@ -47,14 +46,9 @@ Full documentation at [julee.readthedocs.io](https://julee.readthedocs.io), pack
 
 ## Example
 
-This repository includes a Docker Compose example demonstrating a meeting minutes extraction system:
-
-```bash
-cp .env.example .env  # Add your ANTHROPIC_API_KEY
-docker compose up --build
-```
-
-See the `demo-ui/` directory for the UI source.
+The [CEAP kit](https://github.com/pyx-industries/julee-kits/tree/master/ceap)
+ships a Docker Compose demonstration: a meeting minutes extraction system,
+with an API, a worker and a UI.
 
 ## License
 

@@ -1,9 +1,9 @@
-"""
-Custom Pydantic field types for the CEAP workflow domain.
+"""A stream of content, as a pydantic field type.
 
-This module contains custom field types that provide proper Pydantic
-validation
-for specialized data types used in the document processing workflow.
+Wraps an ``io.IOBase`` so a model can hold a stream without
+``arbitrary_types_allowed``. Storing and retrieving content is a framework
+concern, not a domain one: the MinIO integration returns these, and any
+kit whose entities carry file content uses them.
 """
 
 import io

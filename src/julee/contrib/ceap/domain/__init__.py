@@ -1,3 +1,0 @@
-"""
-CEAP domain package.
-"""

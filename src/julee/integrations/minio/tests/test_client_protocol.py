@@ -44,19 +44,22 @@ class TestMinioClientProtocol:
         assert callable(real_client.stat_object)
 
     def test_protocol_accepts_real_minio_client(self) -> None:
-        """Test that our protocol accepts a real Minio client instance."""
-        from julee.contrib.ceap.infrastructure.repositories.minio.document import (
-            MinioDocumentRepository,
-        )
+        """A repository built on the protocol accepts a real MinIO client.
 
-        # Create a real Minio client (no connection attempted in constructor)
+        The repository stands in for whatever a kit writes: all the
+        protocol asks of it is that the client it stores satisfies
+        MinioClient.
+        """
+
+        class Repository:
+            def __init__(self, client: MinioClient) -> None:
+                self.client = client
+
+        # No connection is attempted in the constructor, and nothing here
+        # calls a method that would reach the network.
         real_client = Minio("localhost:9000")
 
-        # This should work without type errors if protocol is correct
-        # We don't call any methods that would trigger network calls
-        repository = MinioDocumentRepository.__new__(MinioDocumentRepository)
-        repository.client = real_client
+        repository = Repository(real_client)
 
-        # Verify the client was stored correctly
         assert repository.client is real_client
         assert isinstance(repository.client, MinioClient)
