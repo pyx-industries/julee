@@ -24,15 +24,15 @@ from pydantic import BaseModel
 from temporalio import activity
 
 # Project imports
-import julee.util.temporal.decorators as decorators_module
-from julee.repositories.base import BaseRepository
-from julee.util.temporal.decorators import (
+import julee.integrations.temporal.decorators as decorators_module
+from julee.integrations.temporal.decorators import (
     _extract_concrete_type_from_base,
     _needs_pydantic_validation,
     _substitute_typevar_with_concrete,
     temporal_activity_registration,
     temporal_workflow_proxy,
 )
+from julee.repositories.base import BaseRepository
 
 pytestmark = pytest.mark.unit
 
@@ -246,7 +246,7 @@ def test_activity_names_with_different_prefixes() -> None:
         return original_activity_defn(name=name, **kwargs)
 
     with patch(
-        "julee.util.temporal.decorators.activity.defn",
+        "julee.integrations.temporal.decorators.activity.defn",
         side_effect=mock_activity_defn,
     ):
 
@@ -354,7 +354,7 @@ def test_decorator_handles_inheritance_correctly() -> None:
 def test_decorator_logs_wrapped_methods() -> None:
     """Test that the decorator logs which methods it wraps."""
 
-    with patch("julee.util.temporal.decorators.logger") as mock_logger:
+    with patch("julee.integrations.temporal.decorators.logger") as mock_logger:
 
         @temporal_activity_registration("test.logging")
         class DecoratedRepository(MockRepository):

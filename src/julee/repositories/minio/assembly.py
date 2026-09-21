@@ -14,8 +14,7 @@ import logging
 
 from julee.contrib.ceap.domain.models.assembly import Assembly
 from julee.contrib.ceap.domain.repositories.assembly import AssemblyRepository
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class MinioAssemblyRepository(AssemblyRepository, MinioRepositoryMixin):

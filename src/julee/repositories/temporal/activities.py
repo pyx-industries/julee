@@ -10,6 +10,7 @@ The classes follow the naming pattern documented in systemPatterns.org:
 - Each repository type gets its own activity prefix
 """
 
+from julee.integrations.temporal.decorators import temporal_activity_registration
 from julee.repositories.http.schema import HttpRemoteSchemaRepository
 from julee.repositories.minio.assembly import MinioAssemblyRepository
 from julee.repositories.minio.assembly_specification import (
@@ -40,7 +41,6 @@ from julee.repositories.temporal.activity_names import (
     POLICY_ACTIVITY_BASE,
     REMOTE_SCHEMA_ACTIVITY_BASE,
 )
-from julee.util.temporal.decorators import temporal_activity_registration
 
 
 @temporal_activity_registration(ASSEMBLY_ACTIVITY_BASE)

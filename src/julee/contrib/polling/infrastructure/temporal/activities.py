@@ -13,7 +13,7 @@ without requiring the core framework to know about specific contrib modules.
 import logging
 from collections.abc import Awaitable, Callable
 
-from julee.util.temporal.decorators import temporal_activity_registration
+from julee.integrations.temporal.decorators import temporal_activity_registration
 
 from ..services.polling.http.http_poller_service import HttpPollerService
 from .activity_names import POLLING_SERVICE_ACTIVITY_BASE

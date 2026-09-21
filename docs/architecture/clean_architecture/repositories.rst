@@ -62,7 +62,7 @@ For the common case of simple CRUD operations,
 Implementation mixins handle technology-specific boilerplate:
 
 - :py:class:`~julee.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
-- :py:class:`~julee.repositories.minio.client.MinioRepositoryMixin` - S3-compatible storage
+- :py:class:`~julee.integrations.minio.client.MinioRepositoryMixin` - S3-compatible storage
 
 The :doc:`DI container <dependency_injection>` wires protocols to implementations at runtime.
 

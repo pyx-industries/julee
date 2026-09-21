@@ -21,8 +21,7 @@ from julee.contrib.ceap.domain.models.assembly_specification import (
 from julee.contrib.ceap.domain.repositories.assembly_specification import (
     AssemblySpecificationRepository,
 )
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class MinioAssemblySpecificationRepository(

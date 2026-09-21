@@ -26,8 +26,7 @@ from julee.contrib.ceap.domain.models.custom_fields.content_stream import (
 )
 from julee.contrib.ceap.domain.models.document import Document
 from julee.contrib.ceap.domain.repositories.document import DocumentRepository
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class RawMetadata(BaseModel):

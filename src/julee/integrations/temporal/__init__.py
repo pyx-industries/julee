@@ -1,8 +1,6 @@
-"""
-Temporal utilities package.
+"""Temporal integration.
 
-This package provides utility functions and classes for working with
-Temporal workflows and activities.
+Install with ``julee[temporal]``.
 """
 
 from .activities import (

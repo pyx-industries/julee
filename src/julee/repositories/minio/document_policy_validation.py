@@ -19,8 +19,7 @@ from julee.contrib.ceap.domain.models.policy import DocumentPolicyValidation
 from julee.contrib.ceap.domain.repositories.document_policy_validation import (
     DocumentPolicyValidationRepository,
 )
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class MinioDocumentPolicyValidationRepository(

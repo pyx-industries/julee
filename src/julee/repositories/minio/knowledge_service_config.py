@@ -21,8 +21,7 @@ from julee.contrib.ceap.domain.models.knowledge_service_config import (
 from julee.contrib.ceap.domain.repositories.knowledge_service_config import (
     KnowledgeServiceConfigRepository,
 )
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class MinioKnowledgeServiceConfigRepository(

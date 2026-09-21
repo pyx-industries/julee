@@ -18,7 +18,9 @@ from julee.contrib.ceap.apps.worker import (
     ExtractAssembleWorkflow,
     ValidateDocumentWorkflow,
 )
-from julee.repositories.minio.client import MinioClient
+from julee.integrations.minio.client import MinioClient
+from julee.integrations.temporal.activities import collect_activities_from_instances
+from julee.integrations.temporal.data_converter import temporal_data_converter
 from julee.repositories.temporal.activities import (
     TemporalMinioAssemblyRepository,
     TemporalMinioAssemblySpecificationRepository,
@@ -31,8 +33,6 @@ from julee.repositories.temporal.activities import (
 from julee.services.temporal.activities import (
     TemporalKnowledgeService,
 )
-from julee.util.repos.temporal.data_converter import temporal_data_converter
-from julee.util.temporal.activities import collect_activities_from_instances
 
 logger = logging.getLogger(__name__)
 

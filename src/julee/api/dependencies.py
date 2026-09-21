@@ -36,10 +36,10 @@ from julee.contrib.ceap.domain.repositories.knowledge_service_config import (
 from julee.contrib.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
+from julee.integrations.minio.client import MinioClient
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
-from julee.repositories.minio.client import MinioClient
 from julee.repositories.minio.document import (
     MinioDocumentRepository,
 )

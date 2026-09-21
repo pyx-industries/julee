@@ -14,7 +14,7 @@ This keeps all polling-temporal integration within the contrib module,
 maintaining proper dependency direction (contrib imports from core, not vice versa).
 """
 
-from julee.util.temporal.decorators import temporal_workflow_proxy
+from julee.integrations.temporal.decorators import temporal_workflow_proxy
 
 from ...domain.services.poller import PollerService
 from .activity_names import POLLING_SERVICE_ACTIVITY_BASE
