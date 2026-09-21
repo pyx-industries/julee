@@ -32,7 +32,7 @@ This is what makes your architecture "speak" your business language.
         domain/
           invoice.py
           payment.py
-        use_cases/
+        usecases/
           process_invoice.py
         infrastructure/
           invoice_repository.py
@@ -40,7 +40,7 @@ This is what makes your architecture "speak" your business language.
         domain/
           audit_record.py
           policy.py
-        use_cases/
+        usecases/
           validate_invoice.py
       apps/             # Application entry points
         api/

@@ -14,7 +14,7 @@ from collections import defaultdict
 from docutils import nodes
 
 from ...domain.models.story import Story
-from ...domain.use_cases import (
+from ...domain.usecases import (
     get_epics_for_story,
     get_journeys_for_story,
 )

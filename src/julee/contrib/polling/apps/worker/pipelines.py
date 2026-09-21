@@ -20,7 +20,7 @@ from julee.contrib.polling.domain.services.polling_result_handler import (
 from julee.contrib.polling.infrastructure.temporal.proxies import (
     WorkflowPollerServiceProxy,
 )
-from julee.contrib.polling.use_cases.poll_data import (
+from julee.contrib.polling.usecases.poll_data import (
     PollDataRequest,
     PollDataUseCase,
 )

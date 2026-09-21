@@ -23,3 +23,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [011](011-canonical-julee-line.md) | Master Is the Canonical Julee Line | Accepted | 2026-09-21 |
 | [012](012-framework-and-kits.md) | Separating the Framework from Domain Kits | Draft | 2026-09-21 |
 | [013](013-sphinx-hcd-extensions.md) | Sphinx HCD Extensions Package | Superseded in part by 012 | 2025-12-11 |
+| [014](014-usecases-package-name.md) | The Use Case Package Is `usecases` | Accepted | 2026-09-21 |

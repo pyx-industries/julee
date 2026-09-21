@@ -42,7 +42,7 @@ we will walk through a part of this by way of an example.
 This is an automated process with no user interaction,
 so it is done by an application called a :doc:`Worker </architecture/applications/worker>`.
 We will specifically look at the :doc:`pipeline </architecture/solutions/pipelines>`
-called :py:class:`~julee.domain.use_cases.ExtractAssembleDataUseCase`.
+called :py:class:`~julee.domain.usecases.ExtractAssembleDataUseCase`.
 This is the most complicated and interesting part of CEAP.
 
 ... uml:: ../diagrams/ceap_workflow_sequence.puml

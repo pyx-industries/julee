@@ -39,7 +39,7 @@ class BoundedContextInfo(Entity):
         default_factory=tuple, description="Domain entity classes from domain/models/"
     )
     use_cases: tuple[ClassInfo, ...] = Field(
-        default_factory=tuple, description="Use case classes from use_cases/"
+        default_factory=tuple, description="Use case classes from usecases/"
     )
     repository_protocols: tuple[ClassInfo, ...] = Field(
         default_factory=tuple,

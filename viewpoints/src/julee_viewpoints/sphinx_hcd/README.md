@@ -506,7 +506,7 @@ sphinx_hcd/
 ├── domain/                 # Domain layer (framework-agnostic)
 │   ├── models/            # Pydantic entities
 │   ├── repositories/      # Repository protocols (async)
-│   └── use_cases/         # Business logic
+│   └── usecases/         # Business logic
 ├── repositories/          # Repository implementations
 │   └── memory/           # In-memory implementations
 ├── parsers/              # Parsing logic

@@ -95,7 +95,7 @@ class TestBoundedContextDiscovery:
     async def test_discovers_bc_with_use_cases_dir(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "auth", layers=("use_cases",))
+        _make_bc(search, "auth", layers=("usecases",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert "auth" in slugs
@@ -103,7 +103,7 @@ class TestBoundedContextDiscovery:
     async def test_skips_directory_without_bc_structure(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        # Package with no entities/ or use_cases/
+        # Package with no entities/ or usecases/
         pkg = search / "utils"
         pkg.mkdir()
         (pkg / "__init__.py").write_text("")
@@ -179,7 +179,7 @@ class TestStructuralMarkers:
             "full",
             layers=(
                 "domain/models",
-                "use_cases",
+                "usecases",
                 "domain/repositories",
                 "domain/services",
                 "tests",
@@ -218,7 +218,7 @@ class TestNestedSolutions:
         contrib = search / "contrib"
         contrib.mkdir()
         (contrib / "__init__.py").write_text("")
-        _make_bc(contrib, "polling", layers=("use_cases",))
+        _make_bc(contrib, "polling", layers=("usecases",))
         _make_bc(contrib, "ceap", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
@@ -306,7 +306,7 @@ ADR_001_LAYERS = (
     "domain/models",
     "domain/repositories",
     "domain/services",
-    "use_cases",
+    "usecases",
 )
 
 

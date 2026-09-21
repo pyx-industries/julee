@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from julee.core.use_cases.generic_crud import (
+from julee.core.usecases.generic_crud import (
     CreateUseCase,
     EntityNotFoundError,
     GetUseCase,

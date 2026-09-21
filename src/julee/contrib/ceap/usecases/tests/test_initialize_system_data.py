@@ -31,7 +31,7 @@ from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_con
 from julee.contrib.ceap.infrastructure.repositories.memory.knowledge_service_query import (
     MemoryKnowledgeServiceQueryRepository,
 )
-from julee.contrib.ceap.use_cases.initialize_system_data import (
+from julee.contrib.ceap.usecases.initialize_system_data import (
     InitializeSystemDataRequest,
     InitializeSystemDataUseCase,
 )

@@ -38,7 +38,7 @@ from julee.contrib.ceap.infrastructure.services.knowledge_service import QueryRe
 from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
-from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
+from julee.contrib.ceap.usecases import ValidateDocumentUseCase
 
 pytestmark = pytest.mark.unit
 

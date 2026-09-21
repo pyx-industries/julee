@@ -33,7 +33,7 @@ PIPELINE_SUFFIX: Final[str] = "Pipeline"
 # domain/, and its use cases beside it.
 
 ENTITIES_PATH: Final[tuple[str, ...]] = ("domain", "models")
-USE_CASES_PATH: Final[tuple[str, ...]] = ("use_cases",)
+USE_CASES_PATH: Final[tuple[str, ...]] = ("usecases",)
 REPOSITORIES_PATH: Final[tuple[str, ...]] = ("domain", "repositories")
 SERVICES_PATH: Final[tuple[str, ...]] = ("domain", "services")
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)

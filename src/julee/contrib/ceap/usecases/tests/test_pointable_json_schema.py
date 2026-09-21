@@ -8,7 +8,7 @@ root metadata needed for proper JSON Schema validation.
 
 import pytest
 
-from julee.contrib.ceap.use_cases.pointable_json_schema import PointableJSONSchema
+from julee.contrib.ceap.usecases.pointable_json_schema import PointableJSONSchema
 
 
 class TestPointableJSONSchema:

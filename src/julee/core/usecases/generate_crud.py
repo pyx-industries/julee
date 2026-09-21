@@ -6,7 +6,7 @@ directory. Generated files are gitignored and regenerated via make generate-crud
 
 Usage::
 
-    uv run python -m julee.core.use_cases.generate_crud \\
+    uv run python -m julee.core.usecases.generate_crud \\
         --entity Assembly \\
         --entity-module julee.contrib.ceap.domain.models \\
         --repo AssemblyRepository \\
@@ -14,7 +14,7 @@ Usage::
         --id-field assembly_id \\
         --create-fields "status:AssemblyStatus execution_id:str" \\
         --update-fields "status:AssemblyStatus assembled_document_id:str|None" \\
-        --out src/julee/contrib/ceap/.generated/use_cases/
+        --out src/julee/contrib/ceap/.generated/usecases/
 """
 
 import argparse
@@ -304,7 +304,7 @@ def generate(
         imports.append(extra)
     imports.append(f"from {repo_module} import {repo}")
     imports.append(
-        f"from julee.core.use_cases.generic_crud import (\n    {base_imports},\n)"
+        f"from julee.core.usecases.generic_crud import (\n    {base_imports},\n)"
     )
 
     # If the caller supplied a repo name that differs from {Entity}Repository,

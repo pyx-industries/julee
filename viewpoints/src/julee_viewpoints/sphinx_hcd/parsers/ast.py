@@ -90,7 +90,7 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
         - models/ (entities)
         - repositories/ (repository protocols)
         - services/ (service protocols)
-      - use_cases/ (use case classes)
+      - usecases/ (use case classes)
       - infrastructure/ (optional)
 
     Args:
@@ -108,7 +108,7 @@ def parse_bounded_context(context_dir: Path) -> BoundedContextInfo | None:
     return BoundedContextInfo(
         slug=context_dir.name,
         entities=tuple(parse_python_classes(context_dir / "domain" / "models")),
-        use_cases=tuple(parse_python_classes(context_dir / "use_cases")),
+        use_cases=tuple(parse_python_classes(context_dir / "usecases")),
         repository_protocols=tuple(
             parse_python_classes(context_dir / "domain" / "repositories")
         ),

@@ -14,7 +14,7 @@ from docutils import nodes
 
 from ...domain.models.epic import Epic
 from ...domain.repositories import EpicRepository
-from ...domain.use_cases import derive_personas, get_epics_for_persona
+from ...domain.usecases import derive_personas, get_epics_for_persona
 from ...utils import normalize_name, path_to_root
 from .base import HCDDirective
 

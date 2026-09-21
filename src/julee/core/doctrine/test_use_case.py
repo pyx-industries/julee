@@ -14,11 +14,12 @@ from julee.core.doctrine_constants import (
     REQUEST_SUFFIX,
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
+    USE_CASES_PATH,
 )
-from julee.core.use_cases.code_artifact.list_requests import ListRequestsUseCase
-from julee.core.use_cases.code_artifact.list_responses import ListResponsesUseCase
-from julee.core.use_cases.code_artifact.list_use_cases import ListUseCasesUseCase
-from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
+from julee.core.usecases.code_artifact.list_requests import ListRequestsUseCase
+from julee.core.usecases.code_artifact.list_responses import ListResponsesUseCase
+from julee.core.usecases.code_artifact.list_use_cases import ListUseCasesUseCase
+from julee.core.usecases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 # Generic/abstract base classes that don't require matching Request/Response
 GENERIC_BASE_CLASSES = {
@@ -40,8 +41,8 @@ def _resolve_class(import_path: str, file_path: str, class_name: str) -> type | 
         # Convert file path to module suffix: story/get.py -> story.get
         file_module = file_path.replace(".py", "").replace("/", ".")
 
-        # Build full module path: {import_path}.use_cases.{file_module}
-        module_path = f"{import_path}.use_cases.{file_module}"
+        # Build full module path: {import_path}.usecases.{file_module}
+        module_path = f"{import_path}.usecases.{file_module}"
 
         module = importlib.import_module(module_path)
         return getattr(module, class_name, None)
@@ -421,7 +422,7 @@ class TestExecutionAgnosticism:
                 parts = py_file.parts
                 if any(part == "tests" for part in parts):
                     continue
-                if not any(part == "use_cases" for part in parts):
+                if not any(part in USE_CASES_PATH for part in parts):
                     continue
                 content = py_file.read_text()
                 for pattern in forbidden_patterns:
@@ -452,7 +453,7 @@ class TestExecutionAgnosticism:
                 parts = py_file.parts
                 if any(part == "tests" for part in parts):
                     continue
-                if not any(part == "use_cases" for part in parts):
+                if not any(part in USE_CASES_PATH for part in parts):
                     continue
                 content = py_file.read_text()
                 if "import temporalio" in content or "from temporalio" in content:
