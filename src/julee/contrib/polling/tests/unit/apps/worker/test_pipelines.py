@@ -1,22 +1,29 @@
 """
-Unit tests for polling worker pipelines.
+Integration tests for polling worker pipelines.
 
-This module tests the NewDataDetectionPipeline workflow using Temporal's test
-environment, which provides realistic workflow execution with time-skipping
-capabilities while maintaining fast test performance.
+These run NewDataDetectionPipeline through Temporal's time-skipping test
+environment: the poll_endpoint activity is a stand-in, and the workflow
+orchestration around it is real.
 
-The tests mock external dependencies (activities) while testing the actual
-workflow orchestration logic and temporal behaviors.
+NewDataDetectionPipeline is abstract - a solution subclasses it to supply
+a handler and an analyzer - so the tests run a subclass of their own,
+whose handler records what it is given.
+
+Every workflow is started with an execution timeout. A workflow that
+raises anything other than a Temporal failure does not fail: Temporal
+retries the workflow task for ever, and a test awaiting its result never
+returns. With the timeout, that mistake is a failing test.
 """
 
 import hashlib
 import uuid
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, patch
+from datetime import UTC, datetime, timedelta
+from typing import Any
+from unittest.mock import patch
 
 import pytest
-from temporalio import activity
-from temporalio.client import WorkflowFailureError
+from temporalio import activity, workflow
+from temporalio.client import WorkflowFailureError, WorkflowHandle
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
@@ -27,6 +34,180 @@ from julee.contrib.polling.domain.models.polling_config import (
     PollingProtocol,
     PollingResult,
 )
+from julee.core.entities.acknowledgement import Acknowledgement
+
+# Each test starts a Temporal test server, so these are not unit tests.
+pytestmark = pytest.mark.integration
+
+TASK_QUEUE = "test-queue"
+EXECUTION_TIMEOUT = timedelta(seconds=30)
+
+FIRST_CONTENT = b"first response data"
+CHANGED_CONTENT = b"changed response data"
+
+
+def content_hash(content: bytes) -> str:
+    return hashlib.sha256(content).hexdigest()
+
+
+class RecordingHandler:
+    """A PollingResultHandler that remembers what it was handed."""
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    async def handle_new_data(
+        self,
+        endpoint_id: str,
+        new_item_ids: list[str],
+        content_hash: str,
+    ) -> Acknowledgement:
+        self.calls.append(
+            {
+                "endpoint_id": endpoint_id,
+                "new_item_ids": new_item_ids,
+                "content_hash": content_hash,
+            }
+        )
+        return Acknowledgement.wilco()
+
+
+class FailingHandler:
+    """A PollingResultHandler that cannot cope."""
+
+    async def handle_new_data(
+        self,
+        endpoint_id: str,
+        new_item_ids: list[str],
+        content_hash: str,
+    ) -> Acknowledgement:
+        raise RuntimeError("Handler failed")
+
+
+class WholePayloadAnalyzer:
+    """A NewDataAnalyzer that treats each payload as a single item."""
+
+    async def identify_new_items(
+        self,
+        previous_data: bytes | None,
+        new_data: bytes,
+    ) -> list[str]:
+        return [new_data.decode()]
+
+
+@workflow.defn
+class RecordingPipeline(NewDataDetectionPipeline):
+    """The pipeline as a solution would subclass it, with a query to see
+    what reached the handler."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._handler = RecordingHandler()
+
+    def get_handler(self) -> RecordingHandler:
+        return self._handler
+
+    def get_analyzer(self) -> WholePayloadAnalyzer:
+        return WholePayloadAnalyzer()
+
+    @workflow.run
+    async def run(self, config: PollingConfig | dict[str, Any]) -> dict[str, Any]:
+        return await super().run(config)
+
+    @workflow.query
+    def get_handled(self) -> list[dict[str, Any]]:
+        return self._handler.calls
+
+
+@workflow.defn
+class FailingHandlerPipeline(NewDataDetectionPipeline):
+    """The pipeline with a handler that raises."""
+
+    def get_handler(self) -> FailingHandler:
+        return FailingHandler()
+
+    def get_analyzer(self) -> WholePayloadAnalyzer:
+        return WholePayloadAnalyzer()
+
+    @workflow.run
+    async def run(self, config: PollingConfig | dict[str, Any]) -> dict[str, Any]:
+        return await super().run(config)
+
+
+def poll_endpoint_returning(*contents: bytes) -> Any:
+    """A poll_endpoint activity that returns each content in turn, then
+    goes on returning the last."""
+    remaining = list(contents)
+
+    @activity.defn(name="julee.contrib.polling.poll_endpoint")
+    async def poll_endpoint(config: PollingConfig) -> PollingResult:
+        content = remaining.pop(0) if len(remaining) > 1 else remaining[0]
+        return PollingResult(
+            success=True,
+            content=content,
+            polled_at=datetime.now(UTC),
+            content_hash=content_hash(content),
+        )
+
+    return poll_endpoint
+
+
+def completion_for(content: bytes) -> dict[str, Any]:
+    """What an earlier run that polled this content would have returned."""
+    return {
+        "polling_result": {
+            "content_hash": content_hash(content),
+            "content": content.decode(),
+            "polled_at": "2023-01-01T00:00:00+00:00",
+        },
+        "detection_result": {
+            "has_new_data": True,
+            "current_hash": content_hash(content),
+        },
+        "endpoint_id": "test-api",
+        "completed_at": "2023-01-01T00:00:00+00:00",
+    }
+
+
+def last_completion(completion: dict[str, Any] | None) -> Any:
+    """Have the workflow see this as the schedule's last completion result."""
+    return patch(
+        "temporalio.workflow.get_last_completion_result",
+        return_value=completion,
+    )
+
+
+async def start_pipeline(
+    env: WorkflowEnvironment,
+    config: PollingConfig,
+    pipeline: type[NewDataDetectionPipeline] = RecordingPipeline,
+) -> WorkflowHandle[Any, dict[str, Any]]:
+    return await env.client.start_workflow(
+        pipeline.run,
+        config,
+        id=str(uuid.uuid4()),
+        task_queue=TASK_QUEUE,
+        execution_timeout=EXECUTION_TIMEOUT,
+    )
+
+
+async def run_pipeline(
+    env: WorkflowEnvironment,
+    config: PollingConfig,
+    previous_completion: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Run RecordingPipeline as the run after previous_completion, and
+    return its result with what reached the handler.
+
+    The handler is asked about while the last completion result is still
+    patched. A query on a finished workflow replays it, and a replay that
+    saw a different last completion would take a different path.
+    """
+    with last_completion(previous_completion):
+        handle = await start_pipeline(env, config)
+        result = await handle.result()
+        handled = await handle.query(RecordingPipeline.get_handled)
+    return result, handled
 
 
 @pytest.fixture
@@ -49,535 +230,170 @@ def sample_config():
     )
 
 
-@pytest.fixture
-def mock_polling_results():
-    """Provide sample polling results for different scenarios."""
-    return {
-        "first_data": PollingResult(
-            success=True,
-            content=b"first response data",
-            polled_at=datetime.now(UTC),
-            content_hash=hashlib.sha256(b"first response data").hexdigest(),
-        ),
-        "changed_data": PollingResult(
-            success=True,
-            content=b"changed response data",
-            polled_at=datetime.now(UTC),
-            content_hash=hashlib.sha256(b"changed response data").hexdigest(),
-        ),
-        "same_data": PollingResult(
-            success=True,
-            content=b"first response data",  # Same as first_data
-            polled_at=datetime.now(UTC),
-            content_hash=hashlib.sha256(b"first response data").hexdigest(),
-        ),
-        "failed_polling": PollingResult(
-            success=False,
-            content=b"",
-            polled_at=datetime.now(UTC),
-            error_message="Connection timeout",
-        ),
-    }
-
-
-# Mock activity for polling operations - will be patched in tests
-@activity.defn(name="julee.contrib.polling.poll_endpoint")
-async def mock_poll_endpoint(config: PollingConfig) -> PollingResult:
-    """Mock polling activity - should be patched in tests."""
-    return PollingResult(
-        success=True,
-        content=b"default mock response",
-        polled_at=datetime.now(UTC),
+def worker(env: WorkflowEnvironment, poll_endpoint: Any) -> Worker:
+    return Worker(
+        env.client,
+        task_queue=TASK_QUEUE,
+        workflows=[RecordingPipeline, FailingHandlerPipeline],
+        activities=[poll_endpoint],
     )
 
 
 class TestNewDataDetectionPipelineFirstRun:
     """Test first run scenarios (no previous completion)."""
 
-    @pytest.mark.asyncio
-    async def test_first_run_detects_new_data(
-        self, workflow_env, sample_config, mock_polling_results
+    async def test_first_run_detects_new_data(self, workflow_env, sample_config):
+        """With nothing to compare against, whatever is polled is new."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            result, _ = await run_pipeline(workflow_env, sample_config)
+
+        assert result["detection_result"]["has_new_data"] is True
+        assert result["detection_result"]["current_hash"] == content_hash(FIRST_CONTENT)
+        assert result["endpoint_id"] == "test-api"
+
+    async def test_completion_carries_what_the_next_run_compares(
+        self, workflow_env, sample_config
     ):
-        """Test first run always detects new data."""
+        """The result is the next run's last completion result, so it holds
+        the content and its hash."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            result, _ = await run_pipeline(workflow_env, sample_config)
 
-        # Create a mock activity function that returns the desired response
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            content_str = "first response data"
-            return PollingResult(
-                success=True,
-                content=content_str.encode(),
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_str.encode()).hexdigest(),
-            )
+        polling_result = result["polling_result"]
+        assert polling_result["content_hash"] == content_hash(FIRST_CONTENT)
+        assert polling_result["content"] == FIRST_CONTENT.decode()
+        assert "polled_at" in polling_result
+        assert "completed_at" in result
 
-        async with Worker(
-            workflow_env.client,
-            task_queue="test-queue",
-            workflows=[NewDataDetectionPipeline],
-            activities=[test_mock_activity],
-        ):
-            # Execute workflow with no previous completion
-            result = await workflow_env.client.execute_workflow(
-                NewDataDetectionPipeline.run,
-                args=[
-                    sample_config,
-                    None,
-                ],  # config, downstream_pipeline
-                id=str(uuid.uuid4()),
-                task_queue="test-queue",
-            )
-
-            # Verify first run behavior
-            assert result["detection_result"]["has_new_data"] is True
-            assert result["detection_result"]["previous_hash"] is None
-            assert result["downstream_triggered"] is False
-            assert result["endpoint_id"] == "test-api"
-
-            # Verify polling result structure
-            polling_result = result["polling_result"]
-            assert polling_result["success"] is True
-            assert (
-                polling_result["content_hash"]
-                == hashlib.sha256(b"first response data").hexdigest()
-            )
-            assert "polled_at" in polling_result
-            assert "content_length" in polling_result
-
-    @pytest.mark.asyncio
-    async def test_first_run_with_downstream_pipeline(
-        self, workflow_env, sample_config, mock_polling_results
+    async def test_first_run_hands_new_items_to_handler(
+        self, workflow_env, sample_config
     ):
-        """Test first run with downstream pipeline triggering."""
+        """The handler gets the analyzer's item IDs, not the raw bytes."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            _, handled = await run_pipeline(workflow_env, sample_config)
 
-        # Create a mock activity function that returns the desired response
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            content_bytes = b"first response data"
-            return PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
-            )
+        assert handled == [
+            {
+                "endpoint_id": "test-api",
+                "new_item_ids": [FIRST_CONTENT.decode()],
+                "content_hash": content_hash(FIRST_CONTENT),
+            }
+        ]
 
-        # Mock workflow.start_workflow to avoid trying to start actual downstream workflows
-        with patch(
-            "julee.contrib.polling.apps.worker.pipelines.workflow.start_child_workflow",
-            new_callable=AsyncMock,
-        ) as mock_start:
-            async with Worker(
-                workflow_env.client,
-                task_queue="test-queue",
-                workflows=[NewDataDetectionPipeline],
-                activities=[test_mock_activity],
-            ):
+    async def test_config_may_arrive_as_dict(self, workflow_env, sample_config):
+        """A Temporal schedule serialises its args, so config comes as a dict."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            with last_completion(None):
                 result = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                    ],  # config, downstream_pipeline
+                    RecordingPipeline.run,
+                    sample_config.model_dump(mode="json"),
                     id=str(uuid.uuid4()),
-                    task_queue="test-queue",
+                    task_queue=TASK_QUEUE,
+                    execution_timeout=EXECUTION_TIMEOUT,
                 )
 
-                # Verify downstream was triggered
-                assert result["downstream_triggered"] is True
-                mock_start.assert_called_once()
-
-                # Verify downstream workflow call parameters
-                call_args = mock_start.call_args
-                # For start_child_workflow, the workflow name is the first positional arg
-                assert call_args[0][0] == "TestDownstreamWorkflow"  # Workflow name
-                # The args parameter is passed as a keyword argument
-                assert call_args[1]["args"] == [
-                    None,
-                    b"first response data",
-                ]  # Args: previous_data, new_data
-                assert (
-                    "downstream-test-api-" in call_args[1]["id"]
-                )  # Workflow ID contains endpoint
-                assert call_args[1]["task_queue"] == "downstream-processing-queue"
+        assert result["endpoint_id"] == "test-api"
 
 
 class TestNewDataDetectionPipelineSubsequentRuns:
     """Test subsequent runs with previous completion data."""
 
-    @pytest.mark.asyncio
-    async def test_no_changes_detected(
-        self, workflow_env, sample_config, mock_polling_results
-    ):
-        """Test when content hasn't changed since last run."""
-
-        # Create a mock activity function that returns the desired response
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            content_bytes = b"first response data"  # Same as first_data
-            return PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
+    async def test_no_changes_detected(self, workflow_env, sample_config):
+        """The same content as last time is not new, and the handler is
+        left alone."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            result, handled = await run_pipeline(
+                workflow_env, sample_config, completion_for(FIRST_CONTENT)
             )
 
-        # Mock workflow.get_last_completion_result to return previous completion
-        previous_completion = {
-            "polling_result": {
-                "content_hash": hashlib.sha256(b"first response data").hexdigest(),
-                "content": "first response data",
-                "success": True,
-            },
-            "detection_result": {
-                "has_new_data": True,
-                "previous_hash": None,
-                "current_hash": hashlib.sha256(b"first response data").hexdigest(),
-            },
-            "downstream_triggered": False,
-            "endpoint_id": "test-api",
-            "completed_at": "2023-01-01T00:00:00Z",
-        }
+        assert result["detection_result"]["has_new_data"] is False
+        assert handled == []
 
-        async with Worker(
-            workflow_env.client,
-            task_queue="test-queue",
-            workflows=[NewDataDetectionPipeline],
-            activities=[test_mock_activity],
-        ):
-            # Use mock to simulate last completion result
-            with patch(
-                "temporalio.workflow.get_last_completion_result"
-            ) as mock_get_last:
-                mock_get_last.return_value = previous_completion
-
-                result = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        None,
-                    ],  # config, downstream_pipeline
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
-
-            # Verify no changes detected
-            assert result["detection_result"]["has_new_data"] is False
-            assert result["downstream_triggered"] is False
-            assert result["detection_result"]["previous_hash"] is not None
-
-    @pytest.mark.asyncio
-    async def test_changes_detected(
-        self, workflow_env, sample_config, mock_polling_results
-    ):
-        """Test when content has changed since last run."""
-
-        # Create a mock activity function that returns the desired response
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            content_bytes = b"changed response data"
-            return PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
+    async def test_changes_detected(self, workflow_env, sample_config):
+        """Different content from last time is new, and goes to the handler."""
+        async with worker(workflow_env, poll_endpoint_returning(CHANGED_CONTENT)):
+            result, handled = await run_pipeline(
+                workflow_env, sample_config, completion_for(FIRST_CONTENT)
             )
 
-        # Mock workflow.get_last_completion_result to return previous completion with different hash
-        previous_completion = {
-            "polling_result": {
-                "content_hash": hashlib.sha256(b"first response data").hexdigest(),
-                "content": "first response data",
-                "success": True,
-            },
-            "detection_result": {
-                "has_new_data": True,
-                "previous_hash": None,
-                "current_hash": hashlib.sha256(b"first response data").hexdigest(),
-            },
-            "downstream_triggered": False,
-            "endpoint_id": "test-api",
-            "completed_at": "2023-01-01T00:00:00Z",
-        }
-
-        with patch(
-            "julee.contrib.polling.apps.worker.pipelines.workflow.start_child_workflow",
-            new_callable=AsyncMock,
-        ) as mock_start:
-            async with Worker(
-                workflow_env.client,
-                task_queue="test-queue",
-                workflows=[NewDataDetectionPipeline],
-                activities=[test_mock_activity],
-            ):
-                # Use mock to simulate last completion result
-                with patch(
-                    "temporalio.workflow.get_last_completion_result"
-                ) as mock_get_last:
-                    mock_get_last.return_value = previous_completion
-
-                    result = await workflow_env.client.execute_workflow(
-                        NewDataDetectionPipeline.run,
-                        args=[
-                            sample_config,
-                            "TestDownstreamWorkflow",
-                        ],  # config, downstream_pipeline
-                        id=str(uuid.uuid4()),
-                        task_queue="test-queue",
-                    )
-
-                # Verify changes detected and downstream triggered
-                assert result["detection_result"]["has_new_data"] is True
-                assert result["downstream_triggered"] is True
-                assert (
-                    result["detection_result"]["current_hash"]
-                    != result["detection_result"]["previous_hash"]
-                )
-                mock_start.assert_called_once()
+        assert result["detection_result"]["has_new_data"] is True
+        assert result["detection_result"]["current_hash"] == content_hash(
+            CHANGED_CONTENT
+        )
+        assert [call["new_item_ids"] for call in handled] == [
+            [CHANGED_CONTENT.decode()]
+        ]
 
 
 class TestNewDataDetectionPipelineWorkflowQueries:
-    """Test workflow query methods during execution."""
+    """Test workflow query methods."""
 
-    @pytest.mark.asyncio
-    async def test_workflow_queries(
-        self, workflow_env, sample_config, mock_polling_results
-    ):
-        """Test that workflow queries return correct state information."""
+    async def test_workflow_queries(self, workflow_env, sample_config):
+        """The queries report where the workflow got to and what it found."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            with last_completion(None):
+                handle = await start_pipeline(workflow_env, sample_config)
+                await handle.result()
 
-        # Create a slow mock activity to allow time for queries
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            await workflow_env.sleep(1)  # Add delay to allow queries
-            content_bytes = b"first response data"
-            return PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
-            )
+                step = await handle.query(NewDataDetectionPipeline.get_current_step)
+                endpoint_id = await handle.query(
+                    NewDataDetectionPipeline.get_endpoint_id
+                )
+                has_new_data = await handle.query(
+                    NewDataDetectionPipeline.get_has_new_data
+                )
 
-        async with Worker(
-            workflow_env.client,
-            task_queue="test-queue",
-            workflows=[NewDataDetectionPipeline],
-            activities=[test_mock_activity],
-        ):
-            # Start workflow
-            handle = await workflow_env.client.start_workflow(
-                NewDataDetectionPipeline.run,
-                args=[
-                    sample_config,
-                    None,
-                ],  # config, downstream_pipeline
-                id=str(uuid.uuid4()),
-                task_queue="test-queue",
-            )
-
-            # Query initial state
-            current_step = await handle.query(NewDataDetectionPipeline.get_current_step)
-            endpoint_id = await handle.query(NewDataDetectionPipeline.get_endpoint_id)
-            has_new_data = await handle.query(NewDataDetectionPipeline.get_has_new_data)
-
-            # Verify initial query responses
-            assert current_step in [
-                "initialized",
-                "polling_endpoint",
-                "detecting_changes",
-                "completed",
-            ]
-            assert endpoint_id == "test-api"
-            assert isinstance(has_new_data, bool)
-
-            # Wait for completion
-            await handle.result()
-
-            # Query final state
-            final_step = await handle.query(NewDataDetectionPipeline.get_current_step)
-            final_has_new_data = await handle.query(
-                NewDataDetectionPipeline.get_has_new_data
-            )
-
-            assert final_step == "completed"
-            assert final_has_new_data is True  # First run should detect new data
+        assert step == "completed"
+        assert endpoint_id == "test-api"
+        assert has_new_data is True
 
 
 class TestNewDataDetectionPipelineErrorHandling:
     """Test error handling and failure scenarios."""
 
-    @pytest.mark.asyncio
-    async def test_polling_activity_failure(
-        self, workflow_env, sample_config, mock_polling_results
-    ):
-        """Test workflow behavior when polling activity fails."""
+    async def test_polling_activity_failure(self, workflow_env, sample_config):
+        """When polling keeps failing, the workflow fails."""
 
-        # Create a failing mock activity
         @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
+        async def failing_poll_endpoint(config: PollingConfig) -> PollingResult:
             raise RuntimeError("Polling failed")
 
-        async with Worker(
-            workflow_env.client,
-            task_queue="test-queue",
-            workflows=[NewDataDetectionPipeline],
-            activities=[test_mock_activity],
-        ):
-            # Workflow should fail and re-raise the exception
-            with pytest.raises(WorkflowFailureError):
-                await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        None,
-                    ],  # config, downstream_pipeline
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
+        async with worker(workflow_env, failing_poll_endpoint):
+            with last_completion(None):
+                handle = await start_pipeline(workflow_env, sample_config)
+                with pytest.raises(WorkflowFailureError):
+                    await handle.result()
 
-    @pytest.mark.skip(
-        reason="Test hangs in current test environment - needs investigation"
-    )
-    @pytest.mark.asyncio
-    async def test_downstream_trigger_failure_doesnt_fail_workflow(
-        self, workflow_env, sample_config, mock_polling_results
+    async def test_handler_failure_does_not_fail_workflow(
+        self, workflow_env, sample_config
     ):
-        """Test that downstream pipeline failures don't fail the main workflow."""
-
-        # Create a mock activity function that returns the desired response
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            content_bytes = b"first response data"
-            return PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
-            )
-
-        # Mock workflow.start_workflow to raise an exception
-        with patch(
-            "julee.contrib.polling.apps.worker.pipelines.workflow.start_child_workflow",
-            side_effect=RuntimeError("Downstream failed"),
-        ):
-            async with Worker(
-                workflow_env.client,
-                task_queue="test-queue",
-                workflows=[NewDataDetectionPipeline],
-                activities=[test_mock_activity],
-            ):
-                # Workflow should complete successfully despite downstream failure
-                result = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                        None,
-                    ],  # config, downstream_pipeline, previous_completion
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
+        """A handler that raises does not lose the poll: the run completes,
+        so the next one still has something to compare against."""
+        async with worker(workflow_env, poll_endpoint_returning(FIRST_CONTENT)):
+            with last_completion(None):
+                handle = await start_pipeline(
+                    workflow_env, sample_config, FailingHandlerPipeline
                 )
+                result = await handle.result()
 
-                # Verify workflow completed but downstream triggering failed
-                assert result["detection_result"]["has_new_data"] is True
-                assert (
-                    result["downstream_triggered"] is False
-                )  # Should be False due to failure
+        assert result["detection_result"]["has_new_data"] is True
+        assert result["polling_result"]["content_hash"] == content_hash(FIRST_CONTENT)
 
 
 class TestNewDataDetectionPipelineIntegration:
-    """Integration tests for complete workflow scenarios."""
+    """Test a sequence of runs, each fed the one before."""
 
-    @pytest.mark.asyncio
-    async def test_complete_polling_cycle(
-        self, workflow_env, sample_config, mock_polling_results
-    ):
-        """Test a complete polling cycle: first run -> no changes -> changes detected."""
-        responses = [
-            mock_polling_results["first_data"],
-            mock_polling_results["same_data"],
-            mock_polling_results["changed_data"],
-        ]
-        response_index = 0
+    async def test_complete_polling_cycle(self, workflow_env, sample_config):
+        """First run, then no change, then a change."""
+        poll_endpoint = poll_endpoint_returning(
+            FIRST_CONTENT, FIRST_CONTENT, CHANGED_CONTENT
+        )
 
-        # Create a cycling mock activity that returns different responses
-        @activity.defn(name="julee.contrib.polling.poll_endpoint")
-        async def test_mock_activity(config: PollingConfig) -> PollingResult:
-            nonlocal response_index
-            if response_index == 0:
-                content_bytes = b"first response data"
-            elif response_index == 1:
-                content_bytes = b"first response data"  # Same as first
-            else:
-                content_bytes = b"changed response data"
+        async with worker(workflow_env, poll_endpoint):
+            first, _ = await run_pipeline(workflow_env, sample_config)
+            second, _ = await run_pipeline(workflow_env, sample_config, first)
+            third, _ = await run_pipeline(workflow_env, sample_config, second)
 
-            result = PollingResult(
-                success=True,
-                content=content_bytes,
-                polled_at=datetime.now(UTC),
-                content_hash=hashlib.sha256(content_bytes).hexdigest(),
-            )
-            response_index = min(response_index + 1, len(responses) - 1)
-            return result
-
-        with patch(
-            "julee.contrib.polling.apps.worker.pipelines.workflow.start_child_workflow",
-            new_callable=AsyncMock,
-        ) as mock_start:
-            async with Worker(
-                workflow_env.client,
-                task_queue="test-queue",
-                workflows=[NewDataDetectionPipeline],
-                activities=[test_mock_activity],
-            ):
-                # Workflow should complete successfully despite downstream failure
-                # First run - should detect new data (no previous completion)
-                result1 = await workflow_env.client.execute_workflow(
-                    NewDataDetectionPipeline.run,
-                    args=[
-                        sample_config,
-                        "TestDownstreamWorkflow",
-                    ],  # config, downstream_pipeline
-                    id=str(uuid.uuid4()),
-                    task_queue="test-queue",
-                )
-
-                assert result1["detection_result"]["has_new_data"] is True
-                assert result1["downstream_triggered"] is True
-
-                # Second run - same content, no changes
-                with patch(
-                    "temporalio.workflow.get_last_completion_result"
-                ) as mock_get_last:
-                    mock_get_last.return_value = result1
-                    result2 = await workflow_env.client.execute_workflow(
-                        NewDataDetectionPipeline.run,
-                        args=[
-                            sample_config,
-                            "TestDownstreamWorkflow",
-                        ],  # config, downstream_pipeline
-                        id=str(uuid.uuid4()),
-                        task_queue="test-queue",
-                    )
-
-                assert result2["detection_result"]["has_new_data"] is False
-                assert result2["downstream_triggered"] is False
-
-                # Third run - changed content, should detect changes
-                with patch(
-                    "temporalio.workflow.get_last_completion_result"
-                ) as mock_get_last:
-                    mock_get_last.return_value = result2
-                    result3 = await workflow_env.client.execute_workflow(
-                        NewDataDetectionPipeline.run,
-                        args=[
-                            sample_config,
-                            "TestDownstreamWorkflow",
-                        ],  # config, downstream_pipeline
-                        id=str(uuid.uuid4()),
-                        task_queue="test-queue",
-                    )
-
-                assert result3["detection_result"]["has_new_data"] is True
-                assert result3["downstream_triggered"] is True
-
-                # Verify downstream was called twice (run 1 and run 3)
-                assert mock_start.call_count == 2
+        assert first["detection_result"]["has_new_data"] is True
+        assert second["detection_result"]["has_new_data"] is False
+        assert third["detection_result"]["has_new_data"] is True
