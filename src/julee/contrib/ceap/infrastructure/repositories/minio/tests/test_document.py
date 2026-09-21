@@ -22,7 +22,7 @@ from julee.contrib.ceap.domain.models.document import Document, DocumentStatus
 from julee.contrib.ceap.infrastructure.repositories.minio.document import (
     MinioDocumentRepository,
 )
-from julee.integrations.minio.tests.fake_client import FakeMinioClient
+from julee.integrations.minio.testing import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

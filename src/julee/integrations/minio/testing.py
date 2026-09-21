@@ -1,10 +1,12 @@
-"""
-Fake Minio client for state-based testing.
+"""Testing support for the MinIO integration.
 
-This module provides a FakeMinioClient that implements the same interface as
-the real Minio client but stores objects in memory for testing. This enables
-state-based testing where you can verify actual storage state rather than
-just mocking method calls.
+FakeMinioClient implements the same interface as a real MinIO client and
+keeps objects in memory, so a test can assert on what was stored rather
+than on which methods were called.
+
+This is public API. Any kit or solution with MinIO repositories needs it
+to test them, which is why it lives here rather than in julee's own test
+tree.
 """
 
 from collections.abc import Callable
@@ -19,7 +21,7 @@ from minio.error import S3Error
 from urllib3 import HTTPHeaderDict
 from urllib3.response import BaseHTTPResponse
 
-from ..client import MinioClient
+from julee.integrations.minio.client import MinioClient
 
 
 def requires_bucket(func: Callable) -> Callable:
