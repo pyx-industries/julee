@@ -27,18 +27,18 @@ from julee.contrib.ceap.domain.models.policy import (
     Policy,
     PolicyStatus,
 )
-from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
-from julee.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryDocumentPolicyValidationRepository,
     MemoryDocumentRepository,
     MemoryKnowledgeServiceConfigRepository,
     MemoryKnowledgeServiceQueryRepository,
     MemoryPolicyRepository,
 )
-from julee.services.knowledge_service import QueryResult
-from julee.services.knowledge_service.memory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service import QueryResult
+from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
+from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
 
 pytestmark = pytest.mark.unit
 

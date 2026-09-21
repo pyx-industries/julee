@@ -25,9 +25,10 @@ from julee.contrib.ceap.domain.models import (
     KnowledgeServiceQuery,
 )
 from julee.contrib.ceap.domain.models.knowledge_service_config import ServiceApi
-from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
-from julee.repositories.http.schema import HttpRemoteSchemaRepository
-from julee.repositories.memory import (
+from julee.contrib.ceap.infrastructure.repositories.http.schema import (
+    HttpRemoteSchemaRepository,
+)
+from julee.contrib.ceap.infrastructure.repositories.memory import (
     MemoryAssemblyRepository,
     MemoryAssemblySpecificationRepository,
     MemoryDocumentRepository,
@@ -35,10 +36,11 @@ from julee.repositories.memory import (
     MemoryKnowledgeServiceQueryRepository,
     MemoryRemoteSchemaRepository,
 )
-from julee.services.knowledge_service import QueryResult
-from julee.services.knowledge_service.memory import (
+from julee.contrib.ceap.infrastructure.services.knowledge_service import QueryResult
+from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
+from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
 
 pytestmark = pytest.mark.unit
 
@@ -729,7 +731,9 @@ class TestResolveJsonSchema:
     async def test_ref_with_fragment_extracts_sub_schema(self, schema_server) -> None:
         """A $ref with a fragment extracts the target sub-schema and bundles
         the parent $defs so internal $refs remain valid."""
-        from julee.repositories.http.schema import HttpRemoteSchemaRepository
+        from julee.contrib.ceap.infrastructure.repositories.http.schema import (
+            HttpRemoteSchemaRepository,
+        )
 
         full_schema = {
             "$defs": {

@@ -27,4 +27,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import temporalio; print('OK')"
 
 # Default command - start the julee worker
-CMD ["python", "-m", "julee.worker"]
+CMD ["python", "-m", "julee.contrib.ceap.apps.worker.main"]

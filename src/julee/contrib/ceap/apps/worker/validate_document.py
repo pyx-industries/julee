@@ -13,15 +13,15 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from julee.contrib.ceap.domain.models.policy import DocumentPolicyValidation
-from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
-from julee.repositories.temporal.proxies import (
+from julee.contrib.ceap.infrastructure.repositories.temporal.proxies import (
     WorkflowDocumentRepositoryProxy,
     WorkflowKnowledgeServiceConfigRepositoryProxy,
     WorkflowKnowledgeServiceQueryRepositoryProxy,
 )
-from julee.services.temporal.proxies import (
+from julee.contrib.ceap.infrastructure.services.temporal.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
+from julee.contrib.ceap.use_cases import ValidateDocumentUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class ValidateDocumentWorkflow:
 
             # Import policy repository proxy (assuming it exists)
             try:
-                from julee.repositories.temporal.proxies import (
+                from julee.contrib.ceap.infrastructure.repositories.temporal.proxies import (
                     WorkflowDocumentPolicyValidationRepositoryProxy,
                     WorkflowPolicyRepositoryProxy,
                 )

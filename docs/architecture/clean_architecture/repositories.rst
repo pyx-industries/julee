@@ -26,22 +26,22 @@ MinIO Implementations
 
 Production implementations using S3-compatible object storage:
 
-- :py:class:`julee.repositories.minio.MinioDocumentRepository`
-- :py:class:`julee.repositories.minio.MinioAssemblyRepository`
-- :py:class:`julee.repositories.minio.MinioAssemblySpecificationRepository`
-- :py:class:`julee.repositories.minio.MinioKnowledgeServiceQueryRepository`
-- :py:class:`julee.repositories.minio.MinioKnowledgeServiceConfigRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioDocumentRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioAssemblyRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioAssemblySpecificationRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioKnowledgeServiceQueryRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioKnowledgeServiceConfigRepository`
 
 Memory Implementations
 ----------------------
 
 In-memory implementations for testing:
 
-- :py:class:`julee.repositories.memory.MemoryDocumentRepository`
-- :py:class:`julee.repositories.memory.MemoryAssemblyRepository`
-- :py:class:`julee.repositories.memory.MemoryAssemblySpecificationRepository`
-- :py:class:`julee.repositories.memory.MemoryKnowledgeServiceQueryRepository`
-- :py:class:`julee.repositories.memory.MemoryKnowledgeServiceConfigRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryDocumentRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryAssemblyRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryAssemblySpecificationRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryKnowledgeServiceQueryRepository`
+- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryKnowledgeServiceConfigRepository`
 
 These are volatile and unsuitable for production,
 but useful as testing doubles in unit tests
@@ -61,7 +61,7 @@ For the common case of simple CRUD operations,
 
 Implementation mixins handle technology-specific boilerplate:
 
-- :py:class:`~julee.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
+- :py:class:`~julee.contrib.ceap.infrastructure.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
 - :py:class:`~julee.integrations.minio.client.MinioRepositoryMixin` - S3-compatible storage
 
 The :doc:`DI container <dependency_injection>` wires protocols to implementations at runtime.
