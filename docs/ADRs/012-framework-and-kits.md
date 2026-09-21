@@ -229,3 +229,8 @@ Each step is a separate change and leaves `master` releasable.
 5. **Create `julee-viewpoints`.** Make the julee repository a uv workspace and move the HCD and C4 documentation code into the viewpoints kit.
 6. **Create `julee-kits`.** Move `ceap` and `polling` out of `julee.contrib`, one kit at a time, each with its own doctrine run in CI. Then `untp`, `supply_chain` and `onto_mapper` are ported from the archived line (ADR 011) directly into julee-kits, not into julee.
 7. **Retire `julee.contrib`.** Remove the deprecation re-exports and the `contrib` reserved word in a major release.
+
+All seven steps are done as of julee 0.3.0. The `contrib` reserved word
+went with the last of them, along with `BoundedContext.is_contrib`, which
+is now `is_nested`: what it always measured was whether a context was
+found inside a container, not whether that container was called contrib.
