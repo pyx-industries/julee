@@ -231,7 +231,12 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
-    from julee.core.doctrine_constants import USE_CASES_PATH
+    from julee.core.doctrine_constants import (
+        ENTITIES_PATH,
+        REPOSITORIES_PATH,
+        SERVICES_PATH,
+        USE_CASES_PATH,
+    )
     from julee.core.entities.bounded_context_info import BoundedContextInfo
 
     context_dir = Path(context_dir_str)
@@ -241,11 +246,9 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     objective, full_docstring = parse_module_docstring(context_dir / "__init__.py")
 
     use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
-    # ADR 001 nested solution structure uses domain/models/, domain/repositories/,
-    # and domain/services/
-    domain_models_dir = context_dir / "domain" / "models"
-    domain_repositories_dir = context_dir / "domain" / "repositories"
-    domain_services_dir = context_dir / "domain" / "services"
+    domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
+    domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
+    domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
 
     all_classes = parse_python_classes(use_cases_dir)
     defined_names = {c.name for c in all_classes}
