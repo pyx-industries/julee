@@ -10,6 +10,8 @@ import pytest
 
 from julee.contrib.ceap.usecases.pointable_json_schema import PointableJSONSchema
 
+pytestmark = pytest.mark.unit
+
 
 class TestPointableJSONSchema:
     """Test cases for PointableJSONSchema class."""

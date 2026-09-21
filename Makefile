@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs lint-python typecheck test-python-unit test-doctrine test-doctrine-kits quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
+.PHONY: install check docs lint-python typecheck test-python-unit test-integration test-doctrine test-doctrine-kits quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -64,10 +64,18 @@ quality-security: reports
 	@echo "  - Medium+High severity: reports/bandit-medium-high.json"
 	@echo "  - All severities: reports/bandit-all.json"
 
-# Unit tests with coverage
+# Unit tests with coverage. Integration tests are excluded: they each
+# start a Temporal test server, and a suite that needs a server is not
+# what a caller of this target is asking for.
 test-unit: reports
 	@echo "Running unit tests with coverage..."
-	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e"
+	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e and not integration"
+
+# The Temporal pipeline tests. They need a test server per test, so the
+# worker count is fixed rather than -n auto.
+test-integration:
+	@echo "Running integration tests..."
+	uv run pytest -m integration -n 2
 
 # Setup reports directory
 reports:
@@ -123,6 +131,7 @@ help:
 	@echo "  quality-types   - Type checking with mypy"
 	@echo "  quality-security- Security scanning with bandit"
 	@echo "  test-unit       - Unit tests with coverage"
+	@echo "  test-integration - Temporal pipeline tests (needs a test server)"
 	@echo "  post-commit     - Background quality checks (for git hook)"
 	@echo "  install-hooks   - Install git post-commit hook"
 	@echo "  install         - Install project and dev dependencies via uv"

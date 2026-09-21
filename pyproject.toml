@@ -90,6 +90,7 @@ dev = [
     "pytest-asyncio>=1.0.0",
     "pytest-cov>=4.1.0",
     "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.3.0",
     "hypothesis>=6.0.0",
     "factory-boy>=3.2.0",
     # Mutation testing (run on demand: uv run mutmut run)
@@ -147,6 +148,9 @@ python_functions = ["test_*"]
 asyncio_mode = "auto"
 addopts = [
     "--strict-markers",
+    # A hung test fails instead of holding the machine. Temporal's test
+    # server needs room to start, hence the size of it.
+    "--timeout=300",
     "--tb=short",
     "-n", "auto",
     "--dist", "loadgroup",
