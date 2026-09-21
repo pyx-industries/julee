@@ -24,6 +24,17 @@ Development Setup
 
     pre-commit install
 
+.. note::
+
+    ``make install-hooks`` used to install a post-commit hook that ran the
+    full quality suite in the background after every commit. It has been
+    retired: the runs piled up, in worktrees as well, and CI now runs
+    ``make check`` on every pull request. Removing the make target does not
+    remove a hook that is already installed, so if you ever ran it, delete
+    the hook::
+
+        rm .git/hooks/post-commit
+
 
 Code Style
 ----------

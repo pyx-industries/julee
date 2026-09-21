@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs lint-python typecheck test-python-unit test-integration test-doctrine test-doctrine-kits quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
+.PHONY: install check docs lint-python typecheck test-python-unit test-integration test-doctrine test-doctrine-kits quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -43,7 +43,7 @@ docs:
 quality-fast-python: lint-python
 	uv run pytest --asyncio-mode=auto -x -m unit --no-cov -q
 
-# Full quality suite (for post-commit/CI)
+# Full quality suite, slower than check: types, security scan, coverage
 quality-full: reports quality-types quality-security test-unit
 	@echo "All quality checks complete!"
 
@@ -80,19 +80,6 @@ test-integration:
 # Setup reports directory
 reports:
 	@mkdir -p reports
-
-# Post-commit hook (run in background)
-post-commit: reports
-	@echo "Running post-commit quality suite in background..."
-	@nohup make quality-full > reports/post-commit.log 2>&1 &
-	@echo "Quality checks running in background. Check reports/ for results."
-
-# Install project-specific git hooks
-install-hooks:
-	@echo "#!/bin/bash" > .git/hooks/post-commit
-	@echo "make post-commit" >> .git/hooks/post-commit
-	@chmod +x .git/hooks/post-commit
-	@echo "Post-commit hook installed for this repository only"
 
 # Clean up generated files
 clean:
@@ -132,8 +119,6 @@ help:
 	@echo "  quality-security- Security scanning with bandit"
 	@echo "  test-unit       - Unit tests with coverage"
 	@echo "  test-integration - Temporal pipeline tests (needs a test server)"
-	@echo "  post-commit     - Background quality checks (for git hook)"
-	@echo "  install-hooks   - Install git post-commit hook"
 	@echo "  install         - Install project and dev dependencies via uv"
 	@echo "  format-python   - Format Python code with black and ruff"
 	@echo "  update-requirements - Upgrade uv.lock from pyproject.toml"
