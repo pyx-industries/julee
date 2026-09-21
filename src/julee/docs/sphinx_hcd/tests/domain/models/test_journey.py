@@ -105,8 +105,8 @@ class TestJourneyCreation:
         journey = Journey(slug="build-vocabulary")
         assert journey.slug == "build-vocabulary"
         assert journey.persona == ""
-        assert journey.steps == []
-        assert journey.depends_on == []
+        assert journey.steps == ()
+        assert journey.depends_on == ()
 
     def test_create_journey_complete(self) -> None:
         """Test creating a journey with all fields."""
@@ -201,7 +201,7 @@ class TestJourneySteps:
         journey = Journey(slug="test")
         assert journey.step_count == 0
 
-        journey.add_step(JourneyStep.story("Test Story"))
+        journey = journey.with_step(JourneyStep.story("Test Story"))
         assert journey.step_count == 1
         assert journey.has_steps is True
 

@@ -6,7 +6,9 @@ Apps are defined via YAML manifests in apps/*/app.yaml.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
@@ -28,7 +30,7 @@ class AppType(StrEnum):
             return cls.UNKNOWN
 
 
-class App(BaseModel):
+class App(Entity):
     """Application entity.
 
     Apps represent distinct applications in the system, defined via YAML
@@ -51,7 +53,7 @@ class App(BaseModel):
     app_type: AppType = AppType.UNKNOWN
     status: str | None = None
     description: str = ""
-    accelerators: list[str] = Field(default_factory=list)
+    accelerators: tuple[str, ...] = Field(default_factory=tuple)
     manifest_path: str = ""
     name_normalized: str = ""
 

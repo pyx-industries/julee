@@ -4,12 +4,14 @@ Represents a persona derived from story data in the HCD documentation system.
 Personas are not defined directly but are extracted from user stories.
 """
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import Field, computed_field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
 
-class Persona(BaseModel):
+class Persona(Entity):
     """Persona entity.
 
     A persona represents a type of user who interacts with the system.
@@ -23,8 +25,8 @@ class Persona(BaseModel):
     """
 
     name: str
-    app_slugs: list[str] = Field(default_factory=list)
-    epic_slugs: list[str] = Field(default_factory=list)
+    app_slugs: tuple[str, ...] = Field(default_factory=tuple)
+    epic_slugs: tuple[str, ...] = Field(default_factory=tuple)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -87,20 +89,22 @@ class Persona(BaseModel):
         """
         return epic_slug in self.epic_slugs
 
-    def add_app(self, app_slug: str) -> None:
-        """Add an app to this persona's app list.
+    def with_app(self, app_slug: str) -> "Persona":
+        """The persona with an app added; a duplicate returns this persona.
 
         Args:
-            app_slug: App slug to add (duplicates ignored)
+            app_slug: App slug to add
         """
-        if app_slug not in self.app_slugs:
-            self.app_slugs.append(app_slug)
+        if app_slug in self.app_slugs:
+            return self
+        return self.model_copy(update={"app_slugs": (*self.app_slugs, app_slug)})
 
-    def add_epic(self, epic_slug: str) -> None:
-        """Add an epic to this persona's epic list.
+    def with_epic(self, epic_slug: str) -> "Persona":
+        """The persona with an epic added; a duplicate returns this persona.
 
         Args:
-            epic_slug: Epic slug to add (duplicates ignored)
+            epic_slug: Epic slug to add
         """
-        if epic_slug not in self.epic_slugs:
-            self.epic_slugs.append(epic_slug)
+        if epic_slug in self.epic_slugs:
+            return self
+        return self.model_copy(update={"epic_slugs": (*self.epic_slugs, epic_slug)})

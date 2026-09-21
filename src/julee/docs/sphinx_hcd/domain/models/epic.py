@@ -4,12 +4,14 @@ Represents an epic in the HCD documentation system.
 Epics are defined via RST directives and group related stories together.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
 
-class Epic(BaseModel):
+class Epic(Entity):
     """Epic entity.
 
     An epic represents a collection of related stories that together
@@ -24,7 +26,7 @@ class Epic(BaseModel):
 
     slug: str
     description: str = ""
-    story_refs: list[str] = Field(default_factory=list)
+    story_refs: tuple[str, ...] = Field(default_factory=tuple)
     docname: str = ""
 
     @field_validator("slug", mode="before")
@@ -35,13 +37,18 @@ class Epic(BaseModel):
             raise ValueError("slug cannot be empty")
         return v.strip()
 
-    def add_story(self, story_title: str) -> None:
-        """Add a story reference to this epic.
+    def with_story(self, story_title: str) -> "Epic":
+        """The epic with a story reference added.
+
+        An entity is immutable, so this returns a new epic rather than
+        changing this one. A title already present is not added twice.
 
         Args:
             story_title: Feature title of the story to add
         """
-        self.story_refs.append(story_title)
+        if story_title in self.story_refs:
+            return self
+        return self.model_copy(update={"story_refs": (*self.story_refs, story_title)})
 
     def has_story(self, story_title: str) -> bool:
         """Check if this epic contains a specific story.

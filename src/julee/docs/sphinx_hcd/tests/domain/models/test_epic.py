@@ -14,7 +14,7 @@ class TestEpicCreation:
         epic = Epic(slug="vocabulary-management")
         assert epic.slug == "vocabulary-management"
         assert epic.description == ""
-        assert epic.story_refs == []
+        assert epic.story_refs == ()
         assert epic.docname == ""
 
     def test_create_epic_complete(self) -> None:
@@ -65,7 +65,7 @@ class TestEpicStoryOperations:
         epic = Epic(slug="test-epic")
         assert epic.story_count == 0
 
-        epic.add_story("New Story")
+        epic = epic.with_story("New Story")
         assert epic.story_count == 1
         assert "New Story" in epic.story_refs
 
@@ -139,7 +139,7 @@ class TestEpicSerialization:
         data = epic.model_dump()
         assert data["slug"] == "test"
         assert data["description"] == "Test description"
-        assert data["story_refs"] == ["Story 1"]
+        assert data["story_refs"] == ("Story 1",)
         assert data["docname"] == "test/doc"
 
     def test_epic_to_json(self) -> None:

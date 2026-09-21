@@ -4,10 +4,12 @@ Models for representing Python code structure extracted via AST parsing.
 Used to document bounded contexts and their ADR 001-compliant structure.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
-class ClassInfo(BaseModel):
+class ClassInfo(Entity):
     """Information about a Python class extracted via AST.
 
     Attributes:
@@ -29,7 +31,7 @@ class ClassInfo(BaseModel):
         return v.strip()
 
 
-class BoundedContextInfo(BaseModel):
+class BoundedContextInfo(Entity):
     """Information about a bounded context's code structure.
 
     Represents the ADR 001-compliant structure of a bounded context
@@ -48,10 +50,10 @@ class BoundedContextInfo(BaseModel):
     """
 
     slug: str
-    entities: list[ClassInfo] = Field(default_factory=list)
-    use_cases: list[ClassInfo] = Field(default_factory=list)
-    repository_protocols: list[ClassInfo] = Field(default_factory=list)
-    service_protocols: list[ClassInfo] = Field(default_factory=list)
+    entities: tuple[ClassInfo, ...] = Field(default_factory=tuple)
+    use_cases: tuple[ClassInfo, ...] = Field(default_factory=tuple)
+    repository_protocols: tuple[ClassInfo, ...] = Field(default_factory=tuple)
+    service_protocols: tuple[ClassInfo, ...] = Field(default_factory=tuple)
     has_infrastructure: bool = False
     code_dir: str = ""
     objective: str | None = None

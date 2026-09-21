@@ -102,7 +102,7 @@ class TestIntegrationCreation:
         assert integration.module == "data_sync"
         assert integration.name == "Data Sync"
         assert integration.direction == Direction.BIDIRECTIONAL
-        assert integration.depends_on == []
+        assert integration.depends_on == ()
 
     def test_create_with_all_fields(self) -> None:
         """Test creating with all fields."""

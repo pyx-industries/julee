@@ -13,8 +13,8 @@ class TestPersonaCreation:
         """Test creating a persona with minimum fields."""
         persona = Persona(name="Knowledge Curator")
         assert persona.name == "Knowledge Curator"
-        assert persona.app_slugs == []
-        assert persona.epic_slugs == []
+        assert persona.app_slugs == ()
+        assert persona.epic_slugs == ()
 
     def test_create_persona_complete(self) -> None:
         """Test creating a persona with all fields."""
@@ -123,27 +123,27 @@ class TestPersonaMethods:
     def test_add_app_new(self) -> None:
         """Test adding a new app."""
         persona = Persona(name="Test")
-        persona.add_app("new-app")
+        persona = persona.with_app("new-app")
         assert "new-app" in persona.app_slugs
         assert persona.app_count == 1
 
     def test_add_app_duplicate(self, sample_persona: Persona) -> None:
         """Test adding a duplicate app is ignored."""
         initial_count = sample_persona.app_count
-        sample_persona.add_app("vocabulary-tool")
+        sample_persona = sample_persona.with_app("vocabulary-tool")
         assert sample_persona.app_count == initial_count
 
     def test_add_epic_new(self) -> None:
         """Test adding a new epic."""
         persona = Persona(name="Test")
-        persona.add_epic("new-epic")
+        persona = persona.with_epic("new-epic")
         assert "new-epic" in persona.epic_slugs
         assert persona.epic_count == 1
 
     def test_add_epic_duplicate(self, sample_persona: Persona) -> None:
         """Test adding a duplicate epic is ignored."""
         initial_count = sample_persona.epic_count
-        sample_persona.add_epic("vocabulary-management")
+        sample_persona = sample_persona.with_epic("vocabulary-management")
         assert sample_persona.epic_count == initial_count
 
 
@@ -160,8 +160,8 @@ class TestPersonaSerialization:
 
         data = persona.model_dump()
         assert data["name"] == "Test Persona"
-        assert data["app_slugs"] == ["app-1"]
-        assert data["epic_slugs"] == ["epic-1"]
+        assert data["app_slugs"] == ("app-1",)
+        assert data["epic_slugs"] == ("epic-1",)
         assert data["normalized_name"] == "test persona"
 
     def test_persona_to_json(self) -> None:

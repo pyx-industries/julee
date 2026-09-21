@@ -53,10 +53,10 @@ class TestBoundedContextInfoCreation:
         """Test creating with minimum fields."""
         info = BoundedContextInfo(slug="vocabulary")
         assert info.slug == "vocabulary"
-        assert info.entities == []
-        assert info.use_cases == []
-        assert info.repository_protocols == []
-        assert info.service_protocols == []
+        assert info.entities == ()
+        assert info.use_cases == ()
+        assert info.repository_protocols == ()
+        assert info.service_protocols == ()
         assert info.has_infrastructure is False
         assert info.code_dir == ""
         assert info.objective is None

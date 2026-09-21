@@ -7,7 +7,9 @@ through the system to achieve a goal.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
@@ -28,7 +30,7 @@ class StepType(StrEnum):
             raise ValueError(f"Invalid step type: {value}")
 
 
-class JourneyStep(BaseModel):
+class JourneyStep(Entity):
     """A step within a journey.
 
     Steps can be stories (feature references), epics (epic references),
@@ -105,7 +107,7 @@ class JourneyStep(BaseModel):
         return self.step_type == StepType.PHASE
 
 
-class Journey(BaseModel):
+class Journey(Entity):
     """User journey entity.
 
     A journey represents a persona's path through the system to achieve
@@ -132,10 +134,10 @@ class Journey(BaseModel):
     intent: str = ""
     outcome: str = ""
     goal: str = ""
-    depends_on: list[str] = Field(default_factory=list)
-    steps: list[JourneyStep] = Field(default_factory=list)
-    preconditions: list[str] = Field(default_factory=list)
-    postconditions: list[str] = Field(default_factory=list)
+    depends_on: tuple[str, ...] = Field(default_factory=tuple)
+    steps: tuple[JourneyStep, ...] = Field(default_factory=tuple)
+    preconditions: tuple[str, ...] = Field(default_factory=tuple)
+    postconditions: tuple[str, ...] = Field(default_factory=tuple)
     docname: str = ""
 
     @field_validator("slug", mode="before")
@@ -182,13 +184,16 @@ class Journey(BaseModel):
         """
         return journey_slug in self.depends_on
 
-    def add_step(self, step: JourneyStep) -> None:
-        """Add a step to this journey.
+    def with_step(self, step: JourneyStep) -> "Journey":
+        """The journey with a step appended.
+
+        An entity is immutable, so this returns a new journey rather than
+        changing this one.
 
         Args:
             step: JourneyStep to add
         """
-        self.steps.append(step)
+        return self.model_copy(update={"steps": (*self.steps, step)})
 
     def get_story_refs(self) -> list[str]:
         """Get all story references from steps.

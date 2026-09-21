@@ -4,10 +4,12 @@ Represents an accelerator (bounded context) in the HCD documentation system.
 Accelerators are defined via RST directives and may have associated code.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
-class IntegrationReference(BaseModel):
+class IntegrationReference(Entity):
     """Reference to an integration with optional description.
 
     Used for sources_from and publishes_to relationships where
@@ -44,7 +46,7 @@ class IntegrationReference(BaseModel):
         return cls(slug=data.get("slug", ""), description=data.get("description", ""))
 
 
-class Accelerator(BaseModel):
+class Accelerator(Entity):
     """Accelerator entity.
 
     An accelerator represents a bounded context that provides business
@@ -69,10 +71,10 @@ class Accelerator(BaseModel):
     milestone: str | None = None
     acceptance: str | None = None
     objective: str = ""
-    sources_from: list[IntegrationReference] = Field(default_factory=list)
-    feeds_into: list[str] = Field(default_factory=list)
-    publishes_to: list[IntegrationReference] = Field(default_factory=list)
-    depends_on: list[str] = Field(default_factory=list)
+    sources_from: tuple[IntegrationReference, ...] = Field(default_factory=tuple)
+    feeds_into: tuple[str, ...] = Field(default_factory=tuple)
+    publishes_to: tuple[IntegrationReference, ...] = Field(default_factory=tuple)
+    depends_on: tuple[str, ...] = Field(default_factory=tuple)
     docname: str = ""
 
     @field_validator("slug", mode="before")

@@ -6,7 +6,9 @@ Integrations are defined via YAML manifests in integrations/*/integration.yaml.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
@@ -37,7 +39,7 @@ class Direction(StrEnum):
         return labels.get(self, str(self.value))
 
 
-class ExternalDependency(BaseModel):
+class ExternalDependency(Entity):
     """External system that an integration depends on.
 
     Attributes:
@@ -75,7 +77,7 @@ class ExternalDependency(BaseModel):
         )
 
 
-class Integration(BaseModel):
+class Integration(Entity):
     """Integration module entity.
 
     Integrations represent connections to external systems, defining
@@ -97,7 +99,7 @@ class Integration(BaseModel):
     name: str
     description: str = ""
     direction: Direction = Direction.BIDIRECTIONAL
-    depends_on: list[ExternalDependency] = Field(default_factory=list)
+    depends_on: tuple[ExternalDependency, ...] = Field(default_factory=tuple)
     manifest_path: str = ""
     name_normalized: str = ""
 

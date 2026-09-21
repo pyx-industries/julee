@@ -71,7 +71,7 @@ class TestDerivePersonas:
 
         assert len(personas) == 1
         assert personas[0].name == "Knowledge Curator"
-        assert personas[0].app_slugs == ["vocabulary-tool"]
+        assert personas[0].app_slugs == ("vocabulary-tool",)
 
     def test_derive_multiple_personas(self) -> None:
         """Test deriving multiple personas from stories."""
@@ -128,7 +128,7 @@ class TestDerivePersonas:
 
         assert len(personas) == 1
         persona = personas[0]
-        assert persona.epic_slugs == ["vocabulary-management"]
+        assert persona.epic_slugs == ("vocabulary-management",)
 
     def test_derive_skips_unknown_persona(self) -> None:
         """Test that 'unknown' persona is skipped."""

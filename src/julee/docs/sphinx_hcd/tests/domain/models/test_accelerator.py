@@ -67,10 +67,10 @@ class TestAcceleratorCreation:
         assert accel.milestone is None
         assert accel.acceptance is None
         assert accel.objective == ""
-        assert accel.sources_from == []
-        assert accel.feeds_into == []
-        assert accel.publishes_to == []
-        assert accel.depends_on == []
+        assert accel.sources_from == ()
+        assert accel.feeds_into == ()
+        assert accel.publishes_to == ()
+        assert accel.depends_on == ()
         assert accel.docname == ""
 
     def test_create_accelerator_complete(self) -> None:

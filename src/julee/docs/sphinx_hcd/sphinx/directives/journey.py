@@ -164,7 +164,7 @@ class StepStoryDirective(HCDDirective):
             journey = self.hcd_context.journey_repo.get(journey_slug)
             if journey:
                 step = JourneyStep.story(story_title)
-                journey.steps.append(step)
+                self.hcd_context.journey_repo.save(journey.with_step(step))
 
         return []
 
@@ -190,7 +190,7 @@ class StepEpicDirective(HCDDirective):
             journey = self.hcd_context.journey_repo.get(journey_slug)
             if journey:
                 step = JourneyStep.epic(epic_slug)
-                journey.steps.append(step)
+                self.hcd_context.journey_repo.save(journey.with_step(step))
 
         return []
 
@@ -221,7 +221,7 @@ class StepPhaseDirective(HCDDirective):
             journey = self.hcd_context.journey_repo.get(journey_slug)
             if journey:
                 step = JourneyStep.phase(phase_title, description)
-                journey.steps.append(step)
+                self.hcd_context.journey_repo.save(journey.with_step(step))
 
         return []
 
