@@ -27,8 +27,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Ubuntu ships PlantUML 1.2020, whose bundled C4 library is too old
+      # for the C4 diagrams in docs/architecture/diagrams.
       - name: Install PlantUML
-        run: sudo apt-get update && sudo apt-get install -y plantuml
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-jre graphviz
+          sudo curl -fsSL -o /opt/plantuml.jar \
+            https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar
+          printf '#!/bin/sh\nexec java -jar /opt/plantuml.jar "$@"\n' \
+            | sudo tee /usr/local/bin/plantuml > /dev/null
+          sudo chmod +x /usr/local/bin/plantuml
+        env:
+          PLANTUML_VERSION: "1.2026.6"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
