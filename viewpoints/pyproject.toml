@@ -30,6 +30,10 @@ viewpoints = "julee_viewpoints:kit"
 [tool.uv.sources]
 julee = { workspace = true }
 
+# PEP 561: the kit is typed too.
+[tool.setuptools.package-data]
+julee_viewpoints = ["py.typed"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["julee_viewpoints*"]
