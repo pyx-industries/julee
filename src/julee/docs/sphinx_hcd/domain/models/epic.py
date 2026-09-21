@@ -14,18 +14,18 @@ class Epic(BaseModel):
 
     An epic represents a collection of related stories that together
     deliver a larger piece of functionality or business value.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "credential-creation")
-        description: Human-readable description of the epic
-        story_refs: List of story feature titles in this epic
-        docname: RST document name (for incremental builds)
     """
 
-    slug: str
-    description: str = ""
-    story_refs: list[str] = Field(default_factory=list)
-    docname: str = ""
+    slug: str = Field(description='URL-safe identifier (e.g., "credential-creation")')
+    description: str = Field(
+        default="", description="Human-readable description of the epic"
+    )
+    story_refs: list[str] = Field(
+        default_factory=list, description="List of story feature titles in this epic"
+    )
+    docname: str = Field(
+        default="", description="RST document name (for incremental builds)"
+    )
 
     @field_validator("slug", mode="before")
     @classmethod

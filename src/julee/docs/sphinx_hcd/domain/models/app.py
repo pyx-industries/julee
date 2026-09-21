@@ -34,26 +34,25 @@ class App(BaseModel):
     Apps represent distinct applications in the system, defined via YAML
     manifests. They serve as containers for stories and provide organization
     for the documentation.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "staff-portal")
-        name: Display name (e.g., "Staff Portal")
-        app_type: Classification (staff, external, member-tool)
-        status: Optional status indicator (e.g., "in-development", "live")
-        description: Human-readable description
-        accelerators: List of accelerator slugs associated with this app
-        manifest_path: Path to the app.yaml file
-        name_normalized: Lowercase name for matching
     """
 
-    slug: str
-    name: str
-    app_type: AppType = AppType.UNKNOWN
-    status: str | None = None
-    description: str = ""
-    accelerators: list[str] = Field(default_factory=list)
-    manifest_path: str = ""
-    name_normalized: str = ""
+    slug: str = Field(description='URL-safe identifier (e.g., "staff-portal")')
+    name: str = Field(description='Display name (e.g., "Staff Portal")')
+    app_type: AppType = Field(
+        default=AppType.UNKNOWN,
+        description="Classification (staff, external, member-tool)",
+    )
+    status: str | None = Field(
+        default=None,
+        description='Optional status indicator (e.g., "in-development", "live")',
+    )
+    description: str = Field(default="", description="Human-readable description")
+    accelerators: list[str] = Field(
+        default_factory=list,
+        description="List of accelerator slugs associated with this app",
+    )
+    manifest_path: str = Field(default="", description="Path to the app.yaml file")
+    name_normalized: str = Field(default="", description="Lowercase name for matching")
 
     @field_validator("slug", mode="before")
     @classmethod

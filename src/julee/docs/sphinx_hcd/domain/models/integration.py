@@ -38,17 +38,13 @@ class Direction(StrEnum):
 
 
 class ExternalDependency(BaseModel):
-    """External system that an integration depends on.
+    """External system that an integration depends on."""
 
-    Attributes:
-        name: Display name of the external system
-        url: Optional URL for documentation or reference
-        description: Optional brief description
-    """
-
-    name: str
-    url: str | None = None
-    description: str = ""
+    name: str = Field(description="Display name")
+    url: str | None = Field(
+        default=None, description="Optional URL for documentation or reference"
+    )
+    description: str = Field(default="", description="Human-readable description")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -80,26 +76,24 @@ class Integration(BaseModel):
 
     Integrations represent connections to external systems, defining
     data flow direction and external dependencies.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "pilot-data-collection")
-        module: Python module name (e.g., "pilot_data_collection")
-        name: Display name
-        description: Human-readable description
-        direction: Data flow direction
-        depends_on: List of external dependencies
-        manifest_path: Path to the integration.yaml file
-        name_normalized: Lowercase name for matching
     """
 
-    slug: str
-    module: str
-    name: str
-    description: str = ""
-    direction: Direction = Direction.BIDIRECTIONAL
-    depends_on: list[ExternalDependency] = Field(default_factory=list)
-    manifest_path: str = ""
-    name_normalized: str = ""
+    slug: str = Field(description='URL-safe identifier (e.g., "pilot-data-collection")')
+    module: str = Field(
+        description='Python module name (e.g., "pilot_data_collection")'
+    )
+    name: str = Field(description="Display name")
+    description: str = Field(default="", description="Human-readable description")
+    direction: Direction = Field(
+        default=Direction.BIDIRECTIONAL, description="Data flow direction"
+    )
+    depends_on: list[ExternalDependency] = Field(
+        default_factory=list, description="List of external dependencies"
+    )
+    manifest_path: str = Field(
+        default="", description="Path to the integration.yaml file"
+    )
+    name_normalized: str = Field(default="", description="Lowercase name for matching")
 
     @field_validator("slug", mode="before")
     @classmethod
