@@ -14,7 +14,7 @@ from julee.contrib.ceap.domain.models.assembly import Assembly, AssemblyStatus
 from julee.contrib.ceap.infrastructure.repositories.minio.assembly import (
     MinioAssemblyRepository,
 )
-from julee.integrations.minio.tests.fake_client import FakeMinioClient
+from julee.integrations.minio.testing import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

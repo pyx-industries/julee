@@ -18,7 +18,7 @@ from julee.contrib.ceap.domain.models.policy import (
 from julee.contrib.ceap.infrastructure.repositories.minio.document_policy_validation import (
     MinioDocumentPolicyValidationRepository,
 )
-from julee.integrations.minio.tests.fake_client import FakeMinioClient
+from julee.integrations.minio.testing import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

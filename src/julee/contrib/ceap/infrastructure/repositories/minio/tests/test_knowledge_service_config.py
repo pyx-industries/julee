@@ -17,7 +17,7 @@ from julee.contrib.ceap.domain.models.knowledge_service_config import (
 from julee.contrib.ceap.infrastructure.repositories.minio.knowledge_service_config import (
     MinioKnowledgeServiceConfigRepository,
 )
-from julee.integrations.minio.tests.fake_client import FakeMinioClient
+from julee.integrations.minio.testing import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 
