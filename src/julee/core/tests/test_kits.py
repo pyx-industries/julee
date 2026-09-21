@@ -96,10 +96,25 @@ def test_a_kit_whose_package_is_missing_contributes_no_contexts() -> None:
 
 
 def test_contexts_are_discovered_from_an_installed_package() -> None:
-    """julee itself is laid out like a kit, so it can stand in for one."""
+    """A kit's contexts come from its package, not from its manifest.
+
+    julee-viewpoints is installed in this workspace and is a real kit, so
+    it stands for any other.
+    """
     slugs = kits_module.kit_context_slugs(
-        Kit(slug="julee", name="julee", package="julee")
+        Kit(
+            slug="viewpoints",
+            name="Code-outward documentation",
+            package="julee_viewpoints",
+        )
     )
 
-    assert "core" not in slugs  # core is a reserved word
-    assert slugs  # but the contrib contexts are found
+    assert "sphinx_hcd" in slugs
+
+
+def test_a_package_with_no_bounded_contexts_yields_none() -> None:
+    """julee itself: everything in it is kernel, integrations or reserved."""
+    assert (
+        kits_module.kit_context_slugs(Kit(slug="julee", name="julee", package="julee"))
+        == frozenset()
+    )
