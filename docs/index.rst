@@ -70,12 +70,6 @@ Documentation Contents
    :caption: API Reference
 
    autoapi/index
-   autoapi/julee/api/index
-   autoapi/julee/domain/index
-   autoapi/julee/repositories/index
-   autoapi/julee/services/index
-   autoapi/julee/workflows/index
-   autoapi/julee/util/index
 
 .. toctree::
    :maxdepth: 1

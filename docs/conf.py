@@ -36,14 +36,7 @@ extensions = [
 
 # AutoAPI configuration
 autoapi_type = 'python'
-autoapi_dirs = [
-    '../src/julee/api',
-    '../src/julee/domain',
-    '../src/julee/repositories',
-    '../src/julee/services',
-    '../src/julee/workflows',
-    '../src/julee/util',
-]
+autoapi_dirs = ['../src/julee']
 autoapi_options = [
     'members',
     'undoc-members',
@@ -110,7 +103,7 @@ html_theme = 'furo'
 # If you prefer Read the Docs theme, uncomment this line:
 # html_theme = 'sphinx_rtd_theme'
 
-html_static_path = ['_static']
+html_static_path: list[str] = []
 
 # Theme options for Furo
 html_theme_options = {

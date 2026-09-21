@@ -205,6 +205,16 @@ module = [
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# Recent Sphinx uses Python 3.12 syntax, which mypy rejects when checking
+# for 3.11; docutils ships no stubs.
+module = [
+    "sphinx.*",
+    "docutils.*",
+]
+follow_imports = "skip"
+ignore_missing_imports = true
+
 [tool.julee]
 # julee is itself a julee solution
 search_root = "src/julee"
