@@ -45,7 +45,9 @@ class TestMinioClientProtocol:
 
     def test_protocol_accepts_real_minio_client(self) -> None:
         """Test that our protocol accepts a real Minio client instance."""
-        from julee.repositories.minio.document import MinioDocumentRepository
+        from julee.contrib.ceap.infrastructure.repositories.minio.document import (
+            MinioDocumentRepository,
+        )
 
         # Create a real Minio client (no connection attempted in constructor)
         real_client = Minio("localhost:9000")

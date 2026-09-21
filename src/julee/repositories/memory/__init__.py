@@ -1,33 +1,10 @@
-"""
-Memory repository implementations for julee domain.
+"""In-memory repository support.
 
-This module exports in-memory implementations of all repository protocols
-for the Capture, Extract, Assemble, Publish workflow. These implementations
-use Python dictionaries for storage and are ideal for testing scenarios
-where external dependencies should be avoided.
-
-All implementations maintain the same async interfaces as their production
-counterparts while providing lightweight, dependency-free alternatives.
+Every solution's tests need in-memory repositories, so the mixin they are
+built from is part of the kernel. The repositories themselves belong to
+whichever bounded context owns the entity.
 """
 
-from .assembly import MemoryAssemblyRepository
-from .assembly_specification import MemoryAssemblySpecificationRepository
-from .document import MemoryDocumentRepository
-from .document_policy_validation import (
-    MemoryDocumentPolicyValidationRepository,
-)
-from .knowledge_service_config import MemoryKnowledgeServiceConfigRepository
-from .knowledge_service_query import MemoryKnowledgeServiceQueryRepository
-from .policy import MemoryPolicyRepository
-from .remote_schema import MemoryRemoteSchemaRepository
+from .base import MemoryRepositoryMixin
 
-__all__ = [
-    "MemoryAssemblyRepository",
-    "MemoryAssemblySpecificationRepository",
-    "MemoryDocumentRepository",
-    "MemoryDocumentPolicyValidationRepository",
-    "MemoryKnowledgeServiceConfigRepository",
-    "MemoryKnowledgeServiceQueryRepository",
-    "MemoryPolicyRepository",
-    "MemoryRemoteSchemaRepository",
-]
+__all__ = ["MemoryRepositoryMixin"]

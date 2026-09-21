@@ -1,20 +1,7 @@
-"""
-Repository implementations and infrastructure.
+"""Repository support shared by every bounded context.
 
-This package contains concrete implementations of the repository interfaces
-defined in julee.contrib.ceap.domain.repositories.
+- ``base``: the ``BaseRepository`` protocol.
+- ``memory``: the mixin the in-memory repositories are built from.
 
-Implementation packages:
-
-- memory: In-memory implementations for testing
-- minio: MinIO-based implementations for production
-- temporal: Temporal workflow proxy implementations
-
-Import implementations using their full module paths, e.g.::
-
-    from julee.repositories.memory import MemoryDocumentRepository
-    from julee.repositories.minio.document import (
-        MinioDocumentRepository,
-    )
-
+Concrete repositories live in the bounded context that owns the entity.
 """

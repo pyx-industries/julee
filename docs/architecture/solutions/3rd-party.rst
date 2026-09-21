@@ -110,11 +110,11 @@ Common Third-Party Integrations
 AI/LLM Providers
 ~~~~~~~~~~~~~~~~
 
-Julee provides :py:class:`~julee.services.knowledge_service.anthropic.AnthropicKnowledgeService` and other provider implementations::
+Julee provides :py:class:`~julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic.AnthropicKnowledgeService` and other provider implementations::
 
 
     # Anthropic
-    from julee.services.knowledge_service.anthropic import AnthropicKnowledgeService
+    from julee.contrib.ceap.infrastructure.services.knowledge_service.anthropic import AnthropicKnowledgeService
 
     service = AnthropicKnowledgeService(
         api_key=settings.anthropic_api_key,
@@ -122,7 +122,7 @@ Julee provides :py:class:`~julee.services.knowledge_service.anthropic.AnthropicK
     )
 
     # OpenAI
-    from julee.services.knowledge_service.openai import OpenAIKnowledgeService
+    from julee.contrib.ceap.infrastructure.services.knowledge_service.openai import OpenAIKnowledgeService
 
     service = OpenAIKnowledgeService(
         api_key=settings.openai_api_key,

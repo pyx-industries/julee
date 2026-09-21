@@ -13,10 +13,7 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from julee.contrib.ceap.domain.models.assembly import Assembly
-from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
-from julee.integrations.temporal.clock import TemporalClockService
-from julee.integrations.temporal.execution import TemporalExecutionService
-from julee.repositories.temporal.proxies import (
+from julee.contrib.ceap.infrastructure.repositories.temporal.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,
     WorkflowDocumentRepositoryProxy,
@@ -24,9 +21,12 @@ from julee.repositories.temporal.proxies import (
     WorkflowKnowledgeServiceQueryRepositoryProxy,
     WorkflowRemoteSchemaRepositoryProxy,
 )
-from julee.services.temporal.proxies import (
+from julee.contrib.ceap.infrastructure.services.temporal.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
+from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.integrations.temporal.clock import TemporalClockService
+from julee.integrations.temporal.execution import TemporalExecutionService
 
 logger = logging.getLogger(__name__)
 
