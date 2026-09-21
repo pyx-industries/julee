@@ -15,16 +15,18 @@ class Persona(BaseModel):
     A persona represents a type of user who interacts with the system.
     Personas are derived from user stories - they are the "As a..." in
     "As a [persona], I want to...".
-
-    Attributes:
-        name: Display name of the persona (e.g., "Knowledge Curator")
-        app_slugs: List of app slugs this persona uses
-        epic_slugs: List of epic slugs containing stories for this persona
     """
 
-    name: str
-    app_slugs: list[str] = Field(default_factory=list)
-    epic_slugs: list[str] = Field(default_factory=list)
+    name: str = Field(
+        description='Display name of the persona (e.g., "Knowledge Curator")'
+    )
+    app_slugs: list[str] = Field(
+        default_factory=list, description="List of app slugs this persona uses"
+    )
+    epic_slugs: list[str] = Field(
+        default_factory=list,
+        description="List of epic slugs containing stories for this persona",
+    )
 
     @field_validator("name", mode="before")
     @classmethod

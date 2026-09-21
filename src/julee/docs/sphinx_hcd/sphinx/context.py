@@ -41,15 +41,6 @@ class HCDContext:
 
     This context is created at builder-inited and attached to the
     Sphinx app object. It can be retrieved using get_hcd_context().
-
-    Attributes:
-        story_repo: Repository for Story entities
-        journey_repo: Repository for Journey entities
-        epic_repo: Repository for Epic entities
-        app_repo: Repository for App entities
-        accelerator_repo: Repository for Accelerator entities
-        integration_repo: Repository for Integration entities
-        code_info_repo: Repository for BoundedContextInfo entities
     """
 
     story_repo: SyncRepositoryAdapter["Story"] = field(
