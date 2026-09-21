@@ -198,6 +198,7 @@ The distribution name `julee-viewpoints` is provisional.
 ### 5. Relationship to earlier ADRs
 
 - **ADR 001** is superseded where it places contrib modules inside the `julee` distribution as `julee.contrib.*`, and where it calls them accelerators. Its principles about the internal structure of a module (self-contained solution, co-located tests, public API at the package root, `apps/` integration points, optional standalone `deploy/`) now apply to kits.
+- **ADR 013** is superseded where it places the HCD documentation code in the framework as `julee.docs.sphinx_hcd`. Its reasoning, documentation derived from the artefacts that drive build and test outcomes and organised by HCD concepts, stands, and ADR 006 carries it forward.
 - **ADR 010** is amended. Once the julee package no longer contains `contrib/`, `contrib` stops being a reserved word, and julee itself is no longer an example of a nested solution. Nested solutions remain available to solutions that want them.
 
 ## Consequences
