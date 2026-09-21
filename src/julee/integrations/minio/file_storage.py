@@ -5,8 +5,8 @@ import os
 from minio import Minio
 from minio.error import S3Error
 
-from julee.util.domain import FileMetadata, FileUploadArgs
-from julee.util.repositories import FileStorageRepository
+from julee.core.entities.file_storage import FileMetadata, FileUploadArgs
+from julee.core.repositories.file_storage import FileStorageRepository
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,8 @@ class MinioFileStorageRepository(FileStorageRepository):
                 io.BytesIO(args.data),
                 len(args.data),
                 content_type=args.content_type,
-                metadata=args.metadata,
+                # The entity's mapping is immutable; minio wants a dict.
+                metadata=dict(args.metadata),
             )
             logger.info(
                 "File uploaded successfully to Minio",

@@ -34,7 +34,7 @@ def validate_repository_protocol(repository: object, protocol: type[P]) -> None:
         RepositoryValidationError: If validation fails
 
     Example:
-        >>> from julee.util.validation.repository import validate_repository_protocol
+        >>> from julee.core.validation.repository import validate_repository_protocol
         >>> from julee.contrib.ceap.domain.repositories import DocumentRepository
         >>> repo = MinioDocumentRepository()
         >>> validate_repository_protocol(repo, DocumentRepository)
@@ -90,7 +90,7 @@ def ensure_repository_protocol(repository: object, protocol: type[P]) -> P:
         RepositoryValidationError: If validation fails
 
     Example:
-        >>> from julee.util.validation.repository import ensure_repository_protocol
+        >>> from julee.core.validation.repository import ensure_repository_protocol
         >>> from julee.contrib.ceap.domain.repositories import DocumentRepository
         >>> repo = MinioDocumentRepository()
         >>> validated_repo = ensure_repository_protocol(repo, DocumentRepository)

@@ -2,8 +2,8 @@ import logging
 
 from temporalio import workflow
 
-from julee.util.domain import FileMetadata, FileUploadArgs
-from julee.util.repositories import FileStorageRepository
+from julee.core.entities.file_storage import FileMetadata, FileUploadArgs
+from julee.core.repositories.file_storage import FileStorageRepository
 
 logger = logging.getLogger(__name__)
 

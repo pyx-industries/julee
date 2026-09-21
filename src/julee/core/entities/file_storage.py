@@ -1,13 +1,23 @@
+"""File storage entities.
+
+The records a file storage repository deals in: what was uploaded, and
+what is known about a stored file. They are framework-level because
+storing a file is not a domain concept, unlike the documents, credentials
+or specifications a solution stores.
+"""
+
+from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from pydantic import (
-    BaseModel,
     Field,
     field_validator,
 )
 
+from julee.core.entities.entity import Entity
 
-class FileMetadata(BaseModel):
+
+class FileMetadata(Entity):
     """Metadata about a stored file."""
 
     file_id: str
@@ -15,10 +25,10 @@ class FileMetadata(BaseModel):
     content_type: str | None = None
     size_bytes: int | None = None
     uploaded_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
-    metadata: dict[str, str] = Field(default_factory=dict)
+    metadata: Mapping[str, str] = Field(default_factory=dict)
 
 
-class FileUploadArgs(BaseModel):
+class FileUploadArgs(Entity):
     """
     Arguments for file upload with security validation.
 
@@ -31,7 +41,7 @@ class FileUploadArgs(BaseModel):
     filename: str
     data: bytes
     content_type: str
-    metadata: dict = Field(default_factory=dict)
+    metadata: Mapping[str, str] = Field(default_factory=dict)
 
     @field_validator("filename")
     @classmethod
