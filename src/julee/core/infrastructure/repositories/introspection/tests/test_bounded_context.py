@@ -4,6 +4,8 @@ Exercises discovery logic that doctrine tests depend on to find bounded
 contexts. Uses tmp_path to create realistic directory structures.
 """
 
+from pathlib import Path
+
 import pytest
 
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
@@ -19,7 +21,7 @@ pytestmark = pytest.mark.unit
 # =============================================================================
 
 
-def _make_bc(root, name, layers=("entities",), docstring=None):
+def _make_bc(root, name, layers=("domain/models",), docstring=None):
     """Create a minimal bounded context directory."""
     bc = root / name
     bc.mkdir(parents=True, exist_ok=True)
@@ -82,10 +84,10 @@ class TestGetFirstDocstringLine:
 class TestBoundedContextDiscovery:
     """Tests for BC discovery from filesystem structure."""
 
-    async def test_discovers_bc_with_entities_dir(self, tmp_path):
+    async def test_discovers_bc_with_domain_models_dir(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "billing", layers=("entities",))
+        _make_bc(search, "billing", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert "billing" in slugs
@@ -113,7 +115,7 @@ class TestBoundedContextDiscovery:
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
         # "apps" is a reserved word, even with BC structure
-        _make_bc(search, "apps", layers=("entities",))
+        _make_bc(search, "apps", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert "apps" not in slugs
@@ -121,7 +123,7 @@ class TestBoundedContextDiscovery:
     async def test_skips_dot_prefixed_dirs(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, ".hidden", layers=("entities",))
+        _make_bc(search, ".hidden", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert ".hidden" not in slugs
@@ -140,9 +142,9 @@ class TestBoundedContextDiscovery:
     async def test_returns_sorted_by_slug(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "zebra", layers=("entities",))
-        _make_bc(search, "alpha", layers=("entities",))
-        _make_bc(search, "middle", layers=("entities",))
+        _make_bc(search, "zebra", layers=("domain/models",))
+        _make_bc(search, "alpha", layers=("domain/models",))
+        _make_bc(search, "middle", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert slugs == sorted(slugs)
@@ -175,7 +177,13 @@ class TestStructuralMarkers:
         _make_bc(
             search,
             "full",
-            layers=("entities", "use_cases", "repositories", "services", "tests"),
+            layers=(
+                "domain/models",
+                "use_cases",
+                "domain/repositories",
+                "domain/services",
+                "tests",
+            ),
         )
         contexts = await repo.list_all()
         m = contexts[0].markers
@@ -188,7 +196,7 @@ class TestStructuralMarkers:
     async def test_minimal_bc_has_partial_markers(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "minimal", layers=("entities",))
+        _make_bc(search, "minimal", layers=("domain/models",))
         contexts = await repo.list_all()
         m = contexts[0].markers
         assert m.has_domain_models is True
@@ -211,7 +219,7 @@ class TestNestedSolutions:
         contrib.mkdir()
         (contrib / "__init__.py").write_text("")
         _make_bc(contrib, "polling", layers=("use_cases",))
-        _make_bc(contrib, "ceap", layers=("entities",))
+        _make_bc(contrib, "ceap", layers=("domain/models",))
         contexts = await repo.list_all()
         slugs = [c.slug for c in contexts]
         assert "polling" in slugs
@@ -223,7 +231,7 @@ class TestNestedSolutions:
         contrib = search / "contrib"
         contrib.mkdir()
         (contrib / "__init__.py").write_text("")
-        _make_bc(contrib, "polling", layers=("entities",))
+        _make_bc(contrib, "polling", layers=("domain/models",))
         contexts = await repo.list_all()
         polling = [c for c in contexts if c.slug == "polling"][0]
         assert polling.is_contrib is True
@@ -231,7 +239,7 @@ class TestNestedSolutions:
     async def test_top_level_bc_has_is_contrib_false(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "billing", layers=("entities",))
+        _make_bc(search, "billing", layers=("domain/models",))
         contexts = await repo.list_all()
         billing = [c for c in contexts if c.slug == "billing"][0]
         assert billing.is_contrib is False
@@ -248,11 +256,11 @@ class TestCaching:
     async def test_list_all_caches_results(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "billing", layers=("entities",))
+        _make_bc(search, "billing", layers=("domain/models",))
 
         first = await repo.list_all()
         # Add another BC after first discovery
-        _make_bc(search, "auth", layers=("entities",))
+        _make_bc(search, "auth", layers=("domain/models",))
         second = await repo.list_all()
 
         # Should return cached result (no "auth")
@@ -261,10 +269,10 @@ class TestCaching:
     async def test_invalidate_cache_forces_rediscovery(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "billing", layers=("entities",))
+        _make_bc(search, "billing", layers=("domain/models",))
 
         first = await repo.list_all()
-        _make_bc(search, "auth", layers=("entities",))
+        _make_bc(search, "auth", layers=("domain/models",))
         repo.invalidate_cache()
         second = await repo.list_all()
 
@@ -282,7 +290,7 @@ class TestGetBySlug:
     async def test_returns_matching_bc(self, tmp_path):
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "billing", layers=("entities",), docstring="Billing BC.")
+        _make_bc(search, "billing", layers=("domain/models",), docstring="Billing BC.")
         result = await repo.get("billing")
         assert result is not None
         assert result.slug == "billing"
@@ -292,3 +300,52 @@ class TestGetBySlug:
         repo = _make_repo(tmp_path)
         result = await repo.get("nonexistent")
         assert result is None
+
+
+ADR_001_LAYERS = (
+    "domain/models",
+    "domain/repositories",
+    "domain/services",
+    "use_cases",
+)
+
+
+def package(path: Path) -> Path:
+    """Make ``path`` a python package, with its parents."""
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "__init__.py").write_text("")
+    return path
+
+
+@pytest.fixture
+def solution(tmp_path: Path) -> Path:
+    """A solution whose one context is laid out as ADR 001 prescribes."""
+    context = package(tmp_path / "src" / "solution" / "ordering")
+    (context / "__init__.py").write_text('"""Ordering."""\n')
+    for layer in ADR_001_LAYERS:
+        package(context / layer)
+    return tmp_path
+
+
+async def test_a_context_under_domain_reports_the_layers_it_has(
+    solution: Path,
+) -> None:
+    repository = FilesystemBoundedContextRepository(solution, "src/solution")
+
+    (ordering,) = await repository.list_all()
+
+    assert ordering.markers.has_domain_models
+    assert ordering.markers.has_domain_repositories
+    assert ordering.markers.has_domain_services
+    assert ordering.markers.has_domain_use_cases
+
+
+async def test_each_layer_is_visible_through_has_layer(
+    solution: Path,
+) -> None:
+    repository = FilesystemBoundedContextRepository(solution, "src/solution")
+
+    (ordering,) = await repository.list_all()
+
+    for layer in ("models", "repositories", "services", "use_cases"):
+        assert ordering.has_layer(layer), layer

@@ -184,6 +184,7 @@ class TestUpdateUseCase:
 
         # Verify persisted
         stored = await repo.get("abc")
+        assert stored is not None
         assert stored.name == "new"
 
     async def test_partial_update_preserves_other_fields(self):
