@@ -17,10 +17,12 @@ typecheck:
 	@echo "Type checking..."
 	uv run mypy src/julee/ viewpoints/src/
 
-# Python unit tests
+# Python unit tests: every test that needs nothing but Python. They are
+# chosen by what is left out, not by -m unit, so that a test with no marker
+# runs rather than hides. Doctrine has its own targets below.
 test-python-unit:
 	@echo "Running Python unit tests..."
-	uv run pytest -m unit
+	uv run pytest -m "not integration and not e2e and not llm and not contract" --ignore=src/julee/core/doctrine
 
 # Doctrine tests against julee itself
 test-doctrine:
@@ -33,7 +35,7 @@ test-doctrine-kits:
 	JULEE_TARGET=viewpoints uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
-check: lint-python typecheck test-python-unit test-doctrine test-doctrine-kits
+check: lint-python typecheck test-python-unit test-integration test-doctrine test-doctrine-kits
 
 # Build the documentation
 docs:
@@ -107,7 +109,7 @@ update-requirements:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  check           - The checks CI runs (lint, types, unit, doctrine, kits)"
+	@echo "  check           - The checks CI runs (lint, types, unit, integration, doctrine, kits)"
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
 	@echo "  test-doctrine-kits - Doctrine tests against the kits in this workspace"
