@@ -133,7 +133,7 @@ class TestAppFromManifest:
 
     def test_from_manifest_default_name(self) -> None:
         """Test default name from slug when not in manifest."""
-        manifest = {}
+        manifest: dict = {}
 
         app = App.from_manifest(
             slug="staff-portal",

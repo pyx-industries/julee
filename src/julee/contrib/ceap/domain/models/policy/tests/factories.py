@@ -33,7 +33,7 @@ class DocumentPolicyValidationFactory(Factory):
     status = DocumentPolicyValidationStatus.PENDING
 
     # Initial validation results (empty by default)
-    validation_scores: list[tuple[str, int]] = []
+    validation_scores: tuple[tuple[str, int], ...] = ()
 
     # Transformation results (None by default)
     transformed_document_id = None

@@ -210,7 +210,7 @@ class MemoryRepositoryMixin(Generic[T]):
             updates["updated_at"] = now
 
         if updates:
-            return entity.model_copy(update=updates)  # type: ignore[return-value]
+            return entity.model_copy(update=updates)
         return entity
 
     def _add_entity_specific_log_data(

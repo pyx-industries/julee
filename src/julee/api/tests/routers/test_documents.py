@@ -63,7 +63,7 @@ def sample_documents() -> list[Document]:
             created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             updated_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             additional_metadata={"type": "test"},
-            content_bytes="test content",
+            content_bytes=b"test content",
         ),
         Document(
             document_id="doc-2",
@@ -75,7 +75,7 @@ def sample_documents() -> list[Document]:
             created_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC),
             updated_at=datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC),
             additional_metadata={"type": "report"},
-            content_bytes="pdf content",
+            content_bytes=b"pdf content",
         ),
     ]
 
@@ -284,7 +284,7 @@ class TestGetDocumentContent:
             content_multihash="empty_hash",
             status=DocumentStatus.CAPTURED,
             additional_metadata={"type": "empty"},
-            content_bytes="temp",
+            content_bytes=b"temp",
         )
 
         # Save document normally, then manually remove content from storage

@@ -15,6 +15,7 @@ import logging
 import os
 import time
 import uuid
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any
 
@@ -175,7 +176,7 @@ class AnthropicKnowledgeService(KnowledgeService):
         query_text: str,
         output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
-        query_metadata: dict[str, Any] | None = None,
+        query_metadata: Mapping[str, Any] | None = None,
         assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query against Anthropic.

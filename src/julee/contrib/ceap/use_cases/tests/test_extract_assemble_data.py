@@ -9,7 +9,7 @@ following the Clean Architecture principles.
 import io
 import json
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -467,10 +467,11 @@ class TestExtractAssembleDataUseCase:
             )
 
         # Replace the knowledge service execute_query method
-        original_execute_query = configured_use_case.knowledge_service.execute_query
-        configured_use_case.knowledge_service.execute_query = mock_execute_query
-
-        try:
+        with patch.object(
+            configured_use_case.knowledge_service,
+            "execute_query",
+            mock_execute_query,
+        ):
             # Act
             await configured_use_case.assemble_data(
                 document_id="doc-123",
@@ -499,10 +500,6 @@ class TestExtractAssembleDataUseCase:
             # Verify original metadata is preserved (without output_schema)
             assert call["query_metadata"]["max_tokens"] == 100
             assert call["query_metadata"]["temperature"] == 0.1
-
-        finally:
-            # Restore original method
-            configured_use_case.knowledge_service.execute_query = original_execute_query
 
     @pytest.mark.asyncio
     async def test_assembly_fails_when_specification_not_found(

@@ -128,7 +128,7 @@ class DependencyContainer:
         )
 
         logger.debug("Minio client created", extra={"endpoint": endpoint})
-        return client  # type: ignore[return-value]
+        return client
 
 
 # Global container instance

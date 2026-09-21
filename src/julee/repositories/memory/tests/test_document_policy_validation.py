@@ -36,15 +36,15 @@ def sample_validation() -> DocumentPolicyValidation:
         input_document_id="doc-123",
         policy_id="policy-456",
         status=DocumentPolicyValidationStatus.PASSED,
-        validation_scores=[
+        validation_scores=(
             ("quality-check-query", 85),
             ("completeness-check", 92),
-        ],
+        ),
         transformed_document_id="doc-123-transformed",
-        post_transform_validation_scores=[
+        post_transform_validation_scores=(
             ("quality-check-query", 95),
             ("completeness-check", 88),
-        ],
+        ),
         started_at=datetime.now(UTC),
         completed_at=datetime.now(UTC),
         passed=True,
@@ -99,7 +99,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
             input_document_id="doc-456",
             policy_id="policy-789",
             status=DocumentPolicyValidationStatus.ERROR,
-            validation_scores=[],
+            validation_scores=(),
             error_message="Something went wrong",
             passed=False,
         )
@@ -121,7 +121,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
             input_document_id="doc-789",
             policy_id="policy-abc",
             status=DocumentPolicyValidationStatus.VALIDATION_COMPLETE,
-            validation_scores=[("basic-check", 75)],
+            validation_scores=(("basic-check", 75),),
             transformed_document_id=None,
             post_transform_validation_scores=None,
         )
@@ -142,7 +142,7 @@ class TestMemoryDocumentPolicyValidationRepositorySpecific:
             input_document_id="doc-progress",
             policy_id="policy-progress",
             status=DocumentPolicyValidationStatus.IN_PROGRESS,
-            validation_scores=[],
+            validation_scores=(),
             passed=None,  # Still in progress
         )
 

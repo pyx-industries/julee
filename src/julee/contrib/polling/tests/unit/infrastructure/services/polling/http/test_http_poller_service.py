@@ -104,6 +104,7 @@ class TestHttpPollerServicePollEndpoint:
 
             assert result.success is False, f"Should fail for {description}"
             assert result.content == b""
+            assert result.error_message is not None
             assert "Mock network error" in result.error_message
             assert result.metadata["error_type"] == exception_type.__name__
 
@@ -200,6 +201,7 @@ class TestHttpPollerServicePollEndpoint:
             result = await service.poll_endpoint(config)
 
             assert result.success is True
+            assert captured_request is not None
             assert captured_request.headers["Authorization"] == "Bearer fresh-token"
             assert captured_request.headers["X-Custom"] == "keep"
 
@@ -230,6 +232,7 @@ class TestHttpPollerServicePollEndpoint:
             result = await service.poll_endpoint(config)
 
             assert result.success is True
+            assert captured_request is not None
             assert captured_request.headers["Authorization"] == "Bearer static-token"
 
     @pytest.mark.asyncio

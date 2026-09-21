@@ -14,10 +14,13 @@ Provides directives:
 - journeys-for-persona: List journeys for a specific persona
 """
 
+from typing import Any
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 
 from ...domain.models.journey import Journey, JourneyStep
+from ...domain.repositories import JourneyRepository
 from ...utils import (
     normalize_name,
     parse_csv_option,
@@ -388,7 +391,9 @@ def build_epic_node(epic_slug: str, docname: str):
     return para
 
 
-def _build_relative_uri(from_docname: str, target_doc: str, anchor: str = None) -> str:
+def _build_relative_uri(
+    from_docname: str, target_doc: str, anchor: str | None = None
+) -> str:
     """Build a relative URI from one doc to another."""
     from_parts = from_docname.split("/")
     target_parts = target_doc.split("/")
@@ -420,8 +425,8 @@ def render_journey_steps(journey: Journey, docname: str, hcd_context):
         return None
 
     # Group steps by phase
-    phases = []
-    current_phase = None
+    phases: list[dict[str, Any]] = []
+    current_phase: dict[str, Any] | None = None
 
     for step in steps:
         if step.step_type.value == "phase":
@@ -469,7 +474,11 @@ def render_journey_steps(journey: Journey, docname: str, hcd_context):
 
 
 def make_labelled_list(
-    term: str, items: list, hcd_context, docname: str = None, item_type: str = "text"
+    term: str,
+    items: list,
+    hcd_context,
+    docname: str | None = None,
+    item_type: str = "text",
 ):
     """Create a labelled bullet list with term as heading."""
     container = nodes.container()
@@ -516,9 +525,9 @@ def clear_journey_state(app, env, docname):
 
     # Clear journeys from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.journey_repo.run_async(
-        hcd_context.journey_repo.async_repo.clear_by_docname(docname)
-    )
+    async_repo = hcd_context.journey_repo.async_repo
+    assert isinstance(async_repo, JourneyRepository)
+    hcd_context.journey_repo.run_async(async_repo.clear_by_docname(docname))
 
 
 def process_journey_steps(app, doctree):

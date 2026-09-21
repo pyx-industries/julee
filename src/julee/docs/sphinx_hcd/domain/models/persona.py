@@ -34,7 +34,7 @@ class Persona(BaseModel):
             raise ValueError("name cannot be empty")
         return v.strip()
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def normalized_name(self) -> str:
         """Get normalized name for matching."""

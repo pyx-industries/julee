@@ -122,7 +122,7 @@ class NewDataDetectionPipeline:
                 previous_completion=previous_completion,
             )
             use_case = PollDataUseCase(
-                poller=WorkflowPollerServiceProxy(),
+                poller=WorkflowPollerServiceProxy(),  # type: ignore[abstract]
                 handler=self.get_handler(),
                 analyzer=self.get_analyzer(),
             )

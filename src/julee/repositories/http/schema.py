@@ -10,4 +10,5 @@ class HttpRemoteSchemaRepository(RemoteSchemaRepository):
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
             response.raise_for_status()
-            return response.json()
+            schema: dict[str, Any] = response.json()
+            return schema

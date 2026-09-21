@@ -10,9 +10,9 @@ import pytest
 
 from julee.core.parsers.ast import parse_python_classes
 from julee.core.use_cases.code_artifact.list_handler_protocols import (
+    ListHandlerProtocolsRequest,
     ListHandlerProtocolsUseCase,
 )
-from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 class TestHandlerProtocolStructure:
@@ -28,7 +28,7 @@ class TestHandlerProtocolStructure:
         does internally.
         """
         use_case = ListHandlerProtocolsUseCase(repo)
-        response = await use_case.execute(ListCodeArtifactsRequest())
+        response = await use_case.execute(ListHandlerProtocolsRequest())
 
         if not response.artifacts:
             pytest.skip("No handler protocols in target codebase — nothing to check")
@@ -58,7 +58,7 @@ class TestHandlerProtocolStructure:
         each file defines a single protocol — not a collection of unrelated handlers.
         """
         use_case = ListHandlerProtocolsUseCase(repo)
-        response = await use_case.execute(ListCodeArtifactsRequest())
+        response = await use_case.execute(ListHandlerProtocolsRequest())
 
         violations = []
         for artifact in response.artifacts:

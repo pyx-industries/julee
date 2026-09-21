@@ -17,8 +17,8 @@ import json
 import logging
 from datetime import UTC, datetime
 
-import multihash  # type: ignore[import-untyped]
-from minio.error import S3Error  # type: ignore[import-untyped]
+import multihash
+from minio.error import S3Error
 from pydantic import BaseModel, ConfigDict
 
 from julee.contrib.ceap.domain.models.custom_fields.content_stream import (

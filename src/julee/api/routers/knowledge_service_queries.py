@@ -46,7 +46,7 @@ async def get_knowledge_service_queries(
             }
         },
     ),
-    repository: KnowledgeServiceQueryRepository = Depends(  # type: ignore[misc]
+    repository: KnowledgeServiceQueryRepository = Depends(
         get_knowledge_service_query_repository
     ),
 ) -> Page[KnowledgeServiceQuery]:
@@ -166,7 +166,7 @@ async def get_knowledge_service_queries(
 @router.post("/", response_model=KnowledgeServiceQuery)
 async def create_knowledge_service_query(
     request: CreateKnowledgeServiceQueryRequest,
-    repository: KnowledgeServiceQueryRepository = Depends(  # type: ignore[misc]
+    repository: KnowledgeServiceQueryRepository = Depends(
         get_knowledge_service_query_repository
     ),
 ) -> KnowledgeServiceQuery:
@@ -230,7 +230,7 @@ async def create_knowledge_service_query(
 @router.get("/{query_id}", response_model=KnowledgeServiceQuery)
 async def get_knowledge_service_query(
     query_id: str,
-    repository: KnowledgeServiceQueryRepository = Depends(  # type: ignore[misc]
+    repository: KnowledgeServiceQueryRepository = Depends(
         get_knowledge_service_query_repository
     ),
 ) -> KnowledgeServiceQuery:

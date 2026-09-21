@@ -98,7 +98,7 @@ class HCDConfig:
         Returns:
             Absolute Path resolved relative to project root
         """
-        rel_path = self._config["paths"].get(key, "")
+        rel_path: str = self._config["paths"].get(key, "")
         return self._project_root / rel_path
 
     def get_doc_path(self, key: str) -> str:
@@ -110,7 +110,8 @@ class HCDConfig:
         Returns:
             Relative path string for use in doc references
         """
-        return self._config["docs_structure"].get(key, key)
+        doc_path: str = self._config["docs_structure"].get(key, key)
+        return doc_path
 
 
 # Module-level config instance, set by setup()

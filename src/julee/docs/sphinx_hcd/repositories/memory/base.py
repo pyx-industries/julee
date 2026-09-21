@@ -35,7 +35,8 @@ class MemoryRepositoryMixin(Generic[T]):
 
     def _get_entity_id(self, entity: T) -> str:
         """Extract the entity ID from an entity instance."""
-        return getattr(entity, self.id_field)
+        entity_id: str = getattr(entity, self.id_field)
+        return entity_id
 
     async def get(self, entity_id: str) -> T | None:
         """Retrieve an entity by ID."""

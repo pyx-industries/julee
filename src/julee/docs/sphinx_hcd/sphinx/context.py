@@ -8,6 +8,11 @@ with a unified, type-safe interface.
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from ..domain.repositories import (
+    AcceleratorRepository,
+    EpicRepository,
+    JourneyRepository,
+)
 from ..repositories.memory import (
     MemoryAcceleratorRepository,
     MemoryAppRepository,
@@ -103,20 +108,23 @@ class HCDContext:
 
         # Journey repo has clear_by_docname
         journey_async = self.journey_repo.async_repo
+        assert isinstance(journey_async, JourneyRepository)
         results["journeys"] = self.journey_repo.run_async(
-            journey_async.clear_by_docname(docname)  # type: ignore
+            journey_async.clear_by_docname(docname)
         )
 
         # Epic repo has clear_by_docname
         epic_async = self.epic_repo.async_repo
+        assert isinstance(epic_async, EpicRepository)
         results["epics"] = self.epic_repo.run_async(
-            epic_async.clear_by_docname(docname)  # type: ignore
+            epic_async.clear_by_docname(docname)
         )
 
         # Accelerator repo has clear_by_docname
         accel_async = self.accelerator_repo.async_repo
+        assert isinstance(accel_async, AcceleratorRepository)
         results["accelerators"] = self.accelerator_repo.run_async(
-            accel_async.clear_by_docname(docname)  # type: ignore
+            accel_async.clear_by_docname(docname)
         )
 
         return results
@@ -134,7 +142,8 @@ def get_hcd_context(app) -> HCDContext:
     Raises:
         AttributeError: If context hasn't been initialized
     """
-    return app._hcd_context
+    context: HCDContext = app._hcd_context
+    return context
 
 
 def set_hcd_context(app, context: HCDContext) -> None:

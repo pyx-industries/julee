@@ -191,7 +191,7 @@ class TestIntegrationFromManifest:
 
     def test_from_manifest_default_name(self) -> None:
         """Test default name from slug."""
-        manifest = {}
+        manifest: dict = {}
 
         integration = Integration.from_manifest(
             module_name="data_sync",
