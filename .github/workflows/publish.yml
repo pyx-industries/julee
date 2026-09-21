@@ -1,9 +1,14 @@
 name: Publish to PyPI
 
+# This repository holds two distributions, so a tag says which one it
+# releases: v0.3.0 releases julee, viewpoints-v0.1.0 releases
+# julee-viewpoints. Publishing both from one tag would mean republishing
+# an unchanged version, which PyPI refuses.
 on:
   push:
     tags:
       - 'v*'
+      - 'viewpoints-v*'
 
 jobs:
   publish:
@@ -20,8 +25,27 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Choose the distribution from the tag
+        id: dist
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            viewpoints-v*) echo "package=julee-viewpoints" >> "$GITHUB_OUTPUT" ;;
+            v*)            echo "package=julee" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Unexpected tag: ${GITHUB_REF_NAME}" >&2; exit 1 ;;
+          esac
+
+      - name: Check the tag matches the version
+        run: |
+          version="${GITHUB_REF_NAME#viewpoints-v}"
+          version="${version#v}"
+          declared=$(uv version --package "${{ steps.dist.outputs.package }}" --short)
+          if [ "$version" != "$declared" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match ${{ steps.dist.outputs.package }} $declared" >&2
+            exit 1
+          fi
+
       - name: Build package
-        run: uv build
+        run: uv build --package ${{ steps.dist.outputs.package }}
 
       - name: Publish to PyPI
         env:

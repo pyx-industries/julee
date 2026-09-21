@@ -23,6 +23,24 @@ Setup (one-time)
 
    **Warning**: Never commit ``.pypirc`` to the repository - it contains secrets.
 
+This repository holds two distributions
+---------------------------------------
+
+``julee``, at the root, and ``julee-viewpoints`` in ``viewpoints/``. Each
+releases on its own tag, because publishing both from one tag would mean
+re-publishing an unchanged version, which PyPI refuses.
+
+============================  ===================  ====================
+Distribution                  Version in           Tag
+============================  ===================  ====================
+``julee``                     ``pyproject.toml``,  ``vX.Y.Z``
+                              ``src/julee/__init__.py``
+``julee-viewpoints``          ``viewpoints/pyproject.toml``  ``viewpoints-vX.Y.Z``
+============================  ===================  ====================
+
+The workflow checks the tag against the version it finds, and refuses to
+publish a mismatch.
+
 Publishing a release
 --------------------
 
@@ -55,6 +73,15 @@ Publishing a release
        git push origin vX.Y.Z
 
 6. The GitHub Action will automatically build and publish to PyPI.
+
+For ``julee-viewpoints``, the same sequence with its own version file and
+tag::
+
+       git tag viewpoints-vX.Y.Z
+       git push origin viewpoints-vX.Y.Z
+
+The kits in `julee-kits <https://github.com/pyx-industries/julee-kits>`_
+release the same way, with their own tags.
 
 Manual publishing
 -----------------
