@@ -47,7 +47,9 @@ jobs:
       - name: Build package
         run: uv build --package ${{ steps.dist.outputs.package }}
 
+      # Trusted publishing: PyPI trusts this repository and workflow, so
+      # there is no token to hold or rotate. `always` rather than
+      # `automatic` so a misconfigured publisher fails loudly instead of
+      # falling back to looking for credentials that do not exist.
       - name: Publish to PyPI
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: uv publish
+        run: uv publish --trusted-publishing always

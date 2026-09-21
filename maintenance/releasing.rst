@@ -1,27 +1,31 @@
 Releasing to PyPI
 =================
 
-Setup (one-time)
-----------------
+Setup (one-time, per distribution)
+----------------------------------
 
-1. Create a PyPI account at https://pypi.org
-2. Create an API token at https://pypi.org/manage/account/token/
-3. Add the token to GitHub: Settings → Secrets and variables → Actions → New repository secret
+Publishing uses PyPI's trusted publishing, so there is no token to hold or
+rotate. PyPI is told to trust a particular repository and workflow, and the
+workflow proves who it is with an OIDC token GitHub mints for the run.
 
-   - Name: ``PYPI_API_TOKEN``
-   - Value: your token (starts with ``pypi-``)
+For each distribution, on PyPI under Your account → Publishing, add a
+publisher:
 
-4. (Optional) For manual uploads, configure ``~/.pypirc`` to avoid entering credentials each time::
+====================  ==============================
+Field                 Value
+====================  ==============================
+PyPI project name     ``julee`` or ``julee-viewpoints``
+Owner                 ``pyx-industries``
+Repository name       ``julee``
+Workflow name         ``publish.yml``
+Environment name      *(leave empty)*
+====================  ==============================
 
-       [pypi]
-       username = __token__
-       password = pypi-YOUR_TOKEN_HERE
+For a project that does not exist yet, add it as a *pending* publisher;
+PyPI creates the project on the first upload.
 
-       [testpypi]
-       username = __token__
-       password = pypi-YOUR_TESTPYPI_TOKEN_HERE
-
-   **Warning**: Never commit ``.pypirc`` to the repository - it contains secrets.
+For manual uploads, configure ``~/.pypirc`` with an API token. Never commit
+that file — it contains secrets.
 
 This repository holds two distributions
 ---------------------------------------
