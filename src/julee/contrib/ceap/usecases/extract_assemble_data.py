@@ -39,7 +39,7 @@ from julee.contrib.ceap.infrastructure.services.knowledge_service import (
 )
 from julee.core.services import ClockService, ExecutionService, SystemClockService
 from julee.core.services.execution import DefaultExecutionService
-from julee.util.validation import ensure_repository_protocol, validate_parameter_types
+from julee.core.validation import ensure_repository_protocol, validate_parameter_types
 
 from .decorators import try_use_case_step
 from .pointable_json_schema import PointableJSONSchema
