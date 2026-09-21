@@ -166,7 +166,7 @@ class TestParseBoundedContext:
         (context_dir / "domain" / "models").mkdir(parents=True)
         (context_dir / "domain" / "repositories").mkdir(parents=True)
         (context_dir / "domain" / "services").mkdir(parents=True)
-        (context_dir / "use_cases").mkdir(parents=True)
+        (context_dir / "usecases").mkdir(parents=True)
         (context_dir / "infrastructure").mkdir(parents=True)
 
         # Module docstring
@@ -180,7 +180,7 @@ class Vocabulary:
 ''')
 
         # Use case
-        (context_dir / "use_cases" / "create.py").write_text('''
+        (context_dir / "usecases" / "create.py").write_text('''
 class CreateVocabulary:
     """Create a new vocabulary."""
     pass

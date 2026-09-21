@@ -224,7 +224,7 @@ class StartupDependenciesProvider:
         from julee.contrib.ceap.apps.api.services.system_initialization import (
             SystemInitializationService,
         )
-        from julee.contrib.ceap.use_cases.initialize_system_data import (
+        from julee.contrib.ceap.usecases.initialize_system_data import (
             InitializeSystemDataUseCase,
         )
 

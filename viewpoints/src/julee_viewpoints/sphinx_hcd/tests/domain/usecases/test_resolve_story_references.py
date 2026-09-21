@@ -3,7 +3,7 @@
 from julee_viewpoints.sphinx_hcd.domain.models.epic import Epic
 from julee_viewpoints.sphinx_hcd.domain.models.journey import Journey, JourneyStep
 from julee_viewpoints.sphinx_hcd.domain.models.story import Story
-from julee_viewpoints.sphinx_hcd.domain.use_cases.resolve_story_references import (
+from julee_viewpoints.sphinx_hcd.domain.usecases.resolve_story_references import (
     get_epics_for_story,
     get_journeys_for_story,
     get_related_stories,

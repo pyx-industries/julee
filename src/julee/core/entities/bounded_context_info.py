@@ -17,7 +17,7 @@ class BoundedContextInfo(BaseModel):
 
     Represents the Clean Architecture layers present in a bounded context:
     - entities (domain/models/)
-    - use_cases (domain/use_cases/)
+    - use_cases (domain/usecases/)
     - repository_protocols (domain/repositories/)
     - service_protocols (domain/services/)
 

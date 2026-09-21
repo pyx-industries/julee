@@ -40,7 +40,7 @@ from julee.contrib.ceap.infrastructure.services.knowledge_service import QueryRe
 from julee.contrib.ceap.infrastructure.services.knowledge_service.memory import (
     MemoryKnowledgeService,
 )
-from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.contrib.ceap.usecases import ExtractAssembleDataUseCase
 
 pytestmark = pytest.mark.unit
 

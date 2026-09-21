@@ -16,11 +16,11 @@ A solution screams its accelerators:
       src/
         accelerator_a/
           domain/
-          use_cases/
+          usecases/
           infrastructure/
         accelerator_b/
           domain/
-          use_cases/
+          usecases/
           infrastructure/
       apps/
         api/

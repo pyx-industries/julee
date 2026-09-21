@@ -15,9 +15,9 @@ System_Boundary(solution, "Julee Solution") {
     }
 
     Container_Boundary(contexts, "Bounded Contexts") {
-        Container(billing, "Billing", "Domain", "domain/\nuse_cases/\ninfra/")
-        Container(compliance, "Compliance", "Domain", "domain/\nuse_cases/\ninfra/")
-        Container(reporting, "Reporting", "Domain", "domain/\nuse_cases/\ninfra/")
+        Container(billing, "Billing", "Domain", "domain/\nusecases/\ninfra/")
+        Container(compliance, "Compliance", "Domain", "domain/\nusecases/\ninfra/")
+        Container(reporting, "Reporting", "Domain", "domain/\nusecases/\ninfra/")
     }
 }
 

@@ -11,7 +11,7 @@ import pytest
 
 from julee.core.entities.code_info import ClassInfo
 from julee.core.parsers.ast import parse_bounded_context
-from julee.core.use_cases.code_artifact.list_repository_protocols import (
+from julee.core.usecases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsRequest,
     ListRepositoryProtocolsUseCase,
 )

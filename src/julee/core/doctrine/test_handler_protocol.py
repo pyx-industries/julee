@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from julee.core.parsers.ast import parse_python_classes
-from julee.core.use_cases.code_artifact.list_handler_protocols import (
+from julee.core.usecases.code_artifact.list_handler_protocols import (
     ListHandlerProtocolsRequest,
     ListHandlerProtocolsUseCase,
 )

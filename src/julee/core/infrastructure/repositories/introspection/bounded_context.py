@@ -90,7 +90,7 @@ class FilesystemBoundedContextRepository:
 
     Inspects directory structure to find bounded contexts laid out as
     ADR 001 prescribes: domain/{models,repositories,services} with
-    use_cases/ beside it.
+    usecases/ beside it.
     """
 
     def __init__(
@@ -194,7 +194,7 @@ class FilesystemBoundedContextRepository:
         """Check if a directory is a nested solution container.
 
         A nested solution is a Python package that:
-        - Does NOT have BC structure itself (no entities/ or use_cases/)
+        - Does NOT have BC structure itself (no entities/ or usecases/)
         - Contains at least one subdirectory that IS a bounded context
 
         Examples: contrib/, experimental/, plugins/

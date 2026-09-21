@@ -24,7 +24,7 @@ from julee.contrib.ceap.infrastructure.repositories.temporal.proxies import (
 from julee.contrib.ceap.infrastructure.services.temporal.proxies import (
     WorkflowKnowledgeServiceProxy,
 )
-from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
+from julee.contrib.ceap.usecases import ExtractAssembleDataUseCase
 from julee.integrations.temporal.clock import TemporalClockService
 from julee.integrations.temporal.execution import TemporalExecutionService
 

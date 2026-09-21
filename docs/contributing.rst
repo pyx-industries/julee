@@ -132,7 +132,7 @@ Follow the existing structure::
     ├── domain/            # Domain layer
     │   ├── models/        # Domain models
     │   ├── repositories/  # Repository protocols
-    │   └── use_cases/     # Business logic
+    │   └── usecases/     # Business logic
     ├── repositories/      # Repository implementations
     │   ├── minio/         # MinIO storage
     │   ├── memory/        # In-memory (testing)
