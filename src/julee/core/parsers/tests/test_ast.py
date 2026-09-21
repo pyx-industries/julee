@@ -357,6 +357,7 @@ x = 1
         )
         first, full = parse_module_docstring(f)
         assert first == "First line of docstring."
+        assert full is not None
         assert "More detail" in full
 
     def test_no_docstring_returns_none(self, tmp_path):
