@@ -3,13 +3,15 @@
 Finds apps, stories, journeys, and integrations related to an accelerator.
 """
 
-from ...utils import normalize_name
-from ..models.accelerator import Accelerator
-from ..models.app import App
-from ..models.code_info import BoundedContextInfo
-from ..models.integration import Integration
-from ..models.journey import Journey
-from ..models.story import Story
+from pydantic import BaseModel
+
+from ..domain.models.accelerator import Accelerator
+from ..domain.models.app import App
+from ..domain.models.code_info import BoundedContextInfo
+from ..domain.models.integration import Integration
+from ..domain.models.journey import Journey
+from ..domain.models.story import Story
+from ..utils import normalize_name
 
 
 def get_apps_for_accelerator(
@@ -198,39 +200,76 @@ def get_code_info_for_accelerator(
     return None
 
 
-def get_accelerator_cross_references(
-    accelerator: Accelerator,
-    accelerators: list[Accelerator],
-    apps: list[App],
-    stories: list[Story],
-    journeys: list[Journey],
-    integrations: list[Integration],
-    code_infos: list[BoundedContextInfo],
-) -> dict:
-    """Get all cross-references for an accelerator.
+class ResolveAcceleratorReferencesRequest(BaseModel):
+    """What an accelerator's references are resolved against."""
 
-    Convenience function to get all related entities at once.
+    accelerator: Accelerator
+    accelerators: tuple[Accelerator, ...] = ()
+    apps: tuple[App, ...] = ()
+    stories: tuple[Story, ...] = ()
+    journeys: tuple[Journey, ...] = ()
+    integrations: tuple[Integration, ...] = ()
+    code_infos: tuple[BoundedContextInfo, ...] = ()
 
-    Args:
-        accelerator: Accelerator to find references for
-        accelerators: All Accelerator entities
-        apps: All App entities
-        stories: All Story entities
-        journeys: All Journey entities
-        integrations: All Integration entities
-        code_infos: All BoundedContextInfo entities
 
-    Returns:
-        Dict with keys: apps, stories, journeys, source_integrations,
-                       publish_integrations, dependents, fed_by, code_info
+class ResolveAcceleratorReferencesResponse(BaseModel):
+    """Everything an accelerator is connected to."""
+
+    apps: tuple[App, ...] = ()
+    stories: tuple[Story, ...] = ()
+    journeys: tuple[Journey, ...] = ()
+    source_integrations: tuple[Integration, ...] = ()
+    publish_integrations: tuple[Integration, ...] = ()
+    dependents: tuple[Accelerator, ...] = ()
+    fed_by: tuple[Accelerator, ...] = ()
+    code_info: BoundedContextInfo | None = None
+
+
+class ResolveAcceleratorReferencesUseCase:
+    """Resolve everything an accelerator is connected to at once.
+
+    An accelerator's page draws on eight relationships: the apps that use
+    it, the stories and journeys those apps carry, the integrations it
+    sources from and publishes to, the accelerators on either side of it,
+    and the code its bounded context contains.
     """
-    return {
-        "apps": get_apps_for_accelerator(accelerator, apps),
-        "stories": get_stories_for_accelerator(accelerator, apps, stories),
-        "journeys": get_journeys_for_accelerator(accelerator, apps, stories, journeys),
-        "source_integrations": get_source_integrations(accelerator, integrations),
-        "publish_integrations": get_publish_integrations(accelerator, integrations),
-        "dependents": get_dependent_accelerators(accelerator, accelerators),
-        "fed_by": get_fed_by_accelerators(accelerator, accelerators),
-        "code_info": get_code_info_for_accelerator(accelerator, code_infos),
-    }
+
+    async def execute(
+        self, request: ResolveAcceleratorReferencesRequest
+    ) -> ResolveAcceleratorReferencesResponse:
+        """Resolve an accelerator's references.
+
+        Args:
+            request: The accelerator, and the entities to search
+
+        Returns:
+            The apps, stories, journeys, integrations, neighbouring
+            accelerators and code information connected to it
+        """
+        accelerator = request.accelerator
+        apps = list(request.apps)
+        stories = list(request.stories)
+        return ResolveAcceleratorReferencesResponse(
+            apps=tuple(get_apps_for_accelerator(accelerator, apps)),
+            stories=tuple(get_stories_for_accelerator(accelerator, apps, stories)),
+            journeys=tuple(
+                get_journeys_for_accelerator(
+                    accelerator, apps, stories, list(request.journeys)
+                )
+            ),
+            source_integrations=tuple(
+                get_source_integrations(accelerator, list(request.integrations))
+            ),
+            publish_integrations=tuple(
+                get_publish_integrations(accelerator, list(request.integrations))
+            ),
+            dependents=tuple(
+                get_dependent_accelerators(accelerator, list(request.accelerators))
+            ),
+            fed_by=tuple(
+                get_fed_by_accelerators(accelerator, list(request.accelerators))
+            ),
+            code_info=get_code_info_for_accelerator(
+                accelerator, list(request.code_infos)
+            ),
+        )

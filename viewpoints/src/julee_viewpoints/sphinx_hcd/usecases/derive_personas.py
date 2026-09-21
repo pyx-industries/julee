@@ -7,11 +7,13 @@ it with epic participation data.
 
 from collections import defaultdict
 
-from ...utils import normalize_name
-from ..models.app import App
-from ..models.epic import Epic
-from ..models.persona import Persona
-from ..models.story import Story
+from pydantic import BaseModel
+
+from ..domain.models.app import App
+from ..domain.models.epic import Epic
+from ..domain.models.persona import Persona
+from ..domain.models.story import Story
+from ..utils import normalize_name
 
 
 def derive_personas(
@@ -164,3 +166,38 @@ def get_apps_for_persona(
     """
     app_lookup = {app.slug: app for app in apps}
     return [app_lookup[slug] for slug in persona.app_slugs if slug in app_lookup]
+
+
+class DerivePersonasRequest(BaseModel):
+    """The stories and epics personas are derived from."""
+
+    stories: tuple[Story, ...] = ()
+    epics: tuple[Epic, ...] = ()
+
+
+class DerivePersonasResponse(BaseModel):
+    """The personas found in a solution's stories."""
+
+    personas: tuple[Persona, ...] = ()
+
+
+class DerivePersonasUseCase:
+    """Derive a solution's personas from its stories.
+
+    Personas are not written down anywhere: they are whoever the Gherkin
+    features say "As a ...". This reads them out of the stories and
+    enriches each one with the apps it uses and the epics it takes part
+    in, so the documentation cannot drift from the features.
+    """
+
+    async def execute(self, request: DerivePersonasRequest) -> DerivePersonasResponse:
+        """Derive personas.
+
+        Args:
+            request: The stories and epics to read
+
+        Returns:
+            The personas, sorted by name
+        """
+        personas = derive_personas(list(request.stories), list(request.epics))
+        return DerivePersonasResponse(personas=tuple(personas))

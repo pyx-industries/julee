@@ -16,7 +16,7 @@ from docutils.parsers.rst import directives
 
 from ...domain.models.accelerator import Accelerator, IntegrationReference
 from ...domain.repositories import AcceleratorRepository
-from ...domain.usecases import (
+from ...usecases import (
     get_apps_for_accelerator,
     get_code_info_for_accelerator,
     get_fed_by_accelerators,

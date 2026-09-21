@@ -1,11 +1,14 @@
 """Tests for resolve_app_references use case."""
 
+import pytest
+
 from julee_viewpoints.sphinx_hcd.domain.models.app import App, AppType
 from julee_viewpoints.sphinx_hcd.domain.models.epic import Epic
 from julee_viewpoints.sphinx_hcd.domain.models.journey import Journey, JourneyStep
 from julee_viewpoints.sphinx_hcd.domain.models.story import Story
-from julee_viewpoints.sphinx_hcd.domain.usecases.resolve_app_references import (
-    get_app_cross_references,
+from julee_viewpoints.sphinx_hcd.usecases.resolve_app_references import (
+    ResolveAppReferencesRequest,
+    ResolveAppReferencesUseCase,
     get_epics_for_app,
     get_journeys_for_app,
     get_personas_for_app,
@@ -238,11 +241,12 @@ class TestGetEpicsForApp:
         assert result == []
 
 
-class TestGetAppCrossReferences:
-    """Test get_app_cross_references function."""
+class TestResolveAppReferencesUseCase:
+    """Test the use case that resolves everything an app connects to."""
 
-    def test_cross_references(self) -> None:
-        """Test getting all cross-references for an app."""
+    @pytest.mark.asyncio
+    async def test_cross_references(self) -> None:
+        """An app's stories, personas, journeys and epics come back together."""
         app = create_app("vocabulary-tool")
         stories = [
             create_story("Upload Document", "vocabulary-tool", "Curator"),
@@ -257,9 +261,16 @@ class TestGetAppCrossReferences:
             create_journey("build-vocabulary", ["Upload Document"]),
         ]
 
-        result = get_app_cross_references(app, stories, epics, journeys)
+        response = await ResolveAppReferencesUseCase().execute(
+            ResolveAppReferencesRequest(
+                app=app,
+                stories=tuple(stories),
+                epics=tuple(epics),
+                journeys=tuple(journeys),
+            )
+        )
 
-        assert len(result["stories"]) == 2
-        assert len(result["personas"]) == 2
-        assert len(result["journeys"]) == 1
-        assert len(result["epics"]) == 1
+        assert len(response.stories) == 2
+        assert len(response.personas) == 2
+        assert len(response.journeys) == 1
+        assert len(response.epics) == 1

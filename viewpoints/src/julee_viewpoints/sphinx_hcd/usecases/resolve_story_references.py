@@ -3,10 +3,12 @@
 Finds epics and journeys that reference a specific story.
 """
 
-from ...utils import normalize_name
-from ..models.epic import Epic
-from ..models.journey import Journey
-from ..models.story import Story
+from pydantic import BaseModel
+
+from ..domain.models.epic import Epic
+from ..domain.models.journey import Journey
+from ..domain.models.story import Story
+from ..utils import normalize_name
 
 
 def get_epics_for_story(
@@ -95,27 +97,51 @@ def get_related_stories(
     return sorted(related, key=lambda s: s.feature_title)
 
 
-def get_story_cross_references(
-    story: Story,
-    stories: list[Story],
-    epics: list[Epic],
-    journeys: list[Journey],
-) -> dict:
-    """Get all cross-references for a story.
+class ResolveStoryReferencesRequest(BaseModel):
+    """What a story's references are resolved against."""
 
-    Convenience function to get all related entities at once.
+    story: Story
+    stories: tuple[Story, ...] = ()
+    epics: tuple[Epic, ...] = ()
+    journeys: tuple[Journey, ...] = ()
 
-    Args:
-        story: Story to find references for
-        stories: All Story entities
-        epics: All Epic entities
-        journeys: All Journey entities
 
-    Returns:
-        Dict with keys: epics, journeys, related_stories
+class ResolveStoryReferencesResponse(BaseModel):
+    """Everything that refers to a story."""
+
+    epics: tuple[Epic, ...] = ()
+    journeys: tuple[Journey, ...] = ()
+    related_stories: tuple[Story, ...] = ()
+
+
+class ResolveStoryReferencesUseCase:
+    """Resolve every reference to a story at once.
+
+    The directives that document a story need its epics, its journeys and
+    the stories it shares an epic with. Resolving them together keeps the
+    three answers consistent with one another.
     """
-    return {
-        "epics": get_epics_for_story(story, epics),
-        "journeys": get_journeys_for_story(story, journeys),
-        "related_stories": get_related_stories(story, stories, epics),
-    }
+
+    async def execute(
+        self, request: ResolveStoryReferencesRequest
+    ) -> ResolveStoryReferencesResponse:
+        """Resolve a story's references.
+
+        Args:
+            request: The story, and the entities to search
+
+        Returns:
+            The epics and journeys referring to the story, and its
+            related stories
+        """
+        return ResolveStoryReferencesResponse(
+            epics=tuple(get_epics_for_story(request.story, list(request.epics))),
+            journeys=tuple(
+                get_journeys_for_story(request.story, list(request.journeys))
+            ),
+            related_stories=tuple(
+                get_related_stories(
+                    request.story, list(request.stories), list(request.epics)
+                )
+            ),
+        )
