@@ -66,6 +66,9 @@ def sample_config():
     )
 
 
+pytestmark = pytest.mark.unit
+
+
 class TestPollingManagerInitialization:
     """Test PollingManager initialization."""
 
@@ -158,20 +161,20 @@ class TestPollingManagerStartPolling:
         assert poll_info["schedule_id"] == "poll-test-endpoint"
         assert poll_info["config"] == sample_config
         assert poll_info["interval_seconds"] == 60
-        assert poll_info["downstream_pipeline"] is None
+        assert poll_info["workflow_name"] == "run"
 
     @pytest.mark.asyncio
-    async def test_start_polling_with_downstream_pipeline(
+    async def test_start_polling_with_a_named_workflow(
         self, polling_manager, sample_config
     ):
-        """Test polling start with downstream pipeline."""
+        """A workflow may be named rather than passed as a callable."""
         schedule_id = await polling_manager.start_polling(
-            "test-endpoint", sample_config, 30, "custom-pipeline"
+            "test-endpoint", sample_config, 30, "CustomPipeline"
         )
 
         assert schedule_id == "poll-test-endpoint"
         poll_info = polling_manager._active_polls["test-endpoint"]
-        assert poll_info["downstream_pipeline"] == "custom-pipeline"
+        assert poll_info["workflow_name"] == "CustomPipeline"
 
     @pytest.mark.asyncio
     async def test_start_polling_duplicate_endpoint_raises_error(
@@ -253,7 +256,7 @@ class TestPollingManagerStopPolling:
             "schedule_id": "poll-test-endpoint",
             "config": sample_config,
             "interval_seconds": 60,
-            "downstream_pipeline": None,
+            "workflow_name": "run",
         }
 
         with pytest.raises(RuntimeError, match="Temporal client not available"):
@@ -297,12 +300,12 @@ class TestPollingManagerListActivePolling:
         assert endpoint1_poll["interval_seconds"] == 60
         assert endpoint1_poll["endpoint_identifier"] == "test-api"
         assert endpoint1_poll["polling_protocol"] == "http"
-        assert endpoint1_poll["downstream_pipeline"] is None
+        assert endpoint1_poll["workflow_name"] == "run"
 
         # Verify endpoint-2 details
         assert endpoint2_poll["schedule_id"] == "poll-endpoint-2"
         assert endpoint2_poll["interval_seconds"] == 30
-        assert endpoint2_poll["downstream_pipeline"] == "pipeline-2"
+        assert endpoint2_poll["workflow_name"] == "pipeline-2"
 
 
 class TestPollingManagerGetPollingStatus:
@@ -323,7 +326,7 @@ class TestPollingManagerGetPollingStatus:
             "schedule_id": "poll-test-endpoint",
             "config": sample_config,
             "interval_seconds": 60,
-            "downstream_pipeline": None,
+            "workflow_name": "run",
         }
 
         with pytest.raises(RuntimeError, match="Temporal client not available"):
@@ -345,7 +348,7 @@ class TestPollingManagerGetPollingStatus:
         assert status["endpoint_id"] == "test-endpoint"
         assert status["schedule_id"] == "poll-test-endpoint"
         assert status["interval_seconds"] == 60
-        assert status["downstream_pipeline"] == "test-pipeline"
+        assert status["workflow_name"] == "test-pipeline"
         # Should not be paused initially
         assert status["is_paused"] is False
 
@@ -378,7 +381,7 @@ class TestPollingManagerPauseResumePolling:
             "schedule_id": "poll-test-endpoint",
             "config": sample_config,
             "interval_seconds": 60,
-            "downstream_pipeline": None,
+            "workflow_name": "run",
         }
 
         with pytest.raises(RuntimeError, match="Temporal client not available"):
@@ -410,7 +413,7 @@ class TestPollingManagerPauseResumePolling:
             "schedule_id": "poll-test-endpoint",
             "config": sample_config,
             "interval_seconds": 60,
-            "downstream_pipeline": None,
+            "workflow_name": "run",
         }
 
         with pytest.raises(RuntimeError, match="Temporal client not available"):

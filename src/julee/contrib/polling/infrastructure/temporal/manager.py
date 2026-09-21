@@ -34,6 +34,13 @@ from julee.contrib.polling.domain.models.polling_config import (
 logger = logging.getLogger(__name__)
 
 
+def _workflow_name(workflow: "str | Callable[..., Awaitable[Any]]") -> str:
+    """The name to report for a workflow given as a name or a callable."""
+    if isinstance(workflow, str):
+        return workflow
+    return getattr(workflow, "__name__", str(workflow))
+
+
 class PollingManager:
     """
     High-level manager for HTTP endpoint polling operations.
@@ -155,12 +162,15 @@ class PollingManager:
             await schedule_handle.update(update_schedule_callback)
             logger.info(f"Updated schedule {schedule_id} for endpoint {endpoint_id}")
 
-        # Track the active polling operation
+        # Track the active polling operation. The name is stored as well as
+        # the workflow itself, because that is what the status methods report
+        # and a workflow may be given as a callable.
         self._active_polls[endpoint_id] = {
             "schedule_id": schedule_id,
             "config": config,
             "interval_seconds": interval_seconds,
             "workflow": workflow,
+            "workflow_name": _workflow_name(workflow),
         }
 
         return schedule_id
@@ -213,7 +223,7 @@ class PollingManager:
                     "interval_seconds": poll_info["interval_seconds"],
                     "endpoint_identifier": poll_info["config"].endpoint_identifier,
                     "polling_protocol": poll_info["config"].polling_protocol.value,
-                    "workflow": poll_info.get("workflow"),
+                    "workflow_name": poll_info.get("workflow_name"),
                 }
             )
 

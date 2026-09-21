@@ -28,6 +28,10 @@ from julee.contrib.polling.domain.models.polling_config import (
     PollingResult,
 )
 
+# Each test starts a Temporal test server, so these are integration tests
+# however fast they look. Run them with -m integration.
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 async def workflow_env():
