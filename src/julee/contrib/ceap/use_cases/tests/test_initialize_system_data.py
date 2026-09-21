@@ -39,6 +39,9 @@ from julee.repositories.memory.knowledge_service_query import (
 pytestmark = pytest.mark.unit
 
 
+_FIXTURES_DIR = Path(__file__).parent.parent.parent / "fixtures"
+
+
 @pytest.fixture
 def memory_config_repository() -> MemoryKnowledgeServiceConfigRepository:
     """Create memory knowledge service config repository."""
@@ -82,10 +85,7 @@ def use_case(
 @pytest.fixture
 def fixture_configs() -> list[dict]:
     """Load actual configurations from YAML fixture file."""
-    # Get the fixture file path
-    current_file = Path(__file__)
-    julee_dir = current_file.parent.parent.parent.parent.parent
-    fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
+    fixture_path = _FIXTURES_DIR / "knowledge_service_configs.yaml"
 
     assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"
 
@@ -314,10 +314,7 @@ class TestYamlFixtureIntegration:
 
     def test_fixture_file_exists_and_is_valid(self) -> None:
         """Test that the fixture file exists and contains valid data."""
-        # Get the fixture file path
-        current_file = Path(__file__)
-        julee_dir = current_file.parent.parent.parent.parent.parent
-        fixture_path = julee_dir / "fixtures" / "knowledge_service_configs.yaml"
+        fixture_path = _FIXTURES_DIR / "knowledge_service_configs.yaml"
 
         # Verify file exists
         assert fixture_path.exists(), f"Fixture file not found: {fixture_path}"

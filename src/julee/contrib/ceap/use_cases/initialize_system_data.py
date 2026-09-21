@@ -46,6 +46,10 @@ from julee.core.services import ClockService, SystemClockService
 logger = logging.getLogger(__name__)
 
 
+_FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
+"""Demo fixtures shipped with the CEAP module."""
+
+
 class InitializeSystemDataRequest(BaseModel):
     pass
 
@@ -138,9 +142,7 @@ class InitializeSystemDataUseCase:
         Returns:
             Path to the fixture file
         """
-        current_file = Path(__file__)
-        julee_dir = current_file.parent.parent.parent.parent
-        return julee_dir / "fixtures" / filename
+        return _FIXTURES_DIR / filename
 
     async def _ensure_knowledge_service_configs_exist(self) -> None:
         """
@@ -841,9 +843,7 @@ class InitializeSystemDataUseCase:
                     f"Unsupported type for 'content': {type(content)!r}. Expected str or bytes."
                 )
         else:
-            current_file = Path(__file__)
-            julee_dir = current_file.parent.parent.parent.parent
-            fixture_path = julee_dir / "fixtures" / doc_data["original_filename"]
+            fixture_path = _FIXTURES_DIR / doc_data["original_filename"]
 
             open_mode = "r" if is_text else "rb"
             encoding = "utf-8" if is_text else None

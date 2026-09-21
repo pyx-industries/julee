@@ -35,7 +35,12 @@ Quick Start
 
 Install Julee from `PyPI <https://pypi.org/project/julee/>`_::
 
-    pip install julee
+    pip install julee            # the framework: pydantic only
+    pip install "julee[all]"     # every integration and the contrib modules
+
+Julee installs a small kernel. Add what your solution uses, with the
+``doctrine``, ``temporal``, ``api``, ``minio``, ``sphinx``, ``ceap`` and
+``polling`` extras.
 
 Julee applications require: `Temporal <https://temporal.io/>`_ (workflow orchestration), S3-compatible object storage (e.g. MinIO), PostgreSQL (for Temporal).
 
