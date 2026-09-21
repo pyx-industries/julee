@@ -11,9 +11,8 @@ from datetime import UTC, datetime
 import pytest
 
 from julee.contrib.ceap.domain.models.assembly import Assembly, AssemblyStatus
+from julee.integrations.minio.tests.fake_client import FakeMinioClient
 from julee.repositories.minio.assembly import MinioAssemblyRepository
-
-from .fake_client import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

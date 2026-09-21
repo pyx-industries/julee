@@ -13,11 +13,10 @@ import pytest
 from julee.contrib.ceap.domain.models.assembly_specification import (
     KnowledgeServiceQuery,
 )
+from julee.integrations.minio.tests.fake_client import FakeMinioClient
 from julee.repositories.minio.knowledge_service_query import (
     MinioKnowledgeServiceQueryRepository,
 )
-
-from .fake_client import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

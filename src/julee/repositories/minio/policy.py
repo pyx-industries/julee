@@ -16,8 +16,7 @@ import logging
 
 from julee.contrib.ceap.domain.models.policy import Policy
 from julee.contrib.ceap.domain.repositories.policy import PolicyRepository
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 
 class MinioPolicyRepository(PolicyRepository, MinioRepositoryMixin):

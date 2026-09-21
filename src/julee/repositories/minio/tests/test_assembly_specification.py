@@ -14,11 +14,10 @@ from julee.contrib.ceap.domain.models.assembly_specification import (
     AssemblySpecification,
     AssemblySpecificationStatus,
 )
+from julee.integrations.minio.tests.fake_client import FakeMinioClient
 from julee.repositories.minio.assembly_specification import (
     MinioAssemblySpecificationRepository,
 )
-
-from .fake_client import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

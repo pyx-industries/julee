@@ -22,8 +22,7 @@ from julee.contrib.ceap.domain.models.assembly_specification import (
 from julee.contrib.ceap.domain.repositories.knowledge_service_query import (
     KnowledgeServiceQueryRepository,
 )
-
-from .client import MinioClient, MinioRepositoryMixin
+from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 
 logger = logging.getLogger(__name__)
 

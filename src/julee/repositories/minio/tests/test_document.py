@@ -19,9 +19,8 @@ from julee.contrib.ceap.domain.models.custom_fields.content_stream import (
     ContentStream,
 )
 from julee.contrib.ceap.domain.models.document import Document, DocumentStatus
+from julee.integrations.minio.tests.fake_client import FakeMinioClient
 from julee.repositories.minio.document import MinioDocumentRepository
-
-from .fake_client import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

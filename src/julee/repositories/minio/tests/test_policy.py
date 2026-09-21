@@ -11,9 +11,8 @@ from datetime import UTC, datetime
 import pytest
 
 from julee.contrib.ceap.domain.models.policy import Policy, PolicyStatus
+from julee.integrations.minio.tests.fake_client import FakeMinioClient
 from julee.repositories.minio.policy import MinioPolicyRepository
-
-from .fake_client import FakeMinioClient
 
 pytestmark = pytest.mark.unit
 

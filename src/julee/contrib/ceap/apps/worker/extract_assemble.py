@@ -14,8 +14,8 @@ from temporalio.common import RetryPolicy
 
 from julee.contrib.ceap.domain.models.assembly import Assembly
 from julee.contrib.ceap.use_cases import ExtractAssembleDataUseCase
-from julee.core.infrastructure.temporal.clock import TemporalClockService
-from julee.core.infrastructure.temporal.execution import TemporalExecutionService
+from julee.integrations.temporal.clock import TemporalClockService
+from julee.integrations.temporal.execution import TemporalExecutionService
 from julee.repositories.temporal.proxies import (
     WorkflowAssemblyRepositoryProxy,
     WorkflowAssemblySpecificationRepositoryProxy,
