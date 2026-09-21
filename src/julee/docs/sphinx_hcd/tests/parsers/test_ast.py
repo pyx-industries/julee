@@ -134,6 +134,7 @@ class SomeClass:
 
         first_line, full = parse_module_docstring(py_file)
         assert first_line == "Module docstring."
+        assert full is not None
         assert "More details" in full
 
     def test_parse_module_no_docstring(self, tmp_path: Path) -> None:

@@ -137,7 +137,7 @@ async def run_worker() -> None:
 
     # Create Minio client for repositories
     # minio.Minio implements the MinioClient protocol
-    minio_client: MinioClient = Minio(  # type: ignore[assignment]
+    minio_client: MinioClient = Minio(
         endpoint=minio_endpoint,
         access_key="minioadmin",
         secret_key="minioadmin",
@@ -199,7 +199,7 @@ async def run_worker() -> None:
         client,
         task_queue="julee-extract-assemble-queue",
         workflows=[ExtractAssembleWorkflow, ValidateDocumentWorkflow],
-        activities=activities,  # type: ignore[arg-type]
+        activities=activities,
     )
 
     logger.info("Starting julee worker execution")

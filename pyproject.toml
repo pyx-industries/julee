@@ -215,6 +215,15 @@ module = [
 follow_imports = "skip"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# Untyped third-party libraries with no published stubs.
+module = [
+    "jsonpointer",
+    "multihash",
+    "sphinxcontrib.plantuml",
+]
+ignore_missing_imports = true
+
 [tool.julee]
 # julee is itself a julee solution
 search_root = "src/julee"

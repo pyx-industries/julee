@@ -27,7 +27,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Content Quality Policy",
             description="Validates content meets quality standards",
-            validation_scores=[("quality-check-query", 80)],
+            validation_scores=(("quality-check-query", 80),),
         )
 
         assert policy.policy_id == "policy-001"
@@ -48,14 +48,14 @@ class TestPolicy:
             policy_id="policy-002",
             title="Content Enhancement Policy",
             description="Validates and enhances content quality",
-            validation_scores=[
+            validation_scores=(
                 ("grammar-check-query", 85),
                 ("clarity-check-query", 75),
-            ],
-            transformation_queries=[
+            ),
+            transformation_queries=(
                 "grammar-fix-query",
                 "clarity-improvement-query",
-            ],
+            ),
         )
 
         assert policy.validation_scores == (
@@ -79,8 +79,8 @@ class TestPolicy:
             title="Complete Policy",
             description="A policy with all fields specified",
             status=PolicyStatus.DRAFT,
-            validation_scores=[("test-query", 90)],
-            transformation_queries=["transform-query"],
+            validation_scores=(("test-query", 90),),
+            transformation_queries=("transform-query",),
             version="1.0.0",
             created_at=created_at,
             updated_at=updated_at,
@@ -104,7 +104,7 @@ class TestPolicy:
                 policy_id="",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy ID cannot be empty" in str(exc_info.value)
 
@@ -114,7 +114,7 @@ class TestPolicy:
                 policy_id="   ",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy ID cannot be empty" in str(exc_info.value)
 
@@ -123,7 +123,7 @@ class TestPolicy:
             policy_id="  policy-001  ",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
         )
         assert policy.policy_id == "policy-001"
 
@@ -135,7 +135,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy title cannot be empty" in str(exc_info.value)
 
@@ -145,7 +145,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="   ",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy title cannot be empty" in str(exc_info.value)
 
@@ -154,7 +154,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="  Test Policy  ",
             description="Test description",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
         )
         assert policy.title == "Test Policy"
 
@@ -166,7 +166,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy description cannot be empty" in str(exc_info.value)
 
@@ -176,7 +176,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="   ",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
             )
         assert "Policy description cannot be empty" in str(exc_info.value)
 
@@ -185,7 +185,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="  Test description  ",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
         )
         assert policy.description == "Test description"
 
@@ -197,7 +197,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[],
+                validation_scores=(),
             )
         assert "Validation scores list cannot be empty" in str(exc_info.value)
 
@@ -237,7 +237,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("", 80)],
+                validation_scores=(("", 80),),
             )
         assert "Query ID in validation scores must be a non-empty string" in str(
             exc_info.value
@@ -259,7 +259,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("query-id", -1)],
+                validation_scores=(("query-id", -1),),
             )
         assert "Required score -1 must be between 0 and 100" in str(exc_info.value)
 
@@ -269,7 +269,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("query-id", 101)],
+                validation_scores=(("query-id", 101),),
             )
         assert "Required score 101 must be between 0 and 100" in str(exc_info.value)
 
@@ -279,10 +279,10 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[
+                validation_scores=(
                     ("query-id", 80),
                     ("query-id", 90),
-                ],
+                ),
             )
         assert "Duplicate query ID 'query-id' in validation scores" in str(
             exc_info.value
@@ -293,7 +293,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("  query-id  ", 80)],
+            validation_scores=(("  query-id  ", 80),),
         )
         assert policy.validation_scores == (("query-id", 80),)
 
@@ -302,10 +302,10 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[
+            validation_scores=(
                 ("min-score", 0),
                 ("max-score", 100),
-            ],
+            ),
         )
         assert policy.validation_scores == (
             ("min-score", 0),
@@ -319,7 +319,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
             transformation_queries=None,
         )
         assert policy.transformation_queries is None
@@ -330,8 +330,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=[],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=(),
         )
         assert policy.transformation_queries == ()
         assert policy.is_validation_only is True
@@ -342,7 +342,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
                 transformation_queries="not-a-list",  # type: ignore
             )
         assert "Input should be a valid tuple" in str(exc_info.value)
@@ -353,7 +353,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
                 transformation_queries=[123],  # type: ignore
             )
         assert "Input should be a valid string" in str(exc_info.value)
@@ -364,8 +364,8 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
-                transformation_queries=[""],
+                validation_scores=(("test-query", 80),),
+                transformation_queries=("",),
             )
         assert "Each transformation query ID must be a non-empty string" in str(
             exc_info.value
@@ -377,8 +377,8 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
-                transformation_queries=["query-1", "query-1"],
+                validation_scores=(("test-query", 80),),
+                transformation_queries=("query-1", "query-1"),
             )
         assert "Duplicate query ID 'query-1' in transformation queries" in str(
             exc_info.value
@@ -389,8 +389,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=["  query-1  ", "  query-2  "],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=("  query-1  ", "  query-2  "),
         )
         assert policy.transformation_queries == ("query-1", "query-2")
         assert policy.has_transformations is True
@@ -403,7 +403,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
                 version="",
             )
         assert "Policy version cannot be empty" in str(exc_info.value)
@@ -414,7 +414,7 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
                 version="   ",
             )
         assert "Policy version cannot be empty" in str(exc_info.value)
@@ -424,7 +424,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
             version="  1.0.0  ",
         )
         assert policy.version == "1.0.0"
@@ -437,16 +437,16 @@ class TestPolicy:
                 policy_id="policy-001",
                 title="Test Policy",
                 description="Test description",
-                validation_scores=[("test-query", 80)],
+                validation_scores=(("test-query", 80),),
                 status=status,
             )
             assert policy.status == status
 
         # Test enum values
-        assert PolicyStatus.ACTIVE == "active"
-        assert PolicyStatus.INACTIVE == "inactive"
-        assert PolicyStatus.DRAFT == "draft"
-        assert PolicyStatus.DEPRECATED == "deprecated"
+        assert PolicyStatus.ACTIVE.value == "active"
+        assert PolicyStatus.INACTIVE.value == "inactive"
+        assert PolicyStatus.DRAFT.value == "draft"
+        assert PolicyStatus.DEPRECATED.value == "deprecated"
 
     def test_is_validation_only_property(self) -> None:
         """Test is_validation_only property logic."""
@@ -455,8 +455,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=[],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=(),
         )
         assert policy.is_validation_only is True
 
@@ -465,8 +465,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=["transform-query"],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=("transform-query",),
         )
         assert policy.is_validation_only is False
 
@@ -477,8 +477,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=[],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=(),
         )
         assert policy.has_transformations is False
 
@@ -487,8 +487,8 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
-            transformation_queries=["transform-query"],
+            validation_scores=(("test-query", 80),),
+            transformation_queries=("transform-query",),
         )
         assert policy.has_transformations is True
 
@@ -498,11 +498,11 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[
+            validation_scores=(
                 ("grammar-query", 85),
                 ("clarity-query", 75),
-            ],
-            transformation_queries=["fix-grammar", "improve-clarity"],
+            ),
+            transformation_queries=("fix-grammar", "improve-clarity"),
             status=PolicyStatus.DRAFT,
             version="1.2.0",
         )
@@ -533,7 +533,7 @@ class TestPolicy:
             policy_id="policy-001",
             title="Test Policy",
             description="Test description",
-            validation_scores=[("test-query", 80)],
+            validation_scores=(("test-query", 80),),
         )
 
         # Serialize to JSON

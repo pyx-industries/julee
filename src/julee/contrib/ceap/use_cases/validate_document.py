@@ -11,7 +11,7 @@ import hashlib
 import io
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime
 
 import multihash
@@ -198,7 +198,7 @@ class ValidateDocumentUseCase:
             input_document_id=document_id,
             policy_id=policy_id,
             status=DocumentPolicyValidationStatus.PENDING,
-            validation_scores=[],
+            validation_scores=(),
             started_at=self.now_fn(),
         )
 
@@ -506,7 +506,7 @@ class ValidateDocumentUseCase:
         policy: Policy,
         document_registrations: dict[str, str],
         queries: dict[str, KnowledgeServiceQuery],
-    ) -> list[tuple[str, int]]:
+    ) -> tuple[tuple[str, int], ...]:
         """
         Execute all validation queries and return the actual scores achieved.
 
@@ -517,10 +517,10 @@ class ValidateDocumentUseCase:
             queries: Dict of query_id to KnowledgeServiceQuery objects
 
         Returns:
-            List of (query_id, actual_score) tuples
+            Tuple of (query_id, actual_score) tuples
 
         """
-        validation_scores = []
+        validation_scores: list[tuple[str, int]] = []
 
         # Execute each validation query defined in the policy
         for query_id, required_score in policy.validation_scores:
@@ -567,7 +567,7 @@ class ValidateDocumentUseCase:
                 },
             )
 
-        return validation_scores
+        return tuple(validation_scores)
 
     def _extract_score_from_result(self, result_data: dict) -> int:
         """
@@ -592,15 +592,15 @@ class ValidateDocumentUseCase:
 
     def _determine_validation_result(
         self,
-        actual_scores: list[tuple[str, int]],
-        required_scores: list[tuple[str, int]],
+        actual_scores: Sequence[tuple[str, int]],
+        required_scores: Sequence[tuple[str, int]],
     ) -> bool:
         """
         Determine if validation passed based on actual vs required scores.
 
         Args:
-            actual_scores: List of (query_id, actual_score) tuples
-            required_scores: List of (query_id, required_score) tuples from
+            actual_scores: Sequence of (query_id, actual_score) tuples
+            required_scores: Sequence of (query_id, required_score) tuples from
                 policy
 
         Returns:

@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def _griffe_load_file(py_file: Path) -> griffe.Module | None:
     """Load a single Python file with griffe (no imports)."""
     try:
-        return griffe.load(
+        loaded = griffe.load(
             py_file.stem,
             search_paths=[str(py_file.parent)],
             allow_inspection=False,
@@ -42,6 +42,7 @@ def _griffe_load_file(py_file: Path) -> griffe.Module | None:
     except Exception as e:
         logger.warning(f"Could not parse {py_file}: {e}")
         return None
+    return loaded if isinstance(loaded, griffe.Module) else None
 
 
 def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo":

@@ -65,7 +65,7 @@ class TestMemoryDocumentRepositoryContentBytes:
             size_bytes=100,  # Will be updated automatically
             content_multihash="placeholder",  # Will be updated automatically
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         # Act - save should convert content_bytes to ContentStream
@@ -95,7 +95,7 @@ class TestMemoryDocumentRepositoryContentBytes:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         await repository.save(document)
@@ -122,7 +122,7 @@ class TestMemoryDocumentRepositoryContentBytes:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         await repository.save(document)
@@ -197,7 +197,7 @@ class TestMemoryDocumentRepositoryErrorHandling:
                 size_bytes=100,
                 content_multihash="test_hash",
                 status=DocumentStatus.CAPTURED,
-                content_bytes="test content",
+                content_bytes=b"test content",
             )
 
     async def test_save_handles_empty_filename(
@@ -212,5 +212,5 @@ class TestMemoryDocumentRepositoryErrorHandling:
                 size_bytes=100,
                 content_multihash="test_hash",
                 status=DocumentStatus.CAPTURED,
-                content_bytes="test content",
+                content_bytes=b"test content",
             )

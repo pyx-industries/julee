@@ -94,7 +94,7 @@ def _substitute_typevar_with_concrete(annotation: Any, concrete_type: type) -> A
             )
             # Reconstruct the generic type with substituted arguments
             try:
-                return origin[new_args]  # type: ignore
+                return origin[new_args]
             except TypeError as e:
                 # Fail fast - type reconstruction should work if substituting
                 raise TypeError(
@@ -411,7 +411,8 @@ def temporal_workflow_proxy(
             proxy_self.activity_default_retry_policy = default_retry_policy
             logger.debug(f"Initialized {cls.__name__}")
 
-        cls.__init__ = __init__
+        # Replace __init__ dynamically, as the wrapped methods are above
+        setattr(cls, "__init__", __init__)  # noqa: B010
 
         logger.info(
             f"Temporal workflow proxy decorator applied to {cls.__name__}",

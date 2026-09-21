@@ -46,15 +46,15 @@ def sample_validation() -> DocumentPolicyValidation:
         input_document_id="doc-123",
         policy_id="policy-456",
         status=DocumentPolicyValidationStatus.PASSED,
-        validation_scores=[
+        validation_scores=(
             ("quality-check-query", 85),
             ("completeness-check", 92),
-        ],
+        ),
         transformed_document_id="doc-123-transformed",
-        post_transform_validation_scores=[
+        post_transform_validation_scores=(
             ("quality-check-query", 95),
             ("completeness-check", 88),
-        ],
+        ),
         started_at=datetime.now(UTC),
         completed_at=datetime.now(UTC),
         passed=True,
@@ -145,7 +145,7 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
             input_document_id="doc-timestamp",
             policy_id="policy-timestamp",
             status=DocumentPolicyValidationStatus.PENDING,
-            validation_scores=[],
+            validation_scores=(),
             started_at=original_time,
             completed_at=None,
         )
@@ -169,9 +169,9 @@ class TestMinioDocumentPolicyValidationRepositorySpecific:
             input_document_id="doc-original",
             policy_id="policy-transform",
             status=DocumentPolicyValidationStatus.TRANSFORMATION_COMPLETE,
-            validation_scores=[("initial-check", 70)],
+            validation_scores=(("initial-check", 70),),
             transformed_document_id="doc-transformed",
-            post_transform_validation_scores=[("final-check", 85)],
+            post_transform_validation_scores=(("final-check", 85),),
             passed=True,
         )
 

@@ -12,9 +12,9 @@ import pytest
 from julee.core.entities.code_info import ClassInfo
 from julee.core.parsers.ast import parse_bounded_context
 from julee.core.use_cases.code_artifact.list_repository_protocols import (
+    ListRepositoryProtocolsRequest,
     ListRepositoryProtocolsUseCase,
 )
-from julee.core.use_cases.code_artifact.uc_interfaces import ListCodeArtifactsRequest
 
 
 def _extract_base_entity_type(class_info: ClassInfo) -> str | None:
@@ -54,7 +54,7 @@ class TestRepositoryProtocolBinding:
         their primary entity type cannot be determined structurally.
         """
         use_case = ListRepositoryProtocolsUseCase(repo)
-        response = await use_case.execute(ListCodeArtifactsRequest())
+        response = await use_case.execute(ListRepositoryProtocolsRequest())
 
         # Canary: ensure we're actually scanning repository protocols
         assert (
