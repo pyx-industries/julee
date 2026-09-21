@@ -73,11 +73,15 @@ test-unit: reports
 	@echo "Running unit tests with coverage..."
 	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e and not integration"
 
-# The Temporal pipeline tests. They need a test server per test, so the
-# worker count is fixed rather than -n auto.
+# Tests that need something running, a Temporal server for instance. One
+# test server per test, so the worker count is fixed rather than -n auto.
+# There are none in julee itself since polling moved to julee-kits, and an
+# empty selection (pytest exit code 5) is not a failure.
 test-integration:
 	@echo "Running integration tests..."
-	uv run pytest -m integration -n 2
+	@uv run pytest -m integration -n 2; status=$$?; \
+	if [ $$status -eq 5 ]; then echo "No integration tests in this package."; exit 0; fi; \
+	exit $$status
 
 # Setup reports directory
 reports:

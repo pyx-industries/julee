@@ -1036,10 +1036,6 @@ doctrine = [
 minio = [
     { name = "minio" },
 ]
-polling = [
-    { name = "httpx" },
-    { name = "temporalio", extra = ["pydantic"] },
-]
 temporal = [
     { name = "temporalio", extra = ["pydantic"] },
 ]
@@ -1056,15 +1052,13 @@ requires-dist = [
     { name = "furo", marker = "extra == 'docs'", specifier = ">=2023.9.10" },
     { name = "griffe", marker = "extra == 'doctrine'", specifier = ">=1.0.0,<2" },
     { name = "httpx", marker = "extra == 'ceap'", specifier = ">=0.27.0" },
-    { name = "httpx", marker = "extra == 'polling'", specifier = ">=0.27.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "inflect", marker = "extra == 'doctrine'", specifier = ">=7.5.0" },
     { name = "jsonpointer", marker = "extra == 'ceap'", specifier = ">=3.0.0" },
     { name = "jsonschema", marker = "extra == 'ceap'", specifier = ">=4.0.0" },
     { name = "julee", extras = ["all"], marker = "extra == 'dev'" },
     { name = "julee", extras = ["api", "minio", "temporal"], marker = "extra == 'ceap'" },
-    { name = "julee", extras = ["doctrine", "temporal", "api", "minio", "ceap", "polling"], marker = "extra == 'all'" },
-    { name = "julee", extras = ["temporal"], marker = "extra == 'polling'" },
+    { name = "julee", extras = ["doctrine", "temporal", "api", "minio", "ceap"], marker = "extra == 'all'" },
     { name = "julee-viewpoints", marker = "extra == 'dev'", editable = "viewpoints" },
     { name = "minio", marker = "extra == 'minio'", specifier = ">=7.0.0" },
     { name = "multihash", marker = "extra == 'ceap'", specifier = ">=0.1.1" },
@@ -1094,7 +1088,7 @@ requires-dist = [
     { name = "types-pyyaml", marker = "extra == 'dev'" },
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.20.0" },
 ]
-provides-extras = ["doctrine", "temporal", "api", "minio", "ceap", "polling", "all", "dev", "docs"]
+provides-extras = ["doctrine", "temporal", "api", "minio", "ceap", "all", "dev", "docs"]
 
 [[package]]
 name = "julee-viewpoints"
