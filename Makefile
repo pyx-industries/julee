@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
+.PHONY: install check docs lint-python typecheck test-python-unit test-doctrine test-doctrine-kits quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -9,13 +9,13 @@ install:
 # Python linting
 lint-python:
 	@echo "Linting Python code..."
-	uv run black --check src/julee/
-	uv run ruff check src/julee/
+	uv run black --check src/julee/ viewpoints/src/
+	uv run ruff check src/julee/ viewpoints/src/
 
 # Type checking (fails on errors)
 typecheck:
 	@echo "Type checking..."
-	uv run mypy src/julee/
+	uv run mypy src/julee/ viewpoints/src/
 
 # Python unit tests
 test-python-unit:
@@ -26,6 +26,13 @@ test-python-unit:
 test-doctrine:
 	@echo "Running doctrine tests..."
 	uv run pytest src/julee/core/doctrine/
+
+# Doctrine tests against each kit in this workspace. Not in `check` yet:
+# julee-viewpoints still has one violation, its use cases being functions
+# rather than UseCase classes with a Request and Response.
+test-doctrine-kits:
+	@echo "Running doctrine tests for julee-viewpoints..."
+	JULEE_TARGET=viewpoints uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
 check: lint-python typecheck test-python-unit test-doctrine
@@ -45,7 +52,7 @@ quality-full: reports quality-types quality-security test-unit
 # Type checking
 quality-types: reports
 	@echo "Type checking..."
-	uv run mypy src/julee/ > reports/mypy.txt 2>&1 || true
+	uv run mypy src/julee/ viewpoints/src/ > reports/mypy.txt 2>&1 || true
 
 # Security scanning
 quality-security: reports
@@ -95,8 +102,8 @@ clean:
 # Format Python code
 format-python:
 	@echo "Formatting Python code..."
-	uv run black src/julee/
-	uv run ruff check --fix src/julee/
+	uv run black src/julee/ viewpoints/src/
+	uv run ruff check --fix src/julee/ viewpoints/src/
 
 # Update uv.lock from pyproject.toml
 update-requirements:
@@ -110,6 +117,7 @@ help:
 	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
+	@echo "  test-doctrine-kits - Doctrine tests against the kits (not yet clean)"
 	@echo "  lint-python     - Python linting (black, ruff)"
 	@echo "  test-python-unit - Python unit tests"
 	@echo "  quality-fast-python - Fast Python quality checks (lint + unit tests)"

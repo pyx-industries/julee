@@ -75,20 +75,16 @@ polling = [
     "httpx>=0.27.0",
 ]
 
-# The Sphinx extensions in julee.docs
-sphinx = [
-    "sphinx>=7.0.0",
-    "PyYAML>=6.0.0",
-]
-
 # Everything
 all = [
-    "julee[doctrine,temporal,api,minio,ceap,polling,sphinx]",
+    "julee[doctrine,temporal,api,minio,ceap,polling]",
 ]
 
 dev = [
     # Every runtime extra, so the whole test suite runs
     "julee[all]",
+    # The kits in this workspace, so their tests run too
+    "julee-viewpoints",
     # Testing
     "pytest>=8.0.0",
     "pytest-asyncio>=1.0.0",
@@ -111,8 +107,6 @@ dev = [
     "bandit",
     # Database (for testing)
     "asyncpg",
-    # Sphinx (for sphinx_hcd tests)
-    "sphinx>=7.0.0",
 ]
 
 docs = [
@@ -132,6 +126,12 @@ Repository = "https://github.com/pyx-industries/julee"
 Documentation = "https://github.com/pyx-industries/julee#readme"
 Issues = "https://github.com/pyx-industries/julee/issues"
 
+[tool.uv.workspace]
+members = ["viewpoints"]
+
+[tool.uv.sources]
+julee-viewpoints = { workspace = true }
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["julee*"]
@@ -140,7 +140,7 @@ include = ["julee*"]
 "julee.contrib.ceap" = ["fixtures/*.yaml", "fixtures/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["src/julee"]
+testpaths = ["src/julee", "viewpoints/src"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -264,6 +264,7 @@ ignore_missing_imports = true
 [tool.julee]
 # julee is itself a julee solution
 search_root = "src/julee"
+kits = ["viewpoints"]
 docs_root = "docs"
 skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal
 
