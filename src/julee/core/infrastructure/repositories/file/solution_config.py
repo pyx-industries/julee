@@ -43,6 +43,7 @@ class FileSolutionConfigRepository:
             is_julee_solution=True,
             policies=tuple(tool_julee.get("policies", [])),
             skip_policies=tuple(tool_julee.get("skip_policies", [])),
+            kits=tuple(tool_julee.get("kits", [])),
             search_root=tool_julee.get("search_root"),
             docs_root=tool_julee.get("docs_root"),
         )

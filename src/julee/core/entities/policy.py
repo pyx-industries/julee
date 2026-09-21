@@ -95,6 +95,7 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     [tool.julee]
     search_root = "src/acme"  # Where to find bounded contexts
     docs_root = "docs"        # Where to find documentation
+    kits = ["ceap"]           # Which installed kits this solution adopts
     ```
     """
 
@@ -109,6 +110,11 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     skip_policies: tuple[str, ...] = Field(
         default_factory=tuple,
         description="Explicitly skipped policy slugs (framework defaults)",
+    )
+    kits: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Slugs of kits this solution adopts. Installing a kit "
+        "does not activate it; adoption is explicit",
     )
     search_root: str | None = Field(
         default=None,

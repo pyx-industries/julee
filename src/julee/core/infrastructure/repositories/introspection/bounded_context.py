@@ -16,7 +16,6 @@ from julee.core.doctrine_constants import (
     RESERVED_WORDS,
     SERVICES_PATH,
     USE_CASES_PATH,
-    VIEWPOINT_SLUGS,
 )
 from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
 
@@ -98,6 +97,7 @@ class FilesystemBoundedContextRepository:
         self,
         project_root: Path,
         search_root: str,
+        viewpoint_slugs: frozenset[str] = frozenset(),
     ) -> None:
         """Initialize repository.
 
@@ -105,9 +105,13 @@ class FilesystemBoundedContextRepository:
             project_root: Root directory of the project
             search_root: Root directory for bounded context discovery,
                 relative to project_root (e.g., "src/myapp").
+            viewpoint_slugs: Slugs that describe a solution rather than
+                implement a domain. Declared by the kits a solution adopts;
+                see julee.core.kits.viewpoint_slugs.
         """
         self.project_root = project_root
         self.search_root = search_root
+        self.viewpoint_slugs = viewpoint_slugs
         self._cache: list[BoundedContext] | None = None
 
     def _is_python_package(self, path: Path) -> bool:
@@ -179,7 +183,7 @@ class FilesystemBoundedContextRepository:
                 path=str(candidate),
                 description=_get_first_docstring_line(candidate),
                 is_contrib=is_contrib,
-                is_viewpoint=candidate.name in VIEWPOINT_SLUGS,
+                is_viewpoint=candidate.name in self.viewpoint_slugs,
                 markers=markers,
             )
             contexts.append(context)
@@ -252,7 +256,7 @@ class FilesystemBoundedContextRepository:
                     path=str(candidate),
                     description=_get_first_docstring_line(candidate),
                     is_contrib=is_contrib,
-                    is_viewpoint=candidate.name in VIEWPOINT_SLUGS,
+                    is_viewpoint=candidate.name in self.viewpoint_slugs,
                     markers=markers,
                 )
                 all_contexts.append(context)
@@ -266,11 +270,19 @@ class FilesystemBoundedContextRepository:
 
         return sorted(all_contexts, key=lambda c: c.slug)
 
-    async def list_all(self) -> list[BoundedContext]:
-        """List all discovered bounded contexts."""
+    def discover_all(self) -> list[BoundedContext]:
+        """List all discovered bounded contexts, synchronously.
+
+        For callers outside an event loop, such as doctrine fixtures and
+        kit introspection.
+        """
         if self._cache is None:
             self._cache = self._discover_all()
         return self._cache
+
+    async def list_all(self) -> list[BoundedContext]:
+        """List all discovered bounded contexts."""
+        return self.discover_all()
 
     async def get(self, slug: str) -> BoundedContext | None:
         """Get a bounded context by slug."""
