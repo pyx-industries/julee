@@ -84,6 +84,3 @@ RESERVED_WORDS: Final[frozenset[str]] = frozenset(
     }
 )
 """Directory names that are not bounded contexts."""
-
-VIEWPOINT_SLUGS: Final[frozenset[str]] = frozenset({"hcd", "c4"})
-"""Bounded context slugs that are architectural viewpoints, not solution domains."""

@@ -17,6 +17,7 @@ from julee.core.infrastructure.repositories.file.solution_config import (
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
+from julee.core.kits import adopted_kits, viewpoint_slugs
 
 
 def _find_project_root() -> Path:
@@ -52,6 +53,24 @@ SEARCH_ROOT = _get_search_root(PROJECT_ROOT)
 
 
 @pytest.fixture(scope="session")
+def project_root() -> Path:
+    """Root of the codebase under test."""
+    return PROJECT_ROOT
+
+
+@pytest.fixture(scope="session")
 def repo() -> FilesystemBoundedContextRepository:
-    """Bounded context repository pointing at the target codebase."""
-    return FilesystemBoundedContextRepository(PROJECT_ROOT, SEARCH_ROOT)
+    """Bounded context repository pointing at the target codebase.
+
+    Which contexts count as viewpoints comes from the kits the target
+    adopts, so this fixture resolves them first.
+    """
+    return FilesystemBoundedContextRepository(
+        PROJECT_ROOT, SEARCH_ROOT, viewpoint_slugs(PROJECT_ROOT)
+    )
+
+
+@pytest.fixture(scope="session")
+def kits():
+    """The kits the target codebase adopts."""
+    return adopted_kits(PROJECT_ROOT)
