@@ -29,11 +29,13 @@ PIPELINE_SUFFIX: Final[str] = "Pipeline"
 # LAYER DIRECTORY PATHS
 # =============================================================================
 # Expressed as tuples so callers can join with Path() components.
+# The layout is ADR 001's: a bounded context keeps its domain under
+# domain/, and its use cases beside it.
 
-ENTITIES_PATH: Final[tuple[str, ...]] = ("entities",)
+ENTITIES_PATH: Final[tuple[str, ...]] = ("domain", "models")
 USE_CASES_PATH: Final[tuple[str, ...]] = ("use_cases",)
-REPOSITORIES_PATH: Final[tuple[str, ...]] = ("repositories",)
-SERVICES_PATH: Final[tuple[str, ...]] = ("services",)
+REPOSITORIES_PATH: Final[tuple[str, ...]] = ("domain", "repositories")
+SERVICES_PATH: Final[tuple[str, ...]] = ("domain", "services")
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 
 # =============================================================================

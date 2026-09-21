@@ -89,9 +89,9 @@ def _is_gitignored(path: Path, project_root: Path) -> bool:
 class FilesystemBoundedContextRepository:
     """Repository that discovers bounded contexts by scanning filesystem.
 
-    Inspects directory structure to find bounded contexts that follow
-    the {entities,repositories,services,use_cases} pattern (flattened)
-    or the legacy domain/{models,repositories,services,use_cases} pattern.
+    Inspects directory structure to find bounded contexts laid out as
+    ADR 001 prescribes: domain/{models,repositories,services} with
+    use_cases/ beside it.
     """
 
     def __init__(
