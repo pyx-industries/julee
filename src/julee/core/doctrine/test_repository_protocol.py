@@ -30,6 +30,18 @@ def _extract_base_entity_type(class_info: ClassInfo) -> str | None:
     return None
 
 
+def _is_enum(entity: object) -> bool:
+    """Whether a scanned class is an Enum rather than an entity.
+
+    An Enum defined in domain/models is a value a repository method may
+    take or return without binding the repository to a second entity, as
+    the docstring on the binding test says. test_entity exempts them the
+    same way.
+    """
+    bases = getattr(entity, "bases", None) or ()
+    return any(b in {"str", "int"} or b.endswith("Enum") for b in bases)
+
+
 class TestRepositoryProtocolBinding:
     """Doctrine about repository protocol entity binding."""
 
@@ -68,7 +80,9 @@ class TestRepositoryProtocolBinding:
         for ctx in contexts:
             info = parse_bounded_context(Path(ctx.path))
             if info:
-                entity_names_by_ctx[ctx.slug] = {e.name for e in info.entities}
+                entity_names_by_ctx[ctx.slug] = {
+                    e.name for e in info.entities if not _is_enum(e)
+                }
 
         violations = []
         for artifact in response.artifacts:
