@@ -96,6 +96,8 @@ dev = [
     "pytest-xdist>=3.5.0",
     "hypothesis>=6.0.0",
     "factory-boy>=3.2.0",
+    # Mutation testing (run on demand: uv run mutmut run)
+    "mutmut>=3.5.0",
     # Type checking
     "mypy>=1.7.0",
     "types-PyYAML",
@@ -269,3 +271,12 @@ skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+
+[tool.mutmut]
+# Mutation testing is run on demand, not in CI: uv run mutmut run, then
+# uv run mutmut results. Widen paths_to_mutate as modules gain tests worth
+# measuring; the parser is first because doctrine depends on it.
+paths_to_mutate = ["src/julee/core/parsers/ast.py"]
+also_copy = ["src/"]
+tests_dir = ["src/julee/core/parsers/tests/"]
+pytest_add_cli_args = ["-x", "-q", "--tb=no", "-p", "no:xdist", "-p", "no:cacheprovider", "-o", "addopts="]
