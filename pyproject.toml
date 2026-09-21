@@ -137,6 +137,9 @@ where = ["src"]
 include = ["julee*"]
 
 [tool.setuptools.package-data]
+# PEP 561: julee is typed, so a solution or kit that depends on it gets
+# its annotations rather than Any.
+julee = ["py.typed"]
 "julee.contrib.ceap" = ["fixtures/*.yaml", "fixtures/*.json"]
 
 [tool.pytest.ini_options]

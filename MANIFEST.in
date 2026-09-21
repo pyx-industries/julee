@@ -1,3 +1,4 @@
 include LICENSE
 include README.md
 recursive-include src/julee/contrib/ceap/fixtures *.yaml *.json
+include src/julee/py.typed
