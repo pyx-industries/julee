@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "julee"
 version = "0.1.16"
-description = "Julee - Clean architecture for accountable and transparent digital supply chains"
+description = "Julee - a clean architecture framework for Python solutions"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0"
 authors = [
     {name = "Pyx Industries", email = "chris@pyx.io"}
 ]
-keywords = ["temporal", "workflow", "document-processing", "ai", "supply-chain"]
+keywords = ["clean-architecture", "domain-driven-design", "bounded-context", "framework"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -24,36 +24,71 @@ classifiers = [
 ]
 
 dependencies = [
-    # Core Web Framework
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
-    "python-multipart>=0.0.27",
-    "fastapi-pagination>=0.12.0",
-    # Data Validation and Serialization
+    # The kernel itself needs only pydantic. Everything else is an extra,
+    # so a solution installs the integrations and domain code it uses.
+    # See docs/ADRs/012-framework-and-kits.md.
     "pydantic>=2.0.0",
-    # Temporal Workflow Engine
-    "temporalio[pydantic]>=1.27.0",
-    # Object Storage
-    "minio>=7.0.0",
-    # AI/ML Services
-    "anthropic>=0.66.0",
-    # Utilities
-    "click>=0.8.0",
-    "Jinja2>=3.0.0",
-    "PyYAML>=6.0.0",
-    "python-magic>=0.4.27",
-    "multihash>=0.1.1",
-    "six>=1.16.0",
-    "jsonschema>=4.0.0",
-    "jsonpointer>=3.0.0",
-    "httpx>=0.27.0",
-    # Code introspection (doctrine tests, CLI)
+]
+
+[project.optional-dependencies]
+
+# Doctrine, policy and code introspection
+doctrine = [
     "griffe>=1.0.0,<2",
     "inflect>=7.5.0",
 ]
 
-[project.optional-dependencies]
+# Temporal integration
+temporal = [
+    "temporalio[pydantic]>=1.27.0",
+]
+
+# FastAPI applications
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "python-multipart>=0.0.27",
+    "fastapi-pagination>=0.12.0",
+]
+
+# MinIO object storage
+minio = [
+    "minio>=7.0.0",
+]
+
+# The CEAP domain code in julee.contrib.ceap
+ceap = [
+    "julee[api,minio,temporal]",
+    "anthropic>=0.66.0",
+    "PyYAML>=6.0.0",
+    "multihash>=0.1.1",
+    # multihash 0.1.1 imports six without declaring it
+    "six>=1.16.0",
+    "jsonschema>=4.0.0",
+    "jsonpointer>=3.0.0",
+    "httpx>=0.27.0",
+]
+
+# The polling domain code in julee.contrib.polling
+polling = [
+    "julee[temporal]",
+    "httpx>=0.27.0",
+]
+
+# The Sphinx extensions in julee.docs
+sphinx = [
+    "sphinx>=7.0.0",
+    "PyYAML>=6.0.0",
+]
+
+# Everything
+all = [
+    "julee[doctrine,temporal,api,minio,ceap,polling,sphinx]",
+]
+
 dev = [
+    # Every runtime extra, so the whole test suite runs
+    "julee[all]",
     # Testing
     "pytest>=8.0.0",
     "pytest-asyncio>=1.0.0",
@@ -100,7 +135,7 @@ where = ["src"]
 include = ["julee*"]
 
 [tool.setuptools.package-data]
-julee = ["fixtures/*.yaml"]
+"julee.contrib.ceap" = ["fixtures/*.yaml", "fixtures/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["src/julee"]
