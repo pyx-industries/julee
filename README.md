@@ -11,8 +11,21 @@ Julee is a Python framework for building resilient, auditable business processes
 ## Installation
 
 ```bash
-pip install julee
+pip install julee            # the framework: pydantic only
+pip install "julee[all]"     # every integration and the contrib modules
 ```
+
+Julee installs a small kernel. Add what a solution uses:
+
+| Extra | Brings |
+|---|---|
+| `doctrine` | doctrine, policy and code introspection |
+| `temporal` | the Temporal integration |
+| `api` | FastAPI applications |
+| `minio` | MinIO object storage |
+| `sphinx` | the Sphinx extensions |
+| `ceap` | the CEAP contrib module |
+| `polling` | the polling contrib module |
 
 ## Runtime Dependencies
 

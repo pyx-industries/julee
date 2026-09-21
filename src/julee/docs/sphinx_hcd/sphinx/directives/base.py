@@ -39,7 +39,8 @@ class HCDDirective(SphinxDirective):
     @property
     def docname(self) -> str:
         """Get the current document name."""
-        return self.env.docname
+        docname: str = self.env.docname
+        return docname
 
     @property
     def prefix(self) -> str:

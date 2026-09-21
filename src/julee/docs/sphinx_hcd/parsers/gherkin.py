@@ -138,7 +138,7 @@ def scan_feature_directory(
     Returns:
         List of parsed Story entities
     """
-    stories = []
+    stories: list[Story] = []
 
     if not feature_dir.exists():
         logger.info(

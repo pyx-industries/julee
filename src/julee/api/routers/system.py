@@ -110,13 +110,13 @@ async def health_check() -> HealthCheckResponse:
     temporal_status = results[1]
     storage_status = results[2]
 
-    if isinstance(api_status, Exception):
+    if isinstance(api_status, BaseException):
         logger.error("API health check error: %s", api_status)
         api_status = ServiceStatus.DOWN
-    if isinstance(temporal_status, Exception):
+    if isinstance(temporal_status, BaseException):
         logger.error("Temporal health check error: %s", temporal_status)
         temporal_status = ServiceStatus.DOWN
-    if isinstance(storage_status, Exception):
+    if isinstance(storage_status, BaseException):
         logger.error("Storage health check error: %s", storage_status)
         storage_status = ServiceStatus.DOWN
 

@@ -143,7 +143,7 @@ class FilesystemBoundedContextRepository:
         is_contrib: bool = False,
     ) -> list[BoundedContext]:
         """Discover bounded contexts in a directory."""
-        contexts = []
+        contexts: list[BoundedContext] = []
 
         if not search_path.exists():
             return contexts

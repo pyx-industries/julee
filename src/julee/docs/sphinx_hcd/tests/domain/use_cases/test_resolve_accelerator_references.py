@@ -33,10 +33,14 @@ def create_accelerator(
     return Accelerator(
         slug=slug,
         status="active",
-        sources_from=[IntegrationReference(slug=s) for s in (sources_from or [])],
-        publishes_to=[IntegrationReference(slug=p) for p in (publishes_to or [])],
-        depends_on=depends_on or [],
-        feeds_into=feeds_into or [],
+        sources_from=tuple(
+            [IntegrationReference(slug=s) for s in (sources_from or [])]
+        ),
+        publishes_to=tuple(
+            [IntegrationReference(slug=p) for p in (publishes_to or [])]
+        ),
+        depends_on=tuple(depends_on or []),
+        feeds_into=tuple(feeds_into or []),
     )
 
 
@@ -69,7 +73,7 @@ def create_story(feature_title: str, app_slug: str) -> Story:
 def create_journey(slug: str, story_refs: list[str]) -> Journey:
     """Helper to create test journeys."""
     steps = [JourneyStep.story(ref) for ref in story_refs]
-    return Journey(slug=slug, persona="User", steps=steps)
+    return Journey(slug=slug, persona="User", steps=tuple(steps))
 
 
 def create_integration(slug: str) -> Integration:
@@ -89,7 +93,7 @@ def create_code_info(slug: str, code_dir: str | None = None) -> BoundedContextIn
     return BoundedContextInfo(
         slug=slug,
         code_dir=code_dir or slug,
-        entities=[ClassInfo(name="TestEntity", docstring="Test")],
+        entities=(ClassInfo(name="TestEntity", docstring="Test"),),
     )
 
 

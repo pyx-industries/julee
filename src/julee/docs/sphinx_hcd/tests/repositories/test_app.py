@@ -20,7 +20,7 @@ def create_app(
         name=name,
         app_type=app_type,
         status=status,
-        accelerators=accelerators or [],
+        accelerators=tuple(accelerators or []),
         manifest_path=f"apps/{slug}/app.yaml",
     )
 

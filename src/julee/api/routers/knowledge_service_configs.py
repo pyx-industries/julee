@@ -35,7 +35,7 @@ router = APIRouter()
 
 @router.get("/", response_model=Page[KnowledgeServiceConfig])
 async def get_knowledge_service_configs(
-    repository: KnowledgeServiceConfigRepository = Depends(  # type: ignore[misc]
+    repository: KnowledgeServiceConfigRepository = Depends(
         get_knowledge_service_config_repository
     ),
 ) -> Page[KnowledgeServiceConfig]:

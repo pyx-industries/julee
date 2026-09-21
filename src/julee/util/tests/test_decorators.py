@@ -521,7 +521,7 @@ class TestTypeSubstitution:
 
     def test_substitutes_optional_typevar(self) -> None:
         """Test Optional[TypeVar] substitution."""
-        optional_t = T | None
+        optional_t: Any = T | None
         result = _substitute_typevar_with_concrete(
             optional_t, MockAssemblySpecification
         )
@@ -733,7 +733,7 @@ class TestEndToEndTypeSubstitution:
     def test_type_substitution_enables_pydantic_validation(self) -> None:
         """Test type substitution enables Pydantic validation."""
         # Simulate the problematic method signature: Optional[~T]
-        original_annotation = T | None
+        original_annotation: Any = T | None
 
         # Before fix: TypeVar prevents validation
         assert not _needs_pydantic_validation(original_annotation)
@@ -758,9 +758,7 @@ class TestEndToEndTypeSubstitution:
 
         # Demonstrate the problem: dict doesn't have Pydantic attributes
         assert isinstance(activity_result_dict, dict)
-        with pytest.raises(AttributeError):
-            # This would fail because dict doesn't have the attribute
-            _ = activity_result_dict.assembly_specification_id
+        assert not hasattr(activity_result_dict, "assembly_specification_id")
 
         # Demonstrate the solution: reconstruct Pydantic object
         reconstructed = MockAssemblySpecification.model_validate(activity_result_dict)

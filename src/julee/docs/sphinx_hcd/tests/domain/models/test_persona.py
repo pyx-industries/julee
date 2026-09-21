@@ -20,8 +20,14 @@ class TestPersonaCreation:
         """Test creating a persona with all fields."""
         persona = Persona(
             name="Knowledge Curator",
-            app_slugs=["vocabulary-tool", "admin-portal"],
-            epic_slugs=["vocabulary-management", "credential-creation"],
+            app_slugs=(
+                "vocabulary-tool",
+                "admin-portal",
+            ),
+            epic_slugs=(
+                "vocabulary-management",
+                "credential-creation",
+            ),
         )
 
         assert persona.name == "Knowledge Curator"
@@ -52,8 +58,14 @@ class TestPersonaProperties:
         """Create a sample persona for testing."""
         return Persona(
             name="Knowledge Curator",
-            app_slugs=["vocabulary-tool", "admin-portal"],
-            epic_slugs=["vocabulary-management", "credential-creation"],
+            app_slugs=(
+                "vocabulary-tool",
+                "admin-portal",
+            ),
+            epic_slugs=(
+                "vocabulary-management",
+                "credential-creation",
+            ),
         )
 
     def test_normalized_name(self, sample_persona: Persona) -> None:
@@ -99,8 +111,11 @@ class TestPersonaMethods:
         """Create a sample persona for testing."""
         return Persona(
             name="Knowledge Curator",
-            app_slugs=["vocabulary-tool", "admin-portal"],
-            epic_slugs=["vocabulary-management"],
+            app_slugs=(
+                "vocabulary-tool",
+                "admin-portal",
+            ),
+            epic_slugs=("vocabulary-management",),
         )
 
     def test_uses_app_true(self, sample_persona: Persona) -> None:
@@ -154,8 +169,8 @@ class TestPersonaSerialization:
         """Test persona can be serialized to dict."""
         persona = Persona(
             name="Test Persona",
-            app_slugs=["app-1"],
-            epic_slugs=["epic-1"],
+            app_slugs=("app-1",),
+            epic_slugs=("epic-1",),
         )
 
         data = persona.model_dump()

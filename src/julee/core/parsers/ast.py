@@ -19,10 +19,8 @@ from typing import TYPE_CHECKING
 import griffe
 
 if TYPE_CHECKING:
-    from julee.core.entities.code_info import (
-        BoundedContextInfo,
-        ClassInfo,
-    )
+    from julee.core.entities.bounded_context_info import BoundedContextInfo
+    from julee.core.entities.code_info import ClassInfo
     from julee.core.entities.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -36,7 +34,7 @@ logger = logging.getLogger(__name__)
 def _griffe_load_file(py_file: Path) -> griffe.Module | None:
     """Load a single Python file with griffe (no imports)."""
     try:
-        return griffe.load(
+        loaded = griffe.load(
             py_file.stem,
             search_paths=[str(py_file.parent)],
             allow_inspection=False,
@@ -44,6 +42,7 @@ def _griffe_load_file(py_file: Path) -> griffe.Module | None:
     except Exception as e:
         logger.warning(f"Could not parse {py_file}: {e}")
         return None
+    return loaded if isinstance(loaded, griffe.Module) else None
 
 
 def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo":
@@ -233,7 +232,7 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     from julee.core.doctrine_constants import USE_CASES_PATH
-    from julee.core.entities.code_info import BoundedContextInfo
+    from julee.core.entities.bounded_context_info import BoundedContextInfo
 
     context_dir = Path(context_dir_str)
     if not context_dir.exists() or not context_dir.is_dir():

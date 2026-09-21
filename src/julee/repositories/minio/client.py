@@ -24,7 +24,7 @@ from typing import (
 
 from minio.api import ObjectWriteResult
 from minio.datatypes import Object
-from minio.error import S3Error  # type: ignore[import-untyped]
+from minio.error import S3Error
 from pydantic import BaseModel
 from urllib3.response import BaseHTTPResponse
 

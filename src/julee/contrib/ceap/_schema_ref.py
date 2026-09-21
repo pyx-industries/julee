@@ -9,7 +9,7 @@ that internal $ref values within the sub-schema remain valid.
 
 from typing import Any
 
-import jsonpointer  # type: ignore
+import jsonpointer
 
 
 def extract_schema_from_fetched(

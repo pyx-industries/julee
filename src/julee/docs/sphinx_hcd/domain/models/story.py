@@ -5,7 +5,7 @@ Represents a user story extracted from a Gherkin .feature file.
 
 from typing import Any
 
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from julee.core.entities.entity import Entity
 
@@ -17,32 +17,29 @@ class Story(Entity):
 
     Stories are the primary unit of user-facing functionality in HCD.
     They capture who wants to do what and why.
-
-    Attributes:
-        slug: URL-safe identifier derived from feature title
-        feature_title: The Feature: line from the Gherkin file
-        persona: The actor from "As a <persona>"
-        persona_normalized: Lowercase, spaces-normalized persona for matching
-        i_want: The action from "I want to <action>"
-        so_that: The benefit from "So that <benefit>"
-        app_slug: The application this story belongs to
-        app_normalized: Lowercase, spaces-normalized app name for matching
-        file_path: Relative path to the .feature file
-        abs_path: Absolute path to the .feature file
-        gherkin_snippet: The story header portion of the feature file
     """
 
-    slug: str
-    feature_title: str
-    persona: str
-    persona_normalized: str = ""
-    i_want: str = "do something"
-    so_that: str = "achieve a goal"
-    app_slug: str
-    app_normalized: str = ""
-    file_path: str
-    abs_path: str = ""
-    gherkin_snippet: str = ""
+    slug: str = Field(description="URL-safe identifier derived from feature title")
+    feature_title: str = Field(description="The Feature: line from the Gherkin file")
+    persona: str = Field(description='The actor from "As a <persona>"')
+    persona_normalized: str = Field(
+        default="", description="Lowercase, spaces-normalized persona for matching"
+    )
+    i_want: str = Field(
+        default="do something", description='The action from "I want to <action>"'
+    )
+    so_that: str = Field(
+        default="achieve a goal", description='The benefit from "So that <benefit>"'
+    )
+    app_slug: str = Field(description="The application this story belongs to")
+    app_normalized: str = Field(
+        default="", description="Lowercase, spaces-normalized app name for matching"
+    )
+    file_path: str = Field(description="Relative path to the .feature file")
+    abs_path: str = Field(default="", description="Absolute path to the .feature file")
+    gherkin_snippet: str = Field(
+        default="", description="The story header portion of the feature file"
+    )
 
     @field_validator("slug")
     @classmethod

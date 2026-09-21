@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs lint-python test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
+.PHONY: install check docs lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit post-commit install-hooks reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -11,6 +11,11 @@ lint-python:
 	@echo "Linting Python code..."
 	uv run black --check src/julee/
 	uv run ruff check src/julee/
+
+# Type checking (fails on errors)
+typecheck:
+	@echo "Type checking..."
+	uv run mypy src/julee/
 
 # Python unit tests
 test-python-unit:
@@ -23,11 +28,11 @@ test-doctrine:
 	uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
-check: lint-python test-python-unit test-doctrine
+check: lint-python typecheck test-python-unit test-doctrine
 
 # Build the documentation
 docs:
-	uv run --extra docs sphinx-build -b html docs docs/_build/html
+	uv run --extra docs sphinx-build -W --keep-going -b html docs docs/_build/html
 
 # Fast Python quality checks (for pre-commit)
 quality-fast-python: lint-python
@@ -102,7 +107,7 @@ update-requirements:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  check           - The checks CI runs (lint, unit, doctrine)"
+	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
 	@echo "  lint-python     - Python linting (black, ruff)"

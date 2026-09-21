@@ -14,14 +14,13 @@ class IntegrationReference(Entity):
 
     Used for sources_from and publishes_to relationships where
     an accelerator may specify what data it sources or publishes.
-
-    Attributes:
-        slug: Integration slug (e.g., "pilot-data-collection")
-        description: What is sourced/published (e.g., "Scheme documentation")
     """
 
-    slug: str
-    description: str = ""
+    slug: str = Field(description='Integration slug (e.g., "pilot-data-collection")')
+    description: str = Field(
+        default="",
+        description='What is sourced/published (e.g., "Scheme documentation")',
+    )
 
     @field_validator("slug", mode="before")
     @classmethod
@@ -52,30 +51,35 @@ class Accelerator(Entity):
     An accelerator represents a bounded context that provides business
     capabilities. It may have associated code in src/{slug}/ and is
     exposed through one or more applications.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "vocabulary")
-        status: Development status (e.g., "alpha", "production", "future")
-        milestone: Target milestone (e.g., "2 (Nov 2025)")
-        acceptance: Acceptance criteria description
-        objective: Business objective/description
-        sources_from: Integrations this accelerator reads from
-        feeds_into: Other accelerators this one feeds data into
-        publishes_to: Integrations this accelerator writes to
-        depends_on: Other accelerators this one depends on
-        docname: RST document name (for incremental builds)
     """
 
-    slug: str
-    status: str = ""
-    milestone: str | None = None
-    acceptance: str | None = None
-    objective: str = ""
-    sources_from: tuple[IntegrationReference, ...] = Field(default_factory=tuple)
-    feeds_into: tuple[str, ...] = Field(default_factory=tuple)
-    publishes_to: tuple[IntegrationReference, ...] = Field(default_factory=tuple)
-    depends_on: tuple[str, ...] = Field(default_factory=tuple)
-    docname: str = ""
+    slug: str = Field(description='URL-safe identifier (e.g., "vocabulary")')
+    status: str = Field(
+        default="",
+        description='Development status (e.g., "alpha", "production", "future")',
+    )
+    milestone: str | None = Field(
+        default=None, description='Target milestone (e.g., "2 (Nov 2025)")'
+    )
+    acceptance: str | None = Field(
+        default=None, description="Acceptance criteria description"
+    )
+    objective: str = Field(default="", description="Business objective/description")
+    sources_from: tuple[IntegrationReference, ...] = Field(
+        default_factory=tuple, description="Integrations this accelerator reads from"
+    )
+    feeds_into: tuple[str, ...] = Field(
+        default_factory=tuple, description="Other accelerators this one feeds data into"
+    )
+    publishes_to: tuple[IntegrationReference, ...] = Field(
+        default_factory=tuple, description="Integrations this accelerator writes to"
+    )
+    depends_on: tuple[str, ...] = Field(
+        default_factory=tuple, description="Other accelerators this one depends on"
+    )
+    docname: str = Field(
+        default="", description="RST document name (for incremental builds)"
+    )
 
     @field_validator("slug", mode="before")
     @classmethod

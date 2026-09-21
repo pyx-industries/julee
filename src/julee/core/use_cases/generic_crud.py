@@ -34,7 +34,7 @@ class GetUseCase(Generic[E, R]):
 
     async def _get_by_id(self, entity_id: str) -> E:
         """Retrieve entity by ID, raising EntityNotFoundError if absent."""
-        entity = await self.repo.get(entity_id)  # type: ignore[attr-defined]
+        entity: E | None = await self.repo.get(entity_id)  # type: ignore[attr-defined]
         if entity is None:
             raise EntityNotFoundError(entity_id)
         return entity
@@ -52,7 +52,8 @@ class ListUseCase(Generic[E, R]):
 
     async def _list_all(self) -> list[E]:
         """Return all entities from the repository."""
-        return await self.repo.list_all()  # type: ignore[attr-defined]
+        entities: list[E] = await self.repo.list_all()  # type: ignore[attr-defined]
+        return entities
 
 
 class CreateUseCase(Generic[E, R]):
@@ -101,6 +102,6 @@ class UpdateUseCase(Generic[E, R]):
         entity = await self.repo.get(entity_id)  # type: ignore[attr-defined]
         if entity is None:
             raise EntityNotFoundError(entity_id)
-        updated = entity.model_copy(update=updates)
+        updated: E = entity.model_copy(update=updates)
         await self.repo.save(updated)  # type: ignore[attr-defined]
         return updated

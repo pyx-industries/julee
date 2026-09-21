@@ -17,16 +17,18 @@ class Persona(Entity):
     A persona represents a type of user who interacts with the system.
     Personas are derived from user stories - they are the "As a..." in
     "As a [persona], I want to...".
-
-    Attributes:
-        name: Display name of the persona (e.g., "Knowledge Curator")
-        app_slugs: List of app slugs this persona uses
-        epic_slugs: List of epic slugs containing stories for this persona
     """
 
-    name: str
-    app_slugs: tuple[str, ...] = Field(default_factory=tuple)
-    epic_slugs: tuple[str, ...] = Field(default_factory=tuple)
+    name: str = Field(
+        description='Display name of the persona (e.g., "Knowledge Curator")'
+    )
+    app_slugs: tuple[str, ...] = Field(
+        default_factory=tuple, description="List of app slugs this persona uses"
+    )
+    epic_slugs: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="List of epic slugs containing stories for this persona",
+    )
 
     @field_validator("name", mode="before")
     @classmethod
@@ -36,7 +38,7 @@ class Persona(Entity):
             raise ValueError("name cannot be empty")
         return v.strip()
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def normalized_name(self) -> str:
         """Get normalized name for matching."""

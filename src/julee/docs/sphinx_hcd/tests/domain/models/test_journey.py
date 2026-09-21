@@ -120,10 +120,16 @@ class TestJourneyCreation:
             intent="Ensure consistent terminology across programs",
             outcome="Semantic interoperability enabling compliance mapping",
             goal="Create a Sustainable Vocabulary Catalog",
-            depends_on=["operate-pipelines", "setup-system"],
-            steps=steps,
-            preconditions=["Source materials available", "SME accessible"],
-            postconditions=["SVC published and versioned"],
+            depends_on=(
+                "operate-pipelines",
+                "setup-system",
+            ),
+            steps=tuple(steps),
+            preconditions=(
+                "Source materials available",
+                "SME accessible",
+            ),
+            postconditions=("SVC published and versioned",),
             docname="journeys/build-vocabulary",
         )
 
@@ -155,12 +161,15 @@ class TestJourneyMatching:
         return Journey(
             slug="build-vocabulary",
             persona="Knowledge Curator",
-            depends_on=["operate-pipelines", "setup-system"],
-            steps=[
+            depends_on=(
+                "operate-pipelines",
+                "setup-system",
+            ),
+            steps=(
                 JourneyStep.story("Upload Document"),
                 JourneyStep.epic("vocabulary-management"),
                 JourneyStep.story("Review Vocabulary"),
-            ],
+            ),
         )
 
     def test_matches_persona_exact(self, sample_journey: Journey) -> None:
@@ -233,7 +242,7 @@ class TestJourneySerialization:
         journey = Journey(
             slug="test",
             persona="User",
-            steps=[JourneyStep.story("Test Story")],
+            steps=(JourneyStep.story("Test Story"),),
         )
 
         data = journey.model_dump()

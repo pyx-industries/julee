@@ -15,6 +15,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 
 from ...domain.models.accelerator import Accelerator, IntegrationReference
+from ...domain.repositories import AcceleratorRepository
 from ...domain.use_cases import (
     get_apps_for_accelerator,
     get_code_info_for_accelerator,
@@ -108,20 +109,24 @@ class DefineAcceleratorDirective(HCDDirective):
             milestone=milestone,
             acceptance=acceptance,
             objective=objective,
-            sources_from=[
-                IntegrationReference(
-                    slug=s["slug"], description=s.get("description", "")
-                )
-                for s in sources_from
-            ],
-            publishes_to=[
-                IntegrationReference(
-                    slug=p["slug"], description=p.get("description", "")
-                )
-                for p in publishes_to
-            ],
-            depends_on=depends_on,
-            feeds_into=feeds_into,
+            sources_from=tuple(
+                [
+                    IntegrationReference(
+                        slug=s["slug"], description=s.get("description", "")
+                    )
+                    for s in sources_from
+                ]
+            ),
+            publishes_to=tuple(
+                [
+                    IntegrationReference(
+                        slug=p["slug"], description=p.get("description", "")
+                    )
+                    for p in publishes_to
+                ]
+            ),
+            depends_on=tuple(depends_on),
+            feeds_into=tuple(feeds_into),
             docname=docname,
         )
 
@@ -542,9 +547,9 @@ def clear_accelerator_state(app, env, docname):
 
     # Clear accelerators from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.accelerator_repo.run_async(
-        hcd_context.accelerator_repo.async_repo.clear_by_docname(docname)
-    )
+    async_repo = hcd_context.accelerator_repo.async_repo
+    assert isinstance(async_repo, AcceleratorRepository)
+    hcd_context.accelerator_repo.run_async(async_repo.clear_by_docname(docname))
 
 
 def process_accelerator_placeholders(app, doctree, docname):

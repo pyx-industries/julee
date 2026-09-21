@@ -66,8 +66,8 @@ def derive_personas(
     for data in persona_data.values():
         persona = Persona(
             name=data["name"],
-            app_slugs=sorted(data["apps"]),
-            epic_slugs=sorted(data["epics"]),
+            app_slugs=tuple(sorted(data["apps"])),
+            epic_slugs=tuple(sorted(data["epics"])),
         )
         personas.append(persona)
 

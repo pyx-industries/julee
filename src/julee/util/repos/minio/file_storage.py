@@ -2,8 +2,8 @@ import io
 import logging
 import os
 
-from minio import Minio  # type: ignore[import-untyped]
-from minio.error import S3Error  # type: ignore[import-untyped]
+from minio import Minio
+from minio.error import S3Error
 
 from julee.util.domain import FileMetadata, FileUploadArgs
 from julee.util.repositories import FileStorageRepository

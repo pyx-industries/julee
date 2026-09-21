@@ -40,8 +40,9 @@ def schema_server():
         def log_message(self, format: str, *args: object) -> None:
             pass  # suppress test output
 
-    server = HTTPServer(("127.0.0.1", 0), _Handler)
-    host, port = server.server_address
+    host = "127.0.0.1"
+    server = HTTPServer((host, 0), _Handler)
+    port = server.server_port
 
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True

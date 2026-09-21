@@ -58,7 +58,10 @@ class TestAppCreation:
             app_type=AppType.STAFF,
             status="live",
             description="Portal for staff members",
-            accelerators=["user-auth", "doc-upload"],
+            accelerators=(
+                "user-auth",
+                "doc-upload",
+            ),
             manifest_path="/path/to/app.yaml",
         )
 
@@ -133,7 +136,7 @@ class TestAppFromManifest:
 
     def test_from_manifest_default_name(self) -> None:
         """Test default name from slug when not in manifest."""
-        manifest = {}
+        manifest: dict = {}
 
         app = App.from_manifest(
             slug="staff-portal",

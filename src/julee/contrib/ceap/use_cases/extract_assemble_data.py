@@ -612,7 +612,7 @@ class ExtractAssembleDataUseCase:
             size_bytes=len(content_bytes),
             content_multihash=self._calculate_multihash_from_content(content_bytes),
             status=DocumentStatus.ASSEMBLED,
-            content_bytes=assembled_content,
+            content_bytes=content_bytes,
             created_at=now,
             updated_at=now,
         )

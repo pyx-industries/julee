@@ -35,16 +35,15 @@ class JourneyStep(Entity):
 
     Steps can be stories (feature references), epics (epic references),
     or phases (grouping labels for subsequent steps).
-
-    Attributes:
-        step_type: The type of step (story, epic, phase)
-        ref: Reference identifier (story title, epic slug, or phase title)
-        description: Optional description (primarily for phases)
     """
 
-    step_type: StepType
-    ref: str
-    description: str = ""
+    step_type: StepType = Field(description="The type of step (story, epic, phase)")
+    ref: str = Field(
+        description="Reference identifier (story title, epic slug, or phase title)"
+    )
+    description: str = Field(
+        default="", description="Optional description (primarily for phases)"
+    )
 
     @field_validator("ref", mode="before")
     @classmethod
@@ -113,32 +112,37 @@ class Journey(Entity):
     A journey represents a persona's path through the system to achieve
     a goal. It captures the user's motivation, the value delivered, and
     the sequence of steps they follow.
-
-    Attributes:
-        slug: URL-safe identifier (e.g., "build-vocabulary")
-        persona: The persona undertaking this journey
-        persona_normalized: Lowercase persona for matching
-        intent: What the persona wants (their motivation)
-        outcome: What success looks like (business value)
-        goal: Activity description (what they do)
-        depends_on: Journey slugs that must be completed first
-        steps: Sequence of journey steps
-        preconditions: Conditions that must be true before starting
-        postconditions: Conditions that will be true after completion
-        docname: RST document name (for incremental builds)
     """
 
-    slug: str
-    persona: str = ""
-    persona_normalized: str = ""
-    intent: str = ""
-    outcome: str = ""
-    goal: str = ""
-    depends_on: tuple[str, ...] = Field(default_factory=tuple)
-    steps: tuple[JourneyStep, ...] = Field(default_factory=tuple)
-    preconditions: tuple[str, ...] = Field(default_factory=tuple)
-    postconditions: tuple[str, ...] = Field(default_factory=tuple)
-    docname: str = ""
+    slug: str = Field(description='URL-safe identifier (e.g., "build-vocabulary")')
+    persona: str = Field(default="", description="The persona undertaking this journey")
+    persona_normalized: str = Field(
+        default="", description="Lowercase persona for matching"
+    )
+    intent: str = Field(
+        default="", description="What the persona wants (their motivation)"
+    )
+    outcome: str = Field(
+        default="", description="What success looks like (business value)"
+    )
+    goal: str = Field(default="", description="Activity description (what they do)")
+    depends_on: tuple[str, ...] = Field(
+        default_factory=tuple, description="Journey slugs that must be completed first"
+    )
+    steps: tuple[JourneyStep, ...] = Field(
+        default_factory=tuple, description="Sequence of journey steps"
+    )
+    preconditions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Conditions that must be true before starting",
+    )
+    postconditions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Conditions that will be true after completion",
+    )
+    docname: str = Field(
+        default="", description="RST document name (for incremental builds)"
+    )
 
     @field_validator("slug", mode="before")
     @classmethod

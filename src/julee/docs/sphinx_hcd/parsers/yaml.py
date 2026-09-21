@@ -62,7 +62,7 @@ def scan_app_manifests(apps_dir: Path) -> list[App]:
     Returns:
         List of parsed App entities
     """
-    apps = []
+    apps: list[App] = []
 
     if not apps_dir.exists():
         logger.info(
@@ -98,7 +98,8 @@ def parse_manifest_content(content: str) -> dict | None:
         Parsed dictionary, or None if parsing fails
     """
     try:
-        return yaml.safe_load(content)
+        data: dict | None = yaml.safe_load(content)
+        return data
     except yaml.YAMLError as e:
         logger.warning(f"Could not parse YAML content: {e}")
         return None
@@ -158,7 +159,7 @@ def scan_integration_manifests(integrations_dir: Path) -> list[Integration]:
     Returns:
         List of parsed Integration entities
     """
-    integrations = []
+    integrations: list[Integration] = []
 
     if not integrations_dir.exists():
         logger.info(

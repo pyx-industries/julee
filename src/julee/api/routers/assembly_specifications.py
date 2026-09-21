@@ -35,7 +35,7 @@ router = APIRouter()
 
 @router.get("/", response_model=Page[AssemblySpecification])
 async def get_assembly_specifications(
-    repository: AssemblySpecificationRepository = Depends(  # type: ignore[misc]
+    repository: AssemblySpecificationRepository = Depends(
         get_assembly_specification_repository
     ),
 ) -> Page[AssemblySpecification]:
@@ -80,7 +80,7 @@ async def get_assembly_specification(
     assembly_specification_id: str = Path(
         description="The ID of the assembly specification to retrieve"
     ),
-    repository: AssemblySpecificationRepository = Depends(  # type: ignore[misc]
+    repository: AssemblySpecificationRepository = Depends(
         get_assembly_specification_repository
     ),
 ) -> AssemblySpecification:
@@ -152,7 +152,7 @@ async def get_assembly_specification(
 @router.post("/", response_model=AssemblySpecification)
 async def create_assembly_specification(
     request: CreateAssemblySpecificationRequest,
-    repository: AssemblySpecificationRepository = Depends(  # type: ignore[misc]
+    repository: AssemblySpecificationRepository = Depends(
         get_assembly_specification_repository
     ),
 ) -> AssemblySpecification:

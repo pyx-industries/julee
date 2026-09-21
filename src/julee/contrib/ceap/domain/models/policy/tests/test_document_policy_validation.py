@@ -57,9 +57,9 @@ class TestDocumentPolicyValidationValidation:
             input_document_id="doc-123",
             policy_id="policy-456",
             status=DocumentPolicyValidationStatus.PASSED,
-            validation_scores=[("query1", 85), ("query2", 92)],
+            validation_scores=(("query1", 85), ("query2", 92)),
             transformed_document_id="doc-123-transformed",
-            post_transform_validation_scores=[("query1", 95), ("query2", 88)],
+            post_transform_validation_scores=(("query1", 95), ("query2", 88)),
             started_at=started_at,
             completed_at=completed_at,
             error_message=None,
@@ -222,20 +222,20 @@ class TestValidationScores:
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
-            validation_scores=[],
+            validation_scores=(),
         )
         assert validation.validation_scores == ()
 
     def test_valid_validation_scores(self) -> None:
         """Test valid validation_scores."""
-        scores = [("query1", 85), ("query2", 92), ("query3", 78)]
+        scores = (("query1", 85), ("query2", 92), ("query3", 78))
         validation = DocumentPolicyValidation(
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
             validation_scores=scores,
         )
-        assert validation.validation_scores == tuple(scores)
+        assert validation.validation_scores == scores
 
     def test_validation_scores_with_valid_integers(self) -> None:
         """Test that validation_scores work with valid integer scores."""
@@ -243,7 +243,7 @@ class TestValidationScores:
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
-            validation_scores=[("query1", 85), ("query2", 92)],
+            validation_scores=(("query1", 85), ("query2", 92)),
         )
         assert validation.validation_scores == (
             ("query1", 85),
@@ -258,7 +258,7 @@ class TestValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                validation_scores=[("", 85)],
+                validation_scores=(("", 85),),
             )
 
         errors = exc_info.value.errors()
@@ -270,7 +270,7 @@ class TestValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                validation_scores=[("   ", 85)],
+                validation_scores=(("   ", 85),),
             )
 
         errors = exc_info.value.errors()
@@ -284,7 +284,7 @@ class TestValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                validation_scores=[("query1", -1)],
+                validation_scores=(("query1", -1),),
             )
 
         errors = exc_info.value.errors()
@@ -296,7 +296,7 @@ class TestValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                validation_scores=[("query1", 101)],
+                validation_scores=(("query1", 101),),
             )
 
         errors = exc_info.value.errors()
@@ -307,7 +307,7 @@ class TestValidationScores:
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
-            validation_scores=[("query1", 0), ("query2", 100)],
+            validation_scores=(("query1", 0), ("query2", 100)),
         )
         assert validation.validation_scores == (
             ("query1", 0),
@@ -321,7 +321,7 @@ class TestValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                validation_scores=[("query1", 85), ("query1", 92)],
+                validation_scores=(("query1", 85), ("query1", 92)),
             )
 
         errors = exc_info.value.errors()
@@ -347,20 +347,20 @@ class TestPostTransformValidationScores:
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
-            post_transform_validation_scores=[],
+            post_transform_validation_scores=(),
         )
         assert validation.post_transform_validation_scores == ()
 
     def test_valid_post_transform_scores(self) -> None:
         """Test valid post_transform_validation_scores."""
-        scores = [("query1", 95), ("query2", 88)]
+        scores = (("query1", 95), ("query2", 88))
         validation = DocumentPolicyValidation(
             validation_id="val-123",
             input_document_id="doc-123",
             policy_id="policy-456",
             post_transform_validation_scores=scores,
         )
-        assert validation.post_transform_validation_scores == tuple(scores)
+        assert validation.post_transform_validation_scores == scores
 
     def test_post_transform_scores_validation_rules(self) -> None:
         """Test that post_transform_validation_scores follows same rules as
@@ -371,7 +371,7 @@ class TestPostTransformValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                post_transform_validation_scores=[("query1", -5)],
+                post_transform_validation_scores=(("query1", -5),),
             )
 
         errors = exc_info.value.errors()
@@ -383,10 +383,10 @@ class TestPostTransformValidationScores:
                 validation_id="val-123",
                 input_document_id="doc-123",
                 policy_id="policy-456",
-                post_transform_validation_scores=[
+                post_transform_validation_scores=(
                     ("query1", 85),
                     ("query1", 92),
-                ],
+                ),
             )
 
         errors = exc_info.value.errors()

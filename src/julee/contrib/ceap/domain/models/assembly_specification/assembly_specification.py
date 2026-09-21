@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-import jsonpointer  # type: ignore
+import jsonpointer
 import jsonschema
 from pydantic import Field, field_validator
 

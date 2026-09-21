@@ -10,17 +10,13 @@ from julee.core.entities.entity import Entity
 
 
 class ClassInfo(Entity):
-    """Information about a Python class extracted via AST.
+    """Information about a Python class extracted via AST."""
 
-    Attributes:
-        name: Class name (e.g., "Document", "CreateDocumentUseCase")
-        docstring: First line of the class docstring
-        file: Source file name (e.g., "document.py")
-    """
-
-    name: str
-    docstring: str = ""
-    file: str = ""
+    name: str = Field(
+        description='Class name (e.g., "Document", "CreateDocumentUseCase")'
+    )
+    docstring: str = Field(default="", description="First line of the class docstring")
+    file: str = Field(default="", description='Source file name (e.g., "document.py")')
 
     @field_validator("name", mode="before")
     @classmethod
@@ -36,28 +32,33 @@ class BoundedContextInfo(Entity):
 
     Represents the ADR 001-compliant structure of a bounded context
     with domain models, use cases, and repository/service protocols.
-
-    Attributes:
-        slug: Directory name / identifier (e.g., "vocabulary")
-        entities: Domain entity classes from domain/models/
-        use_cases: Use case classes from use_cases/
-        repository_protocols: Repository protocol classes from domain/repositories/
-        service_protocols: Service protocol classes from domain/services/
-        has_infrastructure: Whether infrastructure/ directory exists
-        code_dir: Actual directory name in src/
-        objective: First line of __init__.py docstring
-        docstring: Full __init__.py docstring
     """
 
-    slug: str
-    entities: tuple[ClassInfo, ...] = Field(default_factory=tuple)
-    use_cases: tuple[ClassInfo, ...] = Field(default_factory=tuple)
-    repository_protocols: tuple[ClassInfo, ...] = Field(default_factory=tuple)
-    service_protocols: tuple[ClassInfo, ...] = Field(default_factory=tuple)
-    has_infrastructure: bool = False
-    code_dir: str = ""
-    objective: str | None = None
-    docstring: str | None = None
+    slug: str = Field(description='Directory name / identifier (e.g., "vocabulary")')
+    entities: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple, description="Domain entity classes from domain/models/"
+    )
+    use_cases: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple, description="Use case classes from use_cases/"
+    )
+    repository_protocols: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple,
+        description="Repository protocol classes from domain/repositories/",
+    )
+    service_protocols: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple,
+        description="Service protocol classes from domain/services/",
+    )
+    has_infrastructure: bool = Field(
+        default=False, description="Whether infrastructure/ directory exists"
+    )
+    code_dir: str = Field(default="", description="Actual directory name in src/")
+    objective: str | None = Field(
+        default=None, description="First line of __init__.py docstring"
+    )
+    docstring: str | None = Field(
+        default=None, description="Full __init__.py docstring"
+    )
 
     @field_validator("slug", mode="before")
     @classmethod

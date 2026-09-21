@@ -7,9 +7,13 @@ Provides directives for defining and cross-referencing epics:
 - epics-for-persona: List epics for a persona (derived from stories)
 """
 
+from collections.abc import Callable
+from typing import Any
+
 from docutils import nodes
 
 from ...domain.models.epic import Epic
+from ...domain.repositories import EpicRepository
 from ...domain.use_cases import derive_personas, get_epics_for_persona
 from ...utils import normalize_name, path_to_root
 from .base import HCDDirective
@@ -40,7 +44,7 @@ class DefineEpicDirective(HCDDirective):
 
     required_arguments = 1  # epic slug
     has_content = True
-    option_spec = {}
+    option_spec: dict[str, Callable[[str], Any]] = {}
 
     def run(self):
         epic_slug = self.arguments[0]
@@ -51,7 +55,7 @@ class DefineEpicDirective(HCDDirective):
         epic = Epic(
             slug=epic_slug,
             description=description,
-            story_refs=[],  # Will be populated by epic-story
+            story_refs=(),  # Will be populated by epic-story
             docname=docname,
         )
 
@@ -210,7 +214,9 @@ def render_epic_stories(epic: Epic, docname: str, hcd_context):
     return result_nodes
 
 
-def _build_relative_uri(from_docname: str, target_doc: str, anchor: str = None) -> str:
+def _build_relative_uri(
+    from_docname: str, target_doc: str, anchor: str | None = None
+) -> str:
     """Build a relative URI from one doc to another."""
     from_parts = from_docname.split("/")
     target_parts = target_doc.split("/")
@@ -394,9 +400,9 @@ def clear_epic_state(app, env, docname):
 
     # Clear epics from this document via repository
     hcd_context = get_hcd_context(app)
-    hcd_context.epic_repo.run_async(
-        hcd_context.epic_repo.async_repo.clear_by_docname(docname)
-    )
+    async_repo = hcd_context.epic_repo.async_repo
+    assert isinstance(async_repo, EpicRepository)
+    hcd_context.epic_repo.run_async(async_repo.clear_by_docname(docname))
 
 
 def process_epic_placeholders(app, doctree, docname):

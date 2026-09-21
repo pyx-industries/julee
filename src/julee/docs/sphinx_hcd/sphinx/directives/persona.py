@@ -8,6 +8,8 @@ Provides directives:
 """
 
 import os
+from collections.abc import Callable
+from typing import Any
 
 from docutils import nodes
 
@@ -70,7 +72,7 @@ class PersonaIndexDiagramDirective(HCDDirective):
     """
 
     required_arguments = 1
-    option_spec = {}
+    option_spec: dict[str, Callable[[str], Any]] = {}
 
     def run(self):
         group_type = self.arguments[0].lower()
@@ -206,7 +208,7 @@ def generate_persona_index_plantuml(
     lines.append("")
 
     # Collect unique epics
-    all_group_epics = set()
+    all_group_epics: set[str] = set()
     for epics in persona_epics_map.values():
         all_group_epics.update(e.slug for e in epics)
 

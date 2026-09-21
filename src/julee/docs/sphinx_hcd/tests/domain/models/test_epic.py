@@ -22,7 +22,11 @@ class TestEpicCreation:
         epic = Epic(
             slug="vocabulary-management",
             description="Manage terminology and vocabulary catalogs",
-            story_refs=["Upload Document", "Review Vocabulary", "Publish Catalog"],
+            story_refs=(
+                "Upload Document",
+                "Review Vocabulary",
+                "Publish Catalog",
+            ),
             docname="epics/vocabulary-management",
         )
 
@@ -56,7 +60,10 @@ class TestEpicStoryOperations:
         return Epic(
             slug="vocabulary-management",
             description="Manage terminology",
-            story_refs=["Upload Document", "Review Vocabulary"],
+            story_refs=(
+                "Upload Document",
+                "Review Vocabulary",
+            ),
             docname="epics/vocabulary-management",
         )
 
@@ -110,7 +117,14 @@ class TestEpicProperties:
 
     def test_story_count_with_stories(self) -> None:
         """Test story_count with stories."""
-        epic = Epic(slug="test", story_refs=["Story 1", "Story 2", "Story 3"])
+        epic = Epic(
+            slug="test",
+            story_refs=(
+                "Story 1",
+                "Story 2",
+                "Story 3",
+            ),
+        )
         assert epic.story_count == 3
 
     def test_has_stories_empty(self) -> None:
@@ -120,7 +134,7 @@ class TestEpicProperties:
 
     def test_has_stories_with_stories(self) -> None:
         """Test has_stories with stories."""
-        epic = Epic(slug="test", story_refs=["Story 1"])
+        epic = Epic(slug="test", story_refs=("Story 1",))
         assert epic.has_stories is True
 
 
@@ -132,7 +146,7 @@ class TestEpicSerialization:
         epic = Epic(
             slug="test",
             description="Test description",
-            story_refs=["Story 1"],
+            story_refs=("Story 1",),
             docname="test/doc",
         )
 

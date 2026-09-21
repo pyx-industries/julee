@@ -38,11 +38,11 @@ def sample_policy() -> Policy:
         title="Content Quality Policy",
         description="Validates content meets quality standards",
         status=PolicyStatus.ACTIVE,
-        validation_scores=[
+        validation_scores=(
             ("quality-check-query", 80),
             ("completeness-check", 90),
-        ],
-        transformation_queries=["improve-quality", "fix-grammar"],
+        ),
+        transformation_queries=("improve-quality", "fix-grammar"),
         version="1.0.0",
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
@@ -57,10 +57,8 @@ def validation_only_policy() -> Policy:
         title="Validation Only Policy",
         description="Only validates content without transformations",
         status=PolicyStatus.ACTIVE,
-        validation_scores=[
-            ("basic-validation", 70),
-        ],
-        transformation_queries=[],  # Empty list - validation only
+        validation_scores=(("basic-validation", 70),),
+        transformation_queries=(),  # Empty tuple - validation only
         version="1.0.0",
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
@@ -164,7 +162,7 @@ class TestMinioPolicyRepositoryPolicyTypes:
             policy_id="policy-none-transforms",
             title="Policy with None Transformations",
             description="Policy where transformation_queries is None",
-            validation_scores=[("test-query", 75)],
+            validation_scores=(("test-query", 75),),
             transformation_queries=None,  # Explicitly None
         )
 
@@ -283,14 +281,14 @@ class TestMinioPolicyRepositoryComplexScenarios:
             policy_id="complex-policy",
             title="Complex Validation Policy",
             description="Policy with multiple validation criteria",
-            validation_scores=[
+            validation_scores=(
                 ("grammar-check", 80),
                 ("completeness-check", 85),
                 ("accuracy-check", 90),
                 ("style-check", 75),
                 ("readability-check", 70),
-            ],
-            transformation_queries=["improve-all-aspects"],
+            ),
+            transformation_queries=("improve-all-aspects",),
         )
 
         await policy_repo.save(policy)
@@ -316,8 +314,8 @@ class TestMinioPolicyRepositoryComplexScenarios:
             title="Lifecycle Test Policy",
             description="Testing full lifecycle",
             status=PolicyStatus.DRAFT,
-            validation_scores=[("lifecycle-check", 80)],
-            transformation_queries=["lifecycle-transform"],
+            validation_scores=(("lifecycle-check", 80),),
+            transformation_queries=("lifecycle-transform",),
             version="0.1.0",
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
@@ -350,15 +348,15 @@ class TestMinioPolicyRepositoryComplexScenarios:
             policy_id="policy-test-1",
             title="First Policy",
             description="First test policy",
-            validation_scores=[("check-1", 80)],
+            validation_scores=(("check-1", 80),),
         )
 
         policy2 = Policy(
             policy_id="policy-test-2",
             title="Second Policy",
             description="Second test policy",
-            validation_scores=[("check-2", 90)],
-            transformation_queries=["transform-2"],
+            validation_scores=(("check-2", 90),),
+            transformation_queries=("transform-2",),
         )
 
         # Save both policies
@@ -399,11 +397,11 @@ class TestMinioPolicyRepositoryComplexScenarios:
             policy_id="unicode-policy",
             title="Política de Calidad 品質ポリシー",
             description="Política con contenido unicode 🚀📝 и кириллица",
-            validation_scores=[
+            validation_scores=(
                 ("验证查询", 85),  # Chinese
                 ("проверка", 90),  # Russian
-            ],
-            transformation_queries=["transformación", "преобразование"],
+            ),
+            transformation_queries=("transformación", "преобразование"),
             version="1.0.0",
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
@@ -473,8 +471,8 @@ class TestMinioPolicyRepositoryRoundtrip:
             title="Round-trip Test Policy",
             description="Testing complete policy round-trip",
             status=PolicyStatus.DRAFT,
-            validation_scores=[("round-trip-check", 85)],
-            transformation_queries=["round-trip-transform"],
+            validation_scores=(("round-trip-check", 85),),
+            transformation_queries=("round-trip-transform",),
             version="0.1.0",
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
@@ -508,12 +506,12 @@ class TestMinioPolicyRepositoryRoundtrip:
             title="JSON Test Policy",
             description="Testing JSON serialization",
             status=PolicyStatus.ACTIVE,
-            validation_scores=[
+            validation_scores=(
                 ("test-1", 80),
                 ("test-2", 90),
                 ("test-3", 75),
-            ],
-            transformation_queries=["transform-1", "transform-2"],
+            ),
+            transformation_queries=("transform-1", "transform-2"),
             version="2.0.0",
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
@@ -562,7 +560,7 @@ class TestMinioPolicyRepositoryErrorHandling:
             policy_id=special_id,
             title="Special ID Policy",
             description="Policy with special characters in ID",
-            validation_scores=[("test-check", 80)],
+            validation_scores=(("test-check", 80),),
         )
 
         await policy_repo.save(policy)

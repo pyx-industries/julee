@@ -11,6 +11,7 @@ Concrete implementations of this protocol are provided for different external
 services (Anthropic, OpenAI, etc.) and are created via factory functions.
 """
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import (
     TYPE_CHECKING,
@@ -109,7 +110,7 @@ class KnowledgeService(Protocol):
         query_text: str,
         output_schema: dict[str, Any] | None = None,
         service_file_ids: list[str] | None = None,
-        query_metadata: dict[str, Any] | None = None,
+        query_metadata: Mapping[str, Any] | None = None,
         assistant_prompt: str | None = None,
     ) -> QueryResult:
         """Execute a query against the external knowledge service.

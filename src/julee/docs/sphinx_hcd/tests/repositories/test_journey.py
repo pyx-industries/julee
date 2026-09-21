@@ -19,8 +19,8 @@ def create_journey(
         slug=slug,
         persona=persona,
         docname=docname,
-        depends_on=depends_on or [],
-        steps=steps or [],
+        depends_on=tuple(depends_on or []),
+        steps=tuple(steps or []),
     )
 
 

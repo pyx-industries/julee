@@ -38,7 +38,7 @@ def create_epic(
     return Epic(
         slug=slug,
         description=f"Epic for {slug}",
-        story_refs=story_refs,
+        story_refs=tuple(story_refs),
     )
 
 

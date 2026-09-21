@@ -113,7 +113,7 @@ class TestIntegrationCreation:
             name="Data Sync",
             description="Synchronizes data with external systems",
             direction=Direction.OUTBOUND,
-            depends_on=deps,
+            depends_on=tuple(deps),
             manifest_path="/path/to/integration.yaml",
         )
 
@@ -191,7 +191,7 @@ class TestIntegrationFromManifest:
 
     def test_from_manifest_default_name(self) -> None:
         """Test default name from slug."""
-        manifest = {}
+        manifest: dict = {}
 
         integration = Integration.from_manifest(
             module_name="data_sync",
@@ -241,10 +241,10 @@ class TestIntegrationMatching:
             module="data_sync",
             name="Data Sync Service",
             direction=Direction.OUTBOUND,
-            depends_on=[
+            depends_on=(
                 ExternalDependency(name="AWS S3"),
                 ExternalDependency(name="External API"),
-            ],
+            ),
         )
 
     def test_matches_direction_with_enum(self, sample_integration: Integration) -> None:

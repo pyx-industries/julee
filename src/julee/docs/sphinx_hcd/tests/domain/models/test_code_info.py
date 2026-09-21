@@ -87,10 +87,10 @@ class TestBoundedContextInfoCreation:
 
         info = BoundedContextInfo(
             slug="vocabulary",
-            entities=entities,
-            use_cases=use_cases,
-            repository_protocols=repo_protocols,
-            service_protocols=[],
+            entities=tuple(entities),
+            use_cases=tuple(use_cases),
+            repository_protocols=tuple(repo_protocols),
+            service_protocols=(),
             has_infrastructure=True,
             code_dir="vocabulary",
             objective="Manage vocabulary catalogs",
@@ -118,19 +118,17 @@ class TestBoundedContextInfoProperties:
         """Create a sample bounded context for testing."""
         return BoundedContextInfo(
             slug="vocabulary",
-            entities=[
+            entities=(
                 ClassInfo(name="Vocabulary", file="vocabulary.py"),
                 ClassInfo(name="Term", file="term.py"),
-            ],
-            use_cases=[
-                ClassInfo(name="CreateVocabulary", file="create.py"),
-            ],
-            repository_protocols=[
+            ),
+            use_cases=(ClassInfo(name="CreateVocabulary", file="create.py"),),
+            repository_protocols=(
                 ClassInfo(name="VocabularyRepository", file="vocabulary.py"),
-            ],
-            service_protocols=[
+            ),
+            service_protocols=(
                 ClassInfo(name="NotificationService", file="notification.py"),
-            ],
+            ),
             has_infrastructure=True,
         )
 
@@ -200,7 +198,7 @@ class TestBoundedContextInfoProperties:
         """Test summary with partial data."""
         info = BoundedContextInfo(
             slug="test",
-            entities=[ClassInfo(name="Entity", file="e.py")],
+            entities=(ClassInfo(name="Entity", file="e.py"),),
         )
         summary = info.summary()
         assert summary == "1 entities"
@@ -213,7 +211,7 @@ class TestBoundedContextInfoSerialization:
         """Test serialization to dict."""
         info = BoundedContextInfo(
             slug="test",
-            entities=[ClassInfo(name="Entity", file="e.py")],
+            entities=(ClassInfo(name="Entity", file="e.py"),),
             objective="Test objective",
         )
 

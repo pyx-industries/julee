@@ -452,7 +452,7 @@ class TestMinioDocumentRepositoryContentBytes:
             size_bytes=100,  # Will be updated automatically
             content_multihash="placeholder",  # Will be updated automatically
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         # Act - save should convert content_bytes to ContentStream
@@ -482,7 +482,7 @@ class TestMinioDocumentRepositoryContentBytes:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         await repository.save(document)
@@ -511,7 +511,7 @@ class TestMinioDocumentRepositoryContentBytes:
             size_bytes=100,
             content_multihash="placeholder",
             status=DocumentStatus.CAPTURED,
-            content_bytes=content,
+            content_bytes=content.encode("utf-8"),
         )
 
         await repository.save(document)
