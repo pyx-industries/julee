@@ -214,8 +214,8 @@ class VocabularyRepository:
         info = parse_bounded_context(context_dir)
         assert info is not None
         assert info.slug == "simple"
-        assert info.entities == []
-        assert info.use_cases == []
+        assert info.entities == ()
+        assert info.use_cases == ()
         assert info.has_infrastructure is False
 
     def test_parse_nonexistent_context(self) -> None:

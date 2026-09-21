@@ -55,7 +55,7 @@ class DefineEpicDirective(HCDDirective):
         epic = Epic(
             slug=epic_slug,
             description=description,
-            story_refs=[],  # Will be populated by epic-story
+            story_refs=(),  # Will be populated by epic-story
             docname=docname,
         )
 
@@ -106,9 +106,8 @@ class EpicStoryDirective(HCDDirective):
             # Get the epic from repository and update story_refs
             epic = self.hcd_context.epic_repo.get(epic_slug)
             if epic:
-                # Add story to epic's story_refs
-                if story_title not in epic.story_refs:
-                    epic.story_refs.append(story_title)
+                # An epic is immutable: store the one with the story added
+                self.hcd_context.epic_repo.save(epic.with_story(story_title))
 
         # Return empty - rendering happens in doctree-resolved
         return []

@@ -48,7 +48,7 @@ class TestAppCreation:
         assert app.app_type == AppType.UNKNOWN
         assert app.status is None
         assert app.description == ""
-        assert app.accelerators == []
+        assert app.accelerators == ()
 
     def test_create_app_with_all_fields(self) -> None:
         """Test creating an app with all fields."""
@@ -58,7 +58,10 @@ class TestAppCreation:
             app_type=AppType.STAFF,
             status="live",
             description="Portal for staff members",
-            accelerators=["user-auth", "doc-upload"],
+            accelerators=(
+                "user-auth",
+                "doc-upload",
+            ),
             manifest_path="/path/to/app.yaml",
         )
 
@@ -67,7 +70,7 @@ class TestAppCreation:
         assert app.app_type == AppType.STAFF
         assert app.status == "live"
         assert app.description == "Portal for staff members"
-        assert app.accelerators == ["user-auth", "doc-upload"]
+        assert app.accelerators == ("user-auth", "doc-upload")
         assert app.manifest_path == "/path/to/app.yaml"
 
     def test_name_normalized_computed_automatically(self) -> None:
@@ -128,7 +131,7 @@ class TestAppFromManifest:
         assert app.app_type == AppType.STAFF
         assert app.status == "live"
         assert app.description == "Portal for staff members"
-        assert app.accelerators == ["user-auth"]
+        assert app.accelerators == ("user-auth",)
         assert app.manifest_path == "/apps/staff-portal/app.yaml"
 
     def test_from_manifest_default_name(self) -> None:

@@ -4,17 +4,19 @@ Represents an accelerator (bounded context) in the HCD documentation system.
 Accelerators are defined via RST directives and may have associated code.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
-class IntegrationReference(BaseModel):
+class IntegrationReference(Entity):
     """Reference to an integration with optional description.
 
     Used for sources_from and publishes_to relationships where
     an accelerator may specify what data it sources or publishes.
     """
 
-    slug: str = Field(description='URL-safe identifier (e.g., "vocabulary")')
+    slug: str = Field(description='Integration slug (e.g., "pilot-data-collection")')
     description: str = Field(
         default="",
         description='What is sourced/published (e.g., "Scheme documentation")',
@@ -43,7 +45,7 @@ class IntegrationReference(BaseModel):
         return cls(slug=data.get("slug", ""), description=data.get("description", ""))
 
 
-class Accelerator(BaseModel):
+class Accelerator(Entity):
     """Accelerator entity.
 
     An accelerator represents a bounded context that provides business
@@ -63,17 +65,17 @@ class Accelerator(BaseModel):
         default=None, description="Acceptance criteria description"
     )
     objective: str = Field(default="", description="Business objective/description")
-    sources_from: list[IntegrationReference] = Field(
-        default_factory=list, description="Integrations this accelerator reads from"
+    sources_from: tuple[IntegrationReference, ...] = Field(
+        default_factory=tuple, description="Integrations this accelerator reads from"
     )
-    feeds_into: list[str] = Field(
-        default_factory=list, description="Other accelerators this one feeds data into"
+    feeds_into: tuple[str, ...] = Field(
+        default_factory=tuple, description="Other accelerators this one feeds data into"
     )
-    publishes_to: list[IntegrationReference] = Field(
-        default_factory=list, description="Integrations this accelerator writes to"
+    publishes_to: tuple[IntegrationReference, ...] = Field(
+        default_factory=tuple, description="Integrations this accelerator writes to"
     )
-    depends_on: list[str] = Field(
-        default_factory=list, description="Other accelerators this one depends on"
+    depends_on: tuple[str, ...] = Field(
+        default_factory=tuple, description="Other accelerators this one depends on"
     )
     docname: str = Field(
         default="", description="RST document name (for incremental builds)"

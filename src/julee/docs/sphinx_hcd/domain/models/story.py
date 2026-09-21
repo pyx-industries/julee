@@ -3,12 +3,16 @@
 Represents a user story extracted from a Gherkin .feature file.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from typing import Any
+
+from pydantic import Field, field_validator, model_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name, slugify
 
 
-class Story(BaseModel):
+class Story(Entity):
     """A user story extracted from a Gherkin feature file.
 
     Stories are the primary unit of user-facing functionality in HCD.
@@ -69,12 +73,24 @@ class Story(BaseModel):
             return "unknown"
         return v.strip()
 
-    def model_post_init(self, __context) -> None:
-        """Compute normalized fields after initialization."""
-        if not self.persona_normalized:
-            self.persona_normalized = normalize_name(self.persona)
-        if not self.app_normalized:
-            self.app_normalized = normalize_name(self.app_slug)
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_names(cls, data: Any) -> Any:
+        """Fill the normalized names from the raw ones when they are absent.
+
+        Done before validation because an entity is frozen once built.
+        """
+        if isinstance(data, dict):
+            data = dict(data)
+            if not data.get("persona_normalized"):
+                data["persona_normalized"] = normalize_name(
+                    data.get("persona") or "unknown"
+                )
+            if not data.get("app_normalized"):
+                data["app_normalized"] = normalize_name(
+                    data.get("app_slug") or "unknown"
+                )
+        return data
 
     @classmethod
     def from_feature_file(

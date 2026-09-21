@@ -6,7 +6,9 @@ Integrations are defined via YAML manifests in integrations/*/integration.yaml.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 from ...utils import normalize_name
 
@@ -37,14 +39,14 @@ class Direction(StrEnum):
         return labels.get(self, str(self.value))
 
 
-class ExternalDependency(BaseModel):
+class ExternalDependency(Entity):
     """External system that an integration depends on."""
 
-    name: str = Field(description="Display name")
+    name: str = Field(description="Display name of the external system")
     url: str | None = Field(
         default=None, description="Optional URL for documentation or reference"
     )
-    description: str = Field(default="", description="Human-readable description")
+    description: str = Field(default="", description="Optional brief description")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -71,7 +73,7 @@ class ExternalDependency(BaseModel):
         )
 
 
-class Integration(BaseModel):
+class Integration(Entity):
     """Integration module entity.
 
     Integrations represent connections to external systems, defining
@@ -87,8 +89,8 @@ class Integration(BaseModel):
     direction: Direction = Field(
         default=Direction.BIDIRECTIONAL, description="Data flow direction"
     )
-    depends_on: list[ExternalDependency] = Field(
-        default_factory=list, description="List of external dependencies"
+    depends_on: tuple[ExternalDependency, ...] = Field(
+        default_factory=tuple, description="List of external dependencies"
     )
     manifest_path: str = Field(
         default="", description="Path to the integration.yaml file"
@@ -171,7 +173,7 @@ class Integration(BaseModel):
             name=name,
             description=manifest.get("description", "").strip(),
             direction=direction,
-            depends_on=depends_on,
+            depends_on=tuple(depends_on),
             manifest_path=manifest_path,
         )
 

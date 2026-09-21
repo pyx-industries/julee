@@ -89,7 +89,7 @@ accelerators:
         assert app.name == "Staff Portal"
         assert app.app_type == AppType.STAFF
         assert app.status == "live"
-        assert app.accelerators == ["user-auth"]
+        assert app.accelerators == ("user-auth",)
 
     def test_parse_manifest_with_explicit_slug(self, temp_project: Path) -> None:
         """Test parsing with explicit app slug override."""

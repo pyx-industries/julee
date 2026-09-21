@@ -26,7 +26,7 @@ def create_integration(
         module=module,
         name=name,
         direction=direction,
-        depends_on=depends_on or [],
+        depends_on=tuple(depends_on or []),
         manifest_path=f"integrations/{module}/integration.yaml",
     )
 

@@ -18,7 +18,7 @@ def create_epic(
         slug=slug,
         description=description,
         docname=docname,
-        story_refs=story_refs or [],
+        story_refs=tuple(story_refs or []),
     )
 
 

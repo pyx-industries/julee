@@ -105,8 +105,8 @@ class TestJourneyCreation:
         journey = Journey(slug="build-vocabulary")
         assert journey.slug == "build-vocabulary"
         assert journey.persona == ""
-        assert journey.steps == []
-        assert journey.depends_on == []
+        assert journey.steps == ()
+        assert journey.depends_on == ()
 
     def test_create_journey_complete(self) -> None:
         """Test creating a journey with all fields."""
@@ -120,10 +120,16 @@ class TestJourneyCreation:
             intent="Ensure consistent terminology across programs",
             outcome="Semantic interoperability enabling compliance mapping",
             goal="Create a Sustainable Vocabulary Catalog",
-            depends_on=["operate-pipelines", "setup-system"],
-            steps=steps,
-            preconditions=["Source materials available", "SME accessible"],
-            postconditions=["SVC published and versioned"],
+            depends_on=(
+                "operate-pipelines",
+                "setup-system",
+            ),
+            steps=tuple(steps),
+            preconditions=(
+                "Source materials available",
+                "SME accessible",
+            ),
+            postconditions=("SVC published and versioned",),
             docname="journeys/build-vocabulary",
         )
 
@@ -155,12 +161,15 @@ class TestJourneyMatching:
         return Journey(
             slug="build-vocabulary",
             persona="Knowledge Curator",
-            depends_on=["operate-pipelines", "setup-system"],
-            steps=[
+            depends_on=(
+                "operate-pipelines",
+                "setup-system",
+            ),
+            steps=(
                 JourneyStep.story("Upload Document"),
                 JourneyStep.epic("vocabulary-management"),
                 JourneyStep.story("Review Vocabulary"),
-            ],
+            ),
         )
 
     def test_matches_persona_exact(self, sample_journey: Journey) -> None:
@@ -201,7 +210,7 @@ class TestJourneySteps:
         journey = Journey(slug="test")
         assert journey.step_count == 0
 
-        journey.add_step(JourneyStep.story("Test Story"))
+        journey = journey.with_step(JourneyStep.story("Test Story"))
         assert journey.step_count == 1
         assert journey.has_steps is True
 
@@ -233,7 +242,7 @@ class TestJourneySerialization:
         journey = Journey(
             slug="test",
             persona="User",
-            steps=[JourneyStep.story("Test Story")],
+            steps=(JourneyStep.story("Test Story"),),
         )
 
         data = journey.model_dump()

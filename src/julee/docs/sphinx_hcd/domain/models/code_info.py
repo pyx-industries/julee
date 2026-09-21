@@ -4,16 +4,18 @@ Models for representing Python code structure extracted via AST parsing.
 Used to document bounded contexts and their ADR 001-compliant structure.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from julee.core.entities.entity import Entity
 
 
-class ClassInfo(BaseModel):
+class ClassInfo(Entity):
     """Information about a Python class extracted via AST."""
 
     name: str = Field(
         description='Class name (e.g., "Document", "CreateDocumentUseCase")'
     )
-    docstring: str = Field(default="", description="Full __init__.py docstring")
+    docstring: str = Field(default="", description="First line of the class docstring")
     file: str = Field(default="", description='Source file name (e.g., "document.py")')
 
     @field_validator("name", mode="before")
@@ -25,7 +27,7 @@ class ClassInfo(BaseModel):
         return v.strip()
 
 
-class BoundedContextInfo(BaseModel):
+class BoundedContextInfo(Entity):
     """Information about a bounded context's code structure.
 
     Represents the ADR 001-compliant structure of a bounded context
@@ -33,18 +35,18 @@ class BoundedContextInfo(BaseModel):
     """
 
     slug: str = Field(description='Directory name / identifier (e.g., "vocabulary")')
-    entities: list[ClassInfo] = Field(
-        default_factory=list, description="Domain entity classes from domain/models/"
+    entities: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple, description="Domain entity classes from domain/models/"
     )
-    use_cases: list[ClassInfo] = Field(
-        default_factory=list, description="Use case classes from use_cases/"
+    use_cases: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple, description="Use case classes from use_cases/"
     )
-    repository_protocols: list[ClassInfo] = Field(
-        default_factory=list,
+    repository_protocols: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple,
         description="Repository protocol classes from domain/repositories/",
     )
-    service_protocols: list[ClassInfo] = Field(
-        default_factory=list,
+    service_protocols: tuple[ClassInfo, ...] = Field(
+        default_factory=tuple,
         description="Service protocol classes from domain/services/",
     )
     has_infrastructure: bool = Field(

@@ -67,10 +67,10 @@ class TestAcceleratorCreation:
         assert accel.milestone is None
         assert accel.acceptance is None
         assert accel.objective == ""
-        assert accel.sources_from == []
-        assert accel.feeds_into == []
-        assert accel.publishes_to == []
-        assert accel.depends_on == []
+        assert accel.sources_from == ()
+        assert accel.feeds_into == ()
+        assert accel.publishes_to == ()
+        assert accel.depends_on == ()
         assert accel.docname == ""
 
     def test_create_accelerator_complete(self) -> None:
@@ -81,20 +81,23 @@ class TestAcceleratorCreation:
             milestone="2 (Nov 2025)",
             acceptance="Reference environment deployed and accepted.",
             objective="Accelerate the creation of Sustainable Vocabulary Catalogs.",
-            sources_from=[
+            sources_from=(
                 IntegrationReference(
                     slug="pilot-data-collection",
                     description="Scheme documentation, standards materials",
                 ),
-            ],
-            feeds_into=["traceability", "conformity"],
-            publishes_to=[
+            ),
+            feeds_into=(
+                "traceability",
+                "conformity",
+            ),
+            publishes_to=(
                 IntegrationReference(
                     slug="reference-implementation",
                     description="SVC artefacts",
                 ),
-            ],
-            depends_on=["core-infrastructure"],
+            ),
+            depends_on=("core-infrastructure",),
             docname="accelerators/vocabulary",
         )
 
@@ -154,15 +157,18 @@ class TestAcceleratorDependencies:
         """Create a sample accelerator for testing."""
         return Accelerator(
             slug="vocabulary",
-            sources_from=[
+            sources_from=(
                 IntegrationReference(slug="pilot-data", description="Pilot data"),
                 IntegrationReference(slug="standards", description="Standards"),
-            ],
-            publishes_to=[
+            ),
+            publishes_to=(
                 IntegrationReference(slug="reference-impl", description="SVC"),
-            ],
-            feeds_into=["traceability", "conformity"],
-            depends_on=["core-infrastructure"],
+            ),
+            feeds_into=(
+                "traceability",
+                "conformity",
+            ),
+            depends_on=("core-infrastructure",),
         )
 
     def test_has_integration_dependency_sources(
@@ -249,7 +255,7 @@ class TestAcceleratorSerialization:
         accel = Accelerator(
             slug="test",
             status="alpha",
-            sources_from=[IntegrationReference(slug="pilot", description="Data")],
+            sources_from=(IntegrationReference(slug="pilot", description="Data"),),
         )
 
         data = accel.model_dump()

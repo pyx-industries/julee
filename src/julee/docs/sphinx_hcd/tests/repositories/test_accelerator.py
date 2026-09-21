@@ -26,10 +26,10 @@ def create_accelerator(
         slug=slug,
         status=status,
         docname=docname,
-        sources_from=sources_from or [],
-        publishes_to=publishes_to or [],
-        feeds_into=feeds_into or [],
-        depends_on=depends_on or [],
+        sources_from=tuple(sources_from or []),
+        publishes_to=tuple(publishes_to or []),
+        feeds_into=tuple(feeds_into or []),
+        depends_on=tuple(depends_on or []),
     )
 
 

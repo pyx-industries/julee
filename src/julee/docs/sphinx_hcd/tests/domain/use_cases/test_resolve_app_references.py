@@ -42,13 +42,13 @@ def create_story(
 
 def create_epic(slug: str, story_refs: list[str]) -> Epic:
     """Helper to create test epics."""
-    return Epic(slug=slug, story_refs=story_refs)
+    return Epic(slug=slug, story_refs=tuple(story_refs))
 
 
 def create_journey(slug: str, story_refs: list[str]) -> Journey:
     """Helper to create test journeys."""
     steps = [JourneyStep.story(ref) for ref in story_refs]
-    return Journey(slug=slug, persona="User", steps=steps)
+    return Journey(slug=slug, persona="User", steps=tuple(steps))
 
 
 class TestGetStoriesForApp:

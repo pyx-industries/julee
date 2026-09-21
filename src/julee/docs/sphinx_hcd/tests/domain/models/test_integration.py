@@ -102,7 +102,7 @@ class TestIntegrationCreation:
         assert integration.module == "data_sync"
         assert integration.name == "Data Sync"
         assert integration.direction == Direction.BIDIRECTIONAL
-        assert integration.depends_on == []
+        assert integration.depends_on == ()
 
     def test_create_with_all_fields(self) -> None:
         """Test creating with all fields."""
@@ -113,7 +113,7 @@ class TestIntegrationCreation:
             name="Data Sync",
             description="Synchronizes data with external systems",
             direction=Direction.OUTBOUND,
-            depends_on=deps,
+            depends_on=tuple(deps),
             manifest_path="/path/to/integration.yaml",
         )
 
@@ -241,10 +241,10 @@ class TestIntegrationMatching:
             module="data_sync",
             name="Data Sync Service",
             direction=Direction.OUTBOUND,
-            depends_on=[
+            depends_on=(
                 ExternalDependency(name="AWS S3"),
                 ExternalDependency(name="External API"),
-            ],
+            ),
         )
 
     def test_matches_direction_with_enum(self, sample_integration: Integration) -> None:

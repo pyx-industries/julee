@@ -109,20 +109,24 @@ class DefineAcceleratorDirective(HCDDirective):
             milestone=milestone,
             acceptance=acceptance,
             objective=objective,
-            sources_from=[
-                IntegrationReference(
-                    slug=s["slug"], description=s.get("description", "")
-                )
-                for s in sources_from
-            ],
-            publishes_to=[
-                IntegrationReference(
-                    slug=p["slug"], description=p.get("description", "")
-                )
-                for p in publishes_to
-            ],
-            depends_on=depends_on,
-            feeds_into=feeds_into,
+            sources_from=tuple(
+                [
+                    IntegrationReference(
+                        slug=s["slug"], description=s.get("description", "")
+                    )
+                    for s in sources_from
+                ]
+            ),
+            publishes_to=tuple(
+                [
+                    IntegrationReference(
+                        slug=p["slug"], description=p.get("description", "")
+                    )
+                    for p in publishes_to
+                ]
+            ),
+            depends_on=tuple(depends_on),
+            feeds_into=tuple(feeds_into),
             docname=docname,
         )
 
