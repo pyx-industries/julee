@@ -42,7 +42,6 @@ autoapi_options = [
     'undoc-members',
     'show-inheritance',
     'show-module-summary',
-    'imported-members',
 ]
 autoapi_ignore = [
     '*migrations*',
@@ -63,7 +62,7 @@ napoleon_include_special_with_doc = True
 napoleon_use_admonition_for_examples = True
 napoleon_use_admonition_for_notes = True
 napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
+napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = True

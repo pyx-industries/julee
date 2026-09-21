@@ -27,7 +27,7 @@ check: lint-python test-python-unit test-doctrine
 
 # Build the documentation
 docs:
-	uv run --extra docs sphinx-build -b html docs docs/_build/html
+	uv run --extra docs sphinx-build -W --keep-going -b html docs docs/_build/html
 
 # Fast Python quality checks (for pre-commit)
 quality-fast-python: lint-python
