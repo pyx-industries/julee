@@ -197,3 +197,5 @@ credentials.json
 test_data/
 .claude
 .pypirc
+# mutmut working directory
+mutants/
