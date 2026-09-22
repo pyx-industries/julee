@@ -159,6 +159,23 @@ def test_the_declared_entity_is_read_from_the_base() -> None:
     assert base_entity_type(a_repository().artifact) == "Story"
 
 
+def test_the_entity_is_read_from_the_marker_alone() -> None:
+    """RepositoryOf[T] says which entity and nothing else."""
+    protocol = a_repository(bases=("RepositoryOf[Story]",)).artifact
+
+    assert base_entity_type(protocol) == "Story"
+
+
+def test_a_repository_that_is_not_CRUD_is_still_checked() -> None:
+    """Declaring the entity is what the rule needs, not the CRUD methods."""
+    objections = repositories_referencing_several_entities(
+        [a_repository(bases=("RepositoryOf[Story]",), references=("Story", "App"))],
+        {"hcd": {"Story", "App"}},
+    )
+
+    assert len(objections) == 1
+
+
 def test_a_repository_declaring_nothing_has_no_primary_entity() -> None:
     """And is therefore exempt, since nothing can be told structurally."""
     assert base_entity_type(a_repository(bases=("Protocol",)).artifact) is None
