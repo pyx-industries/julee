@@ -28,17 +28,27 @@ class Acknowledgement(BaseModel):
         default_factory=list,
         description="Informational messages about handler processing",
     )
+    execution_id: str | None = Field(
+        default=None,
+        description=(
+            "The execution that took the work, when the handler started or "
+            "signalled one: the same identity ExecutionService gives a use "
+            "case for its own execution. None when there is nothing to name."
+        ),
+    )
 
     @classmethod
     def wilco(
         cls,
         info: list[str] | None = None,
+        execution_id: str | None = None,
     ) -> "Acknowledgement":
         """
         Will comply - handler accepts and will process.
 
         Args:
             info: Optional informational messages
+            execution_id: The execution the handler started, if it can name one
 
         Returns:
             Acknowledgement with will_comply=True
@@ -46,12 +56,14 @@ class Acknowledgement(BaseModel):
         return cls(
             will_comply=True,
             info=info or [],
+            execution_id=execution_id,
         )
 
     @classmethod
     def unable(
         cls,
         info: list[str] | None = None,
+        execution_id: str | None = None,
     ) -> "Acknowledgement":
         """
         Unable to comply - handler cannot process.
@@ -65,12 +77,14 @@ class Acknowledgement(BaseModel):
         return cls(
             will_comply=False,
             info=info or [],
+            execution_id=execution_id,
         )
 
     @classmethod
     def roger(
         cls,
         info: list[str] | None = None,
+        execution_id: str | None = None,
     ) -> "Acknowledgement":
         """
         Received - acknowledged, no commitment about action.
@@ -88,6 +102,7 @@ class Acknowledgement(BaseModel):
         return cls(
             will_comply=None,
             info=info or [],
+            execution_id=execution_id,
         )
 
     @property
@@ -120,4 +135,7 @@ class Acknowledgement(BaseModel):
 
     def __repr__(self) -> str:
         """Detailed representation for debugging."""
-        return f"Acknowledgement(will_comply={self.will_comply}, info={len(self.info)})"
+        return (
+            f"Acknowledgement(will_comply={self.will_comply}, "
+            f"info={len(self.info)}, execution_id={self.execution_id!r})"
+        )
