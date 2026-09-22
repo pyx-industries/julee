@@ -117,25 +117,24 @@ Handlers return `Acknowledgement` using radio communication semantics:
 ```python
 class Acknowledgement(BaseModel):
     will_comply: bool | None = None  # None = roger (no commitment either way)
-    errors: list[str] = []
-    warnings: list[str] = []
     info: list[str] = []
-    debug: list[str] = []
+    # The execution the handler started or signalled, when it can name one.
+    execution_id: str | None = None
 
     @classmethod
-    def wilco(cls, **messages) -> Acknowledgement:
+    def wilco(cls, info=None, execution_id=None) -> Acknowledgement:
         """Will comply - handler accepts and will process."""
-        return cls(will_comply=True, **messages)
+        return cls(will_comply=True, info=info or [], execution_id=execution_id)
 
     @classmethod
-    def unable(cls, **messages) -> Acknowledgement:
+    def unable(cls, info=None, execution_id=None) -> Acknowledgement:
         """Unable to comply - handler cannot process."""
-        return cls(will_comply=False, **messages)
+        return cls(will_comply=False, info=info or [], execution_id=execution_id)
 
     @classmethod
-    def roger(cls, **messages) -> Acknowledgement:
+    def roger(cls, info=None, execution_id=None) -> Acknowledgement:
         """Received - acknowledged, no commitment about action."""
-        return cls(will_comply=None, **messages)
+        return cls(will_comply=None, info=info or [], execution_id=execution_id)
 ```
 
 Usage:
@@ -143,11 +142,14 @@ Usage:
 # Handler accepts and will process
 return Acknowledgement.wilco()
 
-# Handler accepts with warnings
-return Acknowledgement.wilco(warnings=["Deprecated field used"])
+# Handler accepts, and says something about it
+return Acknowledgement.wilco(info=["Deprecated field used"])
+
+# Handler started a workflow, and names it for the caller's records
+return Acknowledgement.wilco(execution_id=handle.id)
 
 # Handler cannot comply
-return Acknowledgement.unable(errors=["Queue full, try again later"])
+return Acknowledgement.unable(info=["Queue full, try again later"])
 
 # Handler acknowledges receipt, makes no commitment
 return Acknowledgement.roger(info=["Logged orphan story"])
@@ -199,7 +201,7 @@ class LoggingOrphanStoryHandler:
 
     async def handle(self, story: Story) -> Acknowledgement:
         logger.warning("Orphan story", extra={"slug": story.slug})
-        return Acknowledgement.wilco(warnings=["Story not in any epic"])
+        return Acknowledgement.wilco(info=["Story not in any epic"])
 ```
 
 **Coarse-grained handlers** trigger use cases. To avoid circular dependencies (handlers need use cases, use cases need handlers), use a **HandlerDispatcher** pattern with factories:
