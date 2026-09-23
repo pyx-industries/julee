@@ -8,7 +8,8 @@ version = "0.4.0"
 description = "Julee - a clean architecture framework for Python solutions"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "GPL-3.0"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     {name = "Pyx Industries", email = "chris@pyx.io"}
 ]
