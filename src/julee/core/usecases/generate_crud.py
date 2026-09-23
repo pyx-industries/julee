@@ -108,6 +108,22 @@ def _field_lines(fields: list[tuple[str, str]], indent: str = "    ") -> str:
     return "\n".join(f"{indent}{name}: {type_}" for name, type_ in fields)
 
 
+def _optional_field_lines(fields: list[tuple[str, str]], indent: str = "    ") -> str:
+    """Render fields as optional, so an update can name only what it changes.
+
+    A type that already admits None gains a default; anything else is widened
+    to ``T | None`` first. Unset is what the use case acts on, not None, so a
+    field left out is left alone while one passed as None is cleared.
+    """
+    if not fields:
+        return ""
+    lines = []
+    for name, type_ in fields:
+        annotation = type_ if "None" in type_ else f"{type_} | None"
+        lines.append(f"{indent}{name}: {annotation} = None")
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Section generators
 # ---------------------------------------------------------------------------
@@ -219,10 +235,14 @@ def _update_section(
     id_field: str,
     update_fields: list[tuple[str, str]],
 ) -> str:
-    field_lines = _field_lines(update_fields)
+    field_lines = _optional_field_lines(update_fields)
     return f"""\
 class Update{entity}Request(BaseModel):
-    \"\"\"Request for updating a {entity}.\"\"\"
+    \"\"\"Request for updating a {entity}.
+
+    Every field but {id_field} is optional: name the ones to change and the
+    rest are left as they are.
+    \"\"\"
 
     {id_field}: str
 {field_lines}
@@ -245,7 +265,7 @@ class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
         \"\"\"Execute the update {snake} use case.\"\"\"
         entity = await self._update_by_id(
             request.{id_field},
-            request.model_dump(exclude={{"{id_field}"}}),
+            request.model_dump(exclude={{"{id_field}"}}, exclude_unset=True),
         )
         return Update{entity}Response({snake}=entity)
 """
