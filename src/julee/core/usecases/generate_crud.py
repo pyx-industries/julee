@@ -305,11 +305,16 @@ def generate(
     include_list: bool = True,
     include_create: bool = True,
     include_update: bool = True,
+    plural: str | None = None,
     out_dir: Path,
 ) -> Path:
     """Generate a crud_{entity_snake}.py file into out_dir."""
     snake = _to_snake(entity)
-    plural_snake = _pluralize(snake)
+    # inflect knows English, which is not always the same as knowing what
+    # a domain calls several of something: it makes "personae" of a
+    # persona, where everyone writing the documentation says "personas".
+    # The generated names are a kit's public API, so the caller can say.
+    plural_snake = _to_snake(plural) if plural else _pluralize(snake)
     # Capitalise each word of the plural snake to get plural entity name
     plural_entity = "".join(w.capitalize() for w in plural_snake.split("_"))
 
@@ -431,6 +436,14 @@ def _build_parser() -> argparse.ArgumentParser:
             "only what it changes."
         ),
     )
+    p.add_argument(
+        "--plural",
+        default=None,
+        help=(
+            "Plural of the entity name, when inflect's guess is not what the "
+            "domain says (e.g. Personas, not Personae)"
+        ),
+    )
     p.add_argument("--no-get", action="store_true", help="Skip GetUseCase")
     p.add_argument("--no-list", action="store_true", help="Skip ListUseCase")
     p.add_argument("--no-create", action="store_true", help="Skip CreateUseCase")
@@ -461,6 +474,7 @@ def main(argv: list[str] | None = None) -> None:
         include_list=not args.no_list,
         include_create=not args.no_create,
         include_update=not args.no_update,
+        plural=args.plural,
         out_dir=args.out,
     )
     print(f"Generated: {out_file}")
