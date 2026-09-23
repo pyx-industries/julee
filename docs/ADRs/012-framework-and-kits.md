@@ -92,12 +92,12 @@ Kits use flat top-level import packages (`julee_ceap`), not `julee.contrib.ceap`
 
 | Repository | Workspace members |
 |---|---|
-| `julee` | `julee` (kernel and integrations), `julee-viewpoints` |
-| `julee-kits` | One member per kit |
+| `julee` | `julee` (kernel and integrations) |
+| `julee-kits` | One member per kit, including the viewpoints kit |
 
 Both are uv workspaces, with one `pyproject.toml` per distribution.
 
-- The viewpoints kit lives with the kernel so that a change to the kit contract has to update it in the same pull request.
+- The viewpoints kit lived with the kernel at first, so that a change to the kit contract had to update it in the same pull request. It moved to julee-kits in September 2026: the rule "the framework and its showcase share a repository, domain kits do not" could not be guessed from the names, and misdirected three of the four PyPI publishers. Every kit now lives in julee-kits, and a kit's repository is the one its name implies.
 - Domain kits share one repository while they share maintainers and a release rhythm. A kit that gets its own maintainers or cadence can move to its own repository, and its imports don't change.
 
 ### 3. The kit contract

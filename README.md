@@ -31,8 +31,7 @@ Domain code ships separately, as kits. Install one and adopt it:
 kits = ["polling"]
 ```
 
-- [julee-viewpoints](viewpoints/): code-outward documentation, in this repository.
-- [julee-kits](https://github.com/pyx-industries/julee-kits): the domain kits, starting with `julee-polling`.
+- [julee-kits](https://github.com/pyx-industries/julee-kits): every kit — `julee-ceap`, `julee-polling` and `julee-viewpoints`.
 
 See [ADR 012](docs/ADRs/012-framework-and-kits.md).
 

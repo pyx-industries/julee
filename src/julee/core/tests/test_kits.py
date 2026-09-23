@@ -95,23 +95,6 @@ def test_a_kit_whose_package_is_missing_contributes_no_contexts() -> None:
     )
 
 
-def test_contexts_are_discovered_from_an_installed_package() -> None:
-    """A kit's contexts come from its package, not from its manifest.
-
-    julee-viewpoints is installed in this workspace and is a real kit, so
-    it stands for any other.
-    """
-    slugs = kits_module.kit_context_slugs(
-        Kit(
-            slug="viewpoints",
-            name="Code-outward documentation",
-            package="julee_viewpoints",
-        )
-    )
-
-    assert "sphinx_hcd" in slugs
-
-
 def _install_package(tmp_path: Path, monkeypatch, name: str, layers: tuple[str, ...]):
     """Put an importable package on sys.path, with the layers given."""
     package = tmp_path / name
@@ -139,6 +122,26 @@ def test_a_kit_whose_package_is_the_context_reports_it(tmp_path, monkeypatch) ->
     )
 
     assert slugs == frozenset({"acme_kit"})
+
+
+def test_contexts_come_from_the_package_not_the_manifest(tmp_path, monkeypatch) -> None:
+    """A kit does not restate its layout; the package is read.
+
+    This used julee-viewpoints, which was installed alongside julee until
+    the kits moved to their own repository. A package built here does the
+    same job without depending on what happens to be installed.
+    """
+    package = _install_package(tmp_path, monkeypatch, "acme_viewpoints", ())
+    context = package / "hcd"
+    (context / "domain" / "models").mkdir(parents=True)
+    for part in (context, context / "domain", context / "domain" / "models"):
+        (part / "__init__.py").write_text("")
+
+    slugs = kits_module.kit_context_slugs(
+        Kit(slug="acme-vp", name="Acme viewpoints", package="acme_viewpoints")
+    )
+
+    assert slugs == frozenset({"hcd"})
 
 
 def test_contexts_inside_a_package_win_over_the_package_itself(
