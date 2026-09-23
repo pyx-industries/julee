@@ -75,9 +75,15 @@ class CreateUseCase(Generic[E, R]):
         Implemented by generated subclasses.
         """
 
-    async def _create(self, **kwargs: Any) -> E:
-        """Generate an ID, build the entity, save and return it."""
-        entity_id = await self.repo.generate_id()  # type: ignore[attr-defined]
+    async def _create(self, entity_id: str | None = None, **kwargs: Any) -> E:
+        """Build the entity, save and return it.
+
+        The ID is generated unless the caller supplies one. Entities keyed by
+        a surrogate ID leave it out; entities keyed by something the caller
+        already knows, such as a slug derived from a name, pass it in.
+        """
+        if entity_id is None:
+            entity_id = await self.repo.generate_id()  # type: ignore[attr-defined]
         entity = self._build_entity(entity_id, **kwargs)
         await self.repo.save(entity)  # type: ignore[attr-defined]
         return entity

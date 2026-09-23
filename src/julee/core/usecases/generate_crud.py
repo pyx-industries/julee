@@ -92,7 +92,11 @@ def _extra_entity_imports(
     }
     extra: set[str] = set()
     for _, type_str in all_fields:
-        for token in re.split(r"[\[\],| ]+", type_str):
+        # A field may carry a default ('SystemType = SystemType.INTERNAL').
+        # Only the annotation names a type; the default names a value, and
+        # its leading dotted part is already imported by the annotation.
+        annotation = type_str.partition("=")[0]
+        for token in re.split(r"[\[\],| ]+", annotation):
             token = token.strip()
             if token and token not in safe and token != entity and token[0:1].isupper():
                 extra.add(token)
@@ -193,8 +197,16 @@ def _create_section(
     create_fields: list[tuple[str, str]],
 ) -> str:
     field_lines = _field_lines(create_fields)
+    # An id among the create fields is a natural key the caller already knows,
+    # so it is passed as the entity id rather than as another field; passing
+    # it both ways would hand _build_entity the same keyword twice.
+    caller_supplies_id = any(name == id_field for name, _ in create_fields)
+    kwarg_names = [name for name, _ in create_fields if name != id_field]
+    if caller_supplies_id:
+        kwarg_names.insert(0, "entity_id")
     field_kwargs = "\n".join(
-        f"            {name}=request.{name}," for name, _ in create_fields
+        f"            {name}=request.{id_field if name == 'entity_id' else name},"
+        for name in kwarg_names
     )
     return f"""\
 class Create{entity}Request(BaseModel):
@@ -400,12 +412,20 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--create-fields",
         default=None,
-        help="Space-separated 'name:Type' pairs for CreateRequest fields",
+        help=(
+            "Space-separated 'name:Type' pairs for CreateRequest fields. "
+            "A default goes in the type, without spaces ('colour:str=\"\"'). "
+            "Include the id-field to let the caller supply the key."
+        ),
     )
     p.add_argument(
         "--update-fields",
         default=None,
-        help="Space-separated 'name:Type' pairs for UpdateRequest fields (excluding id-field)",
+        help=(
+            "Space-separated 'name:Type' pairs for UpdateRequest fields "
+            "(excluding id-field). Each is made optional, so an update names "
+            "only what it changes."
+        ),
     )
     p.add_argument("--no-get", action="store_true", help="Skip GetUseCase")
     p.add_argument("--no-list", action="store_true", help="Skip ListUseCase")

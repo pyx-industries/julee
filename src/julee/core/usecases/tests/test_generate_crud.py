@@ -21,7 +21,11 @@ pytestmark = pytest.mark.unit
 FIXTURES = "julee.core.usecases.tests.crud_fixtures"
 
 
-def _generate_widget_crud(out_dir: Path) -> ModuleType:
+def _generate_widget_crud(
+    out_dir: Path,
+    create_fields: list[tuple[str, str]],
+    module_name: str = "generated_crud_widget",
+) -> ModuleType:
     """Generate CRUD for the Widget fixture and import the result."""
     out_file = generate(
         entity="Widget",
@@ -29,22 +33,32 @@ def _generate_widget_crud(out_dir: Path) -> ModuleType:
         repo="WidgetRepository",
         repo_module=FIXTURES,
         id_field="slug",
-        create_fields=[("name", "str"), ("colour", "str")],
+        create_fields=create_fields,
         update_fields=[("name", "str"), ("colour", "str")],
         out_dir=out_dir,
     )
-    spec = importlib.util.spec_from_file_location("generated_crud_widget", out_file)
+    spec = importlib.util.spec_from_file_location(module_name, out_file)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    sys.modules["generated_crud_widget"] = module
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 
 
 @pytest.fixture
 def crud(tmp_path: Path) -> ModuleType:
-    """The generated CRUD module for Widget."""
-    return _generate_widget_crud(tmp_path)
+    """CRUD for an entity whose id the repository mints."""
+    return _generate_widget_crud(tmp_path, [("name", "str"), ("colour", "str")])
+
+
+@pytest.fixture
+def keyed_crud(tmp_path: Path) -> ModuleType:
+    """CRUD for an entity the caller keys itself, with optional fields."""
+    return _generate_widget_crud(
+        tmp_path / "keyed",
+        [("slug", "str"), ("name", "str"), ("colour", 'str = "beige"')],
+        module_name="generated_crud_widget_keyed",
+    )
 
 
 # =============================================================================
@@ -66,6 +80,13 @@ def test_create_request_requires_its_fields(crud: ModuleType) -> None:
         crud.CreateWidgetRequest(name="hammer")
 
 
+def test_create_field_can_carry_a_default(keyed_crud: ModuleType) -> None:
+    """A field the entity defaults should not be compulsory on the way in."""
+    request = keyed_crud.CreateWidgetRequest(slug="hammer", name="Hammer")
+
+    assert request.colour == "beige"
+
+
 def test_update_request_requires_only_the_id(crud: ModuleType) -> None:
     """An update names what changes; the id says what to change it on."""
     request = crud.UpdateWidgetRequest(slug="hammer")
@@ -77,6 +98,33 @@ def test_update_request_requires_only_the_id(crud: ModuleType) -> None:
 # =============================================================================
 # What the generated use cases do
 # =============================================================================
+
+
+async def test_create_mints_an_id_when_the_entity_has_no_natural_key(
+    crud: ModuleType,
+) -> None:
+    """Without the id among its fields, the repository decides the key."""
+    repo = WidgetRepository()
+
+    response = await crud.CreateWidgetUseCase(repo).execute(
+        crud.CreateWidgetRequest(name="Hammer", colour="red")
+    )
+
+    assert response.widget.slug == "generated-id"
+
+
+async def test_create_keeps_the_key_the_caller_supplied(
+    keyed_crud: ModuleType,
+) -> None:
+    """A slug derived from a name is the caller's to choose, not the repo's."""
+    repo = WidgetRepository()
+
+    response = await keyed_crud.CreateWidgetUseCase(repo).execute(
+        keyed_crud.CreateWidgetRequest(slug="hammer", name="Hammer")
+    )
+
+    assert response.widget.slug == "hammer"
+    assert repo.storage["hammer"].colour == "beige"
 
 
 async def test_update_leaves_out_fields_the_request_did_not_name(
