@@ -22,7 +22,7 @@ import importlib
 import pytest
 
 from julee.core.entities.claim import Claim
-from julee.core.semantics import kit_claims, load_semantics
+from julee.core.semantics import SEMANTICS_FILE, claims_from_toml, load_semantics
 
 
 def _resolves(dotted_path: str) -> bool:
@@ -50,10 +50,34 @@ def claims(project_root, kits) -> tuple[Claim, ...]:
     return load_semantics(project_root, tuple(kits))
 
 
+@pytest.fixture(scope="session")
+def published(project_root) -> tuple[tuple[str, Claim], ...]:
+    """What this codebase publishes, paired with the package publishing it.
+
+    Found on disk rather than through the kit registry, because a kit is
+    a julee solution in its own right and does not adopt itself. Reading
+    only the adopted kits would mean a kit's own claims were checked by
+    everyone except the kit that makes them.
+    """
+    found: list[tuple[str, Claim]] = []
+    for document in sorted(project_root.rglob(SEMANTICS_FILE)):
+        if any(
+            part in {".venv", "build", "dist", "__pycache__", "node_modules"}
+            for part in document.parts
+        ):
+            continue
+        package = document.parent.name
+        for claim in claims_from_toml(
+            document.read_text(encoding="utf-8"), str(document)
+        ):
+            found.append((package, claim))
+    return tuple(found)
+
+
 class TestKitClaims:
     """Rules about what a kit may assert."""
 
-    def test_a_kit_MUST_own_the_source_of_every_claim_it_makes(self, kits) -> None:
+    def test_a_kit_MUST_own_the_source_of_every_claim_it_makes(self, published) -> None:
         """A kit MUST only claim about classes it owns.
 
         A claim is a kit's view from where it stands. Claiming about two
@@ -63,14 +87,12 @@ class TestKitClaims:
         The far end is not checked here: naming a kit nobody has adopted
         is how a claim stays useful to solutions that adopt both.
         """
-        trespass = []
-        for kit in kits:
-            for claim in kit_claims(kit):
-                if not claim.source.startswith(f"{kit.package}."):
-                    trespass.append(
-                        f"{kit.slug} claims {claim.id!r} about "
-                        f"{claim.source}, which it does not own"
-                    )
+        trespass = [
+            f"{package} claims {claim.id!r} about {claim.source}, "
+            f"which it does not own"
+            for package, claim in published
+            if not claim.source.startswith(f"{package}.")
+        ]
 
         assert (
             not trespass
@@ -78,7 +100,7 @@ class TestKitClaims:
             f"  {t}" for t in trespass
         )
 
-    def test_a_kit_SHOULD_say_why_it_claims_what_it_does(self, kits) -> None:
+    def test_a_kit_SHOULD_say_why_it_claims_what_it_does(self, published) -> None:
         """Every claim SHOULD carry a note.
 
         The note is the difference between documentation and
@@ -87,14 +109,34 @@ class TestKitClaims:
         work out for themselves.
         """
         silent = [
-            f"{kit.slug}: {claim.id}"
-            for kit in kits
-            for claim in kit_claims(kit)
+            f"{package}: {claim.id}"
+            for package, claim in published
             if not claim.note.strip()
         ]
 
         assert not silent, "Claims with no note explaining them:\n" + "\n".join(
             f"  {s}" for s in silent
+        )
+
+    def test_a_kit_MUST_claim_about_classes_it_really_has(self, published) -> None:
+        """The source of every published claim MUST resolve.
+
+        A kit checks its own near ends. The far end may well name a kit
+        nobody here has installed, which is how a claim stays useful to
+        solutions that adopt both, so only the near end is checked.
+
+        Without this a kit's own claims would be checked by every
+        solution that adopts it and by nobody in the kit itself, which
+        is where a renamed class is actually noticed.
+        """
+        dangling = [
+            f"{package}: {claim.id} claims about {claim.source}"
+            for package, claim in published
+            if not _resolves(claim.source)
+        ]
+
+        assert not dangling, "Claims about classes that do not exist:\n" + "\n".join(
+            f"  {d}" for d in dangling
         )
 
 

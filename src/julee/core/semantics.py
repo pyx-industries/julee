@@ -25,6 +25,7 @@ from julee.core.entities.kit import Kit
 __all__ = [
     "SEMANTICS_FILE",
     "accepted_claims",
+    "claims_from_toml",
     "kit_claims",
     "load_semantics",
     "solution_claims",
@@ -34,7 +35,7 @@ SEMANTICS_FILE = "semantics.toml"
 """What a kit calls the file it publishes its claims in."""
 
 
-def _claims_from_toml(text: str, origin: str) -> tuple[Claim, ...]:
+def claims_from_toml(text: str, origin: str) -> tuple[Claim, ...]:
     """Read claims out of a semantics document.
 
     Args:
@@ -82,7 +83,7 @@ def kit_claims(kit: Kit) -> tuple[Claim, ...]:
     document = root / SEMANTICS_FILE
     if not document.is_file():
         return ()
-    return _claims_from_toml(
+    return claims_from_toml(
         document.read_text(encoding="utf-8"), f"{kit.slug}'s {SEMANTICS_FILE}"
     )
 
@@ -108,7 +109,7 @@ def solution_claims(solution_root: Path) -> tuple[Claim, ...]:
     claims: list[Claim] = []
     seen: dict[str, str] = {}
     for document in sorted(directory.glob("*.toml")):
-        for claim in _claims_from_toml(
+        for claim in claims_from_toml(
             document.read_text(encoding="utf-8"), str(document)
         ):
             if claim.id in seen:
