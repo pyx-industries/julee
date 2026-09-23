@@ -193,3 +193,34 @@ async def test_updating_an_absent_entity_is_not_a_silent_create(
         await crud.UpdateWidgetUseCase(repo).execute(
             crud.UpdateWidgetRequest(slug="missing", name="Nothing")
         )
+
+
+def test_the_plural_is_guessed_when_the_caller_says_nothing(
+    tmp_path: Path,
+) -> None:
+    """Most entities pluralise the way inflect thinks they do."""
+    crud = _generate_widget_crud(tmp_path, [("name", "str")])
+
+    assert crud.ListWidgetsUseCase is not None
+
+
+def test_a_caller_can_say_what_several_of_something_are_called(
+    tmp_path: Path,
+) -> None:
+    """inflect makes "personae" of a persona; the domain says "personas"."""
+    out_file = generate(
+        entity="Widget",
+        entity_module=FIXTURES,
+        repo="WidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("name", "str")],
+        update_fields=[("name", "str")],
+        plural="Widgeten",
+        out_dir=tmp_path / "plural",
+    )
+    source = out_file.read_text()
+
+    assert "class ListWidgetenUseCase" in source
+    assert "widgeten: list[Widget]" in source
+    assert "ListWidgetsUseCase" not in source
