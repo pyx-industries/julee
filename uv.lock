@@ -8,12 +8,6 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 
-[manifest]
-members = [
-    "julee",
-    "julee-viewpoints",
-]
-
 [[package]]
 name = "accessible-pygments"
 version = "0.0.5"
@@ -784,7 +778,6 @@ dev = [
     { name = "griffe" },
     { name = "hypothesis" },
     { name = "inflect" },
-    { name = "julee-viewpoints" },
     { name = "minio" },
     { name = "mutmut" },
     { name = "mypy" },
@@ -839,7 +832,6 @@ requires-dist = [
     { name = "inflect", marker = "extra == 'doctrine'", specifier = ">=7.5.0" },
     { name = "julee", extras = ["all"], marker = "extra == 'dev'" },
     { name = "julee", extras = ["doctrine", "temporal", "api", "minio"], marker = "extra == 'all'" },
-    { name = "julee-viewpoints", marker = "extra == 'dev'", editable = "viewpoints" },
     { name = "minio", marker = "extra == 'minio'", specifier = ">=7.0.0" },
     { name = "mutmut", marker = "extra == 'dev'", specifier = ">=3.5.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.7.0" },
@@ -866,24 +858,6 @@ requires-dist = [
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.20.0" },
 ]
 provides-extras = ["doctrine", "temporal", "api", "minio", "all", "dev", "docs"]
-
-[[package]]
-name = "julee-viewpoints"
-version = "0.1.1"
-source = { editable = "viewpoints" }
-dependencies = [
-    { name = "julee" },
-    { name = "pyyaml" },
-    { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "julee", editable = "." },
-    { name = "pyyaml", specifier = ">=6.0.0" },
-    { name = "sphinx", specifier = ">=7.0.0" },
-]
 
 [[package]]
 name = "libcst"
