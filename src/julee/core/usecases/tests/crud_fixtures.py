@@ -24,6 +24,10 @@ class WidgetRepository:
         """Start empty."""
         self.storage: dict[str, Widget] = {}
 
+    async def generate_id(self) -> str:
+        """Mint a surrogate id, distinctive so a test can tell it was used."""
+        return "generated-id"
+
     async def get(self, entity_id: str) -> Widget | None:
         """Return the widget with this slug, or None."""
         return self.storage.get(entity_id)
