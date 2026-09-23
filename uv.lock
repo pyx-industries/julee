@@ -869,7 +869,7 @@ provides-extras = ["doctrine", "temporal", "api", "minio", "all", "dev", "docs"]
 
 [[package]]
 name = "julee-viewpoints"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "viewpoints" }
 dependencies = [
     { name = "julee" },
