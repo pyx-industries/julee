@@ -123,7 +123,11 @@ def _optional_field_lines(fields: list[tuple[str, str]], indent: str = "    ") -
         return ""
     lines = []
     for name, type_ in fields:
-        annotation = type_ if "None" in type_ else f"{type_} | None"
+        # Any default the caller wrote is dropped: the default that matters on
+        # an update is None, standing for "not mentioned".
+        annotation = type_.partition("=")[0].strip()
+        if "None" not in annotation:
+            annotation = f"{annotation} | None"
         lines.append(f"{indent}{name}: {annotation} = None")
     return "\n".join(lines)
 

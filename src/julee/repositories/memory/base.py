@@ -183,6 +183,21 @@ class MemoryRepositoryMixin(Generic[T]):
 
         return entity_id
 
+    async def generate_id(self) -> str:
+        """Mint an entity ID, for repositories whose entities need one.
+
+        Satisfies BaseRepository. Entities identified by something their
+        author already knows, such as a slug read off a name, have no ID for
+        a repository to decide, and those repositories inherit this as-is:
+        callers supply the ID themselves and never reach here. Repositories
+        whose entities do need one override this, usually returning
+        generate_entity_id().
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not generate IDs; its entities are "
+            f"identified by something the caller already knows"
+        )
+
     def update_timestamps(self, entity: T) -> T:
         """Return a copy of the entity with timestamps updated.
 

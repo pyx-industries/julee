@@ -1,8 +1,11 @@
-"""Entity and repository the generator tests generate CRUD against.
+"""Entity and repositories the generator tests generate CRUD against.
 
 They live in a module of their own because the generator emits import
 statements naming the module its entity came from, so the test's fakes have
 to be importable by a dotted path.
+
+There are two repositories because there are two ways an entity comes by its
+identity: one the repository mints, and one the caller already knows.
 """
 
 from pydantic import BaseModel
@@ -18,15 +21,15 @@ class Widget(BaseModel):
 
 
 class WidgetRepository:
-    """In-memory repository satisfying what the generated use cases call."""
+    """A repository for widgets keyed by a slug the caller chooses.
+
+    It has no generate_id, which is the point: there is no ID here for a
+    repository to decide, so a create that reached for one would fail.
+    """
 
     def __init__(self) -> None:
         """Start empty."""
         self.storage: dict[str, Widget] = {}
-
-    async def generate_id(self) -> str:
-        """Mint a surrogate id, distinctive so a test can tell it was used."""
-        return "generated-id"
 
     async def get(self, entity_id: str) -> Widget | None:
         """Return the widget with this slug, or None."""
@@ -35,3 +38,11 @@ class WidgetRepository:
     async def save(self, entity: Widget) -> None:
         """Store the widget under its slug."""
         self.storage[entity.slug] = entity
+
+
+class MintingWidgetRepository(WidgetRepository):
+    """A repository that decides the key itself."""
+
+    async def generate_id(self) -> str:
+        """Mint an ID, distinctive so a test can tell it was used."""
+        return "generated-id"

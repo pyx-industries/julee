@@ -143,8 +143,16 @@ class BaseRepository(Protocol[T]):
         This operation is non-deterministic and must be called from
         workflow activities, not directly from workflow code.
 
+        Optional. An entity identified by something its author already knows,
+        such as a slug read off its name, has no ID for the repository to
+        decide, and such a repository may leave this alone: callers supply the
+        ID themselves and never reach here.
+
         Returns:
             Unique entity ID string
+
+        Raises:
+            NotImplementedError: If the repository does not mint IDs.
 
         .. rubric:: Implementation Notes
 
@@ -160,4 +168,7 @@ class BaseRepository(Protocol[T]):
         across workflow replays.
 
         """
-        ...
+        raise NotImplementedError(
+            f"{type(self).__name__} does not generate IDs; its entities are "
+            f"identified by something the caller already knows"
+        )
