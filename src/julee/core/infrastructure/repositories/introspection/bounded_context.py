@@ -264,6 +264,35 @@ class FilesystemBoundedContextRepository:
 
         return sorted(all_contexts, key=lambda c: c.slug)
 
+    def describe(self, path: Path) -> BoundedContext | None:
+        """Read one directory as a bounded context, if it is one.
+
+        Discovery looks inside a search root; this answers the same
+        question about a directory you already have. A kit whose package
+        is itself the bounded context needs this: there is nothing
+        inside it to find.
+
+        Args:
+            path: Directory to read
+
+        Returns:
+            The bounded context, or None if the directory is not one
+        """
+        if not path.is_dir() or not self._is_python_package(path):
+            return None
+
+        markers = self._detect_markers(path)
+        if not self._is_bounded_context(markers):
+            return None
+
+        return BoundedContext(
+            slug=path.name,
+            path=str(path),
+            description=_get_first_docstring_line(path),
+            is_viewpoint=path.name in self.viewpoint_slugs,
+            markers=markers,
+        )
+
     def discover_all(self) -> list[BoundedContext]:
         """List all discovered bounded contexts, synchronously.
 

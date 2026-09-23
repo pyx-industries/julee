@@ -83,7 +83,16 @@ def kit_context_slugs(kit: Kit) -> frozenset[str]:
         return frozenset()
     package_dir = Path(next(iter(spec.submodule_search_locations)))
     repo = FilesystemBoundedContextRepository(package_dir.parent, package_dir.name)
-    return frozenset(context.slug for context in repo.discover_all())
+
+    # A kit is laid out one of two ways, and both are legitimate: the
+    # package holds its contexts (julee-viewpoints holds sphinx_hcd), or
+    # the package is the context (julee-ceap, julee-polling).
+    inside = frozenset(context.slug for context in repo.discover_all())
+    if inside:
+        return inside
+
+    itself = repo.describe(package_dir)
+    return frozenset({itself.slug}) if itself else frozenset()
 
 
 def viewpoint_slugs(solution_root: Path) -> frozenset[str]:
