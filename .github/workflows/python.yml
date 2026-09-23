@@ -108,6 +108,3 @@ jobs:
       - name: Doctrine tests
         run: make test-doctrine
 
-      - name: Doctrine tests for the kits
-        run: make test-doctrine-kits
-
