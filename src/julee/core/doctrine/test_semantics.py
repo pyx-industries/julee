@@ -44,6 +44,23 @@ def _resolves(dotted_path: str) -> bool:
     return hasattr(module, name)
 
 
+def _package_present(dotted_path: str) -> bool:
+    """Whether the package a dotted path starts with is installed here.
+
+    Args:
+        dotted_path: For example "julee_c4.domain.models.container.Container"
+
+    Returns:
+        True if its top-level package imports
+    """
+    root = dotted_path.split(".")[0]
+    try:
+        importlib.import_module(root)
+    except ImportError:
+        return False
+    return True
+
+
 @pytest.fixture(scope="session")
 def claims(project_root, kits) -> tuple[Claim, ...]:
     """Everything the solution holds true, kit claims and its own."""
@@ -137,6 +154,30 @@ class TestKitClaims:
 
         assert not dangling, "Claims about classes that do not exist:\n" + "\n".join(
             f"  {d}" for d in dangling
+        )
+
+    def test_a_kit_MUST_name_a_target_correctly_when_it_can_be_checked(
+        self, published
+    ) -> None:
+        """A far end MUST resolve when its package is installed here.
+
+        Leaving every far end alone was too lenient. A claim about a kit
+        nobody has installed cannot be checked, and that is the point of
+        allowing it. But a claim about the kernel, or about a kit this
+        one already depends on, is checkable — and a typo there is the
+        very thing this design exists to catch.
+
+        So the rule is what can be checked, is.
+        """
+        wrong = [
+            f"{package}: {claim.id} names {claim.target}"
+            for package, claim in published
+            if _package_present(claim.target) and not _resolves(claim.target)
+        ]
+
+        assert not wrong, (
+            "Claims naming a class that does not exist, in a package that "
+            "is installed:\n" + "\n".join(f"  {w}" for w in wrong)
         )
 
 
