@@ -14,7 +14,11 @@ from types import ModuleType
 import pytest
 
 from julee.core.usecases.generate_crud import generate
-from julee.core.usecases.tests.crud_fixtures import Widget, WidgetRepository
+from julee.core.usecases.tests.crud_fixtures import (
+    MintingWidgetRepository,
+    Widget,
+    WidgetRepository,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -25,16 +29,19 @@ def _generate_widget_crud(
     out_dir: Path,
     create_fields: list[tuple[str, str]],
     module_name: str = "generated_crud_widget",
+    repo: str = "WidgetRepository",
 ) -> ModuleType:
     """Generate CRUD for the Widget fixture and import the result."""
     out_file = generate(
         entity="Widget",
         entity_module=FIXTURES,
-        repo="WidgetRepository",
+        repo=repo,
         repo_module=FIXTURES,
         id_field="slug",
         create_fields=create_fields,
-        update_fields=[("name", "str"), ("colour", "str")],
+        # colour carries a default the update side has to discard, since on an
+        # update the only useful default is "not mentioned".
+        update_fields=[("name", "str"), ("colour", 'str = "beige"')],
         out_dir=out_dir,
     )
     spec = importlib.util.spec_from_file_location(module_name, out_file)
@@ -48,7 +55,11 @@ def _generate_widget_crud(
 @pytest.fixture
 def crud(tmp_path: Path) -> ModuleType:
     """CRUD for an entity whose id the repository mints."""
-    return _generate_widget_crud(tmp_path, [("name", "str"), ("colour", "str")])
+    return _generate_widget_crud(
+        tmp_path,
+        [("name", "str"), ("colour", "str")],
+        repo="MintingWidgetRepository",
+    )
 
 
 @pytest.fixture
@@ -104,7 +115,7 @@ async def test_create_mints_an_id_when_the_entity_has_no_natural_key(
     crud: ModuleType,
 ) -> None:
     """Without the id among its fields, the repository decides the key."""
-    repo = WidgetRepository()
+    repo = MintingWidgetRepository()
 
     response = await crud.CreateWidgetUseCase(repo).execute(
         crud.CreateWidgetRequest(name="Hammer", colour="red")
@@ -123,6 +134,9 @@ async def test_create_keeps_the_key_the_caller_supplied(
         keyed_crud.CreateWidgetRequest(slug="hammer", name="Hammer")
     )
 
+    # The repository has no generate_id at all, so this only passes because
+    # the create never reached for one.
+    assert not hasattr(repo, "generate_id")
     assert response.widget.slug == "hammer"
     assert repo.storage["hammer"].colour == "beige"
 
@@ -131,7 +145,7 @@ async def test_update_leaves_out_fields_the_request_did_not_name(
     crud: ModuleType,
 ) -> None:
     """The bug this test exists for: a partial update clobbered the rest."""
-    repo = WidgetRepository()
+    repo = MintingWidgetRepository()
     repo.storage["hammer"] = Widget(slug="hammer", name="Hammer", colour="red")
 
     response = await crud.UpdateWidgetUseCase(repo).execute(
@@ -146,7 +160,7 @@ async def test_update_passing_none_explicitly_clears_the_field(
     crud: ModuleType,
 ) -> None:
     """Unset means leave alone, so None has to be free to mean something."""
-    repo = WidgetRepository()
+    repo = MintingWidgetRepository()
     repo.storage["hammer"] = Widget(slug="hammer", name="Hammer", colour="red")
 
     response = await crud.UpdateWidgetUseCase(repo).execute(
@@ -159,7 +173,7 @@ async def test_update_passing_none_explicitly_clears_the_field(
 
 async def test_update_saves_what_it_returns(crud: ModuleType) -> None:
     """The response is not a preview; the repository has the same entity."""
-    repo = WidgetRepository()
+    repo = MintingWidgetRepository()
     repo.storage["hammer"] = Widget(slug="hammer", name="Hammer", colour="red")
 
     await crud.UpdateWidgetUseCase(repo).execute(
@@ -173,7 +187,7 @@ async def test_updating_an_absent_entity_is_not_a_silent_create(
     crud: ModuleType,
 ) -> None:
     """Update means update."""
-    repo = WidgetRepository()
+    repo = MintingWidgetRepository()
 
     with pytest.raises(crud.EntityNotFoundError):
         await crud.UpdateWidgetUseCase(repo).execute(
