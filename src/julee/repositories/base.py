@@ -29,10 +29,28 @@ from pydantic import BaseModel
 
 # Type variable bound to Pydantic BaseModel for domain entities
 T = TypeVar("T", bound=BaseModel)
+# The marker names its entity and never takes or returns one, so its
+# parameter is covariant, which is what a protocol with no methods needs.
+T_co = TypeVar("T_co", bound=BaseModel, covariant=True)
+
+
+class RepositoryOf(Protocol[T_co]):
+    """Declares the one entity a repository is bound to, and nothing else.
+
+    ADR 009 binds a repository to one entity type, and doctrine
+    (``test_repository_protocol.py``) reads that entity from a
+    ``RepositoryOf[Entity]`` base. A repository that offers CRUD inherits
+    it through ``BaseRepository``; one that does not (a read-only source,
+    a paged feed, a content-addressed store) inherits it directly and is
+    checked by the same rule instead of being exempt from it.
+
+    Type Parameter:
+        T_co: The domain entity type (must extend Pydantic BaseModel)
+    """
 
 
 @runtime_checkable
-class BaseRepository(Protocol[T]):
+class BaseRepository(RepositoryOf[T], Protocol[T]):
     """Generic base repository protocol for common CRUD operations.
 
     This protocol defines the common interface shared by all domain

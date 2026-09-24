@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from julee.repositories.base import BaseRepository
+from julee.repositories.base import BaseRepository, RepositoryOf
 
 from .activities import discover_protocol_methods
 
@@ -54,8 +54,9 @@ def _extract_concrete_type_from_base(cls: type) -> type | None:
                 origin = get_origin(orig_base)
                 if origin is not None:
                     args = get_args(orig_base)
-                    # Look for BaseRepository[ConcreteType] pattern
-                    if origin is BaseRepository and len(args) == 1:
+                    # Look for RepositoryOf[ConcreteType], which
+                    # BaseRepository[ConcreteType] carries too
+                    if origin in (BaseRepository, RepositoryOf) and len(args) == 1:
                         concrete_type = args[0]
                         # Make sure it's a concrete type, not another TypeVar
                         if not isinstance(concrete_type, TypeVar):

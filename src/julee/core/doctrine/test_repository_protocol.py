@@ -41,8 +41,8 @@ class TestRepositoryProtocolBinding:
         aggregate root. Referencing multiple entity types blurs aggregate
         boundaries and couples persistence concerns that should remain separate.
 
-        The primary entity is declared via the BaseRepository[T] generic
-        parameter. Method signatures SHOULD NOT introduce additional domain
+        The primary entity is declared via the RepositoryOf[T] generic
+        parameter, which BaseRepository[T] carries for a CRUD repository. Method signatures SHOULD NOT introduce additional domain
         entity types from other aggregates — doing so means the repository is
         doing two jobs.
 
@@ -50,8 +50,8 @@ class TestRepositoryProtocolBinding:
         are excluded automatically: only types that appear in the bounded
         context's entity list are checked.
 
-        Repositories that do not inherit from BaseRepository[T] are exempt —
-        their primary entity type cannot be determined structurally.
+        Repositories that declare neither are exempt: their primary entity
+        type cannot be determined structurally.
         """
         use_case = ListRepositoryProtocolsUseCase(repo)
         response = await use_case.execute(ListRepositoryProtocolsRequest())

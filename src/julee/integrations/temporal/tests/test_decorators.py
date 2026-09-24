@@ -32,7 +32,7 @@ from julee.integrations.temporal.decorators import (
     temporal_activity_registration,
     temporal_workflow_proxy,
 )
-from julee.repositories.base import BaseRepository
+from julee.repositories.base import BaseRepository, RepositoryOf
 
 pytestmark = pytest.mark.unit
 
@@ -464,6 +464,13 @@ class MockDocumentRepository(BaseRepository[MockDocument], Protocol):
 
 
 @runtime_checkable
+class MockDocumentSource(RepositoryOf[MockDocument], Protocol):
+    """A repository that declares its entity and offers no CRUD."""
+
+    async def fetch(self, url: str) -> MockDocument: ...
+
+
+@runtime_checkable
 class NonGenericRepository(Protocol):
     """Repository that doesn't follow BaseRepository[T] pattern."""
 
@@ -490,6 +497,10 @@ class TestTypeExtraction:
         assert assembly_type == MockAssemblySpecification
         assert document_type == MockDocument
         assert assembly_type != document_type
+
+    def test_extracts_concrete_type_declared_without_crud(self) -> None:
+        """A repository that inherits RepositoryOf[T] alone declares T."""
+        assert _extract_concrete_type_from_base(MockDocumentSource) == MockDocument
 
     def test_extracts_from_proxy_class_inheritance(self) -> None:
         """Test extracting concrete type from workflow proxy classes."""

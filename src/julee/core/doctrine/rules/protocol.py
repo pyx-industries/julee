@@ -19,11 +19,23 @@ __all__ = [
     "repositories_referencing_several_entities",
 ]
 
-_BASE_ENTITY = re.compile(r"BaseRepository\[([A-Za-z_][A-Za-z0-9_]*)\]")
+_BASE_ENTITY = re.compile(
+    r"(?:RepositoryOf|BaseRepository)\[([A-Za-z_][A-Za-z0-9_]*)\]"
+)
+"""Either way of declaring the entity a repository is bound to.
+
+Both spellings are read rather than one, because julee-viewpoints and
+other kits carry a BaseRepository of their own and their existing
+declarations should keep working unchanged.
+"""
 
 
 def base_entity_type(protocol: ClassInfo) -> str | None:
-    """The entity a repository declares through BaseRepository[T].
+    """The entity a repository declares, however it declares it.
+
+    RepositoryOf[T] says which entity and nothing else; BaseRepository[T]
+    says the same and adds async CRUD. A repository that is not CRUD can
+    declare its entity with the first and still be checked.
 
     Args:
         protocol: The repository protocol to read
