@@ -236,3 +236,114 @@ def test_a_repository_without_BaseRepository_is_exempt() -> None:
 def test_a_codebase_with_none_of_these_offends_nothing(rule) -> None:
     """Most kits have no handlers at all."""
     assert rule() == []
+
+
+# =============================================================================
+# An entity declared through another repository protocol
+# =============================================================================
+
+
+def a_shared_base(
+    name: str = "HcdRepository", bases: tuple[str, ...] = ("BaseRepository[T]",)
+) -> CodeArtifactWithContext:
+    """A kit's own protocol, which its repositories inherit.
+
+    hcd has one, holding delete, clear and get_by_docname. It is itself a
+    repository protocol, so it arrives in the same list as the others,
+    which is what lets an indirect declaration be followed.
+    """
+    return a_repository(name=name, bases=bases, references=())
+
+
+def test_an_entity_declared_through_another_protocol_is_read() -> None:
+    """AppRepository(HcdRepository[App]) declares App perfectly well.
+
+    Reading only the direct bases missed all seven of hcd's (#231): the
+    rule skipped them and nothing went red.
+    """
+    child = a_repository(name="AppRepository", bases=("HcdRepository[App]",)).artifact
+    by_name = {"HcdRepository": a_shared_base().artifact}
+
+    assert base_entity_type(child, by_name) == "App"
+
+
+def test_the_shared_base_need_not_be_named_Repository() -> None:
+    """Followed by name, not by matching a naming convention."""
+    child = a_repository(name="AppRepository", bases=("HcdStore[App]",)).artifact
+    by_name = {"HcdStore": a_shared_base(name="HcdStore").artifact}
+
+    assert base_entity_type(child, by_name) == "App"
+
+
+def test_a_chain_of_two_is_followed() -> None:
+    by_name = {
+        "HcdRepository": a_shared_base().artifact,
+        "AuthoredRepository": a_shared_base(
+            name="AuthoredRepository", bases=("HcdRepository[T]",)
+        ).artifact,
+    }
+    child = a_repository(name="AppRepository", bases=("AuthoredRepository[App]",))
+
+    assert base_entity_type(child.artifact, by_name) == "App"
+
+
+def test_a_base_that_declares_no_entity_is_not_followed() -> None:
+    """Otherwise any generic base would look like a declaration."""
+    child = a_repository(name="AppRepository", bases=("Paginated[App]",)).artifact
+    by_name = {"Paginated": a_repository(name="Paginated", bases=()).artifact}
+
+    assert base_entity_type(child, by_name) is None
+
+
+def test_an_unknown_base_is_not_followed() -> None:
+    """A protocol from outside the codebase cannot be read."""
+    child = a_repository(name="AppRepository", bases=("Elsewhere[App]",)).artifact
+
+    assert base_entity_type(child, {}) is None
+
+
+def test_a_direct_declaration_wins_over_an_indirect_one() -> None:
+    child = a_repository(
+        name="AppRepository", bases=("HcdRepository[Wrong]", "RepositoryOf[App]")
+    ).artifact
+    by_name = {"HcdRepository": a_shared_base().artifact}
+
+    assert base_entity_type(child, by_name) == "App"
+
+
+def test_a_cycle_does_not_hang() -> None:
+    """Inheritance should not contain one, but doctrine reads text.
+
+    A rule that hangs is worse than one that misses something.
+    """
+    by_name = {
+        "A": a_repository(name="A", bases=("B[X]",)).artifact,
+        "B": a_repository(name="B", bases=("A[X]",)).artifact,
+    }
+
+    assert base_entity_type(by_name["A"], by_name) is None
+
+
+def test_without_the_map_only_a_direct_declaration_is_read() -> None:
+    """The argument is optional, so existing callers behave as before."""
+    child = a_repository(name="AppRepository", bases=("HcdRepository[App]",)).artifact
+
+    assert base_entity_type(child) is None
+
+
+def test_a_repository_declaring_through_a_base_is_checked_by_the_rule() -> None:
+    """The whole point: seven hcd protocols go from skipped to checked."""
+    objections = repositories_referencing_several_entities(
+        [
+            a_shared_base(),
+            a_repository(
+                name="AppRepository",
+                bases=("HcdRepository[App]",),
+                references=("App", "Story"),
+            ),
+        ],
+        {"hcd": {"App", "Story"}},
+    )
+
+    assert len(objections) == 1
+    assert "AppRepository" in objections[0]
