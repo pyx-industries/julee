@@ -190,3 +190,46 @@ class BaseRepository(RepositoryOf[T], Protocol[T]):
             f"{type(self).__name__} does not generate IDs; its entities are "
             f"identified by something the caller already knows"
         )
+
+
+@runtime_checkable
+class Deletable(RepositoryOf[T_co], Protocol[T_co]):
+    """A repository whose entities can be removed.
+
+    Deliberately not part of :class:`BaseRepository`. Across the five
+    kits the split is clean: c4 and hcd delete everything, because
+    documentation that cannot forget goes stale — a container that no
+    longer exists should stop appearing in diagrams. ceap and polling
+    delete nothing, across eight repository protocols, because deleting a
+    processed document destroys the record of having processed it.
+
+    Putting ``delete`` on ``BaseRepository`` would force those eight to
+    implement something they should refuse, so a repository opts in by
+    inheriting this instead.
+
+    Covariant like RepositoryOf, and for the same reason: deleting takes
+    an identifier and returns a bool, so the entity type is named here
+    and never passed or returned.
+
+    Type Parameter:
+        T_co: The domain entity type (must extend Pydantic BaseModel)
+    """
+
+    async def delete(self, entity_id: str) -> bool:
+        """Remove one entity, saying whether there was one to remove.
+
+        Reports rather than raising. "It was already gone" is the outcome
+        the caller asked for, which is why deleting twice is not an
+        error — unlike ``get`` and ``update``, where an absent entity
+        means the caller is working from something stale.
+
+        Both kits that hand-wrote delete before this existed arrived at
+        the same answer independently.
+
+        Args:
+            entity_id: Identifier of the entity to remove
+
+        Returns:
+            True if an entity was removed, False if there was none
+        """
+        ...

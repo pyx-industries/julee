@@ -167,9 +167,13 @@ class CreateUseCase(Generic[E, R]):
 
 ### Core Module
 
-`julee/core/usecases/generic_crud.py` provides four base classes: `GetUseCase`, `ListUseCase`, `CreateUseCase` and `UpdateUseCase`.
+`julee/core/usecases/generic_crud.py` provides five base classes: `GetUseCase`, `ListUseCase`, `CreateUseCase`, `UpdateUseCase` and `DeleteUseCase`.
 
-There is no `DeleteUseCase`, so "CRUD" stops at three letters and every kit with removable entities hand-writes the fourth. See #198, which also has to settle what deleting something absent means.
+Delete is **opt-in**, both in the repository and in the generator, because the kits split cleanly on it: c4 and hcd delete everything, since documentation that cannot forget goes stale, while ceap and polling delete nothing across nine repository protocols, since deleting a processed document destroys the record of having processed it. A repository declares that it deletes by inheriting `julee.repositories.Deletable`; `BaseRepository` does not require it.
+
+`DeleteUseCase` is the one base whose repository type is bound — to `Deletable` — so asking for a delete use case over a repository that refuses to delete is a type error rather than an `AttributeError` at runtime.
+
+Deleting something absent **reports** rather than raising, unlike `Get` and `Update`. "It was already gone" is the outcome the caller asked for; fetching or updating something absent means the caller is working from something stale.
 
 Requests and responses are **not** in the kernel. Each is generated per entity — `GetStoryRequest`, `CreateStoryResponse` — because their fields are the entity's, and a shared `CreateRequest` could only have been untyped.
 
@@ -215,7 +219,7 @@ gen Component component \
   'name:str container_slug:str description:str'
 ```
 
-`--no-get`, `--no-list`, `--no-create` and `--no-update` each skip one.
+`--no-get`, `--no-list`, `--no-create` and `--no-update` each skip one. `--delete` adds the fifth, and is opt-in where those four are opt-out: two of the five kits must never delete, so emitting a destructive use case because nobody said otherwise is the wrong way for this to fail.
 
 ## Alternatives Considered
 

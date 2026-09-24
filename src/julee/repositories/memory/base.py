@@ -161,6 +161,31 @@ class MemoryRepositoryMixin(Generic[T]):
             extra=success_extra,
         )
 
+    async def delete(self, entity_id: str) -> bool:
+        """Remove one entity, saying whether there was one to remove.
+
+        The file mixin has had this since it was written; the memory one
+        did not, so every kit that deletes carried its own copy of the
+        same line — six byte-identical ones in c4 alone.
+
+        Reports rather than raising: "it was already gone" is the outcome
+        the caller asked for. See :class:`julee.repositories.base.Deletable`.
+
+        Args:
+            entity_id: Identifier of the entity to remove
+
+        Returns:
+            True if an entity was removed, False if there was none
+        """
+        removed = self.storage_dict.pop(entity_id, None) is not None
+        self.logger.debug(
+            f"Memory{self.entity_name}Repository: "
+            f"{'Deleted' if removed else 'Nothing to delete for'} "
+            f"{self.entity_name.lower()}",
+            extra={f"{self.entity_name.lower()}_id": entity_id},
+        )
+        return removed
+
     def generate_entity_id(self, prefix: str | None = None) -> str:
         """Generate a unique entity ID with consistent format.
 

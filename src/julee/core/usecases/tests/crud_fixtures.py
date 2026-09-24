@@ -46,3 +46,17 @@ class MintingWidgetRepository(WidgetRepository):
     async def generate_id(self) -> str:
         """Mint an ID, distinctive so a test can tell it was used."""
         return "generated-id"
+
+
+class DeletableWidgetRepository(WidgetRepository):
+    """A repository whose widgets can be removed.
+
+    Separate from WidgetRepository because delete is opt-in: ceap and
+    polling keep the record of what they processed and have no delete
+    across nine repository protocols, so a fixture where every repository
+    deletes would not describe the world the generator emits into.
+    """
+
+    async def delete(self, entity_id: str) -> bool:
+        """Remove the widget, saying whether there was one to remove."""
+        return self.storage.pop(entity_id, None) is not None

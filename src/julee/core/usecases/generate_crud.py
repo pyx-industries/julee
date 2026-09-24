@@ -287,6 +287,38 @@ class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
 """
 
 
+def _delete_section(entity: str, snake: str, id_field: str) -> str:
+    return f"""\
+class Delete{entity}Request(BaseModel):
+    \"\"\"Request for deleting a {entity} by {id_field}.\"\"\"
+
+    {id_field}: str
+
+
+class Delete{entity}Response(BaseModel):
+    \"\"\"Response for deleting a {entity}.\"\"\"
+
+    deleted: bool
+
+
+class Delete{entity}UseCase(DeleteUseCase[{entity}, {entity}Repository]):
+    \"\"\"Delete a {entity} by {id_field}.
+
+    Reports whether anything was deleted rather than raising, since
+    \"it was already gone\" is the outcome the caller asked for.
+    \"\"\"
+
+    def __init__(self, repo: {entity}Repository) -> None:
+        \"\"\"Initialise with the {snake} repository.\"\"\"
+        super().__init__(repo)
+
+    async def execute(self, request: Delete{entity}Request) -> Delete{entity}Response:
+        \"\"\"Execute the delete {snake} use case.\"\"\"
+        deleted = await self._delete_by_id(request.{id_field})
+        return Delete{entity}Response(deleted=deleted)
+"""
+
+
 # ---------------------------------------------------------------------------
 # Main generator
 # ---------------------------------------------------------------------------
@@ -305,6 +337,7 @@ def generate(
     include_list: bool = True,
     include_create: bool = True,
     include_update: bool = True,
+    include_delete: bool = False,
     plural: str | None = None,
     out_dir: Path,
 ) -> Path:
@@ -332,6 +365,8 @@ def generate(
         base_classes.append("CreateUseCase")
     if include_update:
         base_classes.append("UpdateUseCase")
+    if include_delete:
+        base_classes.append("DeleteUseCase")
     base_imports = ", ".join(["EntityNotFoundError"] + base_classes)
 
     # Build import block
@@ -367,6 +402,8 @@ def generate(
         sections.append(_create_section(entity, snake, id_field, create_fields))
     if include_update:
         sections.append(_update_section(entity, snake, id_field, update_fields))
+    if include_delete:
+        sections.append(_delete_section(entity, snake, id_field))
 
     content = "\n\n".join(sections) + "\n"
 
@@ -448,6 +485,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-list", action="store_true", help="Skip ListUseCase")
     p.add_argument("--no-create", action="store_true", help="Skip CreateUseCase")
     p.add_argument("--no-update", action="store_true", help="Skip UpdateUseCase")
+    # Opt in, where the other four are opt out. Two of the five kits must
+    # never delete — ceap and polling keep the record of what was
+    # processed — so emitting a destructive use case by default is the
+    # wrong way for this to fail. The repository must also inherit
+    # Deletable, or the generated file will not type-check.
+    p.add_argument(
+        "--delete",
+        action="store_true",
+        help="Emit DeleteUseCase (off by default; needs a Deletable repository)",
+    )
     p.add_argument(
         "--out",
         required=True,
@@ -474,6 +521,7 @@ def main(argv: list[str] | None = None) -> None:
         include_list=not args.no_list,
         include_create=not args.no_create,
         include_update=not args.no_update,
+        include_delete=args.delete,
         plural=args.plural,
         out_dir=args.out,
     )
