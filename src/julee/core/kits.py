@@ -12,6 +12,7 @@ installed set is only used to resolve those slugs and to report a slug that
 names nothing.
 """
 
+import importlib
 import importlib.util
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
 __all__ = [
     "adopted_kits",
     "contributions",
+    "resolve_contribution",
     "sphinx_extensions",
     "installed_kits",
     "kit_context_slugs",
@@ -157,3 +159,34 @@ def sphinx_extensions(solution_root: Path) -> list[str]:
         Extension module paths, in adoption order
     """
     return list(contributions(solution_root, "sphinx.extension"))
+
+
+def resolve_contribution(path: str) -> object:
+    """Import what a contribution names.
+
+    A path names exactly one thing. ``a.b.c`` is the module; ``a.b:c`` is
+    the attribute ``c`` inside module ``a.b``. A bare module never means
+    "look inside this for anything that qualifies": a contribution point
+    that wants several things is pointed at something that holds them,
+    so what is offered is written in the kit and not inferred by
+    whatever reads it.
+
+    Importing happens here and nowhere earlier. Reading a manifest and
+    asking what is contributed both stay free of it; only a caller that
+    actually wants the object pays.
+
+    Args:
+        path: A contribution path, with or without an attribute
+
+    Returns:
+        The module, or the attribute inside it
+
+    Raises:
+        ImportError: If the module is not there
+        AttributeError: If the module has no such attribute
+    """
+    module_path, _, attribute = path.partition(":")
+    module = importlib.import_module(module_path)
+    if not attribute:
+        return module
+    return getattr(module, attribute)
