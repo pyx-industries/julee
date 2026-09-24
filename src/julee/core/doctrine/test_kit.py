@@ -11,6 +11,14 @@ its own right and runs its own doctrine.
 
 import pytest
 
+from julee.core.doctrine.rules.kit import (
+    circular_requirements,
+    duplicate_slugs,
+    malformed_contributions,
+    slugs_colliding_with_contexts,
+    unadopted_requirements,
+    unimportable_packages,
+)
 from julee.core.kits import adopted_kits, installed_kits, unresolved_kit_slugs
 
 
@@ -38,33 +46,13 @@ class TestKitAdoption:
         Adoption is explicit, so a kit cannot pull in another kit on the
         solution's behalf. If ceap requires polling, the solution says so.
         """
-        adopted = adopted_kits(project_root)
-        slugs = {kit.slug for kit in adopted}
-
-        violations = [
-            f"{kit.slug} requires {required}, which is not adopted"
-            for kit in adopted
-            for required in kit.requires
-            if required not in slugs
-        ]
+        violations = unadopted_requirements(adopted_kits(project_root))
 
         assert not violations, "Unmet kit requirements:\n" + "\n".join(violations)
 
     def test_kit_requirements_MUST_NOT_be_circular(self, project_root) -> None:
         """Kit requirements MUST form a directed acyclic graph."""
-        requirements = {
-            kit.slug: set(kit.requires) for kit in adopted_kits(project_root)
-        }
-
-        def reaches(start: str, target: str, seen: set[str]) -> bool:
-            for nxt in requirements.get(start, set()):
-                if nxt == target or (
-                    nxt not in seen and reaches(nxt, target, seen | {nxt})
-                ):
-                    return True
-            return False
-
-        cycles = [slug for slug in requirements if reaches(slug, slug, {slug})]
+        cycles = circular_requirements(adopted_kits(project_root))
 
         assert (
             not cycles
@@ -80,12 +68,9 @@ class TestKitBoundary:
         The slug addresses a kit in [tool.julee] kits, so a duplicate makes
         adoption ambiguous.
         """
-        slugs = [kit.slug for kit in installed_kits()]
-        duplicates = {slug for slug in slugs if slugs.count(slug) > 1}
+        duplicates = duplicate_slugs(installed_kits())
 
-        assert (
-            not duplicates
-        ), f"Installed kits share slugs: {', '.join(sorted(duplicates))}"
+        assert not duplicates, f"Installed kits share slugs: {', '.join(duplicates)}"
 
     def test_kit_slugs_MUST_NOT_collide_with_bounded_contexts(
         self, project_root, repo
@@ -95,13 +80,13 @@ class TestKitBoundary:
         Both are names in the same namespace as far as a reader is
         concerned, and doctrine reports on both.
         """
-        kit_slugs = {kit.slug for kit in adopted_kits(project_root)}
-        context_slugs = {context.slug for context in repo.discover_all()}
-        collisions = kit_slugs & context_slugs
+        collisions = slugs_colliding_with_contexts(
+            adopted_kits(project_root),
+            (context.slug for context in repo.discover_all()),
+        )
 
         assert not collisions, (
-            "Kit slugs collide with bounded context slugs: "
-            f"{', '.join(sorted(collisions))}"
+            "Kit slugs collide with bounded context slugs: " f"{', '.join(collisions)}"
         )
 
 
@@ -121,14 +106,13 @@ class TestKitManifests:
         if not adopted:
             pytest.skip("Solution adopts no kits")
 
-        violations = []
-        for kit in adopted:
+        def can_import(package: str) -> bool:
             try:
-                spec = importlib.util.find_spec(kit.package)
+                return importlib.util.find_spec(package) is not None
             except (ImportError, ValueError):
-                spec = None
-            if spec is None:
-                violations.append(f"{kit.slug} declares package {kit.package}")
+                return False
+
+        violations = unimportable_packages(adopted, can_import)
 
         assert not violations, "Kit packages not importable:\n" + "\n".join(violations)
 
@@ -141,11 +125,6 @@ class TestKitManifests:
         manifest imports nothing. The path is checked for shape here;
         resolving it is the job of whichever integration consumes it.
         """
-        violations = [
-            f"{kit.slug}: {point} = {path!r}"
-            for kit in adopted_kits(project_root)
-            for point, path in kit.contributes.items()
-            if not path or path.count(":") > 1 or " " in path
-        ]
+        violations = malformed_contributions(adopted_kits(project_root))
 
         assert not violations, "Malformed kit contributions:\n" + "\n".join(violations)
