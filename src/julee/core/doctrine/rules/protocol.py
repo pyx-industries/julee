@@ -5,7 +5,7 @@ a little about where the file sits. Nothing here imports or reads a file.
 """
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 
 from julee.core.entities.code_info import ClassInfo
@@ -30,23 +30,70 @@ declarations should keep working unchanged.
 """
 
 
-def base_entity_type(protocol: ClassInfo) -> str | None:
+_PARAMETERISED = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\[([A-Za-z_][A-Za-z0-9_]*)\]")
+"""Any base of the form Name[Param], for following a declaration up."""
+
+
+def base_entity_type(
+    protocol: ClassInfo,
+    protocols_by_name: Mapping[str, ClassInfo] | None = None,
+) -> str | None:
     """The entity a repository declares, however it declares it.
 
     RepositoryOf[T] says which entity and nothing else; BaseRepository[T]
     says the same and adds async CRUD. A repository that is not CRUD can
     declare its entity with the first and still be checked.
 
+    A kit whose repositories share behaviour puts a protocol of its own
+    in between — ``AppRepository(HcdRepository[App])``, where
+    ``HcdRepository[T]`` inherits ``BaseRepository[T]``. That declares
+    the entity perfectly well to a reader and to mypy, and reading only
+    the direct bases missed all seven of hcd's (#231). So a base that is
+    itself a repository declaring an entity is followed, and the entity
+    taken from the parameter the subclass supplied.
+
+    Following happens by name rather than by matching ``*Repository``,
+    so a kit that calls its shared protocol something else is read too.
+
     Args:
         protocol: The repository protocol to read
+        protocols_by_name: The other repository protocols in the
+            codebase, for following an indirect declaration. Without it
+            only a direct declaration is read.
 
     Returns:
         The entity's name, or None if the protocol does not declare one
     """
+    return _declared_entity(protocol, protocols_by_name or {}, frozenset())
+
+
+def _declared_entity(
+    protocol: ClassInfo,
+    protocols_by_name: Mapping[str, ClassInfo],
+    seen: frozenset[str],
+) -> str | None:
+    """Walk the bases, following one repository protocol into the next.
+
+    `seen` stops a cycle. Inheritance should not contain one, but
+    doctrine reads text rather than an import graph, and a rule that
+    hangs is worse than one that misses something.
+    """
     for base in protocol.bases:
-        match = _BASE_ENTITY.search(base)
-        if match:
+        if match := _BASE_ENTITY.search(base):
             return match.group(1)
+
+    for base in protocol.bases:
+        match = _PARAMETERISED.search(base)
+        if match is None:
+            continue
+        name, parameter = match.group(1), match.group(2)
+        if name in seen:
+            continue
+        parent = protocols_by_name.get(name)
+        if parent is None:
+            continue
+        if _declared_entity(parent, protocols_by_name, seen | {name}) is not None:
+            return parameter
     return None
 
 
@@ -135,11 +182,12 @@ def repositories_referencing_several_entities(
     entity in its signatures blurs the boundary and couples two things
     that should be able to change apart.
 
-    A protocol declaring neither RepositoryOf[T] nor BaseRepository[T]
-    is exempt: its primary entity cannot be told structurally. Declaring
-    the entity and offering CRUD were the same thing until RepositoryOf
-    split them, so a repository that is not CRUD can say what it holds
-    and be checked rather than skipped (#179).
+    A protocol declaring neither RepositoryOf[T] nor BaseRepository[T],
+    directly or through another repository protocol, is exempt: its
+    primary entity cannot be told structurally. Declaring the entity and
+    offering CRUD were the same thing until RepositoryOf split them, so
+    a repository that is not CRUD can say what it holds and be checked
+    rather than skipped (#179).
 
     Args:
         repositories: The repository protocols a codebase has
@@ -148,10 +196,15 @@ def repositories_referencing_several_entities(
     Returns:
         One sentence per repository covering more than one entity
     """
+    repositories = list(repositories)
+    # A kit's shared base — hcd's HcdRepository[T] — is itself in this
+    # list, which is what lets an indirect declaration be followed.
+    protocols_by_name = {found.artifact.name: found.artifact for found in repositories}
+
     objections = []
     for found in repositories:
         protocol = found.artifact
-        primary = base_entity_type(protocol)
+        primary = base_entity_type(protocol, protocols_by_name)
         if primary is None:
             continue
         known = entity_names_by_context.get(found.bounded_context, set())
