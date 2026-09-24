@@ -203,7 +203,16 @@ When doctrine runs against a solution:
 1. The solution's own bounded contexts are verified in full, as today.
 2. Adopted kits' bounded contexts are treated as imported. They take part in the dependency-rule and composition checks, but their internals are not re-verified, because the kit's own CI does that.
 3. It is a doctrine violation to import a kit that is not listed in `[tool.julee] kits`.
-4. Solution bounded contexts may import a kit's entities, use cases and protocols. Only the solution's apps (the composition roots) may import a kit's `infrastructure` or `apps` modules. This is the dependency rule applied across the kit boundary.
+4. Solution bounded contexts may import a kit's entities, use cases and protocols. Only the solution's composition roots may import a kit's `infrastructure` or `apps` modules. This is the dependency rule applied across the kit boundary.
+
+   Which directories hold a composition root is declared, defaulting to `apps/`:
+
+   ```toml
+   [tool.julee]
+   composition_roots = ["sphinx_hcd/sphinx", "sphinx_c4/sphinx"]
+   ```
+
+   The role is not always held by a directory of that name. `julee-viewpoints` chooses its repository implementations and wires them into adapters in each `sphinx/context.py`, attached to the Sphinx application at `builder-inited` — a composition root by every test except its name. Keying the rule on the declared role rather than on a directory name is what lets that kit be checked instead of exempted.
 5. A kit slug that collides with a solution bounded context is an error.
 
 #### Dependency direction

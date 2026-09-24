@@ -96,6 +96,7 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     search_root = "src/acme"  # Where to find bounded contexts
     docs_root = "docs"        # Where to find documentation
     kits = ["ceap"]           # Which installed kits this solution adopts
+    composition_roots = ["apps"]  # Where this solution wires kits together
     ```
     """
 
@@ -125,4 +126,12 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
         default=None,
         description="Root directory for documentation (relative to project root). "
         "Required for HCD features.",
+    )
+    composition_roots: tuple[str, ...] = Field(
+        default=("apps",),
+        description="Directories, relative to search_root, where this "
+        "solution wires kits together. Only these may import a kit's "
+        "infrastructure; every other bounded context is held to what the "
+        "kit offers. Defaults to apps/, which is where a composition root "
+        "usually lives (ADR 010).",
     )

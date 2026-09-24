@@ -16,6 +16,7 @@ __all__ = [
     "KIT_INTERNALS",
     "imports_of_unadopted_kits",
     "imports_reaching_into_a_kit",
+    "within_a_composition_root",
 ]
 
 KIT_INTERNALS = ("infrastructure", "apps")
@@ -31,6 +32,45 @@ entitled to change.
 def _is_within(module: str, package: str) -> bool:
     """Whether a module path names something in a package."""
     return module == package or module.startswith(f"{package}.")
+
+
+def within_a_composition_root(
+    parts: tuple[str, ...], composition_roots: Iterable[str]
+) -> bool:
+    """Whether a file sits under one of the declared composition roots.
+
+    A composition root chooses implementations and wires them together,
+    so it is the one place entitled to reach for a kit's infrastructure.
+    Which directories those are is declared, because the role is not
+    always held by a directory called apps/: julee-viewpoints wires its
+    repositories in ``sphinx_c4/sphinx/context.py``, attached to the
+    Sphinx application at builder-inited, which is a composition root by
+    every test except its name.
+
+    A root matches as a contiguous run of directory names anywhere in the
+    path, not only at the front. That is what "apps" already meant — a
+    bounded context's own apps/ counted wherever it sat — and a
+    multi-segment root like "sphinx_c4/sphinx" is read the same way.
+
+    Args:
+        parts: The file's path segments, relative to the search root
+        composition_roots: Declared roots, e.g. ("apps",) or
+            ("sphinx_c4/sphinx",)
+
+    Returns:
+        True if the file is inside one of them
+    """
+    for root in composition_roots:
+        needle = tuple(segment for segment in root.split("/") if segment)
+        if not needle:
+            continue
+        span = len(needle)
+        if any(
+            parts[start : start + span] == needle
+            for start in range(len(parts) - span + 1)
+        ):
+            return True
+    return False
 
 
 def imports_of_unadopted_kits(
@@ -67,13 +107,13 @@ def imports_reaching_into_a_kit(
 ) -> list[str]:
     """Imports of a kit's insides from somewhere that may not.
 
-    Only a solution's own apps may reach a kit's infrastructure or its
-    apps: wiring a repository implementation into a composition root is
-    the job of a composition root. A bounded context doing the same is
-    depending on how a kit stores things rather than on what it offers.
+    Only a solution's composition roots may reach a kit's infrastructure
+    or its apps: wiring a repository implementation in is the job of a
+    composition root. A bounded context doing the same is depending on
+    how a kit stores things rather than on what it offers.
 
-    The caller decides which imports to pass: a solution's apps are left
-    out before asking.
+    The caller decides which imports to pass: files under a composition
+    root are left out first, using :func:`within_a_composition_root`.
 
     Args:
         imports: The imports to check, a solution's apps excluded
