@@ -10,6 +10,13 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine.rules.use_case import (
+    use_cases_defining_next_action,
+    use_cases_not_named_UseCase,
+    use_cases_without_docstring,
+    use_cases_without_request,
+    use_cases_without_response,
+)
 from julee.core.doctrine_constants import (
     REQUEST_SUFFIX,
     RESPONSE_SUFFIX,
@@ -70,12 +77,7 @@ class TestUseCaseNaming:
             len(response.artifacts) > 0
         ), "No use cases found - detector may be broken"
 
-        violations = []
-        for artifact in response.artifacts:
-            if not artifact.artifact.name.endswith(USE_CASE_SUFFIX):
-                violations.append(
-                    f"{artifact.bounded_context}.{artifact.artifact.name}"
-                )
+        violations = use_cases_not_named_UseCase(response.artifacts)
 
         assert (
             not violations
@@ -91,12 +93,7 @@ class TestUseCaseDocumentation:
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
-        violations = []
-        for artifact in response.artifacts:
-            if not artifact.artifact.docstring:
-                violations.append(
-                    f"{artifact.bounded_context}.{artifact.artifact.name}"
-                )
+        violations = use_cases_without_docstring(response.artifacts)
 
         assert not violations, "Use cases missing docstrings:\n" + "\n".join(violations)
 
@@ -153,34 +150,16 @@ class TestUseCaseStructure:
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_have_matching_request(self, repo):
         """All use cases MUST have a matching {Prefix}Request class."""
-        uc_use_case = ListUseCasesUseCase(repo)
-        uc_response = await uc_use_case.execute(ListCodeArtifactsRequest())
+        uc_response = await ListUseCasesUseCase(repo).execute(
+            ListCodeArtifactsRequest()
+        )
+        req_response = await ListRequestsUseCase(repo).execute(
+            ListCodeArtifactsRequest()
+        )
 
-        req_use_case = ListRequestsUseCase(repo)
-        req_response = await req_use_case.execute(ListCodeArtifactsRequest())
-
-        # Build set of available requests per context
-        requests_by_context: dict[str, set[str]] = {}
-        for artifact in req_response.artifacts:
-            ctx = artifact.bounded_context
-            if ctx not in requests_by_context:
-                requests_by_context[ctx] = set()
-            requests_by_context[ctx].add(artifact.artifact.name)
-
-        violations = []
-        suffix_len = len(USE_CASE_SUFFIX)
-        for artifact in uc_response.artifacts:
-            name = artifact.artifact.name
-            ctx = artifact.bounded_context
-            # Skip generic base classes
-            if name in GENERIC_BASE_CLASSES:
-                continue
-            if name.endswith(USE_CASE_SUFFIX):
-                prefix = name[:-suffix_len]
-                expected_request = f"{prefix}{REQUEST_SUFFIX}"
-                available = requests_by_context.get(ctx, set())
-                if expected_request not in available:
-                    violations.append(f"{ctx}.{name}: missing {expected_request}")
+        violations = use_cases_without_request(
+            uc_response.artifacts, req_response.artifacts
+        )
 
         assert not violations, "Use cases missing matching requests:\n" + "\n".join(
             violations
@@ -193,34 +172,16 @@ class TestUseCaseStructure:
         Use cases that return data MUST have a corresponding Response class
         in the same bounded context.
         """
-        uc_use_case = ListUseCasesUseCase(repo)
-        uc_response = await uc_use_case.execute(ListCodeArtifactsRequest())
+        uc_response = await ListUseCasesUseCase(repo).execute(
+            ListCodeArtifactsRequest()
+        )
+        resp_response = await ListResponsesUseCase(repo).execute(
+            ListCodeArtifactsRequest()
+        )
 
-        resp_use_case = ListResponsesUseCase(repo)
-        resp_response = await resp_use_case.execute(ListCodeArtifactsRequest())
-
-        # Build set of available responses per context
-        responses_by_context: dict[str, set[str]] = {}
-        for artifact in resp_response.artifacts:
-            ctx = artifact.bounded_context
-            if ctx not in responses_by_context:
-                responses_by_context[ctx] = set()
-            responses_by_context[ctx].add(artifact.artifact.name)
-
-        violations = []
-        suffix_len = len(USE_CASE_SUFFIX)
-        for artifact in uc_response.artifacts:
-            name = artifact.artifact.name
-            ctx = artifact.bounded_context
-            # Skip generic base classes
-            if name in GENERIC_BASE_CLASSES:
-                continue
-            if name.endswith(USE_CASE_SUFFIX):
-                prefix = name[:-suffix_len]
-                expected_response = f"{prefix}{RESPONSE_SUFFIX}"
-                available = responses_by_context.get(ctx, set())
-                if expected_response not in available:
-                    violations.append(f"{ctx}.{name}: missing {expected_response}")
+        violations = use_cases_without_response(
+            uc_response.artifacts, resp_response.artifacts
+        )
 
         assert not violations, "Use cases missing matching responses:\n" + "\n".join(
             violations
@@ -312,13 +273,7 @@ class TestUseCaseStructure:
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
-        violations = []
-        for artifact in response.artifacts:
-            method_names = [m.name for m in artifact.artifact.methods]
-            if "next_action" in method_names:
-                violations.append(
-                    f"{artifact.bounded_context}.{artifact.artifact.name}"
-                )
+        violations = use_cases_defining_next_action(response.artifacts)
 
         assert (
             not violations
