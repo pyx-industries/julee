@@ -143,11 +143,11 @@ Usage:
 # Handler accepts and will process
 return Acknowledgement.wilco()
 
-# Handler accepts with warnings
-return Acknowledgement.wilco(warnings=["Deprecated field used"])
+# Handler accepts, with something to say about it
+return Acknowledgement.wilco(info=["Deprecated field used"])
 
-# Handler cannot comply
-return Acknowledgement.unable(errors=["Queue full, try again later"])
+# Handler cannot comply, and says why
+return Acknowledgement.unable(info=["Queue full, try again later"])
 
 # Handler acknowledges receipt, makes no commitment
 return Acknowledgement.roger(info=["Logged orphan story"])
@@ -161,6 +161,17 @@ What happens after acknowledgement is the handler's business. It might:
 - Do nothing (null handler for testing)
 
 The use case doesn't know or care about how the handoff is handled, only whether it is handled.
+
+An acknowledgement says whether the handoff was accepted. It carries no
+result, and it is not widened to carry one: a handler's answer means one
+thing, and adding a second would make every handler's answer ambiguous.
+
+So if a caller needs something back — the identity of an execution the
+callee started, a value it computed — the thing being called is a
+service, not a handler. Declare a service protocol in `domain/services/`
+and let it return what the caller needs. Wanting a value back is the
+signal that the handler shape is the wrong one, not that `Acknowledgement`
+is too narrow.
 
 #### 4. Handler Signatures Vary
 
@@ -199,7 +210,7 @@ class LoggingOrphanStoryHandler:
 
     async def handle(self, story: Story) -> Acknowledgement:
         logger.warning("Orphan story", extra={"slug": story.slug})
-        return Acknowledgement.wilco(warnings=["Story not in any epic"])
+        return Acknowledgement.wilco(info=["Story not in any epic"])
 ```
 
 **Coarse-grained handlers** trigger use cases. To avoid circular dependencies (handlers need use cases, use cases need handlers), use a **HandlerDispatcher** pattern with factories:

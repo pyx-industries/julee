@@ -31,6 +31,17 @@ class TestHandlerProtocolStructure:
         Acknowledgement (wilco/unable/roger) gives use cases a uniform signal
         about whether the handoff was accepted, without knowing what the handler
         does internally.
+
+        An acknowledgement says whether the handoff was accepted. It does
+        not carry a result, and widening it to carry one would make every
+        handler's answer mean two things.
+
+        So if a caller needs something back — the identity of an
+        execution the callee started, a value it computed — the thing
+        being called is a service, not a handler. Declare a service
+        protocol in domain/services/ and let it return what the caller
+        needs. Wanting a value back is the signal that the handler shape
+        is the wrong one, not that Acknowledgement is too narrow.
         """
         use_case = ListHandlerProtocolsUseCase(repo)
         response = await use_case.execute(ListHandlerProtocolsRequest())
