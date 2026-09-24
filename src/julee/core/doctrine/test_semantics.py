@@ -21,6 +21,14 @@ import importlib
 
 import pytest
 
+from julee.core.doctrine.rules.semantics import (
+    claims_about_classes_not_owned,
+    claims_about_missing_classes,
+    claims_naming_missing_targets,
+    claims_that_contradict,
+    claims_that_do_not_resolve,
+    claims_without_a_note,
+)
 from julee.core.entities.claim import Claim
 from julee.core.semantics import SEMANTICS_FILE, claims_from_toml, load_semantics
 
@@ -104,12 +112,7 @@ class TestKitClaims:
         The far end is not checked here: naming a kit nobody has adopted
         is how a claim stays useful to solutions that adopt both.
         """
-        trespass = [
-            f"{package} claims {claim.id!r} about {claim.source}, "
-            f"which it does not own"
-            for package, claim in published
-            if not claim.source.startswith(f"{package}.")
-        ]
+        trespass = claims_about_classes_not_owned(published)
 
         assert (
             not trespass
@@ -125,11 +128,7 @@ class TestKitClaims:
         classes are related but not why, which is the part they cannot
         work out for themselves.
         """
-        silent = [
-            f"{package}: {claim.id}"
-            for package, claim in published
-            if not claim.note.strip()
-        ]
+        silent = claims_without_a_note(published)
 
         assert not silent, "Claims with no note explaining them:\n" + "\n".join(
             f"  {s}" for s in silent
@@ -146,11 +145,7 @@ class TestKitClaims:
         solution that adopts it and by nobody in the kit itself, which
         is where a renamed class is actually noticed.
         """
-        dangling = [
-            f"{package}: {claim.id} claims about {claim.source}"
-            for package, claim in published
-            if not _resolves(claim.source)
-        ]
+        dangling = claims_about_missing_classes(published, _resolves)
 
         assert not dangling, "Claims about classes that do not exist:\n" + "\n".join(
             f"  {d}" for d in dangling
@@ -169,11 +164,7 @@ class TestKitClaims:
 
         So the rule is what can be checked, is.
         """
-        wrong = [
-            f"{package}: {claim.id} names {claim.target}"
-            for package, claim in published
-            if _package_present(claim.target) and not _resolves(claim.target)
-        ]
+        wrong = claims_naming_missing_targets(published, _resolves, _package_present)
 
         assert not wrong, (
             "Claims naming a class that does not exist, in a package that "
@@ -192,12 +183,7 @@ class TestSolutionSemantics:
         claim: the documentation asserts a relationship to something that
         is not there.
         """
-        dangling = [
-            f"{claim.id}: {end}"
-            for claim in claims
-            for end in (claim.source, claim.target)
-            if not _resolves(end)
-        ]
+        dangling = claims_that_do_not_resolve(claims, _resolves)
 
         assert not dangling, "Claims naming classes that do not exist:\n" + "\n".join(
             f"  {d}" for d in dangling
@@ -211,17 +197,7 @@ class TestSolutionSemantics:
         declining one of them — not by holding both and letting whatever
         reads them last decide.
         """
-        kinds: dict[tuple[str, str], list[str]] = {}
-        for claim in claims:
-            kinds.setdefault((claim.source, claim.target), []).append(
-                f"{claim.id} ({claim.kind})"
-            )
-
-        contradictions = [
-            f"{source} -> {target}: {', '.join(found)}"
-            for (source, target), found in kinds.items()
-            if len({f.split("(")[1] for f in found}) > 1
-        ]
+        contradictions = claims_that_contradict(claims)
 
         assert (
             not contradictions
