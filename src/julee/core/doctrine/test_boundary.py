@@ -17,32 +17,8 @@ from julee.core.doctrine.rules.boundary import (
     imports_of_unadopted_kits,
     imports_reaching_into_a_kit,
 )
-from julee.core.kits import adopted_kits, installed_kits
+from julee.core.kits import adopted_kits, installed_kits, own_packages
 from julee.core.parsers.imports import imports_under
-
-
-def _own_packages(project_root: Path) -> set[str]:
-    """The top-level packages a codebase ships itself.
-
-    A kit is a julee solution in its own right and does not adopt
-    itself, so its own package is not an unadopted kit from where it
-    stands. Read from the layout rather than from search_root, which
-    points at different depths in different kits.
-
-    Args:
-        project_root: Root of the codebase under test
-
-    Returns:
-        Package names, e.g. {"julee_hcd"}
-    """
-    source = project_root / "src"
-    if not source.is_dir():
-        source = project_root
-    return {
-        directory.name
-        for directory in source.iterdir()
-        if directory.is_dir() and (directory / "__init__.py").exists()
-    }
 
 
 class TestKitAdoptionIsHonoured:
@@ -63,8 +39,7 @@ class TestKitAdoptionIsHonoured:
         unadopted = {
             kit.package: kit.slug
             for kit in installed_kits()
-            if kit.slug not in adopted
-            and kit.package not in _own_packages(project_root)
+            if kit.slug not in adopted and kit.package not in own_packages(project_root)
         }
         if not unadopted:
             pytest.skip("Every installed kit is adopted — nothing to check")

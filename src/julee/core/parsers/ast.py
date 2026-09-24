@@ -102,6 +102,7 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
         bases=[str(b) for b in cls.bases],
         fields=fields,
         methods=methods,
+        decorators=[d.callable_path for d in cls.decorators],
     )
 
 

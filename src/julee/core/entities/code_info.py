@@ -84,6 +84,31 @@ class ClassInfo(BaseModel):
     bases: list[str] = Field(default_factory=list)
     fields: list[FieldInfo] = Field(default_factory=list)
     methods: list[MethodInfo] = Field(default_factory=list)
+    decorators: list[str] = Field(default_factory=list)
+    """Dotted paths of the class's decorators, imports followed.
+
+    ``@temporal_activity_registration("x")`` and an aliased
+    ``@t.temporal_activity_registration`` both record
+    ``julee.integrations.temporal.decorators.temporal_activity_registration``
+    as far as the import can be followed, so a rule matches on the path
+    rather than on how the decorator was spelled at the point of use.
+    """
+
+    def decorated_with(self, name: str) -> bool:
+        """Whether a decorator of this name is applied to the class.
+
+        Matches on the last segment of the dotted path, because a
+        decorator re-exported from a package and imported from the module
+        that defines it resolve to two different paths and are the same
+        decorator.
+
+        Args:
+            name: Decorator name, e.g. "temporal_activity_registration"
+
+        Returns:
+            True if any decorator ends in that name
+        """
+        return any(path.rsplit(".", 1)[-1] == name for path in self.decorators)
 
     @field_validator("name", mode="before")
     @classmethod

@@ -7,10 +7,12 @@ that itself rather than arranging for packages to exist.
 
 from collections.abc import Callable, Iterable
 
+from julee.core.entities.code_info import ClassInfo
 from julee.core.entities.kit import Kit
 
 __all__ = [
     "CanImport",
+    "activities_not_contributed",
     "contributions_naming_nothing",
     "circular_requirements",
     "duplicate_slugs",
@@ -179,3 +181,40 @@ def contributions_naming_nothing(
         for path in kit.contributed(point)
         if not resolves(path)
     ]
+
+
+def activities_not_contributed(
+    classes: Iterable[ClassInfo],
+    contributed: Iterable[str],
+    decorator: str = "temporal_activity_registration",
+) -> list[str]:
+    """Activity classes a kit has but does not hand to a solution.
+
+    Decorating a class registers its methods as Temporal activities. A
+    worker still has to be told the class exists, and the way a kit tells
+    a solution is its manifest. A class carrying the decorator and named
+    by no contribution is an activity the kit has and no worker will run:
+    the workflow calling it waits until it times out, which is the
+    failure furthest from the cause.
+
+    This is the other direction from
+    :func:`contributions_naming_nothing`. That one starts from the
+    manifest and asks whether each path leads somewhere. This starts from
+    the code and asks whether the manifest mentions it.
+
+    Args:
+        classes: The classes the kit's own source defines
+        contributed: Names of the classes the kit contributes as
+            activities, already resolved from its manifest
+        decorator: Name of the decorator that marks an activity class
+
+    Returns:
+        One sentence per uncontributed activity class, sorted
+    """
+    contributed = set(contributed)
+    return sorted(
+        f"{cls.name} ({cls.file}) is decorated @{decorator} "
+        f"but no contribution names it"
+        for cls in classes
+        if cls.decorated_with(decorator) and cls.name not in contributed
+    )
