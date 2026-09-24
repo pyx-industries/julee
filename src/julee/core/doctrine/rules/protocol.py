@@ -135,8 +135,11 @@ def repositories_referencing_several_entities(
     entity in its signatures blurs the boundary and couples two things
     that should be able to change apart.
 
-    A protocol that does not declare BaseRepository[T] is exempt: its
-    primary entity cannot be told structurally.
+    A protocol declaring neither RepositoryOf[T] nor BaseRepository[T]
+    is exempt: its primary entity cannot be told structurally. Declaring
+    the entity and offering CRUD were the same thing until RepositoryOf
+    split them, so a repository that is not CRUD can say what it holds
+    and be checked rather than skipped (#179).
 
     Args:
         repositories: The repository protocols a codebase has
