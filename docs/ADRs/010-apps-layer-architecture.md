@@ -112,7 +112,7 @@ Applications depend on bounded contexts. Bounded contexts MUST NOT depend on app
 ```
 
 This means:
-- Apps import from BCs: `from julee.hcd.use_cases import CreateStoryUseCase`
+- Apps import from BCs: `from julee_hcd.usecases import CreateStoryUseCase`
 - BCs never import from apps
 - BCs have no knowledge of which apps consume them
 
@@ -126,8 +126,8 @@ Applications serve as **composition roots** - they wire together:
 
 ```python
 # apps/api/dependencies.py
-from julee.hcd.use_cases import CreateStoryUseCase
-from julee.hcd.infrastructure.repositories.postgres import PostgresStoryRepository
+from julee_hcd.usecases import CreateStoryUseCase
+from julee_hcd.infrastructure.repositories.postgres import PostgresStoryRepository
 
 def get_create_story_use_case() -> CreateStoryUseCase:
     repo = PostgresStoryRepository(get_db_session())
