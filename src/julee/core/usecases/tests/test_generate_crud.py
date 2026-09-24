@@ -15,6 +15,7 @@ import pytest
 
 from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.tests.crud_fixtures import (
+    DeletableWidgetRepository,
     MintingWidgetRepository,
     Widget,
     WidgetRepository,
@@ -30,6 +31,7 @@ def _generate_widget_crud(
     create_fields: list[tuple[str, str]],
     module_name: str = "generated_crud_widget",
     repo: str = "WidgetRepository",
+    include_delete: bool = False,
 ) -> ModuleType:
     """Generate CRUD for the Widget fixture and import the result."""
     out_file = generate(
@@ -42,6 +44,7 @@ def _generate_widget_crud(
         # colour carries a default the update side has to discard, since on an
         # update the only useful default is "not mentioned".
         update_fields=[("name", "str"), ("colour", 'str = "beige"')],
+        include_delete=include_delete,
         out_dir=out_dir,
     )
     spec = importlib.util.spec_from_file_location(module_name, out_file)
@@ -59,6 +62,18 @@ def crud(tmp_path: Path) -> ModuleType:
         tmp_path,
         [("name", "str"), ("colour", "str")],
         repo="MintingWidgetRepository",
+    )
+
+
+@pytest.fixture
+def deletable_crud(tmp_path: Path) -> ModuleType:
+    """CRUD including delete, over a repository that opted in."""
+    return _generate_widget_crud(
+        tmp_path / "deletable",
+        [("slug", "str"), ("name", "str")],
+        module_name="generated_crud_widget_deletable",
+        repo="DeletableWidgetRepository",
+        include_delete=True,
     )
 
 
@@ -224,3 +239,97 @@ def test_a_caller_can_say_what_several_of_something_are_called(
     assert "class ListWidgetenUseCase" in source
     assert "widgeten: list[Widget]" in source
     assert "ListWidgetsUseCase" not in source
+
+
+# =============================================================================
+# Delete
+# =============================================================================
+
+
+def test_delete_is_not_emitted_unless_asked(crud: ModuleType) -> None:
+    """Opt in, where the other four are opt out.
+
+    Two of the five kits must never delete — ceap and polling keep the
+    record of what they processed — so a destructive use case appearing
+    because nobody said otherwise is the wrong way for this to fail.
+    """
+    assert not hasattr(crud, "DeleteWidgetUseCase")
+    assert not hasattr(crud, "DeleteWidgetRequest")
+
+
+def test_asking_for_delete_emits_the_trio(deletable_crud: ModuleType) -> None:
+    assert hasattr(deletable_crud, "DeleteWidgetRequest")
+    assert hasattr(deletable_crud, "DeleteWidgetResponse")
+    assert hasattr(deletable_crud, "DeleteWidgetUseCase")
+
+
+def test_the_other_four_are_still_emitted_beside_it(
+    deletable_crud: ModuleType,
+) -> None:
+    """Delete is added to CRUD, not swapped for part of it."""
+    for name in (
+        "GetWidgetUseCase",
+        "ListWidgetsUseCase",  # the list one is named by the plural
+        "CreateWidgetUseCase",
+        "UpdateWidgetUseCase",
+    ):
+        assert hasattr(deletable_crud, name), name
+
+
+def test_the_request_asks_only_for_the_id(deletable_crud: ModuleType) -> None:
+    request = deletable_crud.DeleteWidgetRequest(slug="a")
+
+    assert request.slug == "a"
+    assert set(deletable_crud.DeleteWidgetRequest.model_fields) == {"slug"}
+
+
+async def test_deleting_an_entity_removes_it(deletable_crud: ModuleType) -> None:
+    repo = DeletableWidgetRepository()
+    repo.storage["a"] = Widget(slug="a", name="Anvil")
+    use_case = deletable_crud.DeleteWidgetUseCase(repo)
+
+    response = await use_case.execute(deletable_crud.DeleteWidgetRequest(slug="a"))
+
+    assert response.deleted is True
+    assert await repo.get("a") is None
+
+
+async def test_deleting_something_absent_reports_rather_than_raising(
+    deletable_crud: ModuleType,
+) -> None:
+    """The decision this use case exists to encode.
+
+    Get and Update raise EntityNotFoundError, because an absent entity
+    means the caller is working from something stale. Delete does not:
+    "it was already gone" is the outcome the caller asked for. Both kits
+    that hand-wrote delete before this existed chose the same.
+    """
+    repo = DeletableWidgetRepository()
+    use_case = deletable_crud.DeleteWidgetUseCase(repo)
+
+    response = await use_case.execute(deletable_crud.DeleteWidgetRequest(slug="gone"))
+
+    assert response.deleted is False
+
+
+async def test_deleting_twice_is_not_an_error(deletable_crud: ModuleType) -> None:
+    repo = DeletableWidgetRepository()
+    repo.storage["a"] = Widget(slug="a", name="Anvil")
+    use_case = deletable_crud.DeleteWidgetUseCase(repo)
+    request = deletable_crud.DeleteWidgetRequest(slug="a")
+
+    first = await use_case.execute(request)
+    second = await use_case.execute(request)
+
+    assert (first.deleted, second.deleted) == (True, False)
+
+
+async def test_deleting_one_leaves_the_others(deletable_crud: ModuleType) -> None:
+    repo = DeletableWidgetRepository()
+    repo.storage["a"] = Widget(slug="a", name="Anvil")
+    repo.storage["b"] = Widget(slug="b", name="Bellows")
+    use_case = deletable_crud.DeleteWidgetUseCase(repo)
+
+    await use_case.execute(deletable_crud.DeleteWidgetRequest(slug="a"))
+
+    assert await repo.get("b") is not None

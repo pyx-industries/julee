@@ -46,3 +46,38 @@ async def test_a_repository_that_mints_ids_overrides_it() -> None:
     entity_id = await MemoryTicketRepository().generate_id()
 
     assert entity_id.startswith("widget-")
+
+
+# =============================================================================
+# delete
+# =============================================================================
+
+
+async def test_deleting_an_entity_removes_it() -> None:
+    repo = MemoryWidgetRepository()
+    repo.storage_dict["a"] = Widget(slug="a")
+
+    assert await repo.delete("a") is True
+    assert repo.storage_dict == {}
+
+
+async def test_deleting_something_absent_reports_rather_than_raising() -> None:
+    """The file mixin has always answered this way; now both do."""
+    assert await MemoryWidgetRepository().delete("gone") is False
+
+
+async def test_deleting_twice_is_not_an_error() -> None:
+    repo = MemoryWidgetRepository()
+    repo.storage_dict["a"] = Widget(slug="a")
+
+    assert (await repo.delete("a"), await repo.delete("a")) == (True, False)
+
+
+async def test_deleting_one_leaves_the_others() -> None:
+    repo = MemoryWidgetRepository()
+    repo.storage_dict["a"] = Widget(slug="a")
+    repo.storage_dict["b"] = Widget(slug="b")
+
+    await repo.delete("a")
+
+    assert list(repo.storage_dict) == ["b"]

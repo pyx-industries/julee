@@ -1,6 +1,6 @@
 """Generic CRUD use case base classes.
 
-Provides base classes for Get, List, Create, and Update operations. Downstream
+Provides base classes for Get, List, Create, Update and Delete. Downstream
 projects call generate_crud.py to emit concrete, doctrine-compliant use case
 subclasses for a specific entity and repository.
 """
@@ -8,8 +8,19 @@ subclasses for a specific entity and repository.
 from abc import abstractmethod
 from typing import Any, Generic, TypeVar
 
+from julee.repositories.base import Deletable
+
 E = TypeVar("E")
 R = TypeVar("R")
+RD = TypeVar("RD", bound=Deletable[Any])
+"""A repository that has opted in to being deletable.
+
+The other four bases leave their repository unbound and reach for its
+methods behind a type: ignore. Delete does not, because not every
+repository has one — ceap and polling have none across nine protocols —
+so the bound is what makes asking for a delete use case over a repository
+that refuses to delete a type error rather than an AttributeError.
+"""
 
 
 class EntityNotFoundError(Exception):
@@ -111,3 +122,24 @@ class UpdateUseCase(Generic[E, R]):
         updated: E = entity.model_copy(update=updates)
         await self.repo.save(updated)  # type: ignore[attr-defined]
         return updated
+
+
+class DeleteUseCase(Generic[E, RD]):
+    """Base for delete-by-ID use cases.
+
+    Subclasses implement execute() calling _delete_by_id() with the ID
+    field from the request.
+
+    Reports rather than raising, unlike GetUseCase and UpdateUseCase.
+    Deleting something absent leaves the world as the caller wanted it,
+    so it is not an error; fetching or updating something absent means
+    the caller is working from something stale, so it is.
+    """
+
+    def __init__(self, repo: RD) -> None:
+        """Initialise with the entity repository."""
+        self.repo = repo
+
+    async def _delete_by_id(self, entity_id: str) -> bool:
+        """Remove the entity, saying whether there was one to remove."""
+        return await self.repo.delete(entity_id)
