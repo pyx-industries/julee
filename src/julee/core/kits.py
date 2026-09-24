@@ -28,6 +28,8 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
 
 __all__ = [
     "adopted_kits",
+    "contributions",
+    "sphinx_extensions",
     "installed_kits",
     "kit_context_slugs",
     "unresolved_kit_slugs",
@@ -110,3 +112,48 @@ def viewpoint_slugs(solution_root: Path) -> frozenset[str]:
         if kit.viewpoint:
             slugs |= kit_context_slugs(kit)
     return frozenset(slugs)
+
+
+def contributions(solution_root: Path, point: str) -> tuple[str, ...]:
+    """What the adopted kits offer at one contribution point.
+
+    Dotted paths, not objects: reading a manifest imports nothing, and
+    that holds here too. Whichever integration knows the technology
+    resolves them — a Sphinx extension list is strings already, so it
+    needs no resolving at all.
+
+    Kits are asked in the order the solution adopts them, so a solution
+    controls the order its contributions arrive in by the order it lists
+    its kits.
+
+    Args:
+        solution_root: Path to the solution root directory
+        point: The contribution point, e.g. "temporal.activities"
+
+    Returns:
+        Every path offered at that point, in adoption order
+    """
+    return tuple(
+        path for kit in adopted_kits(solution_root) for path in kit.contributed(point)
+    )
+
+
+def sphinx_extensions(solution_root: Path) -> list[str]:
+    """The Sphinx extensions the adopted kits provide.
+
+    For a solution's conf.py::
+
+        from julee.core.kits import sphinx_extensions
+
+        extensions = [*sphinx_extensions(Path(__file__).parent.parent)]
+
+    A list because that is what Sphinx expects to be given, and because a
+    solution will usually add extensions of its own to it.
+
+    Args:
+        solution_root: Path to the solution root directory
+
+    Returns:
+        Extension module paths, in adoption order
+    """
+    return list(contributions(solution_root, "sphinx.extension"))

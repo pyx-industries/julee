@@ -18,7 +18,7 @@ pytestmark = pytest.mark.unit
 def a_kit(
     slug: str = "hcd",
     requires: tuple[str, ...] = (),
-    contributes: dict[str, str] | None = None,
+    contributes: dict[str, str | tuple[str, ...]] | None = None,
     package: str | None = None,
 ) -> Kit:
     """A kit that offends none of the rules."""
@@ -230,3 +230,22 @@ def test_the_objection_names_the_kit_the_point_and_the_path() -> None:
 def test_a_solution_adopting_no_kits_offends_nothing(rule) -> None:
     """Which julee itself does, now its domain code ships as kits."""
     assert rule() == []
+
+
+def test_a_point_offering_several_paths_is_allowed() -> None:
+    """A kit shipping three Sphinx extensions offers three at one point."""
+    kit = a_kit(
+        contributes={"sphinx.extension": ("julee_viewpoints.a", "julee_viewpoints.b")}
+    )
+
+    assert malformed_contributions([kit]) == []
+
+
+def test_one_bad_path_among_several_is_reported() -> None:
+    """The others being fine is no reason to stay quiet about this one."""
+    kit = a_kit(contributes={"sphinx.extension": ("julee_viewpoints.a", "a b")})
+
+    objections = malformed_contributions([kit])
+
+    assert len(objections) == 1
+    assert "a b" in objections[0]
