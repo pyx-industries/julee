@@ -365,3 +365,97 @@ async def test_each_layer_is_visible_through_has_layer(
 
     for layer in ("models", "repositories", "services", "use_cases"):
         assert ordering.has_layer(layer), layer
+
+
+# =============================================================================
+# Cache husks
+# =============================================================================
+
+
+class TestCacheHusksAreNotBoundedContexts:
+    """A directory left behind by deleted code must not count.
+
+    Git does not track empty directories, so removing a package leaves
+    the directory in every working tree that still has its caches. After
+    ADR 012 moved the domain out of the framework, a checkout predating
+    the move kept src/julee/domain/ holding nothing but __pycache__ —
+    and julee looked like a bounded context to its own test.
+
+    A fresh clone has no caches, so CI never sees this. It lands on
+    whoever has the older checkout.
+    """
+
+    def _husk(self, root: Path, name: str, layer: str = "domain/models") -> Path:
+        """A package whose marker directory holds only stale bytecode."""
+        package = root / name
+        package.mkdir(parents=True, exist_ok=True)
+        (package / "__init__.py").write_text("")
+        cache = package / layer / "__pycache__"
+        cache.mkdir(parents=True)
+        (cache / "thing.cpython-312.pyc").write_bytes(b"\x00\x00\x00\x00")
+        return package
+
+    def test_a_models_directory_of_only_bytecode_is_not_a_context(
+        self, tmp_path
+    ) -> None:
+        repo = _make_repo(tmp_path)
+        self._husk(tmp_path / "src/app", "ghost")
+
+        assert repo.describe(tmp_path / "src/app/ghost") is None
+
+    def test_a_use_cases_directory_of_only_bytecode_is_not_a_context(
+        self, tmp_path
+    ) -> None:
+        """Either marker alone makes a context, so both need the check."""
+        repo = _make_repo(tmp_path)
+        self._husk(tmp_path / "src/app", "ghost", layer="usecases")
+
+        assert repo.describe(tmp_path / "src/app/ghost") is None
+
+    def test_a_husk_is_not_discovered_among_real_contexts(self, tmp_path) -> None:
+        repo = _make_repo(tmp_path)
+        _make_bc(tmp_path / "src/app", "real")
+        self._husk(tmp_path / "src/app", "ghost")
+
+        assert [context.slug for context in repo.discover_all()] == ["real"]
+
+    def test_an_empty_marker_directory_is_not_a_context(self, tmp_path) -> None:
+        """The same hole without the bytecode: the directory alone."""
+        repo = _make_repo(tmp_path)
+        package = tmp_path / "src/app" / "ghost"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text("")
+        (package / "domain" / "models").mkdir(parents=True)
+
+        assert repo.describe(tmp_path / "src/app/ghost") is None
+
+    def test_a_marker_directory_with_only_an_init_still_counts(self, tmp_path) -> None:
+        """Guards against the fix being too strict.
+
+        julee-ceap's domain/models holds one __init__.py and then
+        subpackages, so requiring anything more than a .py file would
+        stop a real kit being seen.
+        """
+        repo = _make_repo(tmp_path)
+        package = tmp_path / "src/app" / "real"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text("")
+        models = package / "domain" / "models"
+        models.mkdir(parents=True)
+        (models / "__init__.py").write_text("")
+        (models / "__pycache__").mkdir()
+
+        found = repo.describe(tmp_path / "src/app/real")
+
+        assert found is not None
+        assert found.slug == "real"
+
+    def test_a_real_context_beside_its_caches_still_counts(self, tmp_path) -> None:
+        repo = _make_repo(tmp_path)
+        package = _make_bc(tmp_path / "src/app", "real")
+        (package / "domain" / "models" / "__pycache__").mkdir()
+
+        found = repo.describe(tmp_path / "src/app/real")
+
+        assert found is not None
+        assert found.slug == "real"

@@ -118,8 +118,33 @@ class FilesystemBoundedContextRepository:
         return (path / "__init__.py").exists()
 
     def _has_subdir(self, path: Path, parts: tuple[str, ...]) -> bool:
-        """Check if path contains a subdirectory."""
-        return path.joinpath(*parts).is_dir()
+        """Whether path holds that subdirectory, with Python in it.
+
+        Existing is not enough. Git does not track empty directories, so
+        deleting a package leaves the directory behind in every working
+        tree that still has its caches: `domain/models/` holding nothing
+        but a `__pycache__` of stale `.pyc` files. That husk is
+        indistinguishable from real domain code to a check that only asks
+        whether the directory is there, and it made julee itself look
+        like a bounded context to its own test after ADR 012 moved the
+        domain out.
+
+        A fresh clone never has the caches, so CI never sees it; it lands
+        on whoever has a checkout predating a move. Requiring a `.py`
+        file makes a husk stop counting and changes nothing about what a
+        real marker directory looks like — `__pycache__` holds `.pyc`,
+        never `.py`.
+
+        Args:
+            path: The candidate bounded context
+            parts: Path segments of the marker directory, e.g.
+                ("domain", "models")
+
+        Returns:
+            True if the directory exists and holds at least one .py file
+        """
+        directory = path.joinpath(*parts)
+        return directory.is_dir() and any(directory.glob("*.py"))
 
     def _detect_markers(self, path: Path) -> StructuralMarkers:
         """Detect structural markers in a directory."""
