@@ -745,7 +745,7 @@ wheels = [
 
 [[package]]
 name = "julee"
-version = "0.5.14"
+version = "0.5.15"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
