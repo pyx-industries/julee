@@ -16,6 +16,10 @@ import pytest
 from julee.core.doctrine.rules.boundary import (
     imports_of_unadopted_kits,
     imports_reaching_into_a_kit,
+    within_a_composition_root,
+)
+from julee.core.infrastructure.repositories.file.solution_config import (
+    FileSolutionConfigRepository,
 )
 from julee.core.kits import adopted_kits, installed_kits, own_packages
 from julee.core.parsers.imports import imports_under
@@ -54,7 +58,7 @@ class TestKitAdoptionIsHonoured:
 class TestKitInternalsAreTheKitsOwn:
     """Rules about how far into a kit a solution may reach."""
 
-    def test_only_a_solution_s_apps_MAY_import_a_kit_s_internals(
+    def test_only_a_composition_root_MAY_import_a_kit_s_internals(
         self, project_root, search_root
     ) -> None:
         """A bounded context MUST NOT import a kit's infrastructure or apps.
@@ -64,21 +68,30 @@ class TestKitInternalsAreTheKitsOwn:
         and a bounded context reaching for either couples itself to
         decisions the kit is entitled to change.
 
-        A solution's own apps may: wiring a repository implementation
-        into a composition root is what a composition root is for.
+        A composition root may: wiring a repository implementation in is
+        what a composition root is for. Which directories hold one is
+        declared in [tool.julee] composition_roots, defaulting to apps/,
+        because the role is not always held by a directory of that name.
         """
         packages = [kit.package for kit in adopted_kits(project_root)]
         if not packages:
             pytest.skip("Solution adopts no kits — nothing to reach into")
 
+        roots = (
+            FileSolutionConfigRepository()
+            .get_policy_config_sync(project_root)
+            .composition_roots
+        )
         source = project_root / search_root
-        outside_apps = [
+        outside = [
             info
             for info in imports_under(source)
-            if "apps" not in Path(info.file).relative_to(source).parts
+            if not within_a_composition_root(
+                Path(info.file).relative_to(source).parts, roots
+            )
         ]
 
-        violations = imports_reaching_into_a_kit(outside_apps, packages)
+        violations = imports_reaching_into_a_kit(outside, packages)
 
         assert (
             not violations

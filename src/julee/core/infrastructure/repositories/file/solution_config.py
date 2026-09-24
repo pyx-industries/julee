@@ -46,6 +46,9 @@ class FileSolutionConfigRepository:
             kits=tuple(tool_julee.get("kits", [])),
             search_root=tool_julee.get("search_root"),
             docs_root=tool_julee.get("docs_root"),
+            # Left out means apps/, so a solution that has never heard of
+            # this keeps the behaviour it had.
+            composition_roots=tuple(tool_julee.get("composition_roots", ["apps"])),
         )
 
     async def get_policy_config(self, solution_root: Path) -> SolutionPolicyConfig:

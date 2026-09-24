@@ -9,6 +9,7 @@ import pytest
 from julee.core.doctrine.rules.boundary import (
     imports_of_unadopted_kits,
     imports_reaching_into_a_kit,
+    within_a_composition_root,
 )
 from julee.core.parsers.imports import ImportInfo
 
@@ -144,3 +145,77 @@ def test_an_unadopted_kit_s_infrastructure_is_left_to_the_other_rule() -> None:
 def test_a_solution_adopting_no_kits_offends_nothing(rule) -> None:
     """Which julee itself does."""
     assert rule() == []
+
+
+# ---------------------------------------------------------------------------
+# within_a_composition_root
+# ---------------------------------------------------------------------------
+
+
+def test_a_file_under_apps_is_a_composition_root() -> None:
+    assert within_a_composition_root(("apps", "api", "app.py"), ("apps",))
+
+
+def test_a_file_outside_is_not() -> None:
+    assert not within_a_composition_root(("hcd", "usecases", "x.py"), ("apps",))
+
+
+def test_apps_is_found_at_any_depth() -> None:
+    """What "apps" already meant: a context's own apps/ counted too."""
+    assert within_a_composition_root(("hcd", "apps", "cli.py"), ("apps",))
+
+
+def test_a_multi_segment_root_matches_its_run() -> None:
+    """The case this exists for: viewpoints wires in sphinx_c4/sphinx."""
+    parts = ("sphinx_c4", "sphinx", "context.py")
+
+    assert within_a_composition_root(parts, ("sphinx_c4/sphinx",))
+
+
+def test_a_multi_segment_root_matches_deeper_files() -> None:
+    parts = ("sphinx_c4", "sphinx", "wiring", "context.py")
+
+    assert within_a_composition_root(parts, ("sphinx_c4/sphinx",))
+
+
+def test_the_segments_of_a_multi_segment_root_must_be_adjacent() -> None:
+    """sphinx_c4/other/sphinx is not sphinx_c4/sphinx."""
+    parts = ("sphinx_c4", "other", "sphinx", "context.py")
+
+    assert not within_a_composition_root(parts, ("sphinx_c4/sphinx",))
+
+
+def test_the_segments_must_be_in_order() -> None:
+    parts = ("sphinx", "sphinx_c4", "context.py")
+
+    assert not within_a_composition_root(parts, ("sphinx_c4/sphinx",))
+
+
+def test_half_a_root_is_not_a_match() -> None:
+    """Matching "sphinx" alone would exempt every directive as well."""
+    assert not within_a_composition_root(
+        ("sphinx_hcd", "sphinx", "directives", "persona.py"),
+        ("sphinx_c4/sphinx",),
+    )
+
+
+def test_any_of_several_roots_will_do() -> None:
+    roots = ("apps", "sphinx_c4/sphinx", "sphinx_hcd/sphinx")
+
+    assert within_a_composition_root(("sphinx_hcd", "sphinx", "context.py"), roots)
+
+
+def test_declaring_no_roots_exempts_nothing() -> None:
+    """A solution that says composition_roots = [] holds everything to
+    what its kits offer, which is a legitimate thing to want."""
+    assert not within_a_composition_root(("apps", "api", "app.py"), ())
+
+
+def test_an_empty_root_string_is_ignored_rather_than_matching_everything() -> None:
+    """Otherwise a stray "" in the list would switch the rule off."""
+    assert not within_a_composition_root(("hcd", "usecases", "x.py"), ("",))
+
+
+def test_a_root_with_a_trailing_slash_still_works() -> None:
+    """A hand-written toml list is going to contain one of these."""
+    assert within_a_composition_root(("apps", "api", "app.py"), ("apps/",))
