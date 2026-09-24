@@ -3,6 +3,7 @@
 import pytest
 
 from julee.core.doctrine.rules.kit import (
+    activities_not_contributed,
     circular_requirements,
     duplicate_slugs,
     malformed_contributions,
@@ -10,6 +11,7 @@ from julee.core.doctrine.rules.kit import (
     unadopted_requirements,
     unimportable_packages,
 )
+from julee.core.entities.code_info import ClassInfo
 from julee.core.entities.kit import Kit
 
 pytestmark = pytest.mark.unit
@@ -249,3 +251,95 @@ def test_one_bad_path_among_several_is_reported() -> None:
 
     assert len(objections) == 1
     assert "a b" in objections[0]
+
+
+# ---------------------------------------------------------------------------
+# activities_not_contributed
+# ---------------------------------------------------------------------------
+
+ACTIVITY = "julee.integrations.temporal.decorators.temporal_activity_registration"
+
+
+def a_class(name: str, decorators: tuple[str, ...] = ()) -> ClassInfo:
+    """A parsed class carrying the given decorators."""
+    return ClassInfo(name=name, file=f"{name.lower()}.py", decorators=list(decorators))
+
+
+def test_an_undecorated_class_need_not_be_contributed() -> None:
+    assert activities_not_contributed([a_class("Plain")], []) == []
+
+
+def test_a_decorated_class_that_is_contributed_is_allowed() -> None:
+    assert activities_not_contributed([a_class("Repo", (ACTIVITY,))], ["Repo"]) == []
+
+
+def test_a_decorated_class_nobody_contributes_is_reported() -> None:
+    violations = activities_not_contributed([a_class("Repo", (ACTIVITY,))], [])
+
+    assert len(violations) == 1
+    assert "Repo" in violations[0]
+    assert "repo.py" in violations[0]
+
+
+def test_a_kit_with_activities_and_no_contributions_is_not_let_through() -> None:
+    """The failure being guarded is an empty manifest, not a skip.
+
+    Three rules have silently passed over empty data before this one, so
+    it gets a test of its own rather than being read off the case above.
+    """
+    violations = activities_not_contributed(
+        [a_class("A", (ACTIVITY,)), a_class("B", (ACTIVITY,))], []
+    )
+
+    assert len(violations) == 2
+
+
+def test_no_classes_at_all_is_allowed() -> None:
+    assert activities_not_contributed([], []) == []
+
+
+def test_contributing_more_than_the_kit_has_is_not_this_rule_s_business() -> None:
+    """Naming something absent is contributions_naming_nothing's job."""
+    assert activities_not_contributed([], ["Gone"]) == []
+
+
+def test_the_decorator_is_matched_however_it_was_imported() -> None:
+    """A re-export and the defining module resolve to two paths.
+
+    ``from julee.integrations.temporal import temporal_activity_registration``
+    and the same name from ``...temporal.decorators`` are one decorator,
+    so the rule matches on the last segment.
+    """
+    reexported = "julee.integrations.temporal.temporal_activity_registration"
+
+    assert len(activities_not_contributed([a_class("Repo", (reexported,))], [])) == 1
+
+
+def test_an_unrelated_decorator_does_not_make_a_class_an_activity() -> None:
+    plain = a_class("Repo", ("dataclasses.dataclass",))
+
+    assert activities_not_contributed([plain], []) == []
+
+
+def test_a_decorator_merely_ending_in_the_name_is_not_a_match() -> None:
+    """`my_temporal_activity_registration` is a different decorator."""
+    lookalike = "elsewhere.my_temporal_activity_registration"
+
+    assert activities_not_contributed([a_class("Repo", (lookalike,))], []) == []
+
+
+def test_the_decorator_being_checked_can_be_named() -> None:
+    violations = activities_not_contributed(
+        [a_class("Flow", ("temporalio.workflow.defn",))], [], decorator="defn"
+    )
+
+    assert len(violations) == 1
+    assert "@defn" in violations[0]
+
+
+def test_violations_are_sorted_so_the_report_is_stable() -> None:
+    classes = [a_class(n, (ACTIVITY,)) for n in ("Zebra", "Aardvark", "Mongoose")]
+
+    violations = activities_not_contributed(classes, [])
+
+    assert [v.split()[0] for v in violations] == ["Aardvark", "Mongoose", "Zebra"]

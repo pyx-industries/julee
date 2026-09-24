@@ -29,11 +29,14 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
 
 __all__ = [
     "adopted_kits",
+    "contributed_objects",
     "contributions",
     "resolve_contribution",
     "sphinx_extensions",
     "installed_kits",
     "kit_context_slugs",
+    "own_kit",
+    "own_packages",
     "unresolved_kit_slugs",
     "viewpoint_slugs",
 ]
@@ -42,6 +45,51 @@ __all__ = [
 def installed_kits() -> tuple[Kit, ...]:
     """Every installed kit, whether or not a solution adopts it."""
     return tuple(EntryPointKitRepository().list_all_sync())
+
+
+def own_packages(solution_root: Path) -> frozenset[str]:
+    """The top-level packages a codebase ships itself.
+
+    Read from the layout rather than from ``search_root``, which points
+    at different depths in different kits.
+
+    Args:
+        solution_root: Path to the solution root directory
+
+    Returns:
+        Package names, e.g. ``{"julee_hcd"}``
+    """
+    source = solution_root / "src"
+    if not source.is_dir():
+        source = solution_root
+    if not source.is_dir():
+        return frozenset()
+    return frozenset(
+        directory.name
+        for directory in source.iterdir()
+        if directory.is_dir() and (directory / "__init__.py").exists()
+    )
+
+
+def own_kit(solution_root: Path) -> Kit | None:
+    """The kit this codebase is, if it is one.
+
+    A kit is a julee solution in its own right and does not adopt
+    itself, so its own manifest is not in :func:`adopted_kits`. It is
+    installed, though — an editable install in its own workspace — so it
+    can be recognised by the package it ships.
+
+    Args:
+        solution_root: Path to the solution root directory
+
+    Returns:
+        The manifest, or None when the codebase is not a kit
+    """
+    packages = own_packages(solution_root)
+    for kit in installed_kits():
+        if kit.package in packages:
+            return kit
+    return None
 
 
 def adopted_kits(solution_root: Path) -> tuple[Kit, ...]:
@@ -190,3 +238,37 @@ def resolve_contribution(path: str) -> object:
     if not attribute:
         return module
     return getattr(module, attribute)
+
+
+def contributed_objects(kit: Kit, point: str) -> tuple[object, ...]:
+    """Everything one kit offers at a point, imported.
+
+    A contribution path names one thing, but that thing is often a tuple
+    holding several — a kit with eight activity classes points at one
+    tuple rather than writing eight paths. This resolves each path and
+    flattens a tuple or list it finds, so a caller gets the objects
+    whichever way the kit chose to write them.
+
+    Only one level is flattened, and only a tuple or list. Whatever the
+    members turn out to be — classes, module names — they are passed on
+    as they were found.
+
+    Args:
+        kit: The kit to ask
+        point: The contribution point, e.g. "temporal.activities"
+
+    Returns:
+        The contributed objects, in the order the kit declares them
+
+    Raises:
+        ImportError: If a path names a module that is not there
+        AttributeError: If a path names an attribute that is not there
+    """
+    found: list[object] = []
+    for path in kit.contributed(point):
+        resolved = resolve_contribution(path)
+        if isinstance(resolved, list | tuple):
+            found.extend(resolved)
+        else:
+            found.append(resolved)
+    return tuple(found)

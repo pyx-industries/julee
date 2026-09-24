@@ -847,3 +847,104 @@ class XPipeline:
         _write(f, "class Broken(\n")
         pipelines = parse_pipelines_from_file(f)
         assert pipelines == []
+
+
+# =============================================================================
+# Decorators
+# =============================================================================
+
+
+class TestDecorators:
+    """Tests for the decorator paths a ClassInfo carries.
+
+    Doctrine reads these to find classes marked by a decorator without
+    importing the module that defines them, so what matters is that the
+    import is followed: the same decorator spelled three ways must be
+    recognisable as one decorator.
+    """
+
+    def test_an_undecorated_class_carries_no_decorators(self, tmp_path):
+        _write(tmp_path / "m.py", "class Plain:\n    pass\n")
+
+        (plain,) = parse_python_classes(tmp_path)
+
+        assert plain.decorators == []
+
+    def test_a_decorator_is_recorded_by_its_resolved_path(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from julee.integrations.temporal.decorators import "
+            "temporal_activity_registration\n"
+            "\n"
+            "@temporal_activity_registration\n"
+            "class Repo:\n"
+            "    pass\n",
+        )
+
+        (repo,) = parse_python_classes(tmp_path)
+
+        assert repo.decorators == [
+            "julee.integrations.temporal.decorators.temporal_activity_registration"
+        ]
+
+    def test_a_called_decorator_resolves_to_the_same_path(self, tmp_path):
+        """`@deco("x")` and `@deco` are the same decorator."""
+        _write(
+            tmp_path / "m.py",
+            "from julee.integrations.temporal.decorators import "
+            "temporal_activity_registration\n"
+            "\n"
+            '@temporal_activity_registration("util.file_storage.minio")\n'
+            "class Repo:\n"
+            "    pass\n",
+        )
+
+        (repo,) = parse_python_classes(tmp_path)
+
+        assert repo.decorators == [
+            "julee.integrations.temporal.decorators.temporal_activity_registration"
+        ]
+
+    def test_an_attribute_decorator_resolves_through_the_module(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "import julee.integrations.temporal as t\n"
+            "\n"
+            "@t.temporal_activity_registration\n"
+            "class Repo:\n"
+            "    pass\n",
+        )
+
+        (repo,) = parse_python_classes(tmp_path)
+
+        assert repo.decorated_with("temporal_activity_registration")
+
+    def test_several_decorators_are_all_recorded_in_order(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n"
+            "from typing import final\n"
+            "\n"
+            "@final\n"
+            "@dataclass\n"
+            "class Both:\n"
+            "    pass\n",
+        )
+
+        (both,) = parse_python_classes(tmp_path)
+
+        assert both.decorators == ["typing.final", "dataclasses.dataclass"]
+
+    def test_decorated_with_ignores_a_name_that_merely_ends_the_same(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from elsewhere import my_registration\n"
+            "\n"
+            "@my_registration\n"
+            "class Repo:\n"
+            "    pass\n",
+        )
+
+        (repo,) = parse_python_classes(tmp_path)
+
+        assert not repo.decorated_with("registration")

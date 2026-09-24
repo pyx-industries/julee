@@ -12,6 +12,7 @@ its own right and runs its own doctrine.
 import pytest
 
 from julee.core.doctrine.rules.kit import (
+    activities_not_contributed,
     circular_requirements,
     contributions_naming_nothing,
     duplicate_slugs,
@@ -22,10 +23,13 @@ from julee.core.doctrine.rules.kit import (
 )
 from julee.core.kits import (
     adopted_kits,
+    contributed_objects,
     installed_kits,
+    own_kit,
     resolve_contribution,
     unresolved_kit_slugs,
 )
+from julee.core.parsers.ast import parse_python_classes
 
 
 class TestKitAdoption:
@@ -91,9 +95,9 @@ class TestKitBoundary:
             (context.slug for context in repo.discover_all()),
         )
 
-        assert not collisions, (
-            "Kit slugs collide with bounded context slugs: " f"{', '.join(collisions)}"
-        )
+        assert (
+            not collisions
+        ), f"Kit slugs collide with bounded context slugs: {', '.join(collisions)}"
 
 
 class TestKitManifests:
@@ -160,4 +164,40 @@ class TestKitManifests:
 
         assert not violations, "Contributions naming nothing:\n" + "\n".join(
             f"  {v}" for v in violations
+        )
+
+
+class TestKitActivities:
+    """Rules about what a kit hands a Temporal worker."""
+
+    def test_activity_classes_MUST_be_contributed(
+        self, project_root, search_root
+    ) -> None:
+        """A decorated activity class MUST be named by a contribution.
+
+        The decorator registers a class's methods as activities. A worker
+        still has to be told the class exists, and a kit tells a solution
+        through its manifest. A class carrying the decorator that no
+        contribution names is an activity nobody will run — discovered
+        when a workflow calls it and waits for the timeout.
+
+        Only a kit is asked. A solution composes its own worker and has
+        no manifest to be checked against.
+        """
+        kit = own_kit(project_root)
+        if kit is None:
+            pytest.skip("Not a kit — a solution composes its own worker")
+
+        contributed = [
+            getattr(obj, "__name__", "")
+            for obj in contributed_objects(kit, "temporal.activities")
+        ]
+        violations = activities_not_contributed(
+            parse_python_classes(project_root / search_root), contributed
+        )
+
+        assert not violations, (
+            f"{kit.slug} has activity classes it does not contribute:\n"
+            + "\n".join(f"  {v}" for v in violations)
+            + "\n\nName them in the manifest under 'temporal.activities'."
         )
