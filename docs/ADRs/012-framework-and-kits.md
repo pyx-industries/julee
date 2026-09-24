@@ -190,7 +190,18 @@ A path names exactly one thing: `a.b.c` is the module, `a.b:c` the attribute ins
 
 Two functions do the reading, and neither is per-technology: `contributions(solution_root, point)` gives the paths, and `resolve_contribution(path)` imports one. `contributed_objects(kit, point)` resolves a kit's paths at a point and flattens the tuples, which is what a composition root building a Temporal worker wants.
 
-An integration that knows a technology wraps those in something shaped for it — `include_kit_routers` and `kit_routers` for FastAPI, `sphinx_extensions` for a `conf.py`, which returns module names because that is what Sphinx is given. There is no `collect_kit_activities`, and there should not be: a named helper per contribution point is what `contributions()` replaced.
+An integration that knows a technology wraps those in something shaped for it: `include_kit_routers` and `kit_routers` for FastAPI, `kit_activities` for Temporal, and `sphinx_extensions` for a `conf.py`, which returns module names because that is what Sphinx is given.
+
+`kit_activities` returns classes, and has no `include_` counterpart, because a router is finished when a kit hands it over and an activity class is not — it takes its dependencies at construction, and which client or session to give it is the solution's decision:
+
+```python
+from julee.integrations.temporal import collect_activities_from_instances, kit_activities
+
+instances = [cls(client=minio_client) for cls in kit_activities(SOLUTION_ROOT)]
+worker = Worker(client, activities=collect_activities_from_instances(*instances))
+```
+
+There is no `collect_kit_activities` taking no arguments, as an earlier draft of this ADR promised: a named helper per contribution point is what `contributions()` replaced.
 
 Doctrine checks both directions. A contribution must resolve to something that exists, and a class a kit decorated as an activity must be named by one of its contributions — otherwise the kit has an activity no worker will register, and the workflow calling it waits for a timeout.
 
