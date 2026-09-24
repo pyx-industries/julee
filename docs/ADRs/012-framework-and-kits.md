@@ -158,14 +158,43 @@ Kits never wire themselves in. There are no import-time side effects and no glob
 
 ```python
 # my_solution/apps/api/app.py
+from pathlib import Path
+
 from fastapi import FastAPI
 from julee.integrations.fastapi import include_kit_routers
 
+SOLUTION_ROOT = Path(__file__).parents[3]
+
 app = FastAPI()
-include_kit_routers(app)  # mounts contributions from the kits in [tool.julee] kits
+include_kit_routers(app, SOLUTION_ROOT)  # the kits in [tool.julee] kits
 ```
 
-Integrations provide these helpers (`include_kit_routers`, `collect_kit_activities`, the Sphinx equivalent). A solution can always ignore them and import a kit's router or pipelines directly, as ADR 001 shows.
+A kit declares what it offers as dotted paths, one point at a time, so reading a manifest imports nothing:
+
+```python
+kit = Kit(
+    slug="ceap",
+    name="Capture, Extract, Assemble, Publish",
+    package="julee_ceap",
+    contributes={
+        "fastapi.routers": "julee_ceap.apps.api.app:app",
+        "temporal.activities": (
+            "julee_ceap.infrastructure.repositories.temporal"
+            ".activities:ACTIVITY_CLASSES",
+        ),
+    },
+)
+```
+
+A path names exactly one thing: `a.b.c` is the module, `a.b:c` the attribute inside it. A bare module never means "look inside this for anything that qualifies", so a point wanting several things is pointed at something that holds them — a tuple of activity classes rather than the module they live in. What a kit offers is written in the kit, not inferred by whatever reads it.
+
+Two functions do the reading, and neither is per-technology: `contributions(solution_root, point)` gives the paths, and `resolve_contribution(path)` imports one. `contributed_objects(kit, point)` resolves a kit's paths at a point and flattens the tuples, which is what a composition root building a Temporal worker wants.
+
+An integration that knows a technology wraps those in something shaped for it — `include_kit_routers` and `kit_routers` for FastAPI, `sphinx_extensions` for a `conf.py`, which returns module names because that is what Sphinx is given. There is no `collect_kit_activities`, and there should not be: a named helper per contribution point is what `contributions()` replaced.
+
+Doctrine checks both directions. A contribution must resolve to something that exists, and a class a kit decorated as an activity must be named by one of its contributions — otherwise the kit has an activity no worker will register, and the workflow calling it waits for a timeout.
+
+A solution can always ignore all of this and import a kit's router or pipelines directly, as ADR 001 shows.
 
 #### Doctrine
 
