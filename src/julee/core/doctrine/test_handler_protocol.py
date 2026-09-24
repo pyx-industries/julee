@@ -8,6 +8,11 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine.rules.protocol import (
+    handler_methods_not_returning_Acknowledgement,
+    handler_protocols_outside_singular_files,
+    handlers_outside_infrastructure_handlers,
+)
 from julee.core.parsers.ast import parse_python_classes
 from julee.core.usecases.code_artifact.list_handler_protocols import (
     ListHandlerProtocolsRequest,
@@ -33,15 +38,7 @@ class TestHandlerProtocolStructure:
         if not response.artifacts:
             pytest.skip("No handler protocols in target codebase — nothing to check")
 
-        violations = []
-        for artifact in response.artifacts:
-            for method in artifact.artifact.methods:
-                if method.return_type != "Acknowledgement":
-                    violations.append(
-                        f"{artifact.bounded_context}.{artifact.artifact.name}"
-                        f".{method.name}(): return type is '{method.return_type}'"
-                        f", expected 'Acknowledgement'"
-                    )
+        violations = handler_methods_not_returning_Acknowledgement(response.artifacts)
 
         assert (
             not violations
@@ -60,14 +57,7 @@ class TestHandlerProtocolStructure:
         use_case = ListHandlerProtocolsUseCase(repo)
         response = await use_case.execute(ListHandlerProtocolsRequest())
 
-        violations = []
-        for artifact in response.artifacts:
-            file = artifact.artifact.file
-            if not file.endswith("_handler.py"):
-                violations.append(
-                    f"{artifact.bounded_context}.{artifact.artifact.name}"
-                    f": defined in '{file}', expected a file named '*_handler.py'"
-                )
+        violations = handler_protocols_outside_singular_files(response.artifacts)
 
         assert (
             not violations
@@ -91,27 +81,14 @@ class TestHandlerImplementationPlacement:
         in infrastructure/temporal/ are exempt — they follow the three-layer pattern
         established for Temporal workflows.
         """
-        contexts = await repo.list_all()
+        found = [
+            (ctx.slug, cls)
+            for ctx in await repo.list_all()
+            if (Path(ctx.path) / "infrastructure").exists()
+            for cls in parse_python_classes(Path(ctx.path) / "infrastructure")
+        ]
 
-        violations = []
-        for ctx in contexts:
-            infra_dir = Path(ctx.path) / "infrastructure"
-            if not infra_dir.exists():
-                continue
-
-            for cls in parse_python_classes(infra_dir):
-                if not cls.name.endswith("Handler"):
-                    continue
-                # Temporal layer wrappers are exempt (three-layer Temporal pattern)
-                file_parts = Path(cls.file).parts
-                if file_parts and file_parts[0] == "temporal":
-                    continue
-                if file_parts and file_parts[0] != "handlers":
-                    violations.append(
-                        f"{ctx.slug}.{cls.name}: found in"
-                        f" infrastructure/{cls.file},"
-                        f" expected infrastructure/handlers/"
-                    )
+        violations = handlers_outside_infrastructure_handlers(found)
 
         assert (
             not violations
