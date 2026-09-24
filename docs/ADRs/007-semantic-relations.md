@@ -2,7 +2,17 @@
 
 ## Status
 
-Draft
+Superseded by [ADR 015](./015-semantics-as-claims.md)
+
+The decorator described here was never on master; it existed only on
+`archive/docs_architecture_domain`. Porting that domain into kits showed
+why it should not come back: it made one kit depend on another, nothing
+ever resolved what it declared, and seven of the ten relations it carried
+restated fields the models already had.
+
+ADR 015 keeps the idea and changes the mechanism. A kit publishes claims
+as data; a solution decides what it holds true; doctrine resolves both
+ends. The document below is kept for the reasoning, not the design.
 
 ## Date
 
