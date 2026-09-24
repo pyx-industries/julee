@@ -48,11 +48,33 @@ class Kit(Entity):
         default_factory=tuple,
         description="Slugs of other kits this kit builds on",
     )
-    contributes: Mapping[str, str] = Field(
+    contributes: Mapping[str, str | tuple[str, ...]] = Field(
         default_factory=dict,
-        description="Contribution point to dotted path, for example "
-        '{"fastapi.routers": "julee_ceap.apps.api:router"}',
+        description="Contribution point to dotted path, or several, for "
+        'example {"fastapi.routers": "julee_ceap.apps.api:router"} or '
+        '{"sphinx.extension": ("a.b", "a.c")}',
     )
+
+    def contributed(self, point: str) -> tuple[str, ...]:
+        """What this kit offers at one contribution point.
+
+        A kit may offer one thing or several, and a caller asking should
+        not have to care which: a point with a single path reads the same
+        as a point with three.
+
+        Args:
+            point: The contribution point, e.g. "sphinx.extension"
+
+        Returns:
+            The dotted paths, in the order the manifest gives them
+        """
+        offered = self.contributes.get(point)
+        if offered is None:
+            return ()
+        if isinstance(offered, str):
+            return (offered,)
+        return tuple(offered)
+
     viewpoint: bool = Field(
         default=False,
         description="True if this kit's bounded contexts describe a solution "

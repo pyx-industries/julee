@@ -132,6 +132,9 @@ def malformed_contributions(adopted: Iterable[Kit]) -> list[str]:
     manifest imports nothing. Only the shape is checked here; resolving
     the path is the job of whichever integration consumes it.
 
+    A point may offer one path or several, and both are checked the same
+    way.
+
     Args:
         adopted: The kits the solution adopts
 
@@ -141,6 +144,7 @@ def malformed_contributions(adopted: Iterable[Kit]) -> list[str]:
     return [
         f"{kit.slug}: {point} = {path!r}"
         for kit in adopted
-        for point, path in kit.contributes.items()
+        for point in kit.contributes
+        for path in kit.contributed(point)
         if not path or path.count(":") > 1 or " " in path
     ]
