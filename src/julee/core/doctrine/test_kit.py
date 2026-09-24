@@ -13,13 +13,19 @@ import pytest
 
 from julee.core.doctrine.rules.kit import (
     circular_requirements,
+    contributions_naming_nothing,
     duplicate_slugs,
     malformed_contributions,
     slugs_colliding_with_contexts,
     unadopted_requirements,
     unimportable_packages,
 )
-from julee.core.kits import adopted_kits, installed_kits, unresolved_kit_slugs
+from julee.core.kits import (
+    adopted_kits,
+    installed_kits,
+    resolve_contribution,
+    unresolved_kit_slugs,
+)
 
 
 class TestKitAdoption:
@@ -128,3 +134,30 @@ class TestKitManifests:
         violations = malformed_contributions(adopted_kits(project_root))
 
         assert not violations, "Malformed kit contributions:\n" + "\n".join(violations)
+
+    def test_kit_contributions_MUST_name_something_that_exists(
+        self, project_root
+    ) -> None:
+        """A contribution MUST resolve to a module or an attribute.
+
+        The shape rule above says a path looks like a path. This says it
+        leads somewhere. A manifest naming a module that has moved is a
+        promise the solution finds broken at startup, in front of whoever
+        is waiting, rather than here.
+        """
+        adopted = adopted_kits(project_root)
+        if not adopted:
+            pytest.skip("Solution adopts no kits")
+
+        def resolves(path: str) -> bool:
+            try:
+                resolve_contribution(path)
+            except (ImportError, AttributeError, ValueError):
+                return False
+            return True
+
+        violations = contributions_naming_nothing(adopted, resolves)
+
+        assert not violations, "Contributions naming nothing:\n" + "\n".join(
+            f"  {v}" for v in violations
+        )

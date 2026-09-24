@@ -11,6 +11,7 @@ from julee.core.entities.kit import Kit
 
 __all__ = [
     "CanImport",
+    "contributions_naming_nothing",
     "circular_requirements",
     "duplicate_slugs",
     "malformed_contributions",
@@ -147,4 +148,34 @@ def malformed_contributions(adopted: Iterable[Kit]) -> list[str]:
         for point in kit.contributes
         for path in kit.contributed(point)
         if not path or path.count(":") > 1 or " " in path
+    ]
+
+
+def contributions_naming_nothing(
+    adopted: Iterable[Kit], resolves: Callable[[str], bool]
+) -> list[str]:
+    """Contributions naming something that is not there.
+
+    A manifest is a promise that a solution acts on. One naming a module
+    that has moved, or an attribute that has been renamed, is a promise
+    the solution finds broken at the moment it tries to mount a router —
+    which is startup, in front of whoever is waiting.
+
+    Shape is checked elsewhere and cheaply. This resolves, which costs an
+    import, and is worth it because a dotted path in a data file is
+    exactly the kind of thing a rename leaves behind.
+
+    Args:
+        adopted: The kits the solution adopts
+        resolves: Answers whether a contribution path names something
+
+    Returns:
+        One sentence per contribution that names nothing
+    """
+    return [
+        f"{kit.slug}: {point} = {path!r}"
+        for kit in adopted
+        for point in kit.contributes
+        for path in kit.contributed(point)
+        if not resolves(path)
     ]
