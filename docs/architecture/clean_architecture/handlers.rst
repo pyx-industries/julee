@@ -21,8 +21,14 @@ sends a notification, or dispatches a pipeline.
 Handlers accept domain objects, not requests.
 What a handler does internally is the handler's business.
 
-Handlers live beside :doc:`services` in ``domain/services/``,
+Handlers live in ``domain/handlers/``,
 in a file named ``*_handler.py``.
+
+They shared ``domain/services/`` until ADR 016,
+told apart by their name rather than their directory—
+the one port found the way everything else had stopped being found.
+A handler still sitting there is read as a handler,
+so its rules keep applying, and doctrine objects to where it is.
 
 Always Acknowledgement
 ----------------------

@@ -188,7 +188,7 @@ decides both the directory it goes in and what it may be called:
    * - Handler
      - any, returns ``Acknowledgement``
      - inline
-     - ``domain/services/``, in ``*_handler.py``
+     - ``domain/handlers/``, in ``*_handler.py``
 
 A repository declares its entity by inheriting ``RepositoryOf[Entity]``,
 which is why it is the one port with no naming rule. The other five are
@@ -235,7 +235,8 @@ This is the layout doctrine reads, in a kit or in a solution of your own::
     ├── domain/
     │   ├── models/        # Entities
     │   ├── repositories/  # Repository protocols
-    │   ├── services/      # Service protocols, and *_handler.py
+    │   ├── services/      # Service protocols
+    │   ├── handlers/      # Handler protocols, one per *_handler.py
     │   ├── oracles/       # Oracle protocols
     │   ├── calculators/   # Calculator protocols
     │   └── witnesses/     # Witness protocols

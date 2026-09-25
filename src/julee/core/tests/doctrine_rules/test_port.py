@@ -56,13 +56,37 @@ def test_each_directory_accepts_the_role_it_is_for() -> None:
     assert ports_misnamed_for_their_directory(ports) == []
 
 
-def test_a_handler_is_accepted_beside_services() -> None:
-    """Handlers share domain/services/ and are a different artifact.
+def test_a_handler_in_its_own_directory_is_accepted() -> None:
+    ports = [a_port("EpicCreatedHandler", "handlers")]
 
-    hcd's services package holds eleven handlers and no services at all,
-    so a rule that objected to them would fail a kit for obeying ADR 003.
+    assert ports_misnamed_for_their_directory(ports) == []
+
+
+def test_a_handler_left_in_services_is_told_to_move() -> None:
+    """Handlers shared domain/services/ until #256.
+
+    That made Handler the one port told apart by its name rather than its
+    directory — the mechanism every other port stopped using in #175.
+    hcd's services package held eleven handlers and no services at all,
+    so the directory's name described nothing in it.
     """
-    assert ports_misnamed_for_their_directory([a_port("EpicCreatedHandler")]) == []
+    objections = ports_misnamed_for_their_directory([a_port("EpicCreatedHandler")])
+
+    assert len(objections) == 1
+    assert "domain/handlers/" in objections[0]
+
+
+def test_a_handler_in_the_wrong_place_is_not_told_to_rename_itself() -> None:
+    """The diagnosis has to match the defect.
+
+    EpicCreatedHandler is named correctly and shelved wrongly. Telling its
+    author to rename it would be both the wrong advice and the wrong
+    explanation of what doctrine objects to.
+    """
+    objections = ports_misnamed_for_their_directory([a_port("EpicCreatedHandler")])
+
+    assert "Rename it" not in objections[0]
+    assert "move it" in objections[0]
 
 
 def test_a_role_is_not_accepted_in_the_wrong_directory() -> None:
@@ -97,11 +121,12 @@ def test_the_objection_names_both_ways_out() -> None:
     assert "belongs in another" in objections[0]
 
 
-def test_the_services_objection_names_both_roles_it_admits() -> None:
+def test_each_directory_now_admits_exactly_one_role() -> None:
+    """services/ held two until handlers were given their own directory."""
     objections = ports_misnamed_for_their_directory([a_port("Snoop", "services")])
 
     assert "*Service" in objections[0]
-    assert "*Handler" in objections[0]
+    assert "*Handler" not in objections[0]
 
 
 def test_a_directory_with_no_declared_role_is_left_alone() -> None:

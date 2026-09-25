@@ -102,7 +102,14 @@ A driven port is classified on **two** axes.
     │ inline  │  Witness      replay-stable      │
     │         │  Handler      native dispatch    │
     └─────────┴──────────────────────────────────┘
+
+    domain/  repositories/  services/  oracles/
+             calculators/   witnesses/ handlers/
 ```
+
+One directory per port, and every port found by its directory. Nothing
+here is found by its name: a name is a claim doctrine checks, never the
+mechanism that locates the thing.
 
 Being reachable inline is one property with three reasons, and the
 reasons are worth distinguishing because they are different promises:
@@ -233,9 +240,16 @@ Accepts domain objects and decides what happens next, returning
 type rather than by arity, because what a handler is *about* is the
 handoff and not the payload.
 
-Lives in `domain/services/`, in a file named `*_handler.py`. Named
+Lives in `domain/handlers/`, in a file named `*_handler.py`. Named
 `{Condition}Handler`. Callable inline: dispatching is a workflow-native
 operation.
+
+Handlers shared `domain/services/` until this ADR, told apart by their
+name. That made Handler the one port found the way #175 stopped finding
+things, and it showed: `julee-hcd`'s services package held eleven
+handlers and no services at all, so the directory's name described
+nothing in it. A handler still sitting there is read as a handler, so
+ADR 003's rules keep checking it, and objected to for where it is.
 
 ### Why the inline row is divided by reason, not by arity
 
@@ -300,10 +314,10 @@ the author is held to the rest.
 
 ### Negative
 
-1. **`domain/` gains three directories.** `models`, `repositories`,
-   `services`, `oracles`, `calculators`, `witnesses`. That is the cost of
-   finding artifacts by their directory, which ADR 002 commits to. Most
-   bounded contexts will have three of the six.
+1. **`domain/` gains four directories.** `models`, `repositories`,
+   `services`, `oracles`, `calculators`, `witnesses`, `handlers`. That is
+   the cost of finding artifacts by their directory, which ADR 002
+   commits to. Most bounded contexts will have three or four of them.
 2. **Renames across three codebases, and two in the kernel.** One
    protocol in ceap, one in polling, two in onto-mapper-service, two in
    rba-accel-poc. `ClockService` and `ExecutionService` are julee's own
@@ -331,6 +345,12 @@ the author is held to the rest.
 | `rba-accel-poc.DocumentTransferService` | `DocumentTransferOracle` |
 | `julee.core.services.ClockService` | `ClockWitness` |
 | `julee.core.services.ExecutionService` | `ExecutionWitness` |
+
+Handlers move directory rather than name: `domain/services/*_handler.py`
+becomes `domain/handlers/*_handler.py`. Eleven files in `julee-hcd`, one
+in `julee-polling`. Doctrine reads them either way and objects while they
+are in the old place, so the move can happen when convenient rather than
+in lockstep with the framework.
 
 The two downstream codebases are not on this repository's release
 schedule and adopt when they upgrade.

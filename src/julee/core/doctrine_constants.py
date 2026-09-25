@@ -37,8 +37,8 @@ or a protocol that does not belong in this directory at all.
 HANDLER_SUFFIX: Final[str] = "Handler"
 """Suffix identifying handler protocols (e.g. PollingResultHandler).
 
-Handlers live in domain/services/ beside services and are a different
-artifact with rules of their own (ADR 003).
+Handlers live in domain/handlers/ and are a different artifact from
+services, with rules of their own (ADR 003).
 """
 
 ORACLE_SUFFIX: Final[str] = "Oracle"
@@ -77,6 +77,7 @@ ENTITIES_PATH: Final[tuple[str, ...]] = ("domain", "models")
 USE_CASES_PATH: Final[tuple[str, ...]] = ("usecases",)
 REPOSITORIES_PATH: Final[tuple[str, ...]] = ("domain", "repositories")
 SERVICES_PATH: Final[tuple[str, ...]] = ("domain", "services")
+HANDLERS_PATH: Final[tuple[str, ...]] = ("domain", "handlers")
 ORACLES_PATH: Final[tuple[str, ...]] = ("domain", "oracles")
 CALCULATORS_PATH: Final[tuple[str, ...]] = ("domain", "calculators")
 WITNESSES_PATH: Final[tuple[str, ...]] = ("domain", "witnesses")

@@ -236,6 +236,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         CALCULATORS_PATH,
         ENTITIES_PATH,
         HANDLER_SUFFIX,
+        HANDLERS_PATH,
         ORACLES_PATH,
         REPOSITORIES_PATH,
         SERVICES_PATH,
@@ -254,6 +255,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
     domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
     domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
+    domain_handlers_dir = _resolve_layer_path(context_dir, HANDLERS_PATH)
     domain_oracles_dir = _resolve_layer_path(context_dir, ORACLES_PATH)
     domain_calculators_dir = _resolve_layer_path(context_dir, CALCULATORS_PATH)
     domain_witnesses_dir = _resolve_layer_path(context_dir, WITNESSES_PATH)
@@ -279,14 +281,20 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     # Found by the directory they sit in, the way repositories are, rather
     # than by their name. Keeping only *Service dropped anything else without
     # saying so: run against a solution whose service protocols had a
-    # different suffix, doctrine reported no services at all (#175). Handlers
-    # share the directory and are a separate artifact, so they are split off
-    # first; everything else is a service, and whether it is named like one
-    # is a rule rather than a filter.
+    # different suffix, doctrine reported no services at all (#175).
+    # Everything in the directory is a service now, and whether it is named
+    # like one is a rule rather than a filter.
+    #
+    # Handlers have their own directory since #256. One still sitting in
+    # domain/services/ is read as a handler anyway, so ADR 003's rules keep
+    # checking it while it waits to be moved: a handler that stopped being
+    # checked because it was in the old place is the failure this whole
+    # arrangement exists to prevent. Where it sits is a rule of its own.
     all_service_classes = parse_python_classes(domain_services_dir)
-    handler_protocols = [
+    misplaced_handlers = [
         c for c in all_service_classes if c.name.endswith(HANDLER_SUFFIX)
     ]
+    handler_protocols = parse_python_classes(domain_handlers_dir) + misplaced_handlers
     service_protocols = [
         c for c in all_service_classes if not c.name.endswith(HANDLER_SUFFIX)
     ]
