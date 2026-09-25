@@ -71,6 +71,12 @@ Documentation Contents
    architecture/applications/index
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Decisions
+
+   ADRs/index
+
+.. toctree::
    :maxdepth: 2
    :caption: API Reference
 

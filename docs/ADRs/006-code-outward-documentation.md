@@ -98,7 +98,7 @@ Template granularity = Entity types (presentation)
 - `get-relationships` → wraps `GetRelationshipsUseCase`
 
 **Templates** compose directives for presentation:
-```jinja2
+```jinja
 {{ docstring }}
 
 This Solution's Stories

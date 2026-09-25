@@ -6,6 +6,28 @@ This directory contains Architecture Decision Records (ADRs) for the Julee frame
 
 An ADR is a document that captures an important architectural decision made along with its context and consequences.
 
+```{toctree}
+:hidden:
+:maxdepth: 1
+
+001-contrib-layout
+002-doctrine-test-architecture
+003-workflow-orchestration-handlers
+004-execution-agnostic-use-cases
+005-doctrine-and-policy
+006-code-outward-documentation
+007-semantic-relations
+008-generic-crud-use-cases
+009-repository-service-distinction
+010-apps-layer-architecture
+011-canonical-julee-line
+012-framework-and-kits
+013-sphinx-hcd-extensions
+014-usecases-package-name
+015-semantics-as-claims
+016-driven-ports
+```
+
 ## ADR Index
 
 | ID | Title | Status | Date |
