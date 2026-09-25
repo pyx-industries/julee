@@ -13,8 +13,8 @@ Draft
 A use case depends on protocols and calls outward through them. In
 hexagonal terms these are **driven ports**: the application drives them,
 and an adapter in `infrastructure/` implements each one. Repositories,
-services and handlers are all driven ports. So are two kinds this
-framework has never named.
+services and handlers are all driven ports. So are three kinds this
+framework has never named, two of which it ships itself.
 
 ADR 009 said the distinction between the first two is entity cardinality:
 
@@ -69,14 +69,27 @@ the same answer and it is safe to run in workflow code. Somebody worked
 all of that out port by port, correctly, with no vocabulary to record the
 reasoning in.
 
+**And being safe to call inline has more than one reason.** `ClockService`
+and `ExecutionService` (`core/services/`) are bound to no entity and are
+called inline — `integrations/temporal/clock.py` says its implementation
+must only be used inside a workflow. Neither is deterministic:
+`now()` gives a different answer every call. They are safe because the
+runtime records what they said and replays the recorded value, which is a
+third reason distinct from computing an answer and from dispatching.
+
+They also show the cost of leaving a kind unnamed. These two are the
+ports every julee solution injects, they have existed since ADR 004, and
+until this ADR there was no sentence anywhere saying what they are or why
+wrapping one in an activity would be wrong.
+
 ## Decision
 
 A driven port is classified on **two** axes.
 
 1. **What it is bound to** — how many of its bounded context's entity
    types it names.
-2. **What it costs to call** — whether a workflow must reach it through
-   an activity, or may call it inline.
+2. **Whether it is replay-safe** — whether a workflow must reach it
+   through an activity, or may call it inline.
 
 ```
                           bound to
@@ -85,11 +98,24 @@ A driven port is classified on **two** axes.
     ┌─────────┼──────────┼────────────┼──────────┤
     │ activity│  Oracle  │ Repository │ Service  │
     ├─────────┼──────────┴────────────┴──────────┤
-    │ inline  │           Calculator             │
+    │         │  Calculator   deterministic      │
+    │ inline  │  Witness      replay-stable      │
+    │         │  Handler      native dispatch    │
     └─────────┴──────────────────────────────────┘
-
-    Handler: any arity, returns Acknowledgement, inline.
 ```
+
+Being reachable inline is one property with three reasons, and the
+reasons are worth distinguishing because they are different promises:
+
+| Port | Stable across | Testable |
+|---|---|---|
+| **Calculator** | *calls* — same arguments, same answer, anywhere | on its own |
+| **Witness** | *replays* — same point in history, same answer | only inside a runtime that records |
+| **Handler** | — dispatch is the engine's own operation | with a fake handler |
+
+A Calculator is safe everywhere, including outside a workflow entirely. A
+Witness is safe only because the runtime records what it said, which
+makes it a framework-coupling seam where a Calculator is not.
 
 ### Repository — one entity, activity
 
@@ -167,6 +193,39 @@ what it would need to.
 This is the seam a kit uses to require something from its adopter, which
 is ADR 012's contribution contract running the other way.
 
+### Witness — no entity, inline
+
+Testifies to something about the execution itself: what time it is, which
+run this is. Its answer is not computed from its arguments and is not the
+same on every call — but the runtime writes it into the execution history
+the first time, so a replay is told the same thing.
+
+```python
+class ClockWitness(Protocol):
+    def now(self) -> datetime: ...
+```
+
+Lives in `domain/witnesses/`, or in `julee.core.witnesses` for the two
+the framework ships. Named `{Subject}Witness`.
+
+**A Witness may be called from workflow code, and must not be wrapped in
+an activity.** Wrapping one defeats it: the point of
+`TemporalClockWitness` is that `workflow.now()` is already recorded, and
+an activity would add a round trip to obtain something the history
+already holds.
+
+A Witness always has at least two implementations and that is intrinsic
+rather than incidental. `SystemClockWitness` returns `datetime.now(UTC)`,
+which is not replay-stable and never will be; `TemporalClockWitness`
+returns `workflow.now()`, which is. The port exists so a use case can ask
+what time it is without knowing what is running it — ADR 004's purpose —
+and it is therefore a framework-coupling seam in a way a Calculator is
+not. That difference is why the two have separate names rather than one:
+collapsing them would hide the only thing about a Witness that matters.
+
+The framework ships two, and every solution uses them: a clock and an
+execution identifier.
+
 ### Handler — dispatch, inline
 
 Accepts domain objects and decides what happens next, returning
@@ -178,13 +237,20 @@ Lives in `domain/services/`, in a file named `*_handler.py`. Named
 `{Condition}Handler`. Callable inline: dispatching is a workflow-native
 operation.
 
-### Why the inline row is not divided by arity
+### Why the inline row is divided by reason, not by arity
 
 On the activity row, arity decides real things: whether the framework can
 generate a workflow proxy from the declared entity, what gets persisted,
 and whether the protocol is doing the work of two. On the inline row none
-of that applies. There is no I/O to manage and nothing to persist, so the
-only thing worth saying about the port is that it is safe to replay.
+of that applies. There is no I/O to manage and nothing to persist, so
+arity says nothing useful and the division that matters is *why* the port
+is safe to call there.
+
+It matters because the three promises differ in what a reader may rely
+on. A Calculator can be exercised with no harness at all. A Witness
+cannot — outside a recording runtime it gives a different answer every
+time, correctly. A Handler's inline safety belongs to the engine rather
+than to the protocol.
 
 A Calculator may therefore be bound to zero, one or several entities. The
 census found only the zero case. Naming the axis rather than the arity
@@ -200,15 +266,20 @@ What can be checked:
 - An Oracle is bound to none, and its implementations live in
   `infrastructure/`.
 - A Handler's methods return `Acknowledgement` (already enforced).
+- A Witness is bound to none, and is never given a workflow proxy —
+  wrapping one in an activity is a defect a rule can see.
 - Each protocol is found by its directory, and its name must claim one of
-  the five roles (ADR 002).
+  the six roles (ADR 002).
 
 What cannot be checked, and is a claim the name makes: that a Calculator
-is deterministic. Doctrine reads text; it cannot prove a function pure. A
-Calculator that opens a socket is lying, and will be found out by a
-non-determinism error on replay rather than by a failing test. This is
-the same arrangement as everywhere else in doctrine — the name is a
-claim, doctrine checks what it can, and the author is held to the rest.
+is deterministic, and that a Witness is replay-stable. Doctrine reads
+text; it cannot prove a function pure, nor that an implementation reaches
+for a recorded value rather than a live one. A Calculator that opens a
+socket is lying, and so is a Witness whose workflow implementation calls
+`datetime.now()`. Both are found out by a non-determinism error on replay
+rather than by a failing test. This is the same arrangement as everywhere
+else in doctrine — the name is a claim, doctrine checks what it can, and
+the author is held to the rest.
 
 ## Consequences
 
@@ -221,17 +292,24 @@ claim, doctrine checks what it can, and the author is held to the rest.
    case by case as polling's author had to.
 3. **Handlers stop being an unmentioned exception.** They were already
    classified on the second axis; now the axis exists.
+5. **The framework's own two ports are placed.** `ClockService` and
+   `ExecutionService` fitted nothing until Witness existed, and they are
+   the ports every solution uses.
 4. **A kit's extension seams have a name.** `NewDataAnalyzer` is a kit
    requiring something of its adopter, and that was previously invisible.
 
 ### Negative
 
-1. **`domain/` gains two directories.** `models`, `repositories`,
-   `services`, `oracles`, `calculators`. That is the cost of finding
-   artifacts by their directory, which ADR 002 commits to.
-2. **Renames across three codebases.** One protocol in ceap, one in
-   polling, two in onto-mapper-service, two in rba-accel-poc. The kit
-   ones are public names and need a version bump.
+1. **`domain/` gains three directories.** `models`, `repositories`,
+   `services`, `oracles`, `calculators`, `witnesses`. That is the cost of
+   finding artifacts by their directory, which ADR 002 commits to. Most
+   bounded contexts will have three of the six.
+2. **Renames across three codebases, and two in the kernel.** One
+   protocol in ceap, one in polling, two in onto-mapper-service, two in
+   rba-accel-poc. `ClockService` and `ExecutionService` are julee's own
+   public API and every solution injects them, so that rename is the
+   widest-reaching change here and wants a deprecation alias rather than
+   a straight cut.
 3. **"Oracle" leans read-shaped.** `DocumentTransferService` does
    something outward rather than asking something, and
    `DocumentTransferOracle` reads oddly. The category is "touches the
@@ -251,9 +329,18 @@ claim, doctrine checks what it can, and the author is held to the rest.
 | `onto-mapper.PromptService` | `PromptOracle` |
 | `rba-accel-poc.CredentialSignerService` | `CredentialSignerOracle` |
 | `rba-accel-poc.DocumentTransferService` | `DocumentTransferOracle` |
+| `julee.core.services.ClockService` | `ClockWitness` |
+| `julee.core.services.ExecutionService` | `ExecutionWitness` |
 
 The two downstream codebases are not on this repository's release
 schedule and adopt when they upgrade.
+
+`ClockService` and `ExecutionService` are injected by every solution
+built on julee. Rename with an alias kept for a release, not with a cut.
+
+`julee.core.services/` becomes `julee.core.witnesses/`, which leaves the
+kernel with no `services/` package — correct, since neither of the two
+was ever a service under ADR 009's own rule.
 
 ## References
 
@@ -263,5 +350,7 @@ schedule and adopt when they upgrade.
   which named the first port classified on the second axis
 - [ADR 009: Repository vs Service Protocol Distinction](./009-repository-service-distinction.md),
   superseded by this
+- [ADR 004: Execution-Agnostic Use Cases](./004-execution-agnostic-use-cases.md),
+  which introduced the two Witnesses without a word for them
 - [ADR 012: Separating the Framework from Domain Kits](./012-framework-and-kits.md),
   for the contribution contract a Calculator inverts
