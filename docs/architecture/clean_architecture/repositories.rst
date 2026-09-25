@@ -1,14 +1,23 @@
 Repositories
 ============
 
-**Repositories store things.**
-Not to be confused with :doc:`services`, which do things.
+**Repositories store one entity each.**
 
-A repository implements simple CRUD operations for :doc:`entities`,
-abstracting storage technology.
+A repository implements simple CRUD operations for one of
+its bounded context's :doc:`entities`, abstracting storage technology.
+
+Being bound to exactly one entity is the definition,
+not a convention: a protocol bound to two or more is a
+:doc:`service <services>`, and one bound to none is an
+:doc:`oracle <oracles>`, a :doc:`calculator <calculators>`
+or a :doc:`witness <witnesses>`.
+:doc:`Protocols <protocols>` sets out all six.
 
 Repositories are defined as :doc:`protocols`;
 the :doc:`DI container <dependency_injection>` provides implementations.
+
+A repository does I/O, so a :doc:`pipeline </architecture/solutions/pipelines>`
+reaches it through a Temporal activity rather than calling it inline.
 
 CEAP Repository Protocols
 -------------------------

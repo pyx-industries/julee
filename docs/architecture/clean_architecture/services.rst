@@ -1,11 +1,31 @@
 Services
 ========
 
-**Services do things.**
-Not to be confused with :doc:`repositories`, which store things.
+**Services transform between entities.**
 
-A service performs complex operations beyond simple persistence.
-Logically, a service might be a shim that delegates to an external actor in the digital supply chain.
+A service is bound to two or more of its bounded context's
+:doc:`entities`, and typically turns one into another::
+
+    class KnowledgeService(Protocol):
+        async def extract(self, document: Document) -> Knowledge: ...
+
+That is what separates a service from a :doc:`repository <repositories>`,
+which is bound to exactly one entity and stores it.
+Counting entities is the first of the two questions
+:doc:`protocols` asks of every driven port.
 
 Services are defined as :doc:`protocols`;
 the :doc:`DI container <dependency_injection>` provides implementations.
+
+A service does I/O, so a :doc:`pipeline </architecture/solutions/pipelines>`
+reaches it through a Temporal activity rather than calling it inline.
+
+Not An External Shim
+--------------------
+
+A protocol that delegates to an external actor in the digital supply chain
+is usually not a service.
+If it deals in a remote system's currency rather than your entities,
+it is an :doc:`oracle <oracles>`.
+``*Service`` was the closest available word before oracles were named,
+which is why several protocols across the kits still wear it wrongly.

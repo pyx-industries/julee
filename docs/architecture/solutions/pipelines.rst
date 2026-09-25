@@ -36,8 +36,9 @@ All Julee pipelines are Julee use cases, but not all Julee use cases are pipelin
             return await use_case.assemble_data(document_id, spec_id)
 
 The use case is unaware it's running as a pipeline.
-The proxies route repository and service calls through Temporal activities,
+The proxies route calls to the ports that do I/O through Temporal activities,
 providing automatic retries, state persistence, and audit trails.
+Ports that do no I/O are passed in as they are, and called inline.
 
 See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation.
 
@@ -71,9 +72,58 @@ Pipeline Proxies
 
 The magic is in the **pipeline proxies**.
 When a use case runs as a pipeline,
-its :doc:`repository </architecture/clean_architecture/repositories>` and
-:doc:`service </architecture/clean_architecture/services>` dependencies
-are replaced with proxy classes that route calls through Temporal activities.
+some of its dependencies are replaced with proxy classes
+that route calls through Temporal activities—and some are not.
+
+Which is which is decided by the kind of
+:doc:`driven port </architecture/clean_architecture/protocols>`,
+not case by case:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 65
+
+   * - Port
+     - In a pipeline
+     - Why
+   * - :doc:`Repository </architecture/clean_architecture/repositories>`
+     - activity
+     - does I/O; its answer can differ between replays
+   * - :doc:`Service </architecture/clean_architecture/services>`
+     - activity
+     - the same
+   * - :doc:`Oracle </architecture/clean_architecture/oracles>`
+     - activity
+     - the same
+   * - :doc:`Calculator </architecture/clean_architecture/calculators>`
+     - inline
+     - deterministic: replay recomputes the same answer
+   * - :doc:`Witness </architecture/clean_architecture/witnesses>`
+     - inline
+     - the runtime recorded its answer; replay is told the same
+   * - :doc:`Handler </architecture/clean_architecture/handlers>`
+     - inline
+     - dispatch is an operation Temporal provides itself
+
+The three inline reasons are genuinely different,
+which is why the ports have separate names.
+A calculator is safe anywhere, workflow or not.
+A witness is safe only inside a runtime that records what it said.
+A handler's safety belongs to the engine rather than to the protocol.
+
+Here is a real pipeline injecting three ports into one use case,
+two of them called inline::
+
+    use_case = PollDataUseCase(
+        poller=WorkflowPollerServiceProxy(),  # activity
+        handler=self.get_handler(),           # inline
+        analyzer=self.get_analyzer(),         # inline
+    )
+
+**Never wrap a witness in an activity.**
+The value is already in the workflow history,
+so the activity would add a round trip
+to fetch something the workflow already holds.
 
 ::
 
@@ -90,7 +140,7 @@ are replaced with proxy classes that route calls through Temporal activities.
     )
 
 The proxy implements the same :doc:`protocol </architecture/clean_architecture/protocols>`, enabling :doc:`dependency injection </architecture/clean_architecture/dependency_injection>` to swap implementations without the use case knowing the difference.
-But each method call becomes a Temporal activity with:
+Where a port is proxied, each method call becomes a Temporal activity with:
 
 - Its own **timeout**
 - Its own **retry policy**
@@ -100,7 +150,10 @@ But each method call becomes a Temporal activity with:
 Julee provides decorators to generate these proxies automatically:
 
 - :py:func:`~julee.integrations.temporal.decorators.temporal_workflow_proxy` - generates proxy classes from protocols
-- :py:func:`~julee.integrations.temporal.decorators.temporal_activity_registration` - wraps repository/service methods as activities
+- :py:func:`~julee.integrations.temporal.decorators.temporal_activity_registration` - wraps a port's methods as activities
+
+Generate proxies only for the ports on the activity row.
+A calculator, witness or handler is injected directly.
 
 The pipeline uses Temporal's ``@workflow.defn`` and ``@workflow.run`` decorators to wrap the use case.
 See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation
