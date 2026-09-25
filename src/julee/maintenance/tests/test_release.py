@@ -20,6 +20,7 @@ import pytest
 from julee.maintenance.release import (
     INIT_VERSION,
     PYPROJECT_VERSION,
+    claims_disagreeing_with,
     commit_message,
     get_package_init,
     prepare,
@@ -28,6 +29,7 @@ from julee.maintenance.release import (
     update_version_in_file,
     validate_git_state,
     validate_version,
+    version_claims,
     version_in_file,
 )
 
@@ -234,11 +236,35 @@ def test_a_tree_with_no_src_has_no_package_init(tmp_path: Path) -> None:
     assert get_package_init(tmp_path) is None
 
 
-def test_two_packages_mean_no_single_init(repo: Path) -> None:
+def test_two_versioned_packages_mean_no_single_init(repo: Path) -> None:
     """Several bounded contexts, so no one file holds the version."""
-    (repo / "src" / "other").mkdir()
+    other = repo / "src" / "other"
+    other.mkdir()
+    (other / "__init__.py").write_text('__version__ = "0.6.1"\n')
 
     assert get_package_init(repo) is None
+
+
+def test_a_directory_that_is_not_a_package_does_not_count(repo: Path) -> None:
+    """src/julee.egg-info is a directory and was counted as a package.
+
+    That made two, so the function returned None, so the version bump
+    skipped __init__.py without a word. Four releases shipped claiming a
+    version they were not (#266). Every release run has a build artifact
+    sitting there, so this was not an edge case.
+    """
+    (repo / "src" / "julee.egg-info").mkdir()
+
+    assert get_package_init(repo) == repo / "src" / "julee" / "__init__.py"
+
+
+def test_a_package_without_a_version_does_not_make_it_ambiguous(repo: Path) -> None:
+    """Only a package claiming a version is a candidate to hold it."""
+    plain = repo / "src" / "plain"
+    plain.mkdir()
+    (plain / "__init__.py").write_text('"""No version here."""\n')
+
+    assert get_package_init(repo) == repo / "src" / "julee" / "__init__.py"
 
 
 def test_an_init_without_a_version_is_not_offered(tmp_path: Path) -> None:
@@ -453,3 +479,89 @@ def test_a_branch_check_can_be_waived_but_a_dirty_tree_cannot() -> None:
     dirty = FakeRunner(**{"git status --porcelain": " M x.py"})
     with pytest.raises(SystemExit):
         validate_git_state(require_master=False, runner=dirty)
+
+
+# =============================================================================
+# Checking the work
+# =============================================================================
+
+
+def test_every_file_that_claims_a_version_is_read(repo: Path) -> None:
+    assert set(version_claims(repo)) == {
+        repo / "pyproject.toml",
+        repo / "src" / "julee" / "__init__.py",
+    }
+
+
+def test_a_tree_claiming_nothing_yields_nothing(tmp_path: Path) -> None:
+    assert version_claims(tmp_path) == {}
+
+
+def test_agreeing_claims_raise_no_objection() -> None:
+    claims = {Path("pyproject.toml"): "0.7.0", Path("src/julee/__init__.py"): "0.7.0"}
+
+    assert claims_disagreeing_with("0.7.0", claims) == []
+
+
+def test_a_file_left_behind_is_objected_to() -> None:
+    """The four-release drift, caught before the commit rather than after."""
+    claims = {Path("pyproject.toml"): "0.7.0", Path("src/julee/__init__.py"): "0.6.1"}
+
+    (objection,) = claims_disagreeing_with("0.7.0", claims)
+
+    assert "src/julee/__init__.py" in objection
+    assert "0.6.1" in objection
+
+
+def test_the_objection_names_the_version_being_cut() -> None:
+    """So the reader can see which way round the disagreement is."""
+    (objection,) = claims_disagreeing_with("0.7.0", {Path("pyproject.toml"): "0.6.1"})
+
+    assert "0.7.0" in objection
+
+
+def test_prepare_bumps_the_init_with_a_build_artifact_present(repo: Path) -> None:
+    """The regression, at the level it actually happened.
+
+    Every real release runs in a tree that has been built, so src/ has
+    an egg-info beside the package. That was enough to skip the bump.
+    """
+    (repo / "src" / "julee.egg-info").mkdir()
+
+    prepare("0.7.0", runner=FakeRunner(), repo_root=repo)
+
+    init = repo / "src" / "julee" / "__init__.py"
+    assert version_in_file(init, INIT_VERSION) == "0.7.0"
+
+
+def test_prepare_stops_when_a_file_is_left_behind(repo: Path) -> None:
+    """The backstop, for the next way this goes wrong rather than this one.
+
+    Two packages both claiming the version: get_package_init declines to
+    choose, which is right, but the release would otherwise be cut with
+    both files stale. prepare checks its own work before committing, so
+    the release is not cut at all.
+
+    The check reads every __init__.py under src/ rather than the one
+    get_package_init picks. Sharing that logic would have made it blind
+    in the one direction it has to see.
+    """
+    other = repo / "src" / "other"
+    other.mkdir()
+    (other / "__init__.py").write_text('__version__ = "0.6.1"\n')
+
+    with pytest.raises(SystemExit):
+        prepare("0.7.0", runner=FakeRunner(), repo_root=repo)
+
+
+def test_the_check_sees_an_init_the_selection_passed_over(repo: Path) -> None:
+    """The original bug, seen by the check that guards against it.
+
+    get_package_init returned None because src/julee.egg-info counted as
+    a package, so __init__.py was never bumped. A check built on the same
+    selection would have found nothing to disagree with.
+    """
+    (repo / "src" / "julee" / "__init__.py").write_text('__version__ = "0.6.1"\n')
+    (repo / "pyproject.toml").write_text('[project]\nversion = "0.7.0"\n')
+
+    assert claims_disagreeing_with("0.7.0", version_claims(repo))
