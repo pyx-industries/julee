@@ -2,7 +2,13 @@
 
 ## Status
 
-Draft
+Superseded by [ADR 016: Naming the Driven Ports](./016-driven-ports.md)
+
+The cardinality rule below is carried forward and still holds. What ADR 016
+withdraws is the claim that it is *the* definitional difference from which
+everything follows: a driven port is classified on two axes, not one, and
+cardinality is the first of them. ADR 009 also has no row for a port bound
+to no entity, of which a census found six.
 
 ## Date
 
