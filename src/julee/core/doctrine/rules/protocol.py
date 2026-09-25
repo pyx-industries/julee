@@ -189,9 +189,16 @@ def repositories_referencing_several_entities(
     a repository that is not CRUD can say what it holds and be checked
     rather than skipped (#179).
 
+    The entity names a context offers include the kernel's own, because
+    a kit builds on ``BoundedContextInfo``, ``ClassInfo`` and
+    ``Accelerator`` and there are kit repositories over all three. Left
+    out, a repository bound to one of those scored zero, which is
+    indistinguishable from a protocol holding nothing at all (#237).
+
     Args:
         repositories: The repository protocols a codebase has
-        entity_names_by_context: Entity names, by bounded context slug
+        entity_names_by_context: Entity names, by bounded context slug,
+            each already carrying the kernel's
 
     Returns:
         One sentence per repository covering more than one entity

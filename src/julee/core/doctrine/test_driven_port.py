@@ -17,15 +17,13 @@ from julee.core.doctrine.rules.port import (
 from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
 
 
-def _ports_and_entities(contexts):
-    """Every protocol under a named port directory, with its context's entities."""
+def _ports(contexts):
+    """Every protocol under a named port directory, with where it was found."""
     ports = []
-    entity_names_by_context = {}
     for ctx in contexts:
         info = parse_bounded_context(Path(ctx.path))
         if info is None:
             continue
-        entity_names_by_context[ctx.slug] = {e.name for e in info.entities}
         # Handlers are read from wherever they sit, so pair each with the
         # directory it was actually found in: one in domain/services/ is a
         # placement objection, not a naming one.
@@ -43,7 +41,7 @@ def _ports_and_entities(contexts):
         }
         for directory, classes in found.items():
             ports.extend(protocols_in(directory, classes, ctx.slug))
-    return ports, entity_names_by_context
+    return ports
 
 
 class TestDrivenPortNaming:
@@ -75,7 +73,7 @@ class TestDrivenPortNaming:
         every other port stopped using in #175, and it has its own
         directory now (#256).
         """
-        ports, _ = _ports_and_entities(await repo.list_all())
+        ports = _ports(await repo.list_all())
 
         violations = ports_misnamed_for_their_directory(ports)
 
@@ -88,7 +86,9 @@ class TestDrivenPortBinding:
     """Doctrine about what a driven port is bound to."""
 
     @pytest.mark.asyncio
-    async def test_an_oracle_or_witness_MUST_name_no_entity(self, repo):
+    async def test_an_oracle_or_witness_MUST_name_no_entity(
+        self, repo, entity_names_by_context
+    ):
         """Oracles and witnesses MUST NOT name an entity of their context.
 
         Both sit at arity zero on ADR 016's grid, for the same reason:
@@ -104,9 +104,11 @@ class TestDrivenPortBinding:
         calculator be bound to any number of entities, because what makes
         it one is that its answer follows from its arguments.
         """
-        ports, entities = _ports_and_entities(await repo.list_all())
+        ports = _ports(await repo.list_all())
 
-        violations = ports_bound_to_entities_they_should_not_be(ports, entities)
+        violations = ports_bound_to_entities_they_should_not_be(
+            ports, entity_names_by_context
+        )
 
         assert not violations, "Ports bound to entities they should not be:\n" + (
             "\n".join(violations)
