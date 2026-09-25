@@ -20,8 +20,8 @@ CEAP Entities
 
 The CEAP :doc:`repositories` store these entities:
 
-- :py:class:`julee.domain.models.Document`
-- :py:class:`julee.domain.models.Assembly`
-- :py:class:`julee.domain.models.AssemblySpecification`
-- :py:class:`julee.domain.models.KnowledgeServiceQuery`
-- :py:class:`julee.domain.models.KnowledgeServiceConfig`
+- ``Document``
+- ``Assembly``
+- ``AssemblySpecification``
+- ``KnowledgeServiceQuery``
+- ``KnowledgeServiceConfig``

@@ -15,33 +15,33 @@ CEAP Repository Protocols
 
 The CEAP :doc:`use case <use_cases>` depends on these repository protocols:
 
-- :py:class:`julee.domain.repositories.DocumentRepository`
-- :py:class:`julee.domain.repositories.AssemblyRepository`
-- :py:class:`julee.domain.repositories.AssemblySpecificationRepository`
-- :py:class:`julee.domain.repositories.KnowledgeServiceQueryRepository`
-- :py:class:`julee.domain.repositories.KnowledgeServiceConfigRepository`
+- ``DocumentRepository``
+- ``AssemblyRepository``
+- ``AssemblySpecificationRepository``
+- ``KnowledgeServiceQueryRepository``
+- ``KnowledgeServiceConfigRepository``
 
 MinIO Implementations
 ---------------------
 
 Production implementations using S3-compatible object storage:
 
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioDocumentRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioAssemblyRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioAssemblySpecificationRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioKnowledgeServiceQueryRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.minio.MinioKnowledgeServiceConfigRepository`
+- ``MinioDocumentRepository``
+- ``MinioAssemblyRepository``
+- ``MinioAssemblySpecificationRepository``
+- ``MinioKnowledgeServiceQueryRepository``
+- ``MinioKnowledgeServiceConfigRepository``
 
 Memory Implementations
 ----------------------
 
 In-memory implementations for testing:
 
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryDocumentRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryAssemblyRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryAssemblySpecificationRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryKnowledgeServiceQueryRepository`
-- :py:class:`julee.contrib.ceap.infrastructure.repositories.memory.MemoryKnowledgeServiceConfigRepository`
+- ``MemoryDocumentRepository``
+- ``MemoryAssemblyRepository``
+- ``MemoryAssemblySpecificationRepository``
+- ``MemoryKnowledgeServiceQueryRepository``
+- ``MemoryKnowledgeServiceConfigRepository``
 
 These are volatile and unsuitable for production,
 but useful as testing doubles in unit tests
@@ -52,7 +52,7 @@ Implementing Repositories
 
 Repository protocols can define any interface suitable for the domain.
 For the common case of simple CRUD operations,
-:py:class:`~julee.domain.repositories.BaseRepository` provides a generic starting point:
+:py:class:`~julee.repositories.base.BaseRepository` provides a generic starting point:
 
 .. code-block:: python
 
@@ -61,7 +61,7 @@ For the common case of simple CRUD operations,
 
 Implementation mixins handle technology-specific boilerplate:
 
-- :py:class:`~julee.contrib.ceap.infrastructure.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
+- :py:class:`~julee.repositories.memory.base.MemoryRepositoryMixin` - in-memory storage
 - :py:class:`~julee.integrations.minio.client.MinioRepositoryMixin` - S3-compatible storage
 
 The :doc:`DI container <dependency_injection>` wires protocols to implementations at runtime.
