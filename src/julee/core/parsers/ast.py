@@ -234,6 +234,7 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     from julee.core.doctrine_constants import (
         ENTITIES_PATH,
+        HANDLER_SUFFIX,
         REPOSITORIES_PATH,
         SERVICES_PATH,
         USE_CASES_PATH,
@@ -269,9 +270,20 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     responses = [c for c in all_classes if c.name.endswith("Response")]
     use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
 
+    # Found by the directory they sit in, the way repositories are, rather
+    # than by their name. Keeping only *Service dropped anything else without
+    # saying so: run against a solution whose service protocols had a
+    # different suffix, doctrine reported no services at all (#175). Handlers
+    # share the directory and are a separate artifact, so they are split off
+    # first; everything else is a service, and whether it is named like one
+    # is a rule rather than a filter.
     all_service_classes = parse_python_classes(domain_services_dir)
-    service_protocols = [c for c in all_service_classes if c.name.endswith("Service")]
-    handler_protocols = [c for c in all_service_classes if c.name.endswith("Handler")]
+    handler_protocols = [
+        c for c in all_service_classes if c.name.endswith(HANDLER_SUFFIX)
+    ]
+    service_protocols = [
+        c for c in all_service_classes if not c.name.endswith(HANDLER_SUFFIX)
+    ]
 
     return BoundedContextInfo(
         slug=context_dir.name,

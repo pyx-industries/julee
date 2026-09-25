@@ -25,6 +25,22 @@ RESPONSE_SUFFIX: Final[str] = "Response"
 PIPELINE_SUFFIX: Final[str] = "Pipeline"
 """Suffix identifying Temporal workflow pipeline classes."""
 
+SERVICE_SUFFIX: Final[str] = "Service"
+"""Suffix identifying service protocols (e.g. PollerService).
+
+A name is a claim. A protocol in domain/services/ that ends in Service
+says it is one, and doctrine holds it to what a service is. One that does
+not is asked why, because the answer is usually either a name that drifted
+or a protocol that does not belong in this directory at all.
+"""
+
+HANDLER_SUFFIX: Final[str] = "Handler"
+"""Suffix identifying handler protocols (e.g. PollingResultHandler).
+
+Handlers live in domain/services/ beside services and are a different
+artifact with rules of their own (ADR 003).
+"""
+
 # =============================================================================
 # LAYER DIRECTORY PATHS
 # =============================================================================
