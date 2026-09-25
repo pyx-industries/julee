@@ -39,7 +39,7 @@ The use case is unaware it's running as a pipeline.
 The proxies route repository and service calls through Temporal activities,
 providing automatic retries, state persistence, and audit trails.
 
-See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for the CEAP pipeline implementation.
+See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation.
 
 
 Why Pipelines?
@@ -103,7 +103,7 @@ Julee provides decorators to generate these proxies automatically:
 - :py:func:`~julee.integrations.temporal.decorators.temporal_activity_registration` - wraps repository/service methods as activities
 
 The pipeline uses Temporal's ``@workflow.defn`` and ``@workflow.run`` decorators to wrap the use case.
-See :py:class:`~julee.workflows.extract_assemble.ExtractAssembleWorkflow` for the CEAP pipeline implementation
+See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation
 
 Dispatching Pipelines
 ---------------------
