@@ -28,11 +28,38 @@ extensions = [
     'sphinx.ext.coverage',          # Check documentation coverage
 
     # Third-party extensions
+    'myst_parser',                  # Markdown, which the ADRs are written in
     'sphinx_autodoc_typehints',     # Better type hints rendering
     'autoapi.extension',            # Automatic API documentation
     'sphinxcontrib.mermaid',        # Mermaid diagram support
     'sphinxcontrib.plantuml',       # PlantUML diagram support
 ]
+
+# MyST configuration
+#
+# The ADRs are the only markdown in the build. They are written to be read
+# on GitHub as well as here, so the configuration accommodates plain
+# markdown rather than asking authors to write Sphinx-flavoured markdown.
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
+# Deliberately minimal. `linkify` is not enabled: it needs linkify-it-py,
+# and every URL in the ADRs is already a proper markdown link.
+myst_enable_extensions = [
+    'colon_fence',    # ::: fences, so a directive can be written without ```
+    'deflist',
+]
+
+# Every ADR has "## Status", "## Context" and "## Decision", so generated
+# heading anchors would collide across the sixteen of them. Nothing links to
+# a heading inside an ADR, so none are generated.
+#
+# 0 rather than None: None is myst-parser 5.1.0's own documented default,
+# but generate_heading_target() compares it to an int without guarding, so
+# leaving it unset crashes the build.
+myst_heading_anchors = 0
 
 # AutoAPI configuration
 autoapi_type = 'python'
@@ -85,7 +112,16 @@ autodoc_typehints_description_target = 'documented'
 plantuml_output_format = 'svg'
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
+exclude_patterns = [
+    '_build',
+    'Thumbs.db',
+    '.DS_Store',
+    '.venv',
+    # How to build these docs, for somebody working on them. Now that .md is
+    # a source suffix Sphinx would otherwise pick it up and object that it is
+    # in no toctree, which it should not be.
+    'README.md',
+]
 
 # Suppress warnings for ambiguous cross-references caused by re-exports in __init__.py
 suppress_warnings = [
