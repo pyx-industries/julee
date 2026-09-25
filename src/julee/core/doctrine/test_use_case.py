@@ -202,10 +202,15 @@ class TestExecutionAgnosticism:
     async def test_use_case_files_MUST_NOT_call_datetime_now(self, repo):
         """Use case files MUST NOT call datetime.now(), datetime.utcnow(), or datetime.today().
 
-        Use cases needing the current time MUST inject ClockService and call
-        clock_service.now() instead. Direct datetime calls couple the use case
-        to system time, making deterministic testing impossible and breaking
-        Temporal's replay guarantee.
+        Use cases needing the current time MUST inject ClockWitness and
+        call its now() instead. Direct datetime calls couple the use case
+        to system time, making deterministic testing impossible and
+        breaking Temporal's replay guarantee.
+
+        A witness rather than a calculator (ADR 016): the time does not
+        follow from any argument, and the runtime is what makes the
+        answer replay-stable. Calling datetime.now() here is precisely
+        the case where nothing records the answer.
         """
         sources = [
             (ctx.slug, str(py_file.relative_to(Path(ctx.path))), py_file.read_text())

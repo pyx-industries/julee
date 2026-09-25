@@ -1,35 +1,18 @@
-"""ClockService protocol and default implementations.
+"""Deprecated alias module for :mod:`julee.core.witnesses.clock`.
 
-Use cases inject ClockService to obtain the current time without coupling to
-system time or any specific execution framework.
+Kept so that ``from julee.core.services.clock import ...`` keeps working
+for one release: it answers for ClockService and SystemClockService.
+See :mod:`julee.core.services` for why the name changed.
 
-See ADR 004: Execution-Agnostic Use Cases.
+No ``__all__`` here, because nothing is defined statically — the names
+are served by ``__getattr__`` so that asking for one warns.
 """
 
-from datetime import UTC, datetime
-from typing import Protocol
+from typing import Any
+
+from julee.core.services import __getattr__ as _renamed
 
 
-class ClockService(Protocol):
-    """Service protocol for obtaining the current time.
-
-    Use cases needing the current time MUST inject ClockService and call
-    clock_service.now() instead of calling datetime.now() directly.
-    This enables deterministic testing and framework-agnostic execution.
-    """
-
-    def now(self) -> datetime:
-        """Return the current time as a timezone-aware datetime (UTC)."""
-        ...
-
-
-class SystemClockService:
-    """ClockService implementation using system time.
-
-    Use this in non-workflow contexts: API handlers, CLI commands, tests
-    that need real time. For Temporal workflows use TemporalClockService.
-    """
-
-    def now(self) -> datetime:
-        """Return the current system time in UTC."""
-        return datetime.now(UTC)
+def __getattr__(name: str) -> Any:
+    """Defer to the package shim, so the warning is worded once."""
+    return _renamed(name)
