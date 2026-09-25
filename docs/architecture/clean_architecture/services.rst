@@ -3,8 +3,9 @@ Services
 
 **Services transform between entities.**
 
-A service is bound to two or more of its bounded context's
-:doc:`entities`, and typically turns one into another::
+A service is bound to two or more :doc:`entities`
+— its bounded context's, or the kernel's —
+and typically turns one into another::
 
     class KnowledgeService(Protocol):
         async def extract(self, document: Document) -> Knowledge: ...

@@ -105,6 +105,7 @@ Both repositories and services share these characteristics:
 **External API adapters?**
 - If they return a single entity type → Repository (e.g., `WeatherRepository` returning `Weather`)
 - If they transform between types → Service (e.g., `GeocodingService` taking `Address` returning `Coordinates`)
+- If they return the foreign system's own currency, and no entity of yours → **Oracle** (ADR 016). This third answer was missing, and it is the common one: a census found six adapters wearing `*Repository` or `*Service` because those were the only two words available.
 
 **Caching layers?**
 - Caching is an implementation detail. The protocol is still Repository or Service based on entity cardinality.
@@ -118,10 +119,19 @@ Both repositories and services share these characteristics:
 
 ### Naming Conventions
 
-Protocols MUST use the appropriate suffix:
+Protocols MUST claim the role their directory offers (ADR 016):
 
-- Repository protocols: `{Entity}Repository` (e.g., `StoryRepository`)
-- Service protocols: `{Capability}Service` (e.g., `KnowledgeService`, `AssemblyService`)
+- Service protocols: `{Capability}Service` (e.g., `KnowledgeService`)
+- Handler protocols: `{Condition}Handler`, in `domain/handlers/`
+- Oracle protocols: `{Subject}Oracle`, in `domain/oracles/`
+- Calculator protocols: `{Subject}Calculator`, in `domain/calculators/`
+- Witness protocols: `{Subject}Witness`, in `domain/witnesses/`
+
+A repository is the one port with **no** naming rule. It declares its
+entity by inheriting `RepositoryOf[Entity]`, which is a stronger claim
+than a suffix because mypy reads it too, and the one-entity rule checks
+that instead. `{Entity}Repository` remains the convention; nothing
+enforces it.
 
 ### Directory Structure
 
@@ -146,7 +156,7 @@ Protocols MUST use the appropriate suffix:
 
 Doctrine tests validate:
 
-1. **Naming**: Repository protocols end with `Repository`, services end with `Service`
+1. **Naming**: a protocol claims the role its directory offers. A repository is exempt and declares its entity with `RepositoryOf[Entity]` instead (ADR 016)
 2. **Inheritance**: Both must inherit from `Protocol`
 3. **Documentation**: Both must have docstrings
 4. **Location**: Protocols in domain layer, implementations in infrastructure
@@ -223,7 +233,14 @@ class SemanticEvaluationService(Protocol):
 # julee/core/doctrine_constants.py
 REPOSITORY_SUFFIX: Final[str] = "Repository"
 SERVICE_SUFFIX: Final[str] = "Service"
+HANDLER_SUFFIX: Final[str] = "Handler"
+ORACLE_SUFFIX: Final[str] = "Oracle"
+CALCULATOR_SUFFIX: Final[str] = "Calculator"
+WITNESS_SUFFIX: Final[str] = "Witness"
 ```
+
+Four of these arrived with ADR 016. `REPOSITORY_SUFFIX` remains for the
+convention's sake; no rule reads it.
 
 ## Alternatives Considered
 

@@ -31,7 +31,7 @@ Doctrine defines the structural constraints for a valid Julee solution. The cate
 |---------------|-------------------|
 | **Bounded Context** | What constitutes a valid bounded context (domain/models or domain/use_cases required) |
 | **Repository Protocol** | Repository interfaces live in domain/, implementations in infrastructure/ |
-| **Service Protocol** | Service interfaces live in domain/services/, implementations in infrastructure/, and are named `*Service` or `*Handler` |
+| **Driven Port** | Each of ADR 016's six ports lives in its own directory under domain/, implementations in infrastructure/, and claims its role in its name — `*Service` in services/, `*Handler` in handlers/, `*Oracle` in oracles/, `*Calculator` in calculators/, `*Witness` in witnesses/. A repository declares its entity through `RepositoryOf[Entity]` instead |
 | **Use Case** | Business logic lives in use_cases/, has execute() method taking request/response objects |
 | **Infrastructure** | Implementations coupled to external systems live in infrastructure/ or repositories/ |
 | **Viewpoint** | HCD and C4 are special bounded contexts that provide architectural views |
@@ -78,7 +78,7 @@ With "tests as doctrine":
 
 Julee implements Clean Architecture (entities, use cases, interface adapters, frameworks/drivers) with these additional constraints:
 
-1. **Directory structure is prescribed**: `domain/models/`, `domain/repositories/`, `domain/services/`, `domain/use_cases/`
+1. **Directory structure is prescribed**: `domain/models/`, `usecases/` (ADR 014), and a directory per driven port — `domain/repositories/`, `domain/services/`, `domain/handlers/`, `domain/oracles/`, `domain/calculators/`, `domain/witnesses/` (ADR 016). A context creates a port directory when it has something to put in it
 2. **Naming conventions are prescribed**: Bounded context names must not use reserved words
 3. **Dependency direction is enforced**: Domain has no dependencies on infrastructure
 4. **Interface segregation is enforced**: Protocols in domain/, implementations outside
@@ -96,15 +96,23 @@ four bounded contexts passed every service rule by having nothing checked
 (#175).
 
 Found by directory, an oddly named protocol is read and objected to. The name
-becomes a claim doctrine can hold it to — `*Service` brings the service rules,
-`*Handler` brings ADR 003's — and a protocol claiming neither is a question
-with two answers worth acting on: the name drifted, or the protocol does not
-belong in that directory.
+becomes a claim doctrine can hold it to — a protocol in `domain/oracles/`
+claiming `*Oracle` says it must be reached through an activity, one in
+`domain/witnesses/` claiming `*Witness` says the runtime records what it said
+— and a protocol claiming nothing its directory offers is a question with two
+answers worth acting on: the name drifted, or the protocol does not belong in
+that directory.
+
+Handlers were the last port told apart by their name rather than their
+directory, which is the mechanism #175 abandoned. ADR 016 gave them
+`domain/handlers/`, so a `*Handler` found in `domain/services/` is now
+objected to for where it is rather than what it is called (#256).
 
 Every rule that finds nothing should be able to say whether it found nothing
-because there was nothing, or because it was not looking properly. A
-`domain/services/` package with modules in it, out of which doctrine reads no
-protocol at all, fails rather than passes.
+because there was nothing, or because it was not looking properly. Any port
+package with modules in it, out of which doctrine reads no protocol at all,
+fails rather than passes — and so does a codebase with no bounded contexts at
+all, unless it says in `[tool.julee] bounded_contexts` that this is intended.
 
 These strict opinions enable:
 

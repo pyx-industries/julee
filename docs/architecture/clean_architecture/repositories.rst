@@ -3,8 +3,11 @@ Repositories
 
 **Repositories store one entity each.**
 
-A repository implements simple CRUD operations for one of
-its bounded context's :doc:`entities`, abstracting storage technology.
+A repository implements simple CRUD operations for one
+:doc:`entity <entities>`, abstracting storage technology.
+Its own bounded context's, or one of the kernel's —
+``julee_hcd.CodeInfoRepository`` holds ``BoundedContextInfo``,
+which counts like any other.
 
 Being bound to exactly one entity is the definition,
 not a convention: a protocol bound to two or more is a
