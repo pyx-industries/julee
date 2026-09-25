@@ -1,17 +1,28 @@
 """What the entity rules object to.
 
-Each function takes the entities a codebase has, paired with the bounded
-context each was found in, and returns its objections. The parsing has
-already happened: these read ClassInfo and nothing else.
+Most take the entities a codebase has, paired with the bounded context
+each was found in, and return their objections. The two canaries read a
+parsed bounded context instead, because what they are checking is
+whether doctrine found any entities to check at all. Either way the
+parsing has already happened: nothing here reads a file.
 """
 
 from collections.abc import Iterable
 
+from julee.core.doctrine_constants import (
+    ENTITIES_PATH,
+    REPOSITORIES_PATH,
+    SERVICES_PATH,
+)
+from julee.core.entities.bounded_context_info import BoundedContextInfo
 from julee.core.entities.code_info import ClassInfo
 
 __all__ = [
     "ENUM_INDICATORS",
     "FORBIDDEN_COLLECTION_PREFIXES",
+    "READ_DOMAIN_PACKAGES",
+    "contexts_whose_entities_doctrine_cannot_see",
+    "domain_packages_doctrine_does_not_read",
     "entities_not_extending_Entity",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
@@ -25,6 +36,17 @@ ENUM_INDICATORS = {"str", "int", "Enum"}
 
 FORBIDDEN_COLLECTION_PREFIXES = ("list[", "List[", "set[", "Set[", "dict[", "Dict[")
 """Annotations that can be mutated through, whatever frozen says."""
+
+READ_DOMAIN_PACKAGES = frozenset(
+    {ENTITIES_PATH[-1], REPOSITORIES_PATH[-1], SERVICES_PATH[-1]}
+)
+"""The packages under domain/ that doctrine reads anything out of.
+
+Derived from the layer paths rather than spelled again, so a package
+doctrine learns to read stops being reported the moment it does.
+"""
+
+_ENTITIES_DIR = "/".join(ENTITIES_PATH)
 
 
 def _is_enum(entity: ClassInfo) -> bool:
@@ -115,4 +137,85 @@ def fields_named_workflow_id(found: Found) -> list[str]:
         for slug, entity in found
         for field in entity.fields
         if field.name == "workflow_id"
+    ]
+
+
+def contexts_whose_entities_doctrine_cannot_see(
+    contexts: Iterable[BoundedContextInfo],
+) -> list[str]:
+    """Contexts with domain code but no entity doctrine can read.
+
+    The canary, for the case where doctrine is blind to all of them. A
+    rule that finds nothing passes, and a rule that finds nothing because
+    it was looking in the wrong place passes just as quietly — which is
+    how twenty service protocols went unseen in #175 and seven repository
+    protocols in #231. Both looked green.
+
+    Entities are read out of ``domain/models/``. A context keeping them
+    somewhere else yields none, so every entity rule passes having
+    nothing to check, and every repository in it is measured against an
+    empty set of entity names. Nothing fails and nothing is reported.
+
+    Use cases and repository protocols are the evidence that the context
+    has a domain at all. One with neither may legitimately have no
+    entities; one with either almost certainly has them somewhere.
+
+    Args:
+        contexts: The bounded contexts doctrine parsed
+
+    Returns:
+        One sentence per context whose entities doctrine cannot see
+    """
+    objections = []
+    for info in contexts:
+        if info.entities:
+            continue
+        evidence = []
+        if info.use_cases:
+            evidence.append(f"{len(info.use_cases)} use cases")
+        if info.repository_protocols:
+            evidence.append(f"{len(info.repository_protocols)} repository protocols")
+        if not evidence:
+            continue
+        objections.append(
+            f"{info.slug}: doctrine read {' and '.join(evidence)} out of this "
+            f"context but no entity at all out of {_ENTITIES_DIR}/, so either "
+            f"it has none or they are somewhere doctrine is not looking"
+        )
+    return objections
+
+
+def domain_packages_doctrine_does_not_read(
+    packages: Iterable[tuple[str, str]],
+) -> list[str]:
+    """Packages under domain/ that doctrine walks past without a word.
+
+    The canary for partial blindness, which the other one cannot catch.
+    A context keeping some entities in ``domain/models/`` and others in
+    ``domain/entities/`` has entities doctrine reads, so it passes the
+    first rule while half its domain goes unchecked.
+
+    trust-graph-explorer is the case: three entities in ``domain/models/``
+    and ``Facility`` in ``domain/entities/``. ``FacilityRepository``
+    returns ``Facility`` from four of its six methods and reads, to the
+    one-entity rule, as bound to nothing at all.
+
+    Whether ``domain/entities/`` should also be an accepted spelling is a
+    separate question. This rule is about the silence, not the spelling:
+    a package under domain/ with modules in it that doctrine reads
+    nothing out of says so, rather than being skipped.
+
+    Args:
+        packages: Context slug paired with the name of a package under
+            its domain/ directory that holds at least one module
+
+    Returns:
+        One sentence per package doctrine reads nothing out of
+    """
+    return [
+        f"{slug}: domain/{name}/ holds modules doctrine does not read. "
+        f"Entities belong in {_ENTITIES_DIR}/, and anything doctrine reads "
+        f"nothing out of is unchecked rather than compliant"
+        for slug, name in packages
+        if name not in READ_DOMAIN_PACKAGES
     ]
