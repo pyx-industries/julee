@@ -127,6 +127,14 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
         description="Root directory for documentation (relative to project root). "
         "Required for HCD features.",
     )
+    bounded_contexts: str | None = Field(
+        default=None,
+        description='Set to "none" by a codebase that deliberately has no '
+        "bounded contexts under search_root — a framework, or a projection "
+        "over kits. Doctrine objects to an undeclared emptiness, because a "
+        "run with no subject passes every rule and reads exactly like a run "
+        "over a codebase that complies.",
+    )
     composition_roots: tuple[str, ...] = Field(
         default=("apps",),
         description="Directories, relative to search_root, where this "

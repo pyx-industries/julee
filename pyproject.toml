@@ -245,8 +245,13 @@ module = [
 ignore_missing_imports = true
 
 [tool.julee]
-# julee is itself a julee solution
+# julee runs its own doctrine, but it is a framework, not a solution:
+# ADR 012 moved every piece of domain code out to the kits. So the rules
+# that iterate bounded contexts have no subject here, and say so rather
+# than reporting green (#240). Everything else — kits, boundaries,
+# semantics — is checked as usual.
 search_root = "src/julee"
+bounded_contexts = "none"
 docs_root = "docs"
 skip_policies = ["temporal-pipelines"]  # julee core doesn't use Temporal
 

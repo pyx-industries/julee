@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.file.solution_config import (
     FileSolutionConfigRepository,
 )
@@ -37,9 +38,11 @@ def _find_project_root() -> Path:
     return Path.cwd()
 
 
-def _get_search_root(project_root: Path) -> str:
-    repo = FileSolutionConfigRepository()
-    config = repo.get_policy_config_sync(project_root)
+def _get_solution_config(project_root: Path) -> SolutionPolicyConfig:
+    return FileSolutionConfigRepository().get_policy_config_sync(project_root)
+
+
+def _get_search_root(config: SolutionPolicyConfig, project_root: Path) -> str:
     if config.search_root is None:
         raise ValueError(
             f"search_root not configured in [tool.julee] section of "
@@ -49,7 +52,8 @@ def _get_search_root(project_root: Path) -> str:
 
 
 PROJECT_ROOT = _find_project_root()
-SEARCH_ROOT = _get_search_root(PROJECT_ROOT)
+SOLUTION_CONFIG = _get_solution_config(PROJECT_ROOT)
+SEARCH_ROOT = _get_search_root(SOLUTION_CONFIG, PROJECT_ROOT)
 
 
 @pytest.fixture(scope="session")
@@ -62,6 +66,12 @@ def project_root() -> Path:
 def search_root() -> str:
     """Where the target keeps its source, relative to its root."""
     return SEARCH_ROOT
+
+
+@pytest.fixture(scope="session")
+def solution_config() -> SolutionPolicyConfig:
+    """The target's own [tool.julee] section, as written."""
+    return SOLUTION_CONFIG
 
 
 @pytest.fixture(scope="session")

@@ -39,6 +39,8 @@ class FileSolutionConfigRepository:
         if tool_julee is None:
             return SolutionPolicyConfig()
 
+        declared_contexts = tool_julee.get("bounded_contexts")
+
         return SolutionPolicyConfig(
             is_julee_solution=True,
             policies=tuple(tool_julee.get("policies", [])),
@@ -46,6 +48,12 @@ class FileSolutionConfigRepository:
             kits=tuple(tool_julee.get("kits", [])),
             search_root=tool_julee.get("search_root"),
             docs_root=tool_julee.get("docs_root"),
+            # Read as written, including a value that means nothing, and
+            # stringified so that `bounded_contexts = 0` reaches doctrine
+            # as an objection rather than a crash at collection time.
+            bounded_contexts=(
+                None if declared_contexts is None else str(declared_contexts)
+            ),
             # Left out means apps/, so a solution that has never heard of
             # this keeps the behaviour it had.
             composition_roots=tuple(tool_julee.get("composition_roots", ["apps"])),

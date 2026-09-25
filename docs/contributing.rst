@@ -264,6 +264,23 @@ contexts need them: most have ``models/``, ``repositories/`` and
 ``usecases/`` and nothing else under ``domain/``. Create a directory when
 you have something to put in it.
 
+The same canary runs one level up, over the search itself. Most doctrine
+rules iterate the bounded contexts found under ``search_root``, so a
+codebase with none passes all of them, and its run reads exactly like a
+run over a codebase that complies. Having none is sometimes the truth —
+julee is a framework and ``julee-viewpoints`` is a projection over other
+kits — and the truth is written down rather than left to be inferred:
+
+.. code-block:: toml
+
+    [tool.julee]
+    search_root = "src/julee"
+    bounded_contexts = "none"   # ADR 012 moved the domain code to the kits
+
+``"none"`` is the only value the key takes, and doctrine objects in both
+directions: to finding nothing where nothing says that is intended, and
+to a declaration overtaken by a context added since.
+
 
 
 
