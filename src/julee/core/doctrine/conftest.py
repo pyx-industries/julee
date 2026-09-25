@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.entities import kernel_entity_names
 from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.file.solution_config import (
     FileSolutionConfigRepository,
@@ -19,6 +20,7 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
     FilesystemBoundedContextRepository,
 )
 from julee.core.kits import adopted_kits, viewpoint_slugs
+from julee.core.parsers.ast import parse_bounded_context
 
 
 def _find_project_root() -> Path:
@@ -90,3 +92,39 @@ def repo() -> FilesystemBoundedContextRepository:
 def kits():
     """The kits the target codebase adopts."""
     return adopted_kits(PROJECT_ROOT)
+
+
+def _is_enum(entity: object) -> bool:
+    """Whether a scanned class is an Enum rather than an entity.
+
+    An Enum in domain/models is a value a protocol may take or return
+    without being bound to a second entity. test_entity exempts them the
+    same way.
+    """
+    bases = getattr(entity, "bases", None) or ()
+    return any(b in {"str", "int"} or b.endswith("Enum") for b in bases)
+
+
+@pytest.fixture(scope="session")
+def entity_names_by_context(
+    repo: FilesystemBoundedContextRepository,
+) -> dict[str, set[str]]:
+    """What each context's protocols may be bound to, by context slug.
+
+    A context's own entities, plus the kernel's. A kit builds on
+    ``BoundedContextInfo``, ``ClassInfo`` and ``Accelerator`` — there are
+    kit repositories over all three — and a protocol bound to one of
+    those is bound to an entity like any other. Leaving them out made
+    such a repository score zero, which no rule could tell apart from a
+    protocol holding nothing at all (#237).
+
+    One fixture rather than one construction per rule, because the two
+    that read arity disagreed about enums and would have disagreed about
+    this too.
+    """
+    kernel = set(kernel_entity_names())
+    return {
+        ctx.slug: kernel | {e.name for e in info.entities if not _is_enum(e)}
+        for ctx in repo.discover_all()
+        if (info := parse_bounded_context(Path(ctx.path))) is not None
+    }

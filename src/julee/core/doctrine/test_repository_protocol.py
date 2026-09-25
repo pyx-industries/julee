@@ -4,37 +4,24 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 """
 
-from pathlib import Path
-
 import pytest
 
 from julee.core.doctrine.rules.protocol import (
     repositories_referencing_several_entities,
 )
-from julee.core.parsers.ast import parse_bounded_context
 from julee.core.usecases.code_artifact.list_repository_protocols import (
     ListRepositoryProtocolsRequest,
     ListRepositoryProtocolsUseCase,
 )
 
 
-def _is_enum(entity: object) -> bool:
-    """Whether a scanned class is an Enum rather than an entity.
-
-    An Enum defined in domain/models is a value a repository method may
-    take or return without binding the repository to a second entity, as
-    the docstring on the binding test says. test_entity exempts them the
-    same way.
-    """
-    bases = getattr(entity, "bases", None) or ()
-    return any(b in {"str", "int"} or b.endswith("Enum") for b in bases)
-
-
 class TestRepositoryProtocolBinding:
     """Doctrine about repository protocol entity binding."""
 
     @pytest.mark.asyncio
-    async def test_repository_SHOULD_reference_at_most_one_entity_type(self, repo):
+    async def test_repository_SHOULD_reference_at_most_one_entity_type(
+        self, repo, entity_names_by_context
+    ):
         """A repository protocol SHOULD reference at most one domain entity type.
 
         Repository protocols encapsulate persistence operations for a single
@@ -49,6 +36,13 @@ class TestRepositoryProtocolBinding:
         Incidental references to Enums, Status classes, and primitive types
         are excluded automatically: only types that appear in the bounded
         context's entity list are checked.
+
+        That list carries the kernel's entities as well as the context's
+        own. A kit builds on ``BoundedContextInfo``, ``ClassInfo`` and
+        ``Accelerator``, and a repository over one of them is a normal
+        thing to write, not an exception — so it is bound to an entity
+        and counts like any other. Until #237 it did not, and such a
+        repository read as bound to nothing.
 
         A protocol here that declares neither is not exempt so much as
         misfiled. ADR 016 has a row for it: bound to no entity and
@@ -68,14 +62,8 @@ class TestRepositoryProtocolBinding:
         if not response.artifacts:
             pytest.skip("No repository protocols in target codebase — nothing to check")
 
-        entity_names_by_ctx = {
-            ctx.slug: {e.name for e in info.entities if not _is_enum(e)}
-            for ctx in await repo.list_all()
-            if (info := parse_bounded_context(Path(ctx.path))) is not None
-        }
-
         violations = repositories_referencing_several_entities(
-            response.artifacts, entity_names_by_ctx
+            response.artifacts, entity_names_by_context
         )
 
         assert (
