@@ -12,9 +12,11 @@ All repository operations follow the same principles:
   retry. Multiple calls with the same parameters will produce the same
   result without unintended side effects.
 
-- **Workflow Safety**: All operations are safe to call from deterministic
-  workflow contexts. Non-deterministic operations (like ID generation) are
-  explicitly delegated to activities.
+- **Workflow Safety**: A repository is reached from workflow code through
+  a proxy that routes each call to an activity, never called directly —
+  it does I/O, so its answer can differ between replays. ADR 016 puts it
+  on the activity row for that reason, beside services and oracles, and
+  distinguishes it from the ports a workflow may call inline.
 
 - **Domain Objects**: Methods accept and return domain objects or primitives,
   never framework-specific types.
@@ -37,12 +39,18 @@ T_co = TypeVar("T_co", bound=BaseModel, covariant=True)
 class RepositoryOf(Protocol[T_co]):
     """Declares the one entity a repository is bound to, and nothing else.
 
-    ADR 009 binds a repository to one entity type, and doctrine
+    ADR 016 binds a repository to one entity type, and doctrine
     (``test_repository_protocol.py``) reads that entity from a
     ``RepositoryOf[Entity]`` base. A repository that offers CRUD inherits
     it through ``BaseRepository``; one that does not (a read-only source,
     a paged feed, a content-addressed store) inherits it directly and is
     checked by the same rule instead of being exempt from it.
+
+    This inherited declaration is why a repository, alone among the six
+    driven ports, is not held to a naming rule: it says what it is in a
+    way mypy reads too, which is stronger than a suffix. A protocol bound
+    to no entity is not a repository at all — see ADR 016 for which of
+    the other five it is.
 
     Type Parameter:
         T_co: The domain entity type (must extend Pydantic BaseModel)

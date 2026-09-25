@@ -50,8 +50,14 @@ class TestRepositoryProtocolBinding:
         are excluded automatically: only types that appear in the bounded
         context's entity list are checked.
 
-        Repositories that declare neither are exempt: their primary entity
-        type cannot be determined structurally.
+        A protocol here that declares neither is not exempt so much as
+        misfiled. ADR 016 has a row for it: bound to no entity and
+        reached through an activity is an Oracle, which belongs in
+        domain/oracles/; bound to no entity and safe to call inline is a
+        Calculator or a Witness. This rule still passes over it, because
+        its entity cannot be read structurally and there is nothing here
+        to check — but "no rule applies" is the wrong thing for a reader
+        to conclude, and the driven port rules check it instead.
         """
         use_case = ListRepositoryProtocolsUseCase(repo)
         response = await use_case.execute(ListRepositoryProtocolsRequest())

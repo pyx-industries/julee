@@ -233,11 +233,14 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 @functools.lru_cache(maxsize=64)
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     from julee.core.doctrine_constants import (
+        CALCULATORS_PATH,
         ENTITIES_PATH,
         HANDLER_SUFFIX,
+        ORACLES_PATH,
         REPOSITORIES_PATH,
         SERVICES_PATH,
         USE_CASES_PATH,
+        WITNESSES_PATH,
     )
     from julee.core.entities.bounded_context_info import BoundedContextInfo
 
@@ -251,6 +254,9 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
     domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
     domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
+    domain_oracles_dir = _resolve_layer_path(context_dir, ORACLES_PATH)
+    domain_calculators_dir = _resolve_layer_path(context_dir, CALCULATORS_PATH)
+    domain_witnesses_dir = _resolve_layer_path(context_dir, WITNESSES_PATH)
 
     all_classes = parse_python_classes(use_cases_dir)
     defined_names = {c.name for c in all_classes}
@@ -294,6 +300,12 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         repository_protocols=parse_python_classes(domain_repositories_dir),
         service_protocols=service_protocols,
         handler_protocols=handler_protocols,
+        # ADR 016's three newer ports, each found by its directory for the
+        # same reason services now are: a name that does not match should
+        # be read and objected to, never quietly dropped.
+        oracle_protocols=parse_python_classes(domain_oracles_dir),
+        calculator_protocols=parse_python_classes(domain_calculators_dir),
+        witness_protocols=parse_python_classes(domain_witnesses_dir),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,

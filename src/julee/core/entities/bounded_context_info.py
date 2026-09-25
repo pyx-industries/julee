@@ -19,7 +19,13 @@ class BoundedContextInfo(BaseModel):
     - entities (domain/models/)
     - use_cases (domain/usecases/)
     - repository_protocols (domain/repositories/)
-    - service_protocols (domain/services/)
+    - service_protocols and handler_protocols (domain/services/)
+    - oracle_protocols (domain/oracles/)
+    - calculator_protocols (domain/calculators/)
+    - witness_protocols (domain/witnesses/)
+
+    The last five are the driven ports of ADR 016, each found by the
+    directory it sits in rather than by what it is called.
 
     This is a foundational model that viewpoint accelerators project onto.
     For example, HCD's Accelerator model is ontologically bound to this.
@@ -33,6 +39,9 @@ class BoundedContextInfo(BaseModel):
     repository_protocols: list[ClassInfo] = Field(default_factory=list)
     service_protocols: list[ClassInfo] = Field(default_factory=list)
     handler_protocols: list[ClassInfo] = Field(default_factory=list)
+    oracle_protocols: list[ClassInfo] = Field(default_factory=list)
+    calculator_protocols: list[ClassInfo] = Field(default_factory=list)
+    witness_protocols: list[ClassInfo] = Field(default_factory=list)
     pipelines: list[Pipeline] = Field(default_factory=list)
     has_infrastructure: bool = False
     code_dir: str = ""
@@ -58,13 +67,21 @@ class BoundedContextInfo(BaseModel):
         return len(self.use_cases)
 
     @property
+    def driven_ports(self) -> list[ClassInfo]:
+        """Every driven port this context declares, in ADR 016's order."""
+        return [
+            *self.repository_protocols,
+            *self.service_protocols,
+            *self.oracle_protocols,
+            *self.calculator_protocols,
+            *self.witness_protocols,
+            *self.handler_protocols,
+        ]
+
+    @property
     def protocol_count(self) -> int:
-        """Get total number of protocols (repository + service + handler)."""
-        return (
-            len(self.repository_protocols)
-            + len(self.service_protocols)
-            + len(self.handler_protocols)
-        )
+        """Get total number of driven ports across all six kinds."""
+        return len(self.driven_ports)
 
     @property
     def pipeline_count(self) -> int:
