@@ -10,9 +10,13 @@ parsing has already happened: nothing here reads a file.
 from collections.abc import Iterable
 
 from julee.core.doctrine_constants import (
+    CALCULATORS_PATH,
     ENTITIES_PATH,
+    HANDLERS_PATH,
+    ORACLES_PATH,
     REPOSITORIES_PATH,
     SERVICES_PATH,
+    WITNESSES_PATH,
 )
 from julee.core.entities.bounded_context_info import BoundedContextInfo
 from julee.core.entities.code_info import ClassInfo
@@ -38,12 +42,31 @@ FORBIDDEN_COLLECTION_PREFIXES = ("list[", "List[", "set[", "Set[", "dict[", "Dic
 """Annotations that can be mutated through, whatever frozen says."""
 
 READ_DOMAIN_PACKAGES = frozenset(
-    {ENTITIES_PATH[-1], REPOSITORIES_PATH[-1], SERVICES_PATH[-1]}
+    path[-1]
+    for path in (
+        ENTITIES_PATH,
+        REPOSITORIES_PATH,
+        SERVICES_PATH,
+        ORACLES_PATH,
+        CALCULATORS_PATH,
+        WITNESSES_PATH,
+        HANDLERS_PATH,
+    )
 )
 """The packages under domain/ that doctrine reads anything out of.
 
 Derived from the layer paths rather than spelled again, so a package
 doctrine learns to read stops being reported the moment it does.
+
+Three of the seven were spelled in by hand when this was written, and
+the four ADR 016 added arrived later, so the first kit to file a
+protocol under domain/oracles/ was told the directory held modules
+doctrine does not read — while the parser was reading them perfectly
+well. A false objection is worse than a missing rule: it tells an
+author their correct work is wrong.
+
+Comprehension rather than a set literal, so adding a layer path is the
+only edit a new port needs.
 """
 
 _ENTITIES_DIR = "/".join(ENTITIES_PATH)

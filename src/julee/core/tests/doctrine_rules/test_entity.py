@@ -3,6 +3,7 @@
 import pytest
 
 from julee.core.doctrine.rules.entity import (
+    READ_DOMAIN_PACKAGES,
     contexts_whose_entities_doctrine_cannot_see,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
@@ -282,9 +283,47 @@ def test_one_blind_context_does_not_hide_behind_a_sighted_one() -> None:
 # =============================================================================
 
 
-@pytest.mark.parametrize("package", ["models", "repositories", "services"])
+@pytest.mark.parametrize(
+    "package",
+    [
+        "models",
+        "repositories",
+        "services",
+        "oracles",
+        "calculators",
+        "witnesses",
+        "handlers",
+    ],
+)
 def test_a_package_doctrine_reads_is_fine(package: str) -> None:
+    """Every package under domain/ that doctrine actually reads.
+
+    The last four are ADR 016's, and were missing when this canary was
+    written. ceap's first oracle was told domain/oracles/ "holds modules
+    doctrine does not read" while the parser was reading it perfectly
+    well — a false objection, which is worse than a missing rule,
+    because it tells an author their correct work is wrong.
+    """
     assert domain_packages_doctrine_does_not_read([("hcd", package)]) == []
+
+
+def test_the_read_packages_track_the_layer_paths() -> None:
+    """The guard against this drifting again.
+
+    READ_DOMAIN_PACKAGES is derived from the layer path constants rather
+    than spelled out, so a port added to doctrine_constants is read here
+    without a second edit. Three of the seven were once spelled in by
+    hand, and the four added later were not.
+    """
+    from julee.core import doctrine_constants
+
+    declared = {
+        getattr(doctrine_constants, name)[-1]
+        for name in dir(doctrine_constants)
+        if name.endswith("_PATH") and name != "INFRASTRUCTURE_PATH"
+    }
+
+    assert declared - {"usecases"} <= READ_DOMAIN_PACKAGES
 
 
 def test_a_package_doctrine_reads_nothing_out_of_is_objected_to() -> None:
