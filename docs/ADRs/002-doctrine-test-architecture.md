@@ -31,7 +31,7 @@ Doctrine defines the structural constraints for a valid Julee solution. The cate
 |---------------|-------------------|
 | **Bounded Context** | What constitutes a valid bounded context (domain/models or domain/use_cases required) |
 | **Repository Protocol** | Repository interfaces live in domain/, implementations in infrastructure/ |
-| **Service Protocol** | Service interfaces live in domain/, implementations in infrastructure/ |
+| **Service Protocol** | Service interfaces live in domain/services/, implementations in infrastructure/, and are named `*Service` or `*Handler` |
 | **Use Case** | Business logic lives in use_cases/, has execute() method taking request/response objects |
 | **Infrastructure** | Implementations coupled to external systems live in infrastructure/ or repositories/ |
 | **Viewpoint** | HCD and C4 are special bounded contexts that provide architectural views |
@@ -82,6 +82,29 @@ Julee implements Clean Architecture (entities, use cases, interface adapters, fr
 2. **Naming conventions are prescribed**: Bounded context names must not use reserved words
 3. **Dependency direction is enforced**: Domain has no dependencies on infrastructure
 4. **Interface segregation is enforced**: Protocols in domain/, implementations outside
+
+### Discovery by Directory, Naming by Rule
+
+Doctrine finds an artifact by the directory it sits in, and then checks what
+it calls itself. The two jobs stay apart.
+
+Finding by name instead makes the name a filter, and a filter that misses
+something drops it without saying so. Service protocols were found that way:
+only classes named `*Service` in `domain/services/` were read, so a solution
+whose protocols used another suffix was told it had no services at all, and
+four bounded contexts passed every service rule by having nothing checked
+(#175).
+
+Found by directory, an oddly named protocol is read and objected to. The name
+becomes a claim doctrine can hold it to — `*Service` brings the service rules,
+`*Handler` brings ADR 003's — and a protocol claiming neither is a question
+with two answers worth acting on: the name drifted, or the protocol does not
+belong in that directory.
+
+Every rule that finds nothing should be able to say whether it found nothing
+because there was nothing, or because it was not looking properly. A
+`domain/services/` package with modules in it, out of which doctrine reads no
+protocol at all, fails rather than passes.
 
 These strict opinions enable:
 
