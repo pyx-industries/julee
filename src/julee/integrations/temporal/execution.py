@@ -19,7 +19,3 @@ class TemporalExecutionWitness:
     def get_execution_id(self) -> str:
         """Return the Temporal workflow ID for this execution."""
         return workflow.info().workflow_id
-
-
-TemporalExecutionService = TemporalExecutionWitness
-"""Deprecated alias. See :mod:`julee.core.services`."""

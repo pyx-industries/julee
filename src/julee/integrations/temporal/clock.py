@@ -24,7 +24,3 @@ class TemporalClockWitness:
         from temporalio import workflow
 
         return workflow.now()
-
-
-TemporalClockService = TemporalClockWitness
-"""Deprecated alias. See :mod:`julee.core.services`."""
