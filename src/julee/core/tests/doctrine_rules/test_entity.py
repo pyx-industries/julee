@@ -3,10 +3,13 @@
 import pytest
 
 from julee.core.doctrine.rules.entity import (
+    contexts_whose_entities_doctrine_cannot_see,
+    domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
     fields_named_workflow_id,
     fields_using_mutable_collections,
 )
+from julee.core.entities.bounded_context_info import BoundedContextInfo
 from julee.core.entities.code_info import ClassInfo, FieldInfo
 
 pytestmark = pytest.mark.unit
@@ -29,6 +32,23 @@ def an_entity(
                 for n, annotation in fields
             ],
         ),
+    )
+
+
+def a_context(
+    slug: str = "hcd",
+    entities: int = 3,
+    use_cases: int = 4,
+    repositories: int = 2,
+) -> BoundedContextInfo:
+    """A parsed context, described by how much of each thing doctrine read."""
+    return BoundedContextInfo(
+        slug=slug,
+        entities=[ClassInfo(name=f"Entity{i}") for i in range(entities)],
+        use_cases=[ClassInfo(name=f"Do{i}UseCase") for i in range(use_cases)],
+        repository_protocols=[
+            ClassInfo(name=f"Thing{i}Repository") for i in range(repositories)
+        ],
     )
 
 
@@ -194,3 +214,113 @@ def test_a_field_merely_containing_workflow_id_is_allowed() -> None:
 def test_a_codebase_with_no_entities_offends_nothing(rule) -> None:
     """A kit of pure use cases has none."""
     assert rule() == []
+
+
+# =============================================================================
+# The canary: doctrine can see the entities it checks
+# =============================================================================
+
+
+def test_a_context_yielding_entities_is_fine() -> None:
+    """The ordinary case: doctrine read some, so it was looking correctly."""
+    assert contexts_whose_entities_doctrine_cannot_see([a_context()]) == []
+
+
+def test_a_context_with_use_cases_but_no_entities_is_objected_to() -> None:
+    """What #238 looked like: green, and not looking.
+
+    Every entity rule passes on a context like this, having nothing to
+    check, and every repository in it is measured against an empty set of
+    entity names.
+    """
+    objections = contexts_whose_entities_doctrine_cannot_see([a_context(entities=0)])
+
+    assert len(objections) == 1
+    assert "hcd" in objections[0]
+
+
+def test_the_objection_says_what_doctrine_did_read() -> None:
+    """Whoever reads it needs the asymmetry, not just the absence."""
+    contexts = [a_context(entities=0, use_cases=44, repositories=10)]
+
+    objection = contexts_whose_entities_doctrine_cannot_see(contexts)[0]
+
+    assert "44 use cases" in objection
+    assert "10 repository protocols" in objection
+    assert "domain/models/" in objection
+
+
+def test_repositories_alone_are_evidence_enough_of_a_domain() -> None:
+    """A context of pure protocols still holds something."""
+    contexts = [a_context(entities=0, use_cases=0, repositories=2)]
+
+    assert len(contexts_whose_entities_doctrine_cannot_see(contexts)) == 1
+
+
+def test_a_context_with_no_domain_code_at_all_is_left_alone() -> None:
+    """Nothing to be blind to.
+
+    julee's own packages parse this way, and a kit of pure infrastructure
+    would too. Objecting here would fail codebases for being small.
+    """
+    contexts = [a_context(entities=0, use_cases=0, repositories=0)]
+
+    assert contexts_whose_entities_doctrine_cannot_see(contexts) == []
+
+
+def test_one_blind_context_does_not_hide_behind_a_sighted_one() -> None:
+    contexts = [a_context(slug="c4"), a_context(slug="billing", entities=0)]
+
+    objections = contexts_whose_entities_doctrine_cannot_see(contexts)
+
+    assert len(objections) == 1
+    assert "billing" in objections[0]
+
+
+# =============================================================================
+# The canary for partial blindness
+# =============================================================================
+
+
+@pytest.mark.parametrize("package", ["models", "repositories", "services"])
+def test_a_package_doctrine_reads_is_fine(package: str) -> None:
+    assert domain_packages_doctrine_does_not_read([("hcd", package)]) == []
+
+
+def test_a_package_doctrine_reads_nothing_out_of_is_objected_to() -> None:
+    """trust-graph-explorer's case, which the other canary cannot catch.
+
+    Three entities in domain/models/ and Facility in domain/entities/.
+    The context yields entities, so it passes the rule above while half
+    its domain goes unchecked.
+    """
+    objections = domain_packages_doctrine_does_not_read([("app", "entities")])
+
+    assert len(objections) == 1
+    assert "domain/entities/" in objections[0]
+
+
+def test_a_context_may_be_partially_blind_and_still_yield_entities() -> None:
+    """The two canaries answer different questions.
+
+    Passing the first is not evidence for the second, which is the whole
+    reason there are two.
+    """
+    assert contexts_whose_entities_doctrine_cannot_see([a_context()]) == []
+    assert domain_packages_doctrine_does_not_read([("hcd", "entities")]) != []
+
+
+def test_every_unread_package_is_named_rather_than_just_the_first() -> None:
+    packages = [
+        ("app", "entities"),
+        ("app", "models"),
+        ("app", "value_objects"),
+    ]
+
+    assert len(domain_packages_doctrine_does_not_read(packages)) == 2
+
+
+def test_neither_canary_objects_to_an_empty_codebase() -> None:
+    """A rule that fires on nothing is a rule nobody can adopt."""
+    assert contexts_whose_entities_doctrine_cannot_see([]) == []
+    assert domain_packages_doctrine_does_not_read([]) == []
