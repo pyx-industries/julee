@@ -32,6 +32,9 @@ PYPROJECT_VERSION = r'^version\s*=\s*"[^"]*"'
 INIT_VERSION = r'^__version__\s*=\s*"[^"]*"'
 """Where a package __init__.py keeps it."""
 
+VERSION_DECLARATION = "__version__"
+"""What marks an __init__.py as the one holding the project's version."""
+
 
 def run(
     cmd: str, check: bool = True, capture: bool = True
@@ -107,20 +110,80 @@ def get_repo_root(runner: Runner = run) -> Path:
 
 
 def get_package_init(repo_root: Path) -> Path | None:
-    """Find __init__.py with __version__ in src/ directory."""
+    """The one ``__init__.py`` under ``src/`` that declares ``__version__``.
+
+    A package is a directory holding an ``__init__.py``. That is the
+    whole of the test, and it has to be, because ``src/`` holds
+    directories that are not packages: ``julee.egg-info`` is the one
+    that mattered. Counting it made ``len(packages) != 1`` and this
+    function returned None — quietly — so four releases shipped with
+    ``__version__`` left behind, and #262's loud failure never got the
+    chance to fire because nothing called it.
+
+    Several versioned packages is a repository whose version does not
+    live in one file, which is a real arrangement (julee-kits) and not
+    this tool's job. ``prepare`` says so rather than passing over it.
+    """
     src_dir = repo_root / "src"
     if not src_dir.exists():
         return None
-    packages = [
-        p for p in src_dir.iterdir() if p.is_dir() and not p.name.startswith("_")
+    versioned = [
+        init
+        for package in sorted(src_dir.iterdir())
+        if package.is_dir() and not package.name.startswith("_")
+        if (init := package / "__init__.py").exists()
+        if VERSION_DECLARATION in init.read_text()
     ]
-    if len(packages) != 1:
-        # Multiple packages (bounded contexts) - no single __init__.py to update
-        return None
-    init_file = packages[0] / "__init__.py"
-    if init_file.exists() and "__version__" in init_file.read_text():
-        return init_file
-    return None
+    return versioned[0] if len(versioned) == 1 else None
+
+
+def version_claims(repo_root: Path) -> dict[Path, str]:
+    """Every file in the tree that states the project's version.
+
+    What the tool checks its own work against. Each bug this module has
+    had was a file it meant to update and did not, and each was found by
+    a human noticing afterwards — or, four times, not noticing.
+
+    Returns:
+        The version each file claims, by path. A file that claims none
+        is left out.
+    """
+    claims = {}
+    pyproject = repo_root / "pyproject.toml"
+    if version := version_in_file(pyproject, PYPROJECT_VERSION):
+        claims[pyproject] = version
+
+    # Every __init__.py under src/, not the one get_package_init picks.
+    # Sharing that logic would have made this check blind in exactly the
+    # direction it needs to see: the bug was get_package_init choosing
+    # nothing, and a check built on it would have found nothing to
+    # disagree with and passed.
+    src_dir = repo_root / "src"
+    if src_dir.exists():
+        for package in sorted(src_dir.iterdir()):
+            if not package.is_dir():
+                continue
+            init = package / "__init__.py"
+            if version := version_in_file(init, INIT_VERSION):
+                claims[init] = version
+    return claims
+
+
+def claims_disagreeing_with(version: str, claims: dict[Path, str]) -> list[str]:
+    """Files still claiming something other than the version being cut.
+
+    Args:
+        version: The version the release is for
+        claims: What each file says, from :func:`version_claims`
+
+    Returns:
+        One sentence per file that was not brought along
+    """
+    return [
+        f"{path} still claims {claimed}, not {version}"
+        for path, claimed in sorted(claims.items())
+        if claimed != version
+    ]
 
 
 def validate_version(version: str) -> None:
@@ -215,6 +278,18 @@ def prepare(
             version,
             INIT_VERSION,
             f'__version__ = "{version}"',
+        )
+    else:
+        # Said out loud. This skipped silently until #266, and the four
+        # releases that shipped a stale __version__ each printed nothing
+        # at all about it.
+        print("No single __init__.py under src/ declares __version__; skipping.")
+
+    # Check the work before committing it rather than after publishing it.
+    if disagreements := claims_disagreeing_with(version, version_claims(repo_root)):
+        die(
+            "The version bump did not reach every file:\n  "
+            + "\n  ".join(disagreements)
         )
 
     # The lockfile names the project's own version, so it is part of the
