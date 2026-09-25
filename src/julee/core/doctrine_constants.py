@@ -41,6 +41,31 @@ Handlers live in domain/services/ beside services and are a different
 artifact with rules of their own (ADR 003).
 """
 
+ORACLE_SUFFIX: Final[str] = "Oracle"
+"""Suffix identifying oracle protocols (e.g. SchemaOracle).
+
+An oracle asks something the solution does not control and gets the
+answer in that thing's own currency, so it names no entity of its
+context. It must be reached through an activity (ADR 016).
+"""
+
+CALCULATOR_SUFFIX: Final[str] = "Calculator"
+"""Suffix identifying calculator protocols (e.g. NewDataCalculator).
+
+A calculator works out an answer from what it was handed: same
+arguments, same answer. It may be called from workflow code, which is
+the point of naming it (ADR 016).
+"""
+
+WITNESS_SUFFIX: Final[str] = "Witness"
+"""Suffix identifying witness protocols (e.g. ClockWitness).
+
+A witness testifies to something about the execution itself. Its answer
+is not computed from its arguments, but the runtime records it and
+replays the recorded value, so it is callable inline and must not be
+wrapped in an activity (ADR 016).
+"""
+
 # =============================================================================
 # LAYER DIRECTORY PATHS
 # =============================================================================
@@ -52,6 +77,9 @@ ENTITIES_PATH: Final[tuple[str, ...]] = ("domain", "models")
 USE_CASES_PATH: Final[tuple[str, ...]] = ("usecases",)
 REPOSITORIES_PATH: Final[tuple[str, ...]] = ("domain", "repositories")
 SERVICES_PATH: Final[tuple[str, ...]] = ("domain", "services")
+ORACLES_PATH: Final[tuple[str, ...]] = ("domain", "oracles")
+CALCULATORS_PATH: Final[tuple[str, ...]] = ("domain", "calculators")
+WITNESSES_PATH: Final[tuple[str, ...]] = ("domain", "witnesses")
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 
 # =============================================================================

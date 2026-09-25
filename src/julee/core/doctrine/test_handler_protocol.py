@@ -38,10 +38,17 @@ class TestHandlerProtocolStructure:
 
         So if a caller needs something back — the identity of an
         execution the callee started, a value it computed — the thing
-        being called is a service, not a handler. Declare a service
-        protocol in domain/services/ and let it return what the caller
-        needs. Wanting a value back is the signal that the handler shape
-        is the wrong one, not that Acknowledgement is too narrow.
+        being called is not a handler. Wanting a value back is the signal
+        that the handler shape is the wrong one, not that Acknowledgement
+        is too narrow.
+
+        Which port it is instead depends on what it deals in (ADR 016).
+        Two or more of this context's entities is a Service. One is a
+        Repository. None is an Oracle if it must ask something outside
+        the solution, a Calculator if the answer follows from what it was
+        handed, or a Witness if it reports on the execution itself. The
+        arity-zero cases are the common ones here, and calling all of
+        them services was how they used to be described.
         """
         use_case = ListHandlerProtocolsUseCase(repo)
         response = await use_case.execute(ListHandlerProtocolsRequest())
