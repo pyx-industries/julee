@@ -54,7 +54,7 @@ Wanting a value back is the signal that the handler shape is wrong,
 not that ``Acknowledgement`` is too narrow.
 Which port you actually want depends on what it deals in:
 
-- two or more of this context's entities — a :doc:`service <services>`
+- two or more entities — a :doc:`service <services>`
 - exactly one — a :doc:`repository <repositories>`
 - none, and it must ask something outside the solution — an :doc:`oracle <oracles>`
 - none, and the answer follows from what you handed it — a :doc:`calculator <calculators>`

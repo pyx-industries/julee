@@ -414,11 +414,18 @@ Implement distributed sagas for cross-BC workflows.
 Reference implementation exists in:
 
 - `julee/core/entities/acknowledgement.py` - Acknowledgement entity
-- `julee/core/services/handler.py` - Generic Handler protocol and documentation
-- `julee/hcd/services/story_handlers.py` - HCD handler protocols
-- `julee/hcd/infrastructure/handlers/null_handlers.py` - Null implementations
-- `julee/contrib/polling/services/new_data_handler.py` - Cross-BC handler protocol
-- `julee/contrib/polling/use_cases/new_data_detection.py` - Use case with optional handler
+
+The rest moved twice. ADR 012 took the domain code out to the kits, and
+ADR 016 gave handler protocols their own directory, one per
+`*_handler.py` file:
+
+- `julee_hcd/domain/handlers/` - HCD handler protocols (eleven of them)
+- `julee_hcd/infrastructure/handlers/` - Null implementations
+- `julee_polling/domain/handlers/polling_result_handler.py` - Cross-BC handler protocol
+- `julee_polling/usecases/new_data_detection.py` - Use case with optional handler
+
+`story_handlers.py` was the shape this ADR described and ADR 016
+disallows: several unrelated handlers collected in one plural file.
 
 ## References
 

@@ -2,7 +2,16 @@
 
 ## Status
 
-Draft
+Draft. Amended by [ADR 016: Naming the Driven Ports](./016-driven-ports.md),
+which renamed both protocols here. Neither was ever a service under ADR
+009's own rule — which binds a service to two or more entity types — and
+both are bound to none. They are witnesses: the runtime records what they
+said, so a replay is told the same thing, and wrapping either in an
+activity would fetch something the history already holds.
+
+`ClockService` became `ClockWitness` and `ExecutionService` became
+`ExecutionWitness`, in `julee.core.witnesses`. The reasoning below stands
+unchanged; only the word for what these are has been corrected.
 
 ## Date
 
@@ -52,17 +61,17 @@ The goal is for use cases to be completely agnostic about their execution contex
 
 ## Decision
 
-Use cases SHALL receive time and execution identity through **service protocols** injected at construction time, following the established pattern where DI containers inject only repositories and services.
+Use cases SHALL receive time and execution identity through **witness protocols** injected at construction time, following the established pattern where DI containers inject the driven ports a use case calls outward through.
 
-### ClockService Protocol
+### ClockWitness Protocol
 
-A `ClockService` provides time abstraction:
+A `ClockWitness` provides time abstraction:
 
 ```python
-class ClockService(Protocol):
-    """Service protocol for obtaining current time.
+class ClockWitness(Protocol):
+    """Witness protocol for obtaining current time.
 
-    Use cases inject ClockService to avoid direct datetime.now() calls,
+    Use cases inject ClockWitness to avoid direct datetime.now() calls,
     enabling deterministic testing and execution-context-agnostic code.
     """
 
@@ -74,8 +83,8 @@ class ClockService(Protocol):
 Standard implementation for non-workflow contexts:
 
 ```python
-class SystemClockService:
-    """ClockService implementation using system time."""
+class SystemClockWitness:
+    """ClockWitness implementation using system time."""
 
     def now(self) -> datetime:
         return datetime.now(timezone.utc)
@@ -84,8 +93,8 @@ class SystemClockService:
 Temporal implementation (in infrastructure layer):
 
 ```python
-class TemporalClockService:
-    """ClockService implementation for Temporal workflows.
+class TemporalClockWitness:
+    """ClockWitness implementation for Temporal workflows.
 
     Wraps temporal.workflow.now() for deterministic replay.
     """
@@ -95,13 +104,13 @@ class TemporalClockService:
         return workflow.now()
 ```
 
-### ExecutionService Protocol
+### ExecutionWitness Protocol
 
-An `ExecutionService` provides execution identity:
+An `ExecutionWitness` provides execution identity:
 
 ```python
-class ExecutionService(Protocol):
-    """Service protocol for execution-level context.
+class ExecutionWitness(Protocol):
+    """Witness protocol for execution-level context.
 
     Provides traceability information without coupling to specific
     execution frameworks like Temporal.
@@ -121,7 +130,7 @@ class ExecutionService(Protocol):
 Standard implementation:
 
 ```python
-class DefaultExecutionService:
+class DefaultExecutionWitness:
     """Default execution service generating UUIDs."""
 
     def __init__(self, execution_id: str | None = None):
@@ -134,7 +143,7 @@ class DefaultExecutionService:
 Temporal implementation:
 
 ```python
-class TemporalExecutionService:
+class TemporalExecutionWitness:
     """Execution service for Temporal workflows."""
 
     def get_execution_id(self) -> str:
@@ -152,18 +161,18 @@ class ExtractAssembleDataUseCase:
         self,
         assembly_repo: AssemblyRepository,
         knowledge_service: KnowledgeService,
-        clock_service: ClockService,
-        execution_service: ExecutionService,
+        clock: ClockWitness,
+        execution: ExecutionWitness,
     ):
         self._assembly_repo = assembly_repo
         self._knowledge_service = knowledge_service
-        self._clock_service = clock_service
-        self._execution_service = execution_service
+        self._clock = clock
+        self._execution = execution
 
     async def execute(self, request: ExtractAssembleDataRequest) -> ExtractAssembleDataResponse:
         assembly = Assembly(
-            execution_id=self._execution_service.get_execution_id(),
-            created_at=self._clock_service.now(),
+            execution_id=self._execution.get_execution_id(),
+            created_at=self._clock.now(),
             ...
         )
 ```
@@ -174,15 +183,15 @@ The request contains only business parameters:
 class ExtractAssembleDataRequest(BaseModel):
     document_id: str
     spec_id: str
-    # No execution_id - comes from ExecutionService
+    # No execution_id - comes from ExecutionWitness
 ```
 
-### Service Scope: Use Cases Only
+### Witness Scope: Use Cases Only
 
-ClockService is injected into **use cases only**. Other service implementations (repositories, external service adapters) MAY use `datetime.now()` for operational timestamps.
+ClockWitness is injected into **use cases only**. Other implementations (repositories, oracles) MAY use `datetime.now()` for operational timestamps.
 
 The distinction:
-- **Domain state timestamps** (entity `created_at`, `updated_at`) → Use case controls via ClockService
+- **Domain state timestamps** (entity `created_at`, `updated_at`) → Use case controls via ClockWitness
 - **Operational timestamps** (when did external API call happen?) → Implementation detail
 
 This keeps the abstraction where it matters (domain state) without over-engineering infrastructure code.
@@ -211,7 +220,7 @@ This is a hard rename (no backward compatibility shim) because:
 ### Positive
 
 1. **Framework agnosticism**: Use cases work unchanged across Temporal, Prefect, Dagster, or direct execution
-2. **Deterministic testing**: Inject FixedClockService and FixedExecutionService for reproducible tests
+2. **Deterministic testing**: Inject FixedClockWitness and FixedExecutionWitness for reproducible tests
 3. **Clear boundaries**: Execution context is infrastructure, not domain
 4. **Consistent DI pattern**: Repositories and services only - no new categories
 5. **Future-proof**: Adding new execution frameworks requires only new service implementations
@@ -227,31 +236,37 @@ This is a hard rename (no backward compatibility shim) because:
 
 ## Implementation
 
-### Phase 1: Core Service Protocols
+The plan below is the one made at the time, kept as the record. Two
+things moved afterwards: the Temporal adapters landed in
+`julee/integrations/temporal/` rather than under `core/`, and ADR 012
+took the CEAP domain code out to the `julee-ceap` kit, so the Phase 3
+paths now read `julee_ceap/usecases/`.
 
-Create in `julee/core/services/`:
-- `clock.py` - ClockService protocol + SystemClockService
-- `execution.py` - ExecutionService protocol + DefaultExecutionService
+### Phase 1: Core Witness Protocols
+
+Create in `julee/core/witnesses/`:
+- `clock.py` - ClockWitness protocol + SystemClockWitness
+- `execution.py` - ExecutionWitness protocol + DefaultExecutionWitness
 
 ### Phase 2: Temporal Adapters
 
 Create in `julee/core/infrastructure/temporal/`:
-- `clock.py` - TemporalClockService
-- `execution.py` - TemporalExecutionService
+- `clock.py` - TemporalClockWitness
+- `execution.py` - TemporalExecutionWitness
 
 ### Phase 3: CEAP Migration
 
 Update:
 - `julee/contrib/ceap/entities/assembly.py` - workflow_id → execution_id
-- `julee/contrib/ceap/use_cases/extract_assemble_data.py` - ClockService, ExecutionService
-- `julee/contrib/ceap/use_cases/validate_document.py` - ClockService
+- `julee/contrib/ceap/use_cases/extract_assemble_data.py` - ClockWitness, ExecutionWitness
+- `julee/contrib/ceap/use_cases/validate_document.py` - ClockWitness
 - All related tests
 
 ### Phase 4: Test Utilities
 
 Create:
-- `FixedClockService` - Returns predetermined time
-- `FixedExecutionService` - Returns predetermined ID
+- `FixedClockWitness` - Returns predetermined time
+- `FixedExecutionWitness` - Returns predetermined ID
 
 ## Alternatives Considered
 
@@ -260,6 +275,12 @@ Create:
 Continue using `now_fn: Callable[[], datetime]`.
 
 **Rejected**: The naming reveals awareness of "why" time needs injection (workflow replay). Service-based abstraction is cleaner and doesn't leak implementation concerns.
+
+ADR 016 reversed the reasoning, not the decision. The protocol stayed;
+its name became `ClockWitness`, which says the replay part out loud.
+Hiding it turned out to cost more than it saved: a reader cannot work out
+from `ClockService` that wrapping it in an activity would fetch something
+the workflow history already holds, and several did.
 
 ### 2. execution_id in Request
 

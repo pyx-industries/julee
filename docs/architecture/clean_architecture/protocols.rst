@@ -22,7 +22,10 @@ Two questions tell them apart,
 and :doc:`ADR 016 </ADRs/016-driven-ports>` is the decision behind them.
 
 **What is it bound to?**
-How many of its bounded context's :doc:`entities` does it name?
+How many :doc:`entities` does it name?
+Its own bounded context's, and the kernel's:
+a kit that builds on ``BoundedContextInfo``, ``ClassInfo`` or ``Accelerator``
+is bound to an entity like any other.
 
 **Is it replay-safe?**
 Must a :doc:`pipeline </architecture/solutions/pipelines>` reach it through a
@@ -66,8 +69,9 @@ rather than by what it is called::
 
     domain/
     ├── models/          # entities
-    ├── repositories/    # *Repository
-    ├── services/        # *Service, and *Handler in *_handler.py
+    ├── repositories/    # RepositoryOf[Entity]
+    ├── services/        # *Service
+    ├── handlers/        # *Handler, one per *_handler.py
     ├── oracles/         # *Oracle
     ├── calculators/     # *Calculator
     └── witnesses/       # *Witness

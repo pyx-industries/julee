@@ -234,7 +234,11 @@ Additional directories are added as needed:
 |-----------|-----------------|
 | `domain/models/` | Module defines its own entities beyond framework core |
 | `domain/repositories/` | Module defines new repository protocols |
-| `domain/services/` | Module defines new service protocols |
+| `domain/services/` | Module defines new service protocols (2+ entities, activity) |
+| `domain/handlers/` | Module defines new handler protocols (ADR 003, ADR 016) |
+| `domain/oracles/` | Module defines new oracle protocols (no entity, activity) |
+| `domain/calculators/` | Module defines new calculator protocols (deterministic, inline) |
+| `domain/witnesses/` | Module defines new witness protocols (replay-stable, inline) |
 | `infrastructure/` | Module provides implementations (not just protocols) |
 | `apps/api/` | Module can expose REST endpoints |
 | `apps/cli/` | Module provides CLI commands |

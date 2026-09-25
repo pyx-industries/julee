@@ -86,8 +86,10 @@ wrapping one in an activity would be wrong.
 
 A driven port is classified on **two** axes.
 
-1. **What it is bound to** — how many of its bounded context's entity
-   types it names.
+1. **What it is bound to** — how many entity types it names. Its own
+   bounded context's, and the kernel's: a kit builds on
+   `BoundedContextInfo`, `ClassInfo` and `Accelerator`, and a port over
+   one of those is bound to an entity like any other (#237).
 2. **Whether it is replay-safe** — whether a workflow must reach it
    through an activity, or may call it inline.
 
@@ -136,7 +138,11 @@ class StoryRepository(BaseRepository[Story], Protocol):
     async def save(self, story: Story) -> None: ...
 ```
 
-Lives in `domain/repositories/`. Named `{Entity}Repository`.
+Lives in `domain/repositories/`. Conventionally named
+`{Entity}Repository`, but it is the one port with no naming *rule*: it
+declares its entity by inheriting `RepositoryOf[Entity]`, which is a
+stronger claim than a suffix because mypy reads it too, and the
+one-entity rule checks that instead.
 
 ### Service — two or more entities, activity
 
