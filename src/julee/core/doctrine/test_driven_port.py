@@ -14,7 +14,7 @@ from julee.core.doctrine.rules.port import (
     ports_misnamed_for_their_directory,
     protocols_in,
 )
-from julee.core.parsers.ast import parse_bounded_context
+from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
 
 
 def _ports_and_entities(contexts):
@@ -26,8 +26,17 @@ def _ports_and_entities(contexts):
         if info is None:
             continue
         entity_names_by_context[ctx.slug] = {e.name for e in info.entities}
+        # Handlers are read from wherever they sit, so pair each with the
+        # directory it was actually found in: one in domain/services/ is a
+        # placement objection, not a naming one.
+        handlers_dir = Path(ctx.path) / "domain" / "handlers"
+        in_own_directory = {cls.name for cls in parse_python_classes(handlers_dir)}
         found = {
-            "services": info.service_protocols,
+            "services": list(info.service_protocols)
+            + [h for h in info.handler_protocols if h.name not in in_own_directory],
+            "handlers": [
+                h for h in info.handler_protocols if h.name in in_own_directory
+            ],
             "oracles": info.oracle_protocols,
             "calculators": info.calculator_protocols,
             "witnesses": info.witness_protocols,
@@ -59,6 +68,12 @@ class TestDrivenPortNaming:
         A repository is exempt from this rule and only this one: it
         declares itself by inheriting ``RepositoryOf[Entity]``, which mypy
         reads too, and the one-entity rule checks that instead.
+
+        A handler found in domain/services/ is objected to for where it
+        is rather than what it is called. It was the one port told apart
+        by its name rather than its directory, which is the mechanism
+        every other port stopped using in #175, and it has its own
+        directory now (#256).
         """
         ports, _ = _ports_and_entities(await repo.list_all())
 
@@ -117,11 +132,12 @@ class TestDrivenPortVisibility:
             info = parse_bounded_context(Path(ctx.path))
             found = {
                 "services": [] if info is None else info.service_protocols,
+                "handlers": [] if info is None else info.handler_protocols,
                 "oracles": [] if info is None else info.oracle_protocols,
                 "calculators": [] if info is None else info.calculator_protocols,
                 "witnesses": [] if info is None else info.witness_protocols,
             }
-            handlers = [] if info is None else info.handler_protocols
+            handlers = found["handlers"]
             for directory in ROLES_BY_DIRECTORY:
                 package = Path(ctx.path) / "domain" / directory
                 modules = [

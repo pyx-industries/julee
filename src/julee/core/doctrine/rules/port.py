@@ -32,7 +32,8 @@ __all__ = [
 ]
 
 ROLES_BY_DIRECTORY: Mapping[str, tuple[str, ...]] = {
-    "services": (SERVICE_SUFFIX, HANDLER_SUFFIX),
+    "services": (SERVICE_SUFFIX,),
+    "handlers": (HANDLER_SUFFIX,),
     "oracles": (ORACLE_SUFFIX,),
     "calculators": (CALCULATOR_SUFFIX,),
     "witnesses": (WITNESS_SUFFIX,),
@@ -45,8 +46,11 @@ suffix because mypy reads it too, and the one-entity rule already checks
 it. The other four have no such declaration, so the name is what they
 have.
 
-``services`` admits two because handlers share the directory: they are a
-different artifact with ADR 003's rules, not a kind of service.
+Every entry holds one role. ``services`` used to hold two, because
+handlers lived there and were told apart by their name — the one place
+the arrangement did not hold, and a reader noticed it immediately
+(#256). Handlers have their own directory now, and nothing is found by
+its name.
 """
 
 ZERO_ENTITY_DIRECTORIES: Mapping[str, str] = {
@@ -97,6 +101,15 @@ def ports_misnamed_for_their_directory(
     for directory, found in ports:
         roles = ROLES_BY_DIRECTORY.get(directory)
         if roles is None or found.artifact.name.endswith(roles):
+            continue
+        if directory == "services" and found.artifact.name.endswith(HANDLER_SUFFIX):
+            # Correctly named, wrong shelf. Saying "rename it" here would
+            # be the wrong advice and the wrong diagnosis.
+            objections.append(
+                f"{found.bounded_context}.{found.artifact.name}: a handler "
+                f"in domain/services/. Handlers have their own directory "
+                f"since ADR 016 — move it to domain/handlers/"
+            )
             continue
         wanted = " nor ".join(f"*{role}" for role in roles)
         objections.append(

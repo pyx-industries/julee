@@ -2,7 +2,9 @@
 
 ## Status
 
-Draft
+Draft. Amended by [ADR 016: Naming the Driven Ports](./016-driven-ports.md),
+which moved handler protocols from `domain/services/` to their own
+`domain/handlers/`. Everything else here stands.
 
 ## Date
 
@@ -28,7 +30,7 @@ A cleaner approach is to inject the "what comes next" logic as a service depende
 
 Use cases SHALL hand off domain conditions to **handler services** rather than computing next actions themselves.
 
-**Handlers are services.** They follow the same patterns as other services - a protocol in `services/`, implementations injected via DI. The term "handler" indicates a specific responsibility: accepting domain objects and deciding what to do with them. This is the "green-dotted-egg" principle: a use case recognizes a condition and hands off to a handler, without knowing what the handler does.
+**Handlers are driven ports.** They follow the same patterns as the others - a protocol in `domain/handlers/`, implementations injected via DI. They shared `domain/services/` until ADR 016 gave every port its own directory; they were never services under ADR 009's rule, which binds a service to two or more entity types. The term "handler" indicates a specific responsibility: accepting domain objects and deciding what to do with them. This is the "green-dotted-egg" principle: a use case recognizes a condition and hands off to a handler, without knowing what the handler does.
 
 A handler has a **domain interface** - it accepts domain objects, not requests. What the handler does internally (call other use cases, queue work, send notifications, dispatch to Temporal) is the handler's business.
 
@@ -167,11 +169,13 @@ result, and it is not widened to carry one: a handler's answer means one
 thing, and adding a second would make every handler's answer ambiguous.
 
 So if a caller needs something back — the identity of an execution the
-callee started, a value it computed — the thing being called is a
-service, not a handler. Declare a service protocol in `domain/services/`
-and let it return what the caller needs. Wanting a value back is the
-signal that the handler shape is the wrong one, not that `Acknowledgement`
-is too narrow.
+callee started, a value it computed — the thing being called is not a
+handler. Wanting a value back is the signal that the handler shape is
+the wrong one, not that `Acknowledgement` is too narrow.
+
+Which port it is instead depends on what it deals in (ADR 016): two or
+more of the context's entities is a service, one is a repository, and
+none is an oracle, a calculator or a witness.
 
 #### 4. Handler Signatures Vary
 
