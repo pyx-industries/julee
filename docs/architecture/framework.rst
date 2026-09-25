@@ -46,7 +46,12 @@ the building blocks for constructing digital supply chains:
 :doc:`entities <clean_architecture/entities>` (domain models),
 business processes (:doc:`use cases <clean_architecture/use_cases>`),
 and :doc:`protocols <clean_architecture/protocols>`
-(:doc:`repositories <clean_architecture/repositories>` and :doc:`services <clean_architecture/services>`).
+(the six driven ports: :doc:`repositories <clean_architecture/repositories>`,
+:doc:`services <clean_architecture/services>`,
+:doc:`oracles <clean_architecture/oracles>`,
+:doc:`calculators <clean_architecture/calculators>`,
+:doc:`witnesses <clean_architecture/witnesses>`
+and :doc:`handlers <clean_architecture/handlers>`).
 
 A :doc:`solution <solutions/index>` uses that vocabulary to say something specific.
 When you build a solution with Julee, your codebase should be organised
