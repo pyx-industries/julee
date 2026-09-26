@@ -57,7 +57,7 @@ class EntryPointKitRepository:
                     entry_point.name,
                     manifest.slug,
                 )
-                manifest = manifest.model_copy(update={"slug": entry_point.name})
+                manifest = manifest.evolve(slug=entry_point.name)
             kits.append(manifest)
         return sorted(kits, key=lambda kit: kit.slug)
 
