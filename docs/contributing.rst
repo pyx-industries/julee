@@ -88,6 +88,11 @@ To run doctrine against a codebase other than julee, point
 
     JULEE_TARGET=/path/to/solution uv run pytest src/julee/core/doctrine/
 
+That is the long way round, and it is how julee and the kits do it
+because both already have julee's checkout to hand. A solution has
+``julee doctrine verify`` and ``pytest --julee-doctrine`` instead — see
+:doc:`/architecture/solutions/doctrine`.
+
 
 Writing Tests
 ~~~~~~~~~~~~~

@@ -117,3 +117,4 @@ As well as using their own bespoke bounded context(s).
    contrib
    modules
    3rd-party
+   doctrine

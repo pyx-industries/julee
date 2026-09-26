@@ -111,12 +111,20 @@ def ports_misnamed_for_their_directory(
                 f"since ADR 016 — move it to domain/handlers/"
             )
             continue
-        wanted = " nor ".join(f"*{role}" for role in roles)
+        # Every directory offers exactly one role today, and "named
+        # neither *Oracle" is what the plural phrasing produced for one.
+        # Kept general because the grid has room for a directory that
+        # offers two, and read once by a person who then has to act on it.
+        if len(roles) == 1:
+            wanted = f"not named *{roles[0]}"
+            remedy = "Rename it if it is one"
+        else:
+            wanted = "named neither " + " nor ".join(f"*{role}" for role in roles)
+            remedy = "Rename it if it is one of those"
         objections.append(
             f"{found.bounded_context}.{found.artifact.name}: in "
-            f"domain/{directory}/ but named neither {wanted}. Rename it if "
-            f"it is one of those; if it is neither, it belongs in another "
-            f"of ADR 016's directories"
+            f"domain/{directory}/ but {wanted}. {remedy}; if it is not, "
+            f"it belongs in another of ADR 016's directories"
         )
     return objections
 
