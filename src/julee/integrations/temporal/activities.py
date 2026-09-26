@@ -117,7 +117,7 @@ def collect_activities_from_instances(*instances: Any) -> list[Any]:
                 )
 
     logger.info(
-        f"Collected {len(activities)} activities from " f"{len(instances)} instances"
+        f"Collected {len(activities)} activities from {len(instances)} instances"
     )
 
     return activities

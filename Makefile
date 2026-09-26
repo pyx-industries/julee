@@ -9,7 +9,7 @@ install:
 # Python linting
 lint-python:
 	@echo "Linting Python code..."
-	uv run black --check src/julee/
+	uv run ruff format --check src/julee/
 	uv run ruff check src/julee/
 
 # Type checking (fails on errors)
@@ -96,7 +96,7 @@ clean:
 # Format Python code
 format-python:
 	@echo "Formatting Python code..."
-	uv run black src/julee/
+	uv run ruff format src/julee/
 	uv run ruff check --fix src/julee/
 
 # Update uv.lock from pyproject.toml
@@ -112,7 +112,7 @@ help:
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
 	@echo "  - Doctrine tests against the kits in this workspace"
-	@echo "  lint-python     - Python linting (black, ruff)"
+	@echo "  lint-python     - Python linting (ruff)"
 	@echo "  test-python-unit - Python unit tests"
 	@echo "  quality-fast-python - Fast Python quality checks (lint + unit tests)"
 	@echo "  quality-full    - Full quality suite (types, security, all tests)"
@@ -121,7 +121,7 @@ help:
 	@echo "  test-unit       - Unit tests with coverage"
 	@echo "  test-integration - Temporal pipeline tests (needs a test server)"
 	@echo "  install         - Install project and dev dependencies via uv"
-	@echo "  format-python   - Format Python code with black and ruff"
+	@echo "  format-python   - Format Python code with ruff"
 	@echo "  update-requirements - Upgrade uv.lock from pyproject.toml"
 	@echo "  clean           - Clean up generated files"
 	@echo "  reports         - Create reports directory"

@@ -114,10 +114,9 @@ class TestKitClaims:
         """
         trespass = claims_about_classes_not_owned(published)
 
-        assert (
-            not trespass
-        ), "Kits claiming about classes they do not own:\n" + "\n".join(
-            f"  {t}" for t in trespass
+        assert not trespass, (
+            "Kits claiming about classes they do not own:\n"
+            + "\n".join(f"  {t}" for t in trespass)
         )
 
     def test_a_kit_SHOULD_say_why_it_claims_what_it_does(self, published) -> None:
@@ -199,8 +198,7 @@ class TestSolutionSemantics:
         """
         contradictions = claims_that_contradict(claims)
 
-        assert (
-            not contradictions
-        ), "The same pair of classes is claimed more than one way:\n" + "\n".join(
-            f"  {c}" for c in contradictions
+        assert not contradictions, (
+            "The same pair of classes is claimed more than one way:\n"
+            + "\n".join(f"  {c}" for c in contradictions)
         )

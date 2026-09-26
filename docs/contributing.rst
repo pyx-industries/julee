@@ -39,17 +39,16 @@ Code Style
 
 We use the following tools to maintain code quality:
 
-**Black**
-    The formatter. Ruff is configured for linting only, so do not run
-    ``ruff format`` — it disagrees with black and will reformat files the
-    change never touched::
-
-        uv run black src/julee/
-
 **Ruff**
-    The linter::
+    The formatter and the linter, one tool and one configuration::
 
+        uv run ruff format src/julee/
         uv run ruff check src/julee/
+
+    Black did the formatting until the two were reconciled. Having a
+    formatter installed that the project did not use meant ``ruff
+    format`` was always one plausible keystroke away from reformatting
+    files a change never touched.
 
 **Mypy**
     Static type checking, in strict mode::

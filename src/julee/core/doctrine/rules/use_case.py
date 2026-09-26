@@ -284,8 +284,7 @@ def use_cases_whose_execute_returns_the_wrong_response(
             objections.append(f"{_named(found)}: execute() declares no return type")
         elif actual != expected:
             objections.append(
-                f"{_named(found)}: execute() returns {actual!r}, "
-                f"expected {expected!r}"
+                f"{_named(found)}: execute() returns {actual!r}, expected {expected!r}"
             )
     return objections
 

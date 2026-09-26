@@ -58,10 +58,9 @@ class TestHandlerProtocolStructure:
 
         violations = handler_methods_not_returning_Acknowledgement(response.artifacts)
 
-        assert (
-            not violations
-        ), "Handler protocol methods not returning Acknowledgement:\n" + "\n".join(
-            violations
+        assert not violations, (
+            "Handler protocol methods not returning Acknowledgement:\n"
+            + "\n".join(violations)
         )
 
     @pytest.mark.asyncio
@@ -77,10 +76,9 @@ class TestHandlerProtocolStructure:
 
         violations = handler_protocols_outside_singular_files(response.artifacts)
 
-        assert (
-            not violations
-        ), "Handler protocols not in singular *_handler.py files:\n" + "\n".join(
-            violations
+        assert not violations, (
+            "Handler protocols not in singular *_handler.py files:\n"
+            + "\n".join(violations)
         )
 
 
@@ -108,8 +106,7 @@ class TestHandlerImplementationPlacement:
 
         violations = handlers_outside_infrastructure_handlers(found)
 
-        assert (
-            not violations
-        ), "Handler implementations outside infrastructure/handlers/:\n" + "\n".join(
-            violations
+        assert not violations, (
+            "Handler implementations outside infrastructure/handlers/:\n"
+            + "\n".join(violations)
         )
