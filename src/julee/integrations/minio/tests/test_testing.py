@@ -10,6 +10,7 @@ import io
 
 import pytest
 
+from julee.core.entities.content_stream import ContentStream
 from julee.integrations.minio.testing import FakeMinioClient
 
 pytestmark = pytest.mark.unit
@@ -106,3 +107,36 @@ class TestReadingAResponse:
 
         response.close()
         response.release_conn()
+
+
+class TestBeingTheRightKindOfStream:
+    """Properties ContentStream and its callers rely on."""
+
+    def test_the_response_is_an_io_stream(self, client: FakeMinioClient) -> None:
+        """ContentStream refuses anything that is not, and urllib3's
+        BaseHTTPResponse is one. The old Mock passed this through its
+        spec — right by accident."""
+        response = client.get_object(bucket_name="content", object_name="an-object")
+
+        assert isinstance(response, io.IOBase)
+
+    def test_a_content_stream_can_wrap_it(self, client: FakeMinioClient) -> None:
+        """The thing every binary read in this integration does."""
+        response = client.get_object(bucket_name="content", object_name="an-object")
+
+        assert ContentStream(response).read() == CONTENT
+
+    def test_the_response_is_not_seekable(self, client: FakeMinioClient) -> None:
+        """A response streamed off a socket is not, and a double that
+        allowed rewinding would pass a caller that raises
+        io.UnsupportedOperation against real MinIO (#90)."""
+        response = client.get_object(bucket_name="content", object_name="an-object")
+
+        assert not response.seekable()
+
+    def test_rewinding_it_raises(self, client: FakeMinioClient) -> None:
+        response = client.get_object(bucket_name="content", object_name="an-object")
+        response.read()
+
+        with pytest.raises(io.UnsupportedOperation):
+            response.seek(0)

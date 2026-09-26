@@ -19,6 +19,7 @@ production. That was julee#124, found in a downstream deployment rather
 than by any of the tests over this.
 """
 
+import io
 from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
@@ -34,20 +35,36 @@ from urllib3.response import BaseHTTPResponse
 from julee.integrations.minio.client import MinioClient
 
 
-class _ConsumedOnRead:
+class _ConsumedOnRead(io.RawIOBase):
     """A response whose bytes are read once, as MinIO's is.
+
+    Subclasses ``io.RawIOBase`` because urllib3's ``BaseHTTPResponse``
+    does, and :class:`~julee.core.entities.content_stream.ContentStream`
+    checks for it. The old Mock satisfied that check through its spec,
+    which is the kind of thing a Mock gets right by accident and a class
+    has to be told.
+
+    Not a ``BytesIO`` either: that is seekable and a response is not, so
+    a caller that rewinds would pass here and raise
+    ``io.UnsupportedOperation`` against real MinIO.
 
     Not a Mock, because the behaviour under test is what successive
     reads return, and a Mock configured to remember that is a second
-    implementation of it. Spells the parts of ``BaseHTTPResponse`` that
-    julee's client and its callers use.
+    implementation of it.
     """
 
     def __init__(self, data: bytes) -> None:
+        super().__init__()
         self._remaining = data
-        self.closed = False
 
-    def read(self, size: int | None = None) -> bytes:
+    def readable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        """False, as a response streamed off a socket is."""
+        return False
+
+    def read(self, size: int | None = -1) -> bytes:
         """Take bytes off the front, as a socket would.
 
         Args:
@@ -61,11 +78,11 @@ class _ConsumedOnRead:
         taken, self._remaining = self._remaining[:size], self._remaining[size:]
         return taken
 
-    def close(self) -> None:
-        self.closed = True
+    def readall(self) -> bytes:
+        return self.read(-1)
 
     def release_conn(self) -> None:
-        pass
+        """What a caller calls after close(); real responses have it."""
 
 
 def requires_bucket(func: Callable) -> Callable:
