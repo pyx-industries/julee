@@ -280,7 +280,9 @@ class FakeMinioClient(MinioClient):
         )
 
     @requires_bucket
-    def list_objects(self, bucket_name: str, prefix: str = "") -> Iterator[Object]:
+    def list_objects(
+        self, bucket_name: str, prefix: str = "", recursive: bool = False
+    ) -> Iterator[Object]:
         """List objects in a bucket with optional prefix filter.
 
         A generator, as the real one is, so it is consumed by whoever
@@ -294,18 +296,49 @@ class FakeMinioClient(MinioClient):
 
         A bucket that does not exist raises rather than listing nothing,
         which is what the protocol says and what a typo deserves.
+
+        Without ``recursive``, a delimiter applies: names that carry a
+        further "/" below the prefix are reported once, as the common
+        prefix they share, with ``is_dir`` set. This used to list every
+        matching object whatever was asked, which is minio's
+        ``recursive=True`` — so a caller that nested its keys got every
+        object here and one entry per directory in production, and read
+        an id off the end of that entry (#287).
         """
+        seen_prefixes: set[str] = set()
         for object_name, obj_info in sorted(self._objects[bucket_name].items()):
-            if object_name.startswith(prefix):
-                yield Object(
-                    bucket_name=bucket_name,
-                    object_name=object_name,
-                    last_modified=obj_info["last_modified"],
-                    etag=obj_info["etag"],
-                    size=obj_info["size"],
-                    content_type=obj_info["content_type"],
-                    metadata=obj_info["metadata"],
-                )
+            if not object_name.startswith(prefix):
+                continue
+
+            if not recursive:
+                remainder = object_name[len(prefix) :]
+                boundary = remainder.find("/")
+                if boundary != -1:
+                    common = object_name[: len(prefix) + boundary + 1]
+                    if common in seen_prefixes:
+                        continue
+                    seen_prefixes.add(common)
+                    # is_dir is derived: Object.__post_init__ sets it
+                    # from the name ending in "/", so the common prefix
+                    # carries it without being told.
+                    yield Object(
+                        bucket_name=bucket_name,
+                        object_name=common,
+                        last_modified=None,
+                        etag=None,
+                        size=0,
+                    )
+                    continue
+
+            yield Object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                last_modified=obj_info["last_modified"],
+                etag=obj_info["etag"],
+                size=obj_info["size"],
+                content_type=obj_info["content_type"],
+                metadata=obj_info["metadata"],
+            )
 
     @requires_bucket
     def remove_object(self, bucket_name: str, object_name: str) -> None:

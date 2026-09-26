@@ -331,3 +331,71 @@ class TestObjectMetadata:
         second = client.stat_object(bucket_name="content", object_name="other")
 
         assert first.etag != second.etag
+
+
+class TestListingWithoutRecursion:
+    """The delimiter S3 applies when recursive is False (#287).
+
+    `recursive` maps to `delimiter=None if recursive else "/"`. With a
+    delimiter, anything more than one level below the prefix comes back
+    as a single common-prefix entry instead of the objects under it.
+
+    The double listed everything whatever was asked, which is minio's
+    recursive=True — so a caller that nested its keys got every object
+    here and one entry per directory in production.
+    """
+
+    @pytest.fixture
+    def nested(self, client: FakeMinioClient) -> FakeMinioClient:
+        for name in ("spec/flat", "spec/t1/a", "spec/t1/b", "spec/t2/c"):
+            client.put_object(
+                bucket_name="content",
+                object_name=name,
+                data=io.BytesIO(b"x"),
+                length=1,
+            )
+        return client
+
+    def test_a_deeper_key_comes_back_as_its_common_prefix(
+        self, nested: FakeMinioClient
+    ) -> None:
+        names = [o.object_name for o in nested.list_objects("content", "spec/")]
+
+        assert names == ["spec/flat", "spec/t1/", "spec/t2/"]
+
+    def test_the_common_prefix_says_it_is_one(self, nested: FakeMinioClient) -> None:
+        """is_dir is what a caller would have to check, and it is derived
+        from the trailing slash rather than asserted by this double."""
+        by_name = {o.object_name: o for o in nested.list_objects("content", "spec/")}
+
+        assert by_name["spec/t1/"].is_dir
+        assert not by_name["spec/flat"].is_dir
+
+    def test_each_directory_is_reported_once(self, nested: FakeMinioClient) -> None:
+        """Two objects under spec/t1/ are one entry, not two."""
+        names = [o.object_name for o in nested.list_objects("content", "spec/")]
+
+        assert names.count("spec/t1/") == 1
+
+    def test_recursive_gives_every_object(self, nested: FakeMinioClient) -> None:
+        names = [
+            o.object_name
+            for o in nested.list_objects("content", "spec/", recursive=True)
+        ]
+
+        assert names == ["spec/flat", "spec/t1/a", "spec/t1/b", "spec/t2/c"]
+
+    def test_one_level_of_nesting_is_unaffected(self, client: FakeMinioClient) -> None:
+        """Which is why nothing in the estate is broken: every prefix in
+        use is exactly one level deep."""
+        for name in ("query/q1", "query/q2"):
+            client.put_object(
+                bucket_name="content",
+                object_name=name,
+                data=io.BytesIO(b"x"),
+                length=1,
+            )
+
+        names = [o.object_name for o in client.list_objects("content", "query/")]
+
+        assert names == ["query/q1", "query/q2"]
