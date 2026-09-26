@@ -150,13 +150,12 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
+# A marker arrives with its first test. There were six here and only
+# this one had a user: integration, e2e, llm, contract and slow were
+# declared for tests julee does not have, and the targets selecting them
+# passed by selecting nothing.
 markers = [
     "unit: Unit tests (fast, isolated)",
-    "integration: Integration tests (slower, with dependencies)",
-    "e2e: End-to-end tests (slowest, full stack)",
-    "llm: Tests that use real LLM API calls (slow, costs money)",
-    "contract: Contract tests (verify external API shapes and mock fidelity)",
-    "slow: Slow tests (stress tests, load tests)",
 ]
 
 [tool.coverage.run]

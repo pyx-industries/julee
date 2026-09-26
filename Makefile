@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs release-notes release-prepare release-tag lint-python typecheck test-python-unit test-integration test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
+.PHONY: install check docs release-notes release-prepare release-tag lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -17,12 +17,12 @@ typecheck:
 	@echo "Type checking..."
 	uv run mypy src/julee/
 
-# Python unit tests: every test that needs nothing but Python. They are
-# chosen by what is left out, not by -m unit, so that a test with no marker
-# runs rather than hides. Doctrine has its own targets below.
+# Python unit tests. Every test julee has needs nothing but Python, so
+# there is nothing to leave out: no selector, and a test with no marker
+# runs rather than hides. Doctrine has its own target below.
 test-python-unit:
 	@echo "Running Python unit tests..."
-	uv run pytest -m "not integration and not e2e and not llm and not contract" --ignore=src/julee/core/doctrine
+	uv run pytest --ignore=src/julee/core/doctrine
 
 # Doctrine tests against julee itself
 test-doctrine:
@@ -30,7 +30,7 @@ test-doctrine:
 	uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
-check: lint-python typecheck test-python-unit test-integration test-doctrine
+check: lint-python typecheck test-python-unit test-doctrine
 
 # Build the documentation
 docs:
@@ -61,22 +61,10 @@ quality-security: reports
 	@echo "  - Medium+High severity: reports/bandit-medium-high.json"
 	@echo "  - All severities: reports/bandit-all.json"
 
-# Unit tests with coverage. Integration tests are excluded: they each
-# start a Temporal test server, and a suite that needs a server is not
-# what a caller of this target is asking for.
+# Unit tests with coverage.
 test-unit: reports
 	@echo "Running unit tests with coverage..."
-	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml -m "not e2e and not integration"
-
-# Tests that need something running, a Temporal server for instance. One
-# test server per test, so the worker count is fixed rather than -n auto.
-# There are none in julee itself since polling moved to julee-kits, and an
-# empty selection (pytest exit code 5) is not a failure.
-test-integration:
-	@echo "Running integration tests..."
-	@uv run pytest -m integration -n 2; status=$$?; \
-	if [ $$status -eq 5 ]; then echo "No integration tests in this package."; exit 0; fi; \
-	exit $$status
+	uv run pytest --asyncio-mode=auto --cov=src/julee --cov-fail-under=60 --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml
 
 # Setup reports directory
 reports:
@@ -119,10 +107,9 @@ release-tag:
 
 help:
 	@echo "Available targets:"
-	@echo "  check           - The checks CI runs (lint, types, unit, integration, doctrine, kits)"
+	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
 	@echo "  docs            - Build the documentation"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
-	@echo "  - Doctrine tests against the kits in this workspace"
 	@echo "  lint-python     - Python linting (ruff)"
 	@echo "  test-python-unit - Python unit tests"
 	@echo "  quality-fast-python - Fast Python quality checks (lint + unit tests)"
@@ -130,7 +117,6 @@ help:
 	@echo "  quality-types   - Type checking with mypy"
 	@echo "  quality-security- Security scanning with bandit"
 	@echo "  test-unit       - Unit tests with coverage"
-	@echo "  test-integration - Temporal pipeline tests (needs a test server)"
 	@echo "  install         - Install project and dev dependencies via uv"
 	@echo "  format-python   - Format Python code with ruff"
 	@echo "  update-requirements - Upgrade uv.lock from pyproject.toml"
