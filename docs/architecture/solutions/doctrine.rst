@@ -103,18 +103,19 @@ codebases have never been asked to keep.
 One thing to know about semantic claims
 ---------------------------------------
 
-If your solution or a kit publishes a ``semantics.toml``, those claims
-are resolved by **importing** them — so the answer depends on what is
-installed in the environment running doctrine, not on what is in the
-directory being read. A package that is not installed makes every claim
-it publishes look like it names a class that does not exist.
+If your solution or a kit publishes a ``semantics.toml``, the claims in
+it name classes by dotted path. The near end of a claim — the class the
+publishing package owns — is resolved by **reading the source** in the
+directory being checked, so the answer is about that directory and not
+about what happens to be installed where doctrine runs.
 
-``julee doctrine verify`` checks that premise before running and stops
-if it does not hold, rather than reporting a page of violations that are
-really one missing install. ``--skip-import-check`` runs anyway.
+That means you can check a codebase you have not installed:
 
-``pytest --julee-doctrine`` does not check it yet, so run it from the
-environment your solution's own tests run in — which is where it belongs
-anyway, and where the premise holds by construction. Moving the check
-into the rules, so that every way of running doctrine gets it, is
-`#269 <https://github.com/pyx-industries/julee/issues/269>`_.
+.. code-block:: bash
+
+    julee doctrine verify --target ../some-kit
+
+The far end may name a kit that nothing here has installed, which is how
+a claim stays useful to a solution that later adopts both. So a far end
+is resolved by import, and only asked about at all when its package is
+present. What can be checked, is.

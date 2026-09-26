@@ -10,31 +10,16 @@ Nothing here runs doctrine. :func:`pytest_arguments` says how, and
 :func:`julee.cli.main` is what calls it.
 """
 
-from collections.abc import Callable, Iterable
 from pathlib import Path
 
 from julee.core.entities.policy import SolutionPolicyConfig
-from julee.core.semantics import SEMANTICS_FILE
 
 __all__ = [
-    "SKIPPED_DIRECTORIES",
-    "claim_packages_in",
     "enclosing_solution",
-    "packages_doctrine_cannot_import",
     "pytest_arguments",
     "resolve_target",
     "target_objections",
 ]
-
-SKIPPED_DIRECTORIES = frozenset(
-    {".venv", "venv", "build", "dist", "__pycache__", "node_modules", ".git"}
-)
-"""Directories a search of a solution's tree walks past.
-
-The same set the semantics fixture skips. A `.venv` holds every installed
-kit's own semantics.toml, and counting those would ask the solution to
-answer for its dependencies.
-"""
 
 
 def resolve_target(explicit: str | None, cwd: Path) -> Path:
@@ -127,57 +112,6 @@ def target_objections(target: Path, config: SolutionPolicyConfig) -> list[str]:
             f"every rule that iterates bounded contexts would pass."
         ]
     return []
-
-
-def claim_packages_in(target: Path) -> list[str]:
-    """The packages publishing a semantics.toml in this tree.
-
-    Named by the directory holding the file, which is how the semantics
-    doctrine pairs a claim with its publisher.
-
-    Args:
-        target: The codebase to search
-
-    Returns:
-        Package names, sorted, without duplicates
-    """
-    found = {
-        document.parent.name
-        for document in target.rglob(SEMANTICS_FILE)
-        if not SKIPPED_DIRECTORIES.intersection(document.parts)
-    }
-    return sorted(found)
-
-
-def packages_doctrine_cannot_import(
-    packages: Iterable[str], can_import: Callable[[str], bool]
-) -> list[str]:
-    """Claim publishers that are not importable from this environment.
-
-    The semantics rules resolve a claim's near end by importing it, so
-    their answer depends on what is installed here rather than on what
-    is in the target directory. A package that is not installed makes
-    every claim it publishes look dangling, and the rule cannot tell
-    that apart from a class that was renamed or deleted (#269).
-
-    Checked before the run rather than reported as violations during it,
-    because "the premise does not hold" and "your claims are wrong" are
-    different things and only one of them is the operator's fault.
-
-    Args:
-        packages: The claim publishers found in the target
-        can_import: Answers whether a package imports here
-
-    Returns:
-        One sentence per package that would poison the semantics rules
-    """
-    return [
-        f"{package} publishes semantic claims but is not importable from "
-        f"this environment, so every claim it makes would be reported as "
-        f"naming a class that does not exist"
-        for package in packages
-        if not can_import(package)
-    ]
 
 
 def pytest_arguments(target: Path) -> list[str]:
