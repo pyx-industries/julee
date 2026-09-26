@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs release-notes release-prepare release-tag lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
+.PHONY: install check docs test-contract release-notes release-prepare release-tag lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -23,6 +23,15 @@ typecheck:
 test-python-unit:
 	@echo "Running Python unit tests..."
 	uv run pytest --ignore=src/julee/core/doctrine
+
+# The double checked against the thing it doubles. Needs a MinIO:
+# MINIO_ENDPOINT names it, and JULEE_REQUIRE_MINIO makes its absence a
+# failure rather than a skip, so a CI job that loses its container says
+# so. Not in check, which is a pre-push gate and must need nothing
+# running.
+test-contract:
+	@echo "Running contract tests against a real MinIO..."
+	JULEE_REQUIRE_MINIO=1 uv run pytest -m contract
 
 # Doctrine tests against julee itself
 test-doctrine:
@@ -109,6 +118,7 @@ help:
 	@echo "Available targets:"
 	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
 	@echo "  docs            - Build the documentation"
+	@echo "  test-contract   - Doubles checked against real services (needs MINIO_ENDPOINT)"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
 	@echo "  lint-python     - Python linting (ruff)"
 	@echo "  test-python-unit - Python unit tests"

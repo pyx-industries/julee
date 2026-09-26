@@ -104,13 +104,36 @@ Every test here needs nothing but Python, so ``make test-python-unit``
 runs all of them and selects nothing out. An unmarked test runs, which is
 deliberate — a test hides by being marked, never by being forgotten.
 
-``unit`` is the only marker ``pyproject.toml`` declares. There were six,
-and the other five named tests julee does not have: ``integration``,
-``e2e``, ``llm``, ``contract`` and ``slow``, each with a target or a CI
-job selecting it and passing by selecting nothing. A marker arrives with
-its first test, and brings its target with it. A test that needs a
-service belongs where that service's code is — which since
-:doc:`/ADRs/012-framework-and-kits` means a kit, not here.
+``pyproject.toml`` declares two markers, ``unit`` and ``contract``. It
+once declared six, and four of those named tests julee does not have —
+each with a target or a CI job selecting it and passing by selecting
+nothing. A marker arrives with its first test, and brings its target
+with it.
+
+Checking a double against the thing it doubles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``src/julee/integrations/minio/tests/test_contract.py`` runs one set of
+assertions twice: against
+:class:`~julee.integrations.minio.testing.FakeMinioClient`, and against
+a real MinIO. The ``contract`` marker selects the second::
+
+    docker run -d -p 9000:9000 \
+      -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+      quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+
+    MINIO_ENDPOINT=localhost:9000 make test-contract
+
+Without ``MINIO_ENDPOINT`` the real half skips, so the suite still runs
+for a contributor with no server. CI sets ``JULEE_REQUIRE_MINIO``, which
+turns that skip into a failure: a contract job that reports success for
+running against nothing is the shape of every bug the suite exists to
+catch. It is not in ``make check``, which must need nothing running.
+
+Write this kind of test whenever julee ships a double for something
+external. Four MinIO bugs reached production because
+``FakeMinioClient`` was more permissive than MinIO, and each was found
+by a downstream deployment rather than here.
 
 Use pytest fixtures for common setup::
 

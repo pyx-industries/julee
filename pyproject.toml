@@ -150,12 +150,12 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
-# A marker arrives with its first test. There were six here and only
-# this one had a user: integration, e2e, llm, contract and slow were
-# declared for tests julee does not have, and the targets selecting them
-# passed by selecting nothing.
+# A marker arrives with its first test. Six were declared once and five
+# had no users; contract is back because the MinIO contract suite needs
+# it, and it selects a real backend rather than a kind of test.
 markers = [
     "unit: Unit tests (fast, isolated)",
+    "contract: Runs against a real service, to check a double against it",
 ]
 
 [tool.coverage.run]
