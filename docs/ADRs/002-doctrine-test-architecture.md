@@ -108,6 +108,15 @@ directory, which is the mechanism #175 abandoned. ADR 016 gave them
 `domain/handlers/`, so a `*Handler` found in `domain/services/` is now
 objected to for where it is rather than what it is called (#256).
 
+The claim travels with the name, so it is checked wherever the name
+appears. A class ending in one of the five role suffixes belongs in its
+port directory under `domain/` or in `infrastructure/`, and one written
+in `usecases/` or an `apps/` layer is objected to there too. This half
+of the rule was stated here from the start and went untested until #236;
+the first thing it found was a startup facade in an API layer called
+`*Service`, which told a reader it was a driven port while its own
+docstring said it was a facade.
+
 Every rule that finds nothing should be able to say whether it found nothing
 because there was nothing, or because it was not looking properly. Any port
 package with modules in it, out of which doctrine reads no protocol at all,
