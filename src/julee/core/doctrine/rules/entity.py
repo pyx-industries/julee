@@ -272,6 +272,10 @@ def copies_that_skip_a_validator(
     matters: run over two kits at once and a field validated in one is
     attributed to a same-named field in the other.
 
+    Only production code is read. Building a state the validators
+    forbid is what ``model_copy`` is still for, and a test exercising
+    what happens to one has no other way to make it.
+
     An ``update`` that is not a dict literal is not read, and so not
     objected to. Nothing in the estate writes one, and guessing at what
     a variable holds would object to the wrong lines.
