@@ -118,11 +118,18 @@ assertions twice: against
 :class:`~julee.integrations.minio.testing.FakeMinioClient`, and against
 a real MinIO. The ``contract`` marker selects the second::
 
-    docker run -d -p 9000:9000 \
-      -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
-      quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+    # https://github.com/minio/minio/releases — pick your platform's
+    # asset from the release CI pins, and check its .sha256sum
+    ./minio server /tmp/minio-data --address :9000 &
 
     MINIO_ENDPOINT=localhost:9000 make test-contract
+
+The server comes from a GitHub release rather than a registry. MinIO
+withdrew its public images and binaries during 2025: an anonymous pull
+from ``quay.io/minio/minio`` answers 401, and ``dl.min.io`` answers 410.
+The release assets still need no account. Anything else that speaks S3
+is the wrong thing to run these against — the point is what MinIO does,
+and a second double would only agree with the first.
 
 Without ``MINIO_ENDPOINT`` the real half skips, so the suite still runs
 for a contributor with no server. CI sets ``JULEE_REQUIRE_MINIO``, which
