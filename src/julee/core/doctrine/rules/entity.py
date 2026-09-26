@@ -7,7 +7,7 @@ whether doctrine found any entities to check at all. Either way the
 parsing has already happened: nothing here reads a file.
 """
 
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 
 from julee.core.doctrine_constants import (
     CALCULATORS_PATH,
@@ -26,6 +26,7 @@ __all__ = [
     "FORBIDDEN_COLLECTION_PREFIXES",
     "READ_DOMAIN_PACKAGES",
     "contexts_whose_entities_doctrine_cannot_see",
+    "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
     "entities_not_extending_Entity",
     "fields_named_workflow_id",
@@ -242,3 +243,60 @@ def domain_packages_doctrine_does_not_read(
         for slug, name in packages
         if name not in READ_DOMAIN_PACKAGES
     ]
+
+
+def copies_that_skip_a_validator(
+    copies: Iterable[tuple[str, int, tuple[str, ...]]],
+    validated_fields: Collection[str],
+) -> list[str]:
+    """Uses of model_copy that write a field carrying a validator.
+
+    ``model_copy(update=...)`` does not validate, by design. For most
+    fields that is exactly what is wanted — it is how an immutable
+    entity is changed, and there is nothing to check.
+
+    A field with a validator is different, and not mainly because the
+    value might be refused. A validator that returns ``tuple(v)`` or
+    ``v.strip() or None`` is not checking the value, it is deciding what
+    the field holds. Skipped, the entity ends up carrying a mutable list
+    where its own annotation says tuple — which is what
+    :func:`fields_using_mutable_collections` reads annotations to
+    prevent, arrived at from the other direction (julee-kits#57).
+
+    :meth:`julee.core.entities.entity.Entity.evolve` writes the same
+    change and runs the validators, so the remedy is a rename.
+
+    Field names are matched across the codebase being checked rather
+    than resolved to the model being copied, because the model a
+    ``model_copy`` call sits on cannot be told from the source. Scoping
+    matters: run over two kits at once and a field validated in one is
+    attributed to a same-named field in the other.
+
+    An ``update`` that is not a dict literal is not read, and so not
+    objected to. Nothing in the estate writes one, and guessing at what
+    a variable holds would object to the wrong lines.
+
+    Args:
+        copies: File, line, and the field names each model_copy writes
+        validated_fields: Every field name carrying a validator here
+
+    Returns:
+        One sentence per call that writes a validated field
+    """
+    objections = []
+    for path, line, fields in copies:
+        skipped = sorted(set(fields) & set(validated_fields))
+        if not skipped:
+            continue
+        # Read once by a person who then has to act on it, so it agrees
+        # with itself: one field has a validator, several have validators.
+        subject = (
+            f"{skipped[0]}, which has a validator"
+            if len(skipped) == 1
+            else f"{', '.join(skipped)}, which have validators"
+        )
+        objections.append(
+            f"{path}:{line}: model_copy writes {subject} that will not "
+            f"run. Use evolve() instead"
+        )
+    return objections

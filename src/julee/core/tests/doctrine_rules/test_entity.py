@@ -5,6 +5,7 @@ import pytest
 from julee.core.doctrine.rules.entity import (
     READ_DOMAIN_PACKAGES,
     contexts_whose_entities_doctrine_cannot_see,
+    copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
     fields_named_workflow_id,
@@ -363,3 +364,81 @@ def test_neither_canary_objects_to_an_empty_codebase() -> None:
     """A rule that fires on nothing is a rule nobody can adopt."""
     assert contexts_whose_entities_doctrine_cannot_see([]) == []
     assert domain_packages_doctrine_does_not_read([]) == []
+
+
+# =============================================================================
+# Changing a validated field (julee-kits#57)
+# =============================================================================
+
+
+def a_copy(*fields: str, path: str = "usecases/validate.py", line: int = 12):
+    """A model_copy(update=...) writing these field names."""
+    return (path, line, fields)
+
+
+def test_a_copy_writing_a_validated_field_is_objected_to() -> None:
+    objections = copies_that_skip_a_validator([a_copy("scores")], {"scores"})
+
+    assert len(objections) == 1
+
+
+def test_a_copy_writing_an_unvalidated_field_is_left_alone() -> None:
+    """Which is most of them: model_copy is how an immutable entity is
+    changed, and a field with nothing to check has nothing to skip."""
+    assert copies_that_skip_a_validator([a_copy("status")], {"scores"}) == []
+
+
+def test_only_the_validated_fields_are_named() -> None:
+    (objection,) = copies_that_skip_a_validator(
+        [a_copy("status", "scores")], {"scores"}
+    )
+
+    assert "scores" in objection
+    assert "status" not in objection
+
+
+def test_the_objection_says_where() -> None:
+    (objection,) = copies_that_skip_a_validator(
+        [a_copy("scores", path="usecases/validate.py", line=241)], {"scores"}
+    )
+
+    assert objection.startswith("usecases/validate.py:241:")
+
+
+def test_the_objection_says_what_to_do_instead() -> None:
+    (objection,) = copies_that_skip_a_validator([a_copy("scores")], {"scores"})
+
+    assert "evolve()" in objection
+
+
+def test_one_field_reads_as_one() -> None:
+    """Read by a person who then has to act on it."""
+    (objection,) = copies_that_skip_a_validator([a_copy("scores")], {"scores"})
+
+    assert "which has a validator" in objection
+
+
+def test_several_fields_read_as_several() -> None:
+    (objection,) = copies_that_skip_a_validator(
+        [a_copy("scores", "note")], {"scores", "note"}
+    )
+
+    assert "which have validators" in objection
+
+
+def test_a_codebase_validating_nothing_objects_to_nothing() -> None:
+    assert copies_that_skip_a_validator([a_copy("scores")], set()) == []
+
+
+def test_a_codebase_copying_nothing_objects_to_nothing() -> None:
+    """Which the doctrine test reports as a skip rather than a pass."""
+    assert copies_that_skip_a_validator([], {"scores"}) == []
+
+
+def test_every_offending_call_is_reported() -> None:
+    """Not just the first: a person fixing these wants the list."""
+    objections = copies_that_skip_a_validator(
+        [a_copy("scores", line=1), a_copy("scores", line=2)], {"scores"}
+    )
+
+    assert len(objections) == 2

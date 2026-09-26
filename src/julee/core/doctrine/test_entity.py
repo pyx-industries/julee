@@ -4,12 +4,14 @@ These tests ARE the doctrine. The docstrings are doctrine statements.
 The assertions enforce them.
 """
 
+import ast
 from pathlib import Path
 
 import pytest
 
 from julee.core.doctrine.rules.entity import (
     contexts_whose_entities_doctrine_cannot_see,
+    copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
     fields_named_workflow_id,
@@ -182,4 +184,101 @@ class TestEntityVisibility:
 
         assert not violations, "Packages under domain/ doctrine walks past:\n" + (
             "\n".join(violations)
+        )
+
+
+SKIPPED_DIRECTORIES = frozenset({".venv", "build", "dist", "__pycache__", "tests"})
+"""Where a walk of a context's source does not go."""
+
+
+def _read_source(contexts) -> tuple[list[tuple[str, int, tuple[str, ...]]], set[str]]:
+    """Every model_copy(update=...) and every validated field name.
+
+    One walk answers both, and both have to come from the same tree: a
+    field validated in one kit says nothing about a same-named field in
+    another.
+    """
+    copies: list[tuple[str, int, tuple[str, ...]]] = []
+    validated: set[str] = set()
+
+    for ctx in contexts:
+        for source in sorted(Path(ctx.path).rglob("*.py")):
+            if SKIPPED_DIRECTORIES.intersection(source.parts):
+                continue
+            try:
+                tree = ast.parse(source.read_text(encoding="utf-8"))
+            except (SyntaxError, UnicodeDecodeError):
+                continue
+
+            relative = source.relative_to(Path(ctx.path).parent)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef):
+                    for decorator in node.decorator_list:
+                        if not isinstance(decorator, ast.Call):
+                            continue
+                        named = getattr(decorator.func, "id", None) or getattr(
+                            decorator.func, "attr", None
+                        )
+                        if named != "field_validator":
+                            continue
+                        validated.update(
+                            argument.value
+                            for argument in decorator.args
+                            if isinstance(argument, ast.Constant)
+                            and isinstance(argument.value, str)
+                        )
+                if (
+                    isinstance(node, ast.Call)
+                    and getattr(node.func, "attr", None) == "model_copy"
+                ):
+                    for keyword in node.keywords:
+                        if keyword.arg == "update" and isinstance(
+                            keyword.value, ast.Dict
+                        ):
+                            copies.append(
+                                (
+                                    str(relative),
+                                    node.lineno,
+                                    tuple(
+                                        key.value
+                                        for key in keyword.value.keys
+                                        if isinstance(key, ast.Constant)
+                                        and isinstance(key.value, str)
+                                    ),
+                                )
+                            )
+    return copies, validated
+
+
+class TestChangingAnEntity:
+    """Doctrine about how a new snapshot of an entity is made."""
+
+    @pytest.mark.asyncio
+    async def test_a_validated_field_MUST_NOT_be_written_by_model_copy(
+        self, repo
+    ) -> None:
+        """A field with a validator MUST be changed through evolve().
+
+        model_copy(update=...) does not validate, by design, and for a
+        field with nothing to check that is exactly right — it is how an
+        immutable entity is changed.
+
+        A validator is different, and not mainly because a value might
+        be refused. One that returns tuple(v) or v.strip() or None is
+        deciding what the field holds rather than checking it. Skipped,
+        an entity ends up carrying a mutable list where its annotation
+        says tuple: the thing the mutable-collections rule above reads
+        annotations to prevent, reached from the other side.
+
+        Entity.evolve() makes the same change and runs the validators.
+        """
+        copies, validated = _read_source(await repo.list_all())
+        if not copies:
+            pytest.skip("No model_copy(update=...) in target codebase")
+
+        violations = copies_that_skip_a_validator(copies, validated)
+
+        assert not violations, (
+            "Fields with validators changed through model_copy:\n"
+            + "\n".join(violations)
         )
