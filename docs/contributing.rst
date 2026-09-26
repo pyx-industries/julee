@@ -100,10 +100,17 @@ Place tests in ``tests/`` directories adjacent to the code they test, for
 example ``src/julee/repositories/tests/`` and
 ``src/julee/core/usecases/tests/``.
 
-Mark anything that is not a plain Python unit test, so that it is left out
-of the fast run: ``integration``, ``e2e``, ``llm``, ``contract`` and
-``slow`` are declared in ``pyproject.toml``. An unmarked test runs, which
-is deliberate — a test hides by being marked, never by being forgotten.
+Every test here needs nothing but Python, so ``make test-python-unit``
+runs all of them and selects nothing out. An unmarked test runs, which is
+deliberate — a test hides by being marked, never by being forgotten.
+
+``unit`` is the only marker ``pyproject.toml`` declares. There were six,
+and the other five named tests julee does not have: ``integration``,
+``e2e``, ``llm``, ``contract`` and ``slow``, each with a target or a CI
+job selecting it and passing by selecting nothing. A marker arrives with
+its first test, and brings its target with it. A test that needs a
+service belongs where that service's code is — which since
+:doc:`/ADRs/012-framework-and-kits` means a kit, not here.
 
 Use pytest fixtures for common setup::
 
