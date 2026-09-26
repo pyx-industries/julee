@@ -17,6 +17,12 @@ that hands one response to two readers could not be written a test for:
 the second reader got the content here and an empty bytestring in
 production. That was julee#124, found in a downstream deployment rather
 than by any of the tests over this.
+
+What this class is allowed to get away with, every kit and solution
+testing against it is allowed to get away with. So the tests over it are
+a contract suite: ``tests/test_contract.py`` runs the same assertions
+against this and against a real MinIO, and ``make test-contract`` is how
+to find out that they have parted company here rather than downstream.
 """
 
 import hashlib
