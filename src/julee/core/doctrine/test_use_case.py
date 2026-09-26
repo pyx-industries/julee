@@ -49,15 +49,15 @@ class TestUseCaseNaming:
         if not await repo.list_all():
             pytest.skip("No bounded contexts in target codebase — nothing to check")
 
-        assert (
-            len(response.artifacts) > 0
-        ), "No use cases found - detector may be broken"
+        assert len(response.artifacts) > 0, (
+            "No use cases found - detector may be broken"
+        )
 
         violations = use_cases_not_named_UseCase(response.artifacts)
 
-        assert (
-            not violations
-        ), f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(violations)
+        assert not violations, (
+            f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(violations)
+        )
 
 
 class TestUseCaseDocumentation:
@@ -165,10 +165,9 @@ class TestUseCaseStructure:
 
         violations = use_cases_defining_next_action(response.artifacts)
 
-        assert (
-            not violations
-        ), "Use cases defining forbidden next_action() method:\n" + "\n".join(
-            violations
+        assert not violations, (
+            "Use cases defining forbidden next_action() method:\n"
+            + "\n".join(violations)
         )
 
     @pytest.mark.asyncio

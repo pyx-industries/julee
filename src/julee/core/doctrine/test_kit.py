@@ -64,9 +64,9 @@ class TestKitAdoption:
         """Kit requirements MUST form a directed acyclic graph."""
         cycles = circular_requirements(adopted_kits(project_root))
 
-        assert (
-            not cycles
-        ), f"Kit requirements form a cycle involving: {', '.join(cycles)}"
+        assert not cycles, (
+            f"Kit requirements form a cycle involving: {', '.join(cycles)}"
+        )
 
 
 class TestKitBoundary:
@@ -95,9 +95,9 @@ class TestKitBoundary:
             (context.slug for context in repo.discover_all()),
         )
 
-        assert (
-            not collisions
-        ), f"Kit slugs collide with bounded context slugs: {', '.join(collisions)}"
+        assert not collisions, (
+            f"Kit slugs collide with bounded context slugs: {', '.join(collisions)}"
+        )
 
 
 class TestKitManifests:

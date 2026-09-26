@@ -93,8 +93,7 @@ class TestKitInternalsAreTheKitsOwn:
 
         violations = imports_reaching_into_a_kit(outside, packages)
 
-        assert (
-            not violations
-        ), "Bounded contexts reaching into a kit's internals:\n" + "\n".join(
-            f"  {v}" for v in violations
+        assert not violations, (
+            "Bounded contexts reaching into a kit's internals:\n"
+            + "\n".join(f"  {v}" for v in violations)
         )

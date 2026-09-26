@@ -96,7 +96,6 @@ dev = [
     "types-jsonschema",
     "types-python-dateutil",
     # Code quality
-    "black>=24.0.0",
     "ruff>=0.5.0",
     "pre-commit>=3.0.0",
     # Security
@@ -181,7 +180,6 @@ exclude_lines = [
 ]
 
 [tool.ruff]
-# Ruff is used for linting only. Formatting is handled by black.
 line-length = 88
 target-version = "py311"
 exclude = [
@@ -206,7 +204,7 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
+    "E501",  # line too long (handled by ruff format)
     "B008",  # do not perform function calls in argument defaults
     "B904",  # raise from
 ]

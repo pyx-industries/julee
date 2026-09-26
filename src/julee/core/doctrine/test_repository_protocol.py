@@ -66,8 +66,7 @@ class TestRepositoryProtocolBinding:
             response.artifacts, entity_names_by_context
         )
 
-        assert (
-            not violations
-        ), "Repository protocols referencing multiple entity types:\n" + "\n".join(
-            violations
+        assert not violations, (
+            "Repository protocols referencing multiple entity types:\n"
+            + "\n".join(violations)
         )
