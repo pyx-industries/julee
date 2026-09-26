@@ -7,7 +7,7 @@ whether doctrine found any entities to check at all. Either way the
 parsing has already happened: nothing here reads a file.
 """
 
-from collections.abc import Collection, Iterable
+from collections.abc import Iterable
 
 from julee.core.doctrine_constants import (
     CALCULATORS_PATH,
@@ -247,7 +247,7 @@ def domain_packages_doctrine_does_not_read(
 
 def copies_that_skip_a_validator(
     copies: Iterable[tuple[str, int, tuple[str, ...]]],
-    validated_fields: Collection[str],
+    validated_fields: Iterable[str],
 ) -> list[str]:
     """Uses of model_copy that write a field carrying a validator.
 
@@ -283,9 +283,11 @@ def copies_that_skip_a_validator(
     Returns:
         One sentence per call that writes a validated field
     """
+    validated = set(validated_fields)
+
     objections = []
     for path, line, fields in copies:
-        skipped = sorted(set(fields) & set(validated_fields))
+        skipped = sorted(set(fields) & validated)
         if not skipped:
             continue
         # Read once by a person who then has to act on it, so it agrees
