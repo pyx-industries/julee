@@ -1,3 +1,3 @@
 """Julee - Clean architecture for accountable and transparent digital supply chains."""
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
