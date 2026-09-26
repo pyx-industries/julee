@@ -7,12 +7,22 @@ than on which methods were called.
 This is public API. Any kit or solution with MinIO repositories needs it
 to test them, which is why it lives here rather than in julee's own test
 tree.
+
+A double is only worth having if it fails where the real thing fails.
+``get_object`` used to answer with ``Mock(read=Mock(return_value=data))``
+— a read that returned the whole object however many times it was
+called, ignored its ``size`` argument, and never ran out. Real MinIO
+answers with an HTTP response that is consumed as it is read, so a bug
+that hands one response to two readers could not be written a test for:
+the second reader got the content here and an empty bytestring in
+production. That was julee#124, found in a downstream deployment rather
+than by any of the tests over this.
 """
 
 from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, cast
 from unittest.mock import Mock
 
 from minio.api import ObjectWriteResult
@@ -22,6 +32,40 @@ from urllib3 import HTTPHeaderDict
 from urllib3.response import BaseHTTPResponse
 
 from julee.integrations.minio.client import MinioClient
+
+
+class _ConsumedOnRead:
+    """A response whose bytes are read once, as MinIO's is.
+
+    Not a Mock, because the behaviour under test is what successive
+    reads return, and a Mock configured to remember that is a second
+    implementation of it. Spells the parts of ``BaseHTTPResponse`` that
+    julee's client and its callers use.
+    """
+
+    def __init__(self, data: bytes) -> None:
+        self._remaining = data
+        self.closed = False
+
+    def read(self, size: int | None = None) -> bytes:
+        """Take bytes off the front, as a socket would.
+
+        Args:
+            size: How many bytes, or None or -1 for the rest
+
+        Returns:
+            The bytes taken, empty once the response is spent
+        """
+        if size is None or size < 0:
+            size = len(self._remaining)
+        taken, self._remaining = self._remaining[:size], self._remaining[size:]
+        return taken
+
+    def close(self) -> None:
+        self.closed = True
+
+    def release_conn(self) -> None:
+        pass
 
 
 def requires_bucket(func: Callable) -> Callable:
@@ -150,15 +194,18 @@ class FakeMinioClient(MinioClient):
 
     @requires_object
     def get_object(self, bucket_name: str, object_name: str) -> BaseHTTPResponse:
-        """Retrieve an object from the bucket."""
+        """Retrieve an object from the bucket.
 
+        The response is consumed as it is read, like the real one: a
+        second read returns b"" rather than the object again. Anything
+        that needs the bytes twice has to keep them, which is what the
+        caller must do in production anyway.
+        """
         obj_info = self._objects[bucket_name][object_name]
-        # Create a mock BaseHTTPResponse with the data
-        mock_response = Mock(spec=BaseHTTPResponse)
-        mock_response.read = Mock(return_value=obj_info["data"])
-        mock_response.close = Mock()
-        mock_response.release_conn = Mock()
-        return mock_response
+        # Structural, not nominal: callers use read/close/release_conn,
+        # and BaseHTTPResponse is a urllib3 class with a constructor this
+        # has no business calling.
+        return cast(BaseHTTPResponse, _ConsumedOnRead(obj_info["data"]))
 
     @requires_object
     def stat_object(self, bucket_name: str, object_name: str) -> Object:
