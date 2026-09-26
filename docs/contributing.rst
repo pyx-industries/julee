@@ -377,9 +377,12 @@ target passes ``-W``, so warnings fail the build the way CI does, and the
 one inside ``docs/`` does not. A local build that looks green while CI
 rejects it is worse than no local build.
 
-Or use autobuild for live reload, which does not enforce warnings::
+While writing, ``make docs-serve`` rebuilds and reloads as you save. It
+does not pass ``-W``, so a half-written cross-reference does not stop
+the page appearing — which is why ``make docs`` is still the one to run
+before pushing::
 
-    uv run --extra docs sphinx-autobuild docs docs/_build/html
+    make docs-serve
 
 Architectural decisions go in ``docs/ADRs/`` and are published with the
 rest of the documentation. Add new ones to the index table and to the
