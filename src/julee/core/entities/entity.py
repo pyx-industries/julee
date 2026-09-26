@@ -64,6 +64,13 @@ class Entity(BaseModel, frozen=True):
         This docstring used to recommend ``model_copy(update=...)``, and
         every place that got it wrong was following that advice.
 
+        ``model_copy(update=...)`` is still the right tool for one
+        thing: building a state the validators forbid, on purpose. A
+        test that has to exercise what happens to a document with no
+        content cannot construct one any other way, and is entitled to.
+        Doctrine reads no ``tests`` directory, so the rule that objects
+        to this in production code does not ask those to change.
+
         Implemented by reconstructing from the current field values
         rather than from ``model_dump()``. A dump drops fields marked
         ``exclude=True`` and cannot represent one holding something
