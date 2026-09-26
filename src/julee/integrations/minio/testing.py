@@ -19,8 +19,9 @@ production. That was julee#124, found in a downstream deployment rather
 than by any of the tests over this.
 """
 
+import hashlib
 import io
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from functools import wraps
 from typing import Any, BinaryIO, cast
@@ -83,6 +84,27 @@ class _ConsumedOnRead(io.RawIOBase):
 
     def release_conn(self) -> None:
         """What a caller calls after close(); real responses have it."""
+
+
+def _as_response_headers(
+    metadata: dict[str, str | list[str] | tuple[str]] | None,
+    content_type: str,
+    size: int,
+) -> HTTPHeaderDict:
+    """User metadata as MinIO gives it back: among the response headers.
+
+    The real client passes ``response.headers`` straight through as an
+    Object's metadata, so what went in as ``filename`` comes back as
+    ``x-amz-meta-filename`` next to content-type and the rest.
+    """
+    headers = HTTPHeaderDict()
+    headers["content-type"] = content_type
+    headers["content-length"] = str(size)
+    for key, value in (metadata or {}).items():
+        if isinstance(value, list | tuple):
+            value = ",".join(str(each) for each in value)
+        headers[f"x-amz-meta-{key}"] = str(value)
+    return headers
 
 
 def requires_bucket(func: Callable) -> Callable:
@@ -179,23 +201,35 @@ class FakeMinioClient(MinioClient):
         content_type: str = "application/octet-stream",
         metadata: dict[str, str | list[str] | tuple[str]] | None = None,
     ) -> ObjectWriteResult:
-        """Store an object in the bucket."""
+        """Store an object in the bucket.
 
-        # Read the data from stream
-        if hasattr(data, "read"):
-            if hasattr(data, "seek"):
-                data.seek(0)  # Ensure we're at the beginning
-            content = data.read()
-            if hasattr(data, "seek"):
-                data.seek(0)  # Reset for potential re-use
-        else:
-            content = data if isinstance(data, bytes) else str(data).encode("utf-8")
+        Reads ``length`` bytes from where the stream currently is, and
+        objects if there are not that many. Both halves matter and
+        neither used to hold: this rewound the caller's stream first and
+        then stored however much it found.
+
+        Real MinIO never rewinds — it cannot, since a stream may be a
+        socket — and it uses ``length`` as the object size, raising if
+        the body is short. So a caller that handed over a
+        partially-consumed stream stored the whole object here and a
+        truncated one in production, and a caller whose ``length``
+        disagreed with its data was told nothing (#285).
+        """
+        content = data.read(length)
+        if len(content) != length:
+            raise OSError(
+                f"stream having not enough data; expected: {length}, "
+                f"got: {len(content)} bytes"
+            )
 
         self._objects[bucket_name][object_name] = {
             "data": content,
-            "metadata": metadata or {},
+            "metadata": _as_response_headers(metadata, content_type, len(content)),
+            "user_metadata": dict(metadata or {}),
             "content_type": content_type,
             "size": len(content),
+            "last_modified": datetime.now(UTC),
+            "etag": hashlib.md5(content).hexdigest(),
         }
 
         # Return a proper ObjectWriteResult
@@ -226,41 +260,62 @@ class FakeMinioClient(MinioClient):
 
     @requires_object
     def stat_object(self, bucket_name: str, object_name: str) -> Object:
-        """Get object metadata without retrieving the object data."""
+        """Get object metadata without retrieving the object data.
 
+        ``metadata`` is the response headers, as the real client's is,
+        so user metadata appears under ``x-amz-meta-*``. It used to be
+        the dict the caller passed to put_object, which meant
+        ``stat.metadata["filename"]`` worked here and returned nothing
+        in production (#285).
+        """
         obj_info = self._objects[bucket_name][object_name]
-        # Create a real Minio Object
         return Object(
             bucket_name=bucket_name,
             object_name=object_name,
-            last_modified=datetime.now(UTC),
-            etag="fake-etag",
+            last_modified=obj_info["last_modified"],
+            etag=obj_info["etag"],
             size=obj_info["size"],
             content_type=obj_info["content_type"],
             metadata=obj_info["metadata"],
         )
 
-    def list_objects(self, bucket_name: str, prefix: str = "") -> list:
-        """List objects in a bucket with optional prefix filter."""
-        if bucket_name not in self._objects:
-            return []
+    @requires_bucket
+    def list_objects(self, bucket_name: str, prefix: str = "") -> Iterator[Object]:
+        """List objects in a bucket with optional prefix filter.
 
-        objects = []
-        for object_name, obj_info in self._objects[bucket_name].items():
+        A generator, as the real one is, so it is consumed by whoever
+        iterates it first. Returning a list let a caller iterate twice
+        and get two full passes here and one-then-empty in production.
+
+        It yields ``Object``, not ``Mock``. A Mock answers every
+        attribute plausibly, so ``obj.is_dir`` was truthy and a caller
+        filtering on it skipped everything here and nothing there
+        (#285).
+
+        A bucket that does not exist raises rather than listing nothing,
+        which is what the protocol says and what a typo deserves.
+        """
+        for object_name, obj_info in sorted(self._objects[bucket_name].items()):
             if object_name.startswith(prefix):
-                # Create a simple object info structure
-                obj = Mock()
-                obj.object_name = object_name
-                obj.size = obj_info["size"]
-                objects.append(obj)
+                yield Object(
+                    bucket_name=bucket_name,
+                    object_name=object_name,
+                    last_modified=obj_info["last_modified"],
+                    etag=obj_info["etag"],
+                    size=obj_info["size"],
+                    content_type=obj_info["content_type"],
+                    metadata=obj_info["metadata"],
+                )
 
-        return objects
-
-    @requires_object
+    @requires_bucket
     def remove_object(self, bucket_name: str, object_name: str) -> None:
-        """Remove an object from the bucket."""
+        """Remove an object from the bucket.
 
-        del self._objects[bucket_name][object_name]
+        Idempotent, because S3's DELETE is: removing something that is
+        not there is not an error. This used to raise NoSuchKey, which
+        failed code that works in production (#285).
+        """
+        self._objects[bucket_name].pop(object_name, None)
 
     # Inspection methods for testing
     def get_stored_objects(self, bucket_name: str) -> dict[str, dict[str, Any]]:
