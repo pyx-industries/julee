@@ -758,6 +758,8 @@ all = [
     { name = "griffe" },
     { name = "inflect" },
     { name = "minio" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "python-multipart" },
     { name = "temporalio", extra = ["pydantic"] },
     { name = "uvicorn" },
@@ -811,6 +813,8 @@ docs = [
 doctrine = [
     { name = "griffe" },
     { name = "inflect" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
 ]
 minio = [
     { name = "minio" },
@@ -840,7 +844,9 @@ requires-dist = [
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "pytest", marker = "extra == 'doctrine'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'doctrine'", specifier = ">=1.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pytest-timeout", marker = "extra == 'dev'", specifier = ">=2.3.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.5.0" },

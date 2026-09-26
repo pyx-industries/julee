@@ -31,12 +31,26 @@ dependencies = [
     "pydantic>=2.0.0",
 ]
 
+[project.scripts]
+julee = "julee.cli.main:main"
+
+# pytest --julee-doctrine, for a solution that wants doctrine among its
+# own failures rather than in a separate run.
+[project.entry-points.pytest11]
+julee_doctrine = "julee.pytest_plugin"
+
 [project.optional-dependencies]
 
 # Doctrine, policy and code introspection
 doctrine = [
     "griffe>=1.0.0,<2",
     "inflect>=7.5.0",
+    # The doctrine tests ARE the doctrine (ADR 002), so a solution that
+    # installs this extra to check itself is installing a test suite and
+    # needs a runner for it. `julee doctrine verify` and
+    # `pytest --julee-doctrine` both run them.
+    "pytest>=8.0.0",
+    "pytest-asyncio>=1.0.0",
 ]
 
 # Temporal integration
