@@ -14,6 +14,7 @@ from julee.core.doctrine.rules.port import (
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
     protocols_in,
+    services_bound_to_too_few_entities,
 )
 from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
 
@@ -112,6 +113,49 @@ class TestDrivenPortBinding:
         )
 
         assert not violations, "Ports bound to entities they should not be:\n" + (
+            "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_a_service_MUST_be_bound_to_two_or_more_entities(
+        self, repo, entity_names_by_context
+    ):
+        """A service MUST name at least two entities of its context.
+
+        The mirror of ADR 009's repository rule, and the other end of the
+        same distinction: a repository covers one entity, and a service
+        is what you reach for when an operation spans two. Without this
+        the ``*Service`` suffix was a spelling convention — doctrine
+        checked that a protocol in domain/services/ was called one, and
+        never that it was one (#236).
+
+        A protocol bound to one entity is a repository. One bound to none
+        is an Oracle, a Calculator or a Witness, and which depends on
+        whether a workflow may call it inline and whether a replay gets
+        the same answer back — a question only its author can settle,
+        which is why the objection names all three rather than guessing.
+
+        Handlers are not counted. ADR 016 puts a handler at any arity:
+        what makes it one is that it returns an ``Acknowledgement``.
+        """
+        services = [
+            found
+            for ctx in await repo.list_all()
+            for info in [parse_bounded_context(Path(ctx.path))]
+            if info is not None
+            for found in protocols_in("services", info.service_protocols, ctx.slug)
+        ]
+
+        # A kit may legitimately have no service: four of the five have
+        # none. Skip rather than pass, as the repository doctrine does.
+        if not services:
+            pytest.skip("No service protocols in target codebase — nothing to check")
+
+        violations = services_bound_to_too_few_entities(
+            [found for _, found in services], entity_names_by_context
+        )
+
+        assert not violations, "Services not bound to two entities:\n" + (
             "\n".join(violations)
         )
 

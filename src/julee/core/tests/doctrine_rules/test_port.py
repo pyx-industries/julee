@@ -7,6 +7,7 @@ from julee.core.doctrine.rules.port import (
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
     protocols_in,
+    services_bound_to_too_few_entities,
 )
 from julee.core.entities.code_info import ClassInfo, MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
@@ -327,3 +328,89 @@ def test_a_class_with_no_path_is_not_guessed_about() -> None:
 def test_the_rule_is_silent_about_an_empty_codebase() -> None:
     """Which is what the canary in the doctrine test exists to catch."""
     assert port_implementations_outside_infrastructure([]) == []
+
+
+# =============================================================================
+# How many entities a service is bound to (#236)
+# =============================================================================
+
+
+def a_service(*references: str, name: str = "ReconciliationService"):
+    """A service protocol naming these types in its signatures."""
+    _, found = a_port(name, "services", references=references)
+    return found
+
+
+def test_a_service_spanning_two_entities_is_what_a_service_is() -> None:
+    """The live subject: PollerService takes a PollingConfig and returns a
+    PollingResult."""
+    services = [a_service("PollingConfig", "PollingResult")]
+
+    assert services_bound_to_too_few_entities(services, ENTITIES) == []
+
+
+def test_a_service_spanning_three_entities_is_still_a_service() -> None:
+    """Two or more, not exactly two: ADR 016 puts no ceiling on it."""
+    entities = {"polling": {"PollingConfig", "PollingResult", "PollingSchedule"}}
+    services = [a_service("PollingConfig", "PollingResult", "PollingSchedule")]
+
+    assert services_bound_to_too_few_entities(services, entities) == []
+
+
+def test_a_service_bound_to_one_entity_is_told_it_is_a_repository() -> None:
+    """The mirror of ADR 009's rule, from the other side."""
+    services = [a_service("PollingConfig")]
+
+    (objection,) = services_bound_to_too_few_entities(services, ENTITIES)
+
+    assert "'PollingConfig'" in objection
+    assert "repository" in objection
+
+
+def test_a_service_bound_to_no_entity_is_offered_the_zero_arity_ports() -> None:
+    """Which of the three it is depends on whether a workflow may call it
+    inline and whether a replay agrees — so all three are named."""
+    services = [a_service("str", "dict")]
+
+    (objection,) = services_bound_to_too_few_entities(services, ENTITIES)
+
+    assert "Oracle" in objection
+    assert "Calculator" in objection
+    assert "Witness" in objection
+
+
+def test_a_service_naming_nothing_at_all_is_bound_to_nothing() -> None:
+    assert services_bound_to_too_few_entities([a_service()], ENTITIES) != []
+
+
+def test_types_that_are_not_entities_do_not_count_towards_the_two() -> None:
+    """Otherwise any protocol with two arguments would pass."""
+    services = [a_service("PollingConfig", "str", "dict", "Path")]
+
+    assert services_bound_to_too_few_entities(services, ENTITIES) != []
+
+
+def test_an_entity_of_another_context_does_not_count() -> None:
+    """The intersection is with this context's entities, not every name."""
+    services = [a_service("PollingConfig", "Document")]
+
+    assert services_bound_to_too_few_entities(services, ENTITIES) != []
+
+
+def test_a_context_doctrine_knows_no_entities_for_objects_rather_than_passes() -> None:
+    """A service is bound to nothing when nothing is known, which is the
+    loud direction. Silence here would be the bug."""
+    services = [a_service("PollingConfig", "PollingResult")]
+
+    assert services_bound_to_too_few_entities(services, {}) != []
+
+
+def test_the_objection_names_the_context_and_the_protocol() -> None:
+    (objection,) = services_bound_to_too_few_entities([a_service()], ENTITIES)
+
+    assert objection.startswith("polling.ReconciliationService:")
+
+
+def test_the_rule_is_silent_about_a_codebase_with_no_services() -> None:
+    """Which the doctrine test reports as a skip rather than a pass."""
+    assert services_bound_to_too_few_entities([], ENTITIES) == []

@@ -31,7 +31,7 @@ Doctrine defines the structural constraints for a valid Julee solution. The cate
 |---------------|-------------------|
 | **Bounded Context** | What constitutes a valid bounded context (domain/models or domain/use_cases required) |
 | **Repository Protocol** | Repository interfaces live in domain/, implementations in infrastructure/ |
-| **Driven Port** | Each of ADR 016's six ports lives in its own directory under domain/, implementations in infrastructure/, and claims its role in its name — `*Service` in services/, `*Handler` in handlers/, `*Oracle` in oracles/, `*Calculator` in calculators/, `*Witness` in witnesses/. A repository declares its entity through `RepositoryOf[Entity]` instead |
+| **Driven Port** | Each of ADR 016's six ports lives in its own directory under domain/, implementations in infrastructure/, and claims its role in its name — `*Service` in services/, `*Handler` in handlers/, `*Oracle` in oracles/, `*Calculator` in calculators/, `*Witness` in witnesses/. A repository declares its entity through `RepositoryOf[Entity]` instead. The name claims an arity too, and that is checked: a service spans two or more of its context's entities, an oracle and a witness none |
 | **Use Case** | Business logic lives in use_cases/, has execute() method taking request/response objects |
 | **Infrastructure** | Implementations coupled to external systems live in infrastructure/ or repositories/ |
 | **Viewpoint** | HCD and C4 are special bounded contexts that provide architectural views |
@@ -107,6 +107,14 @@ Handlers were the last port told apart by their name rather than their
 directory, which is the mechanism #175 abandoned. ADR 016 gave them
 `domain/handlers/`, so a `*Handler` found in `domain/services/` is now
 objected to for where it is rather than what it is called (#256).
+
+The name claims an arity as well as a layer. ADR 016 separates a
+Repository from a Service by how many entities each is bound to, so
+`*Service` on a protocol bound to one entity says "repository" and
+"service" in the same breath. Both ends of that grid are now checked —
+an oracle or a witness bound to any entity of its context, and a service
+bound to fewer than two — which is what stops the suffix being a
+spelling convention (#236).
 
 The claim travels with the name, so it is checked wherever the name
 appears. A class ending in one of the five role suffixes belongs in its

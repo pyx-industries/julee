@@ -30,6 +30,7 @@ __all__ = [
     "ZERO_ENTITY_DIRECTORIES",
     "port_implementations_outside_infrastructure",
     "ports_bound_to_entities_they_should_not_be",
+    "services_bound_to_too_few_entities",
     "ports_misnamed_for_their_directory",
 ]
 
@@ -255,5 +256,67 @@ def port_implementations_outside_infrastructure(
             f"{slug}.{cls.name}: a {role} found in {cls.file}. The protocol "
             f"belongs in domain/{role.lower()}s/ and anything implementing "
             f"it in infrastructure/"
+        )
+    return objections
+
+
+def services_bound_to_too_few_entities(
+    services: Iterable[CodeArtifactWithContext],
+    entity_names_by_context: Mapping[str, set[str]],
+) -> list[str]:
+    """Service protocols not bound to the two entities that make them one.
+
+    The mirror of ADR 009's repository rule, and what makes ``*Service``
+    a claim with teeth rather than a spelling convention. A Repository
+    covers one entity; a Service is what you reach for when an operation
+    spans two, and that is the whole of the difference between them.
+
+    Arity is counted the way the repository rule counts it: the types a
+    protocol names in its signatures, intersected with the entities its
+    context offers. Those include the kernel's, because a kit builds on
+    ``BoundedContextInfo``, ``ClassInfo`` and ``Accelerator`` and a port
+    over them is bound to an entity like any other (#237).
+
+    What to do about an objection is decided by the count, so the count
+    is what the objection leads with. Bound to one, the protocol is a
+    repository. Bound to none, ADR 016 has three rows for it and which
+    one depends on a question only the author can answer: whether a
+    workflow may call it inline, and whether a replay would get the same
+    answer back.
+
+    Handlers are not services and are not counted here. ADR 016 puts a
+    Handler at any arity: what makes it a Handler is that it returns an
+    ``Acknowledgement``, which is a rule of its own.
+
+    Args:
+        services: The service protocols a codebase has
+        entity_names_by_context: Entity names, by bounded context slug,
+            each already carrying the kernel's
+
+    Returns:
+        One sentence per service bound to fewer than two entities
+    """
+    objections = []
+    for found in services:
+        known = entity_names_by_context.get(found.bounded_context, set())
+        bound = sorted(found.artifact.referenced_types & known)
+        if len(bound) >= 2:
+            continue
+        if bound:
+            remedy = (
+                f"bound to one, {bound[0]!r}. A protocol bound to one "
+                f"entity is a repository"
+            )
+        else:
+            remedy = (
+                "bound to none. ADR 016 has three ports for that: an "
+                "Oracle is reached through an activity, a Calculator is "
+                "called inline and follows from its arguments, a Witness "
+                "is called inline and replays the same"
+            )
+        objections.append(
+            f"{found.bounded_context}.{found.artifact.name}: a Service is "
+            f"bound to two or more entities of its context, but this one is "
+            f"{remedy}"
         )
     return objections
