@@ -2,7 +2,57 @@
 
 ## Status
 
-Draft
+Superseded in part by [ADR 012](012-framework-and-kits.md)
+
+The principle stands: docstrings are the documentation, a solution's own
+content is projected rather than restated, and doctrine compliance is what
+makes the projection reliable. What ADR 012 removed is the thing this ADR
+projects *through*.
+
+**Framework bounded contexts are gone.** Section 2 tabulates `julee.core`,
+`julee.hcd` and `julee.c4` as three viewpoints the framework knows in
+advance. ADR 012 took the domain out of the kernel: HCD and C4 are kits, and
+the projection into documentation is a third kit, `julee-viewpoints`, which
+adopts both. `julee.core` projects nothing.
+
+**A viewpoint is now declared, not known.** A kit sets `viewpoint = True` on
+its manifest (ADR 012, section 5) and `julee.core.kits.viewpoint_slugs()`
+reads it from the kits a solution has adopted. The framework has no list. A
+solution that adopts no viewpoint kit has no viewpoints, and one that writes
+its own gets them without asking the framework's permission.
+
+**Sections 1, 3 and 7 were never built**, and are recorded here as intent
+rather than as description. There is no directive that projects a solution's
+instances of a kernel concept; there is no per-entity template selected by
+module path; the extensions do not document themselves. What was built
+instead is a contribution point: a kit offers Sphinx extensions at
+`sphinx.extension`, and `julee.core.kits.sphinx_extensions()` collects them
+from the adopted kits. That is composition, not template dispatch, and it
+solves a problem this ADR did not have — a framework owning hcd and c4 needs
+no way for a stranger to register a directive.
+
+**Section 6 is withdrawn.** "Delete `docs/architecture/` after migrating
+valuable editorial content INTO source docstrings" is not the estate's
+practice and is not wanted. `docs/` is written and owned, `architecture/`
+belongs to it, and prose that explains a decision to a reader is not
+redundant with a docstring that documents a callable to a user of it.
+Generated API documentation sits beside hand-written architecture; neither
+replaces the other.
+
+**Sections 4 and 5 hold.** Directives wrap read use cases and templates
+compose them; Sphinx extensions are infrastructure rather than bounded
+contexts, which `julee.core.doctrine.rules.boundary` now enforces.
+
+What remains genuinely open is how this relates to [ADR
+015](015-semantics-as-claims.md). This ADR imagined projection inside a
+framework that owned hcd and c4, where naming another context's class cost
+nothing. Once they became separate distributions, that became a claim across
+a kit boundary, and ADR 015 answers it with `semantics.toml` — data a kit
+publishes and a solution accepts, rather than a relation one kit asserts
+about another's model. This ADR predates the boundary existing and says
+nothing about it.
+
+The sections below are kept as the record of the original decision.
 
 ## Date
 

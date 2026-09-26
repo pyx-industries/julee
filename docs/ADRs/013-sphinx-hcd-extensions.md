@@ -4,7 +4,7 @@
 
 Superseded in part by [ADR 012](012-framework-and-kits.md)
 
-The reasoning here stands: documentation derived from the artefacts that drive build and test outcomes, organised by human-centred-design concepts. [ADR 006](006-code-outward-documentation.md) carries it forward. What ADR 012 supersedes is where the code lives. This ADR placed it in the framework as `julee.docs.sphinx_hcd`; ADR 012 moves the HCD and C4 viewpoints out into a kit, `julee-viewpoints`, and leaves the framework only the directives that project kernel concepts, in `julee.integrations.sphinx`. The section "Package Location" below is kept as the record of the original decision.
+The reasoning here stands: documentation derived from the artefacts that drive build and test outcomes, organised by human-centred-design concepts. [ADR 006](006-code-outward-documentation.md) carries it forward. What ADR 012 supersedes is where the code lives. This ADR placed it in the framework as `julee.docs.sphinx_hcd`; ADR 012 moves the HCD and C4 viewpoints out into a kit, `julee-viewpoints`, and leaves the framework none of its own: `julee.integrations.sphinx` was named here when this line was written and was never created, so a solution's Sphinx extensions come entirely from the kits it adopts, through the `sphinx.extension` contribution point. The section "Package Location" below is kept as the record of the original decision.
 
 This ADR was proposed on 2025-12-11 as `ADRs/003-sphinx-hcd.rst`, in a top-level directory apart from the other ADRs, where its number collided with [ADR 003](003-workflow-orchestration-handlers.md). It was moved here, converted to Markdown and renumbered on 2026-09-21. Two spelling mistakes were corrected; its content is otherwise unchanged.
 
