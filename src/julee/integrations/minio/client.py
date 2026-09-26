@@ -151,6 +151,27 @@ class MinioClient(Protocol):
         """
         ...
 
+    def remove_object(self, bucket_name: str, object_name: str) -> None:
+        """Remove an object from the bucket.
+
+        Idempotent, because S3's DELETE is: removing something that is
+        not there is not an error, and a caller that reaps what it no
+        longer needs should not have to check first.
+
+        Both implementations have always had this; the protocol did not
+        name it, so a caller typed against MinioClient could not reach
+        it and the double offered a method the interface did not
+        promise. The contract suite is what noticed (#298).
+
+        Args:
+            bucket_name: Name of the bucket
+            object_name: Name of the object to remove
+
+        Raises:
+            S3Error: If the bucket doesn't exist
+        """
+        ...
+
 
 class MinioRepositoryMixin:
     """
