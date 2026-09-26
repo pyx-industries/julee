@@ -5,9 +5,7 @@ from pathlib import Path
 import pytest
 
 from julee.cli.verify import (
-    claim_packages_in,
     enclosing_solution,
-    packages_doctrine_cannot_import,
     pytest_arguments,
     resolve_target,
     target_objections,
@@ -132,45 +130,6 @@ class TestWhetherItCanRun:
         (objection,) = target_objections(solution, a_config(search_root="srcc"))
 
         assert "srcc" in objection
-
-
-# =============================================================================
-# The premise the semantics rules rest on (#269)
-# =============================================================================
-
-
-class TestTheImportPremise:
-    def test_claim_publishers_are_found_by_their_directory(
-        self, solution: Path
-    ) -> None:
-        package = solution / "src" / "acme"
-        package.mkdir(parents=True)
-        (package / "semantics.toml").write_text("")
-
-        assert claim_packages_in(solution) == ["acme"]
-
-    def test_an_installed_kits_claims_are_not_the_solutions_problem(
-        self, solution: Path
-    ) -> None:
-        """A .venv holds every dependency's semantics.toml."""
-        vendored = solution / ".venv" / "lib" / "julee_hcd"
-        vendored.mkdir(parents=True)
-        (vendored / "semantics.toml").write_text("")
-
-        assert claim_packages_in(solution) == []
-
-    def test_an_importable_publisher_raises_no_objection(self) -> None:
-        assert packages_doctrine_cannot_import(["acme"], lambda _: True) == []
-
-    def test_a_publisher_that_is_not_installed_is_objected_to(self) -> None:
-        """#269: every claim it makes would read as naming a missing class."""
-        (objection,) = packages_doctrine_cannot_import(["acme"], lambda _: False)
-
-        assert "acme" in objection
-        assert "not importable" in objection
-
-    def test_a_target_publishing_nothing_has_no_premise_to_check(self) -> None:
-        assert packages_doctrine_cannot_import([], lambda _: False) == []
 
 
 # =============================================================================

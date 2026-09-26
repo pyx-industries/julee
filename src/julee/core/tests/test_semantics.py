@@ -8,8 +8,12 @@ from julee.core.entities.claim import Claim, ClaimKind
 from julee.core.entities.kit import Kit
 from julee.core.semantics import (
     accepted_claims,
+    claim_packages,
     kit_claims,
     load_semantics,
+    names_bound_in,
+    resolves_in,
+    semantics_documents,
     solution_claims,
 )
 
@@ -314,3 +318,138 @@ target = "acme.App"
         "julee_hcd.domain.models.story.Story",
         "acme.Story",
     ]
+
+
+# =============================================================================
+# Resolving a claim's end by reading, not importing (#269)
+# =============================================================================
+
+
+def a_package(root: Path, name: str, modules: dict[str, str] | None = None) -> Path:
+    """A package directory publishing claims, with the modules named.
+
+    A key of "domain/models/story.py" is what the dotted path
+    "<name>.domain.models.story.<something>" has to map onto.
+    """
+    directory = root / name
+    directory.mkdir(parents=True)
+    (directory / "semantics.toml").write_text("")
+    for relative, source in (modules or {}).items():
+        module = directory / relative
+        module.parent.mkdir(parents=True, exist_ok=True)
+        module.write_text(source)
+    return directory
+
+
+class TestNamesBoundInSource:
+    def test_a_class_is_bound(self) -> None:
+        assert "Story" in names_bound_in("class Story:\n    pass\n")
+
+    def test_a_function_is_bound(self) -> None:
+        assert "derive" in names_bound_in("def derive():\n    pass\n")
+
+    def test_an_assignment_is_bound(self) -> None:
+        """A claim may name a type alias as readily as a class."""
+        assert "Slug" in names_bound_in("Slug = str\n")
+
+    def test_an_annotated_assignment_is_bound(self) -> None:
+        assert "LIMIT" in names_bound_in("LIMIT: int = 5\n")
+
+    def test_a_re_export_is_bound(self) -> None:
+        """Naming a package's __init__ re-export is the ordinary way to
+        write a claim, and importing resolved it before."""
+        assert "Story" in names_bound_in("from .story import Story\n")
+
+    def test_an_aliased_import_is_bound_by_its_alias(self) -> None:
+        bound = names_bound_in("from .story import Story as Tale\n")
+
+        assert "Tale" in bound
+        assert "Story" not in bound
+
+    def test_a_conditional_re_export_is_bound(self) -> None:
+        """A name offered behind a try/except is still offered."""
+        source = "try:\n    from .fast import Story\nexcept ImportError:\n    from .slow import Story\n"
+
+        assert "Story" in names_bound_in(source)
+
+    def test_a_name_bound_only_inside_a_class_is_not_module_level(self) -> None:
+        """Otherwise a claim could name a method and read as resolved."""
+        assert "helper" not in names_bound_in(
+            "class Story:\n    def helper(self):\n        pass\n"
+        )
+
+    def test_unparseable_source_binds_nothing(self) -> None:
+        """So a file doctrine cannot read objects rather than passes."""
+        assert names_bound_in("class Story(:\n") == frozenset()
+
+
+class TestResolvingAgainstTheTarget:
+    def test_a_class_in_a_module_resolves(self, tmp_path: Path) -> None:
+        """The case #269 is about: answered from the tree, with nothing
+        installed and nothing imported."""
+        package = a_package(
+            tmp_path,
+            "julee_hcd",
+            {"domain/models/story.py": "class Story:\n    pass\n"},
+        )
+
+        assert resolves_in("julee_hcd.domain.models.story.Story", package)
+
+    def test_a_class_that_is_not_there_does_not_resolve(self, tmp_path: Path) -> None:
+        package = a_package(
+            tmp_path,
+            "julee_hcd",
+            {"domain/models/story.py": "class Tale:\n    pass\n"},
+        )
+
+        assert not resolves_in("julee_hcd.domain.models.story.Story", package)
+
+    def test_a_module_that_is_not_there_does_not_resolve(self, tmp_path: Path) -> None:
+        package = a_package(tmp_path, "julee_hcd")
+
+        assert not resolves_in("julee_hcd.domain.models.story.Story", package)
+
+    def test_a_name_in_the_packages_own_init_resolves(self, tmp_path: Path) -> None:
+        package = a_package(
+            tmp_path, "julee_hcd", {"__init__.py": "class Story:\n    pass\n"}
+        )
+
+        assert resolves_in("julee_hcd.Story", package)
+
+    def test_a_name_in_a_subpackages_init_resolves(self, tmp_path: Path) -> None:
+        package = a_package(
+            tmp_path,
+            "julee_hcd",
+            {"domain/__init__.py": "class Story:\n    pass\n"},
+        )
+
+        assert resolves_in("julee_hcd.domain.Story", package)
+
+    def test_a_dotted_path_naming_a_module_resolves(self, tmp_path: Path) -> None:
+        """As it would if the package were imported."""
+        package = a_package(tmp_path, "julee_hcd", {"domain/story.py": ""})
+
+        assert resolves_in("julee_hcd.domain.story", package)
+
+    def test_the_package_alone_names_nothing(self, tmp_path: Path) -> None:
+        package = a_package(tmp_path, "julee_hcd")
+
+        assert not resolves_in("julee_hcd", package)
+
+
+class TestFindingWhoPublishes:
+    def test_a_publisher_is_found_by_the_directory_holding_its_document(
+        self, tmp_path: Path
+    ) -> None:
+        package = a_package(tmp_path / "src", "julee_hcd")
+
+        assert claim_packages(tmp_path) == {"julee_hcd": package}
+
+    def test_an_installed_kits_claims_are_not_the_solutions_problem(
+        self, tmp_path: Path
+    ) -> None:
+        """A .venv holds every dependency's semantics.toml."""
+        a_package(tmp_path / ".venv" / "lib", "julee_hcd")
+
+        assert claim_packages(tmp_path) == {}
+        assert semantics_documents(tmp_path) == ()

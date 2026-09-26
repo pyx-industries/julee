@@ -8,15 +8,12 @@ worked, and nobody would guess it (#192).
 """
 
 import argparse
-import importlib.util
 import os
 import subprocess
 import sys
 from pathlib import Path
 
 from julee.cli.verify import (
-    claim_packages_in,
-    packages_doctrine_cannot_import,
     pytest_arguments,
     resolve_target,
     target_objections,
@@ -26,14 +23,6 @@ from julee.core.infrastructure.repositories.file.solution_config import (
 )
 
 __all__ = ["main", "verify"]
-
-
-def _can_import(package: str) -> bool:
-    """Whether a package resolves in the environment running this."""
-    try:
-        return importlib.util.find_spec(package) is not None
-    except (ImportError, ValueError):
-        return False
 
 
 def _fail(objections: list[str]) -> int:
@@ -53,19 +42,6 @@ def verify(args: argparse.Namespace) -> int:
 
     if objections := target_objections(target, config):
         return _fail(objections)
-
-    if not args.skip_import_check:
-        unimportable = packages_doctrine_cannot_import(
-            claim_packages_in(target), _can_import
-        )
-        if unimportable:
-            return _fail(
-                unimportable
-                + [
-                    "Run this from the target's own environment, or "
-                    "install it here. --skip-import-check runs anyway.",
-                ]
-            )
 
     # Flushed, or the subprocess writes its output first and the
     # header lands underneath what it heads.
@@ -98,14 +74,6 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         metavar="PATH",
         help="the codebase to verify (default: the working directory)",
-    )
-    check.add_argument(
-        "--skip-import-check",
-        action="store_true",
-        help=(
-            "run even where a package publishing semantic claims is not "
-            "importable here, which makes those rules unreliable (#269)"
-        ),
     )
     check.set_defaults(handler=verify)
 

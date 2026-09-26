@@ -10,18 +10,22 @@ the code could not even see survived for as long as nobody looked. The
 point of moving claims into data is that data can be checked, and these
 are the checks.
 
-A claim's ends are dotted paths, deliberately. Importing them here is
-safe in a way that importing them at declaration time was not: doctrine
-runs against an assembled solution where every adopted kit is installed,
-which is exactly when the question "does this name anything?" has an
-answer.
+A claim's ends are dotted paths, deliberately. A near end is resolved by
+reading the target's source, because the package publishing a claim is
+in the tree doctrine was pointed at — so the answer is about that tree
+and not about what happens to be installed where doctrine runs (#269).
+A far end may name a kit this tree does not contain, so it falls back to
+importing, and is only asked when its package is present.
 """
 
 import importlib
+from collections.abc import Mapping
+from pathlib import Path
 
 import pytest
 
 from julee.core.doctrine.rules.semantics import (
+    Resolver,
     claims_about_classes_not_owned,
     claims_about_missing_classes,
     claims_naming_missing_targets,
@@ -30,14 +34,23 @@ from julee.core.doctrine.rules.semantics import (
     claims_without_a_note,
 )
 from julee.core.entities.claim import Claim
-from julee.core.semantics import SEMANTICS_FILE, claims_from_toml, load_semantics
+from julee.core.semantics import (
+    claim_packages,
+    claims_from_toml,
+    load_semantics,
+    resolves_in,
+    semantics_documents,
+)
 
 
-def _resolves(dotted_path: str) -> bool:
-    """Whether a dotted path names something that exists.
+def _imports(dotted_path: str) -> bool:
+    """Whether a dotted path names something importable from here.
+
+    The fallback for an end whose package is not in the tree being
+    checked — the kernel, or a kit the target depends on.
 
     Args:
-        dotted_path: For example "julee_hcd.domain.models.story.Story"
+        dotted_path: For example "julee.core.entities.claim.Claim"
 
     Returns:
         True if the module imports and holds that name
@@ -52,21 +65,50 @@ def _resolves(dotted_path: str) -> bool:
     return hasattr(module, name)
 
 
-def _package_present(dotted_path: str) -> bool:
-    """Whether the package a dotted path starts with is installed here.
+@pytest.fixture(scope="session")
+def packages(project_root) -> Mapping[str, Path]:
+    """Where each package publishing claims in this tree lives."""
+    return claim_packages(project_root)
 
-    Args:
-        dotted_path: For example "julee_c4.domain.models.container.Container"
 
-    Returns:
-        True if its top-level package imports
+@pytest.fixture(scope="session")
+def resolves(packages) -> Resolver:
+    """Whether a dotted path names something, read from the target first.
+
+    A package in the tree is answered for by its own source, which is
+    the whole point: the same question gets the same answer whatever
+    environment doctrine runs in. Anything else is asked of the
+    interpreter, as before.
     """
-    root = dotted_path.split(".")[0]
-    try:
-        importlib.import_module(root)
-    except ImportError:
-        return False
-    return True
+
+    def resolve(dotted_path: str) -> bool:
+        directory = packages.get(dotted_path.split(".")[0])
+        if directory is not None:
+            return resolves_in(dotted_path, directory)
+        return _imports(dotted_path)
+
+    return resolve
+
+
+@pytest.fixture(scope="session")
+def package_present(packages) -> Resolver:
+    """Whether a path's package is somewhere this run can read it.
+
+    In the tree, or installed. A far end in neither is the one case the
+    rules deliberately let through.
+    """
+
+    def present(dotted_path: str) -> bool:
+        root = dotted_path.split(".")[0]
+        if root in packages:
+            return True
+        try:
+            importlib.import_module(root)
+        except ImportError:
+            return False
+        return True
+
+    return present
 
 
 @pytest.fixture(scope="session")
@@ -85,12 +127,7 @@ def published(project_root) -> tuple[tuple[str, Claim], ...]:
     everyone except the kit that makes them.
     """
     found: list[tuple[str, Claim]] = []
-    for document in sorted(project_root.rglob(SEMANTICS_FILE)):
-        if any(
-            part in {".venv", "build", "dist", "__pycache__", "node_modules"}
-            for part in document.parts
-        ):
-            continue
+    for document in semantics_documents(project_root):
         package = document.parent.name
         for claim in claims_from_toml(
             document.read_text(encoding="utf-8"), str(document)
@@ -134,7 +171,9 @@ class TestKitClaims:
             f"  {s}" for s in silent
         )
 
-    def test_a_kit_MUST_claim_about_classes_it_really_has(self, published) -> None:
+    def test_a_kit_MUST_claim_about_classes_it_really_has(
+        self, published, resolves
+    ) -> None:
         """The source of every published claim MUST resolve.
 
         A kit checks its own near ends. The far end may well name a kit
@@ -145,14 +184,14 @@ class TestKitClaims:
         solution that adopts it and by nobody in the kit itself, which
         is where a renamed class is actually noticed.
         """
-        dangling = claims_about_missing_classes(published, _resolves)
+        dangling = claims_about_missing_classes(published, resolves)
 
         assert not dangling, "Claims about classes that do not exist:\n" + "\n".join(
             f"  {d}" for d in dangling
         )
 
     def test_a_kit_MUST_name_a_target_correctly_when_it_can_be_checked(
-        self, published
+        self, published, resolves, package_present
     ) -> None:
         """A far end MUST resolve when its package is installed here.
 
@@ -164,7 +203,7 @@ class TestKitClaims:
 
         So the rule is what can be checked, is.
         """
-        wrong = claims_naming_missing_targets(published, _resolves, _package_present)
+        wrong = claims_naming_missing_targets(published, resolves, package_present)
 
         assert not wrong, (
             "Claims naming a class that does not exist, in a package that "
@@ -175,7 +214,7 @@ class TestKitClaims:
 class TestSolutionSemantics:
     """Rules about what a solution holds true."""
 
-    def test_every_claim_MUST_name_classes_that_exist(self, claims) -> None:
+    def test_every_claim_MUST_name_classes_that_exist(self, claims, resolves) -> None:
         """Both ends of every accepted claim MUST resolve.
 
         This is the check the decorators never had. A claim naming a
@@ -183,7 +222,7 @@ class TestSolutionSemantics:
         claim: the documentation asserts a relationship to something that
         is not there.
         """
-        dangling = claims_that_do_not_resolve(claims, _resolves)
+        dangling = claims_that_do_not_resolve(claims, resolves)
 
         assert not dangling, "Claims naming classes that do not exist:\n" + "\n".join(
             f"  {d}" for d in dangling
