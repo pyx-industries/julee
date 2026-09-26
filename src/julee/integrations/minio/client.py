@@ -122,15 +122,29 @@ class MinioClient(Protocol):
         """
         ...
 
-    def list_objects(self, bucket_name: str, prefix: str = "") -> Any:
+    def list_objects(
+        self, bucket_name: str, prefix: str = "", recursive: bool = False
+    ) -> Any:
         """List objects in a bucket with optional prefix filter.
+
+        ``recursive`` mirrors the real client, default and all: it maps
+        to ``delimiter=None if recursive else "/"``, and with a
+        delimiter S3 collapses anything more than one level below the
+        prefix into a single common-prefix entry rather than listing the
+        objects under it.
+
+        This protocol used not to name it, so every call took minio's
+        default and nobody had decided that (#287). It is named now so
+        that a caller says which it wants.
 
         Args:
             bucket_name: Name of the bucket
             prefix: Optional prefix to filter objects
+            recursive: True for every object under the prefix, False for
+                one level and a common prefix per directory below it
 
         Returns:
-            Iterator or list of objects matching the prefix
+            Iterator of objects matching the prefix
 
         Raises:
             S3Error: If bucket doesn't exist or other errors
@@ -556,8 +570,15 @@ class MinioRepositoryMixin:
             extra={"bucket": bucket_name, "prefix": prefix},
         )
 
-        # List all objects with the specified prefix
-        objects = self.client.list_objects(bucket_name=bucket_name, prefix=prefix)
+        # Every object under the prefix, not one level of it.
+        #
+        # The id is read off the end of the object name, so a
+        # common-prefix entry would be extracted as an id: keys like
+        # spec/<tenant>/<id> would yield "<tenant>/" rather than the
+        # ids under it, and nothing downstream could tell (#287).
+        objects = self.client.list_objects(
+            bucket_name=bucket_name, prefix=prefix, recursive=True
+        )
 
         # Extract IDs from object names by removing the prefix
         entity_ids = []
