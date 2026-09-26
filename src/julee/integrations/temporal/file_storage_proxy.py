@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from temporalio import workflow
 
@@ -19,7 +20,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
         # Activity timeout can be configured, but for simplicity, we use a
         # default here or could retrieve from workflow config.
         # This timeout should be generous enough for large file transfers.
-        self.activity_timeout = workflow.timedelta(seconds=600)  # 10 minutes
+        self.activity_timeout = timedelta(seconds=600)  # 10 minutes
         logger.debug("Initialized WorkflowFileStorageRepositoryProxy")
 
     async def upload_file(self, args: FileUploadArgs) -> FileMetadata:
