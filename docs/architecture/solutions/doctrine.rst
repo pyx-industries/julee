@@ -109,6 +109,12 @@ installed in the environment running doctrine, not on what is in the
 directory being read. A package that is not installed makes every claim
 it publishes look like it names a class that does not exist.
 
-Both entry points check that premise before running and stop if it does
-not hold, rather than reporting a page of violations that are really one
-missing install. ``--skip-import-check`` runs anyway.
+``julee doctrine verify`` checks that premise before running and stops
+if it does not hold, rather than reporting a page of violations that are
+really one missing install. ``--skip-import-check`` runs anyway.
+
+``pytest --julee-doctrine`` does not check it yet, so run it from the
+environment your solution's own tests run in — which is where it belongs
+anyway, and where the premise holds by construction. Moving the check
+into the rules, so that every way of running doctrine gets it, is
+`#269 <https://github.com/pyx-industries/julee/issues/269>`_.
