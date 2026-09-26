@@ -161,6 +161,7 @@ nitpick_ignore = [
     ('py:class', 'collections.abc.Callable'),
     ('py:class', 'collections.abc.Iterable'),
     ('py:class', 'collections.abc.Mapping'),
+    ('py:class', 'collections.abc.Sequence'),
     ('py:class', 'io.IOBase'),
     ('py:class', 'pathlib.Path'),
     ('py:obj', 'enum.StrEnum'),

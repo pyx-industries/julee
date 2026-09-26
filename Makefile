@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs lint-python typecheck test-python-unit test-integration test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
+.PHONY: install check docs release-notes release-prepare release-tag lint-python typecheck test-python-unit test-integration test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -106,6 +106,17 @@ update-requirements:
 	@echo "Lock file updated! Review changes before committing."
 
 # Help target
+# Releasing
+release-notes:
+	uv run python -m julee.maintenance.release notes $(VERSION)
+
+release-prepare:
+	uv run python -m julee.maintenance.release prepare $(VERSION) \
+		$(if $(NOTES),--message-file $(NOTES),--edit)
+
+release-tag:
+	uv run python -m julee.maintenance.release tag $(VERSION)
+
 help:
 	@echo "Available targets:"
 	@echo "  check           - The checks CI runs (lint, types, unit, integration, doctrine, kits)"
@@ -125,4 +136,7 @@ help:
 	@echo "  update-requirements - Upgrade uv.lock from pyproject.toml"
 	@echo "  clean           - Clean up generated files"
 	@echo "  reports         - Create reports directory"
+	@echo "  release-notes   - Draft release notes (VERSION=X.Y.Z, or omit to be asked)"
+	@echo "  release-prepare - Release branch and PR (VERSION=X.Y.Z [NOTES=file])"
+	@echo "  release-tag     - Tag after the release PR is merged (VERSION=X.Y.Z)"
 	@echo "  help            - Show this help"
