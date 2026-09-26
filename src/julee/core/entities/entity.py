@@ -77,6 +77,7 @@ class Entity(BaseModel, frozen=True):
             A new instance, validated
 
         Raises:
-            ValidationError: If the result would not be a valid entity
+            ValueError: If the result would not be a valid entity.
+                Pydantic raises ValidationError, which is one.
         """
         return type(self)(**{**self.__dict__, **changes})
