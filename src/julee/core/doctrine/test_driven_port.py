@@ -10,6 +10,7 @@ import pytest
 
 from julee.core.doctrine.rules.port import (
     ROLES_BY_DIRECTORY,
+    port_implementations_outside_infrastructure,
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
     protocols_in,
@@ -159,4 +160,94 @@ class TestDrivenPortVisibility:
 
         assert not objections, "Port packages doctrine cannot read:\n" + "\n".join(
             objections
+        )
+
+
+PORT_SUFFIXES = tuple(
+    suffix for suffixes in ROLES_BY_DIRECTORY.values() for suffix in suffixes
+)
+"""Every name that claims one of ADR 016's five named roles."""
+
+
+async def _classes_of_every_context(repo):
+    """Every class of every bounded context, with its slug.
+
+    Each class carries a path relative to its own context root, which is
+    what the placement rule reads.
+    """
+    return [
+        (ctx.slug, cls)
+        for ctx in await repo.list_all()
+        for cls in parse_python_classes(Path(ctx.path))
+    ]
+
+
+class TestDrivenPortPlacement:
+    """Doctrine about what layer a driven port may be written in."""
+
+    @pytest.mark.asyncio
+    async def test_a_port_MUST_be_declared_or_implemented_nowhere_else(self, repo):
+        """A class claiming a port role MUST sit in domain/ or infrastructure/.
+
+        ADR 002 has said since it was written that a driven port lives in
+        its own directory under ``domain/`` and its implementations in
+        ``infrastructure/``. The naming rules above made the first half a
+        claim doctrine checks. This is the second half, which was stated
+        and never tested (#236).
+
+        The suffix is a claim about reachability: ``*Oracle`` says a
+        workflow must go through an activity, ``*Calculator`` says it need
+        not. A class making that claim from ``usecases/`` or an ``apps/``
+        layer is telling a reader it is a port while the layout says it is
+        something else, and there is no way to tell which half is wrong by
+        looking.
+
+        Repositories are exempt, as they are from the naming rules: a
+        repository declares itself by inheriting ``RepositoryOf[Entity]``,
+        so its name claims nothing.
+        """
+        found = await _classes_of_every_context(repo)
+        if not found:
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        violations = port_implementations_outside_infrastructure(found)
+
+        assert not violations, (
+            "Driven ports outside domain/ and infrastructure/:\n"
+            + "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_the_placement_rule_MUST_be_able_to_see_the_layout(self, repo):
+        """The rule above MUST read paths it can recognise a layer from.
+
+        A rule that finds nothing passes, and reads exactly like a rule
+        over a codebase that complies. This one decides by the first
+        components of each class's path, so it rests entirely on those
+        paths being relative to the context root. If they ever stop
+        being — absolute, or rooted somewhere else — every class would
+        look like it sits in neither layer, and the rule would go from
+        checking placement to asserting the parser's output shape.
+
+        Reading no port-named class at all is not what this asks about:
+        a kit of pure structure has no service and no oracle, and that
+        is a fact about the kit rather than a broken walk.
+
+        A codebase with no bounded contexts skips instead, which is how
+        julee itself reports that its port rules have no subject (#240).
+        """
+        found = await _classes_of_every_context(repo)
+        if not found:
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        placed = [
+            f"{slug}.{cls.name}"
+            for slug, cls in found
+            if cls.file.startswith(("domain/", "infrastructure/"))
+        ]
+
+        assert placed, (
+            "The placement rule read no class under domain/ or "
+            "infrastructure/, so it cannot tell a layer from a path and "
+            "would pass whatever the codebase did"
         )

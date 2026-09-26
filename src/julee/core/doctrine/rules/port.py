@@ -13,6 +13,7 @@ here reads a file or imports a module.
 """
 
 from collections.abc import Iterable, Mapping
+from pathlib import PurePosixPath
 
 from julee.core.doctrine_constants import (
     CALCULATOR_SUFFIX,
@@ -27,6 +28,7 @@ from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithCont
 __all__ = [
     "ROLES_BY_DIRECTORY",
     "ZERO_ENTITY_DIRECTORIES",
+    "port_implementations_outside_infrastructure",
     "ports_bound_to_entities_they_should_not_be",
     "ports_misnamed_for_their_directory",
 ]
@@ -192,3 +194,66 @@ def protocols_in(
         )
         for cls in classes
     ]
+
+
+def port_implementations_outside_infrastructure(
+    found: Iterable[tuple[str, ClassInfo]],
+) -> list[str]:
+    """Classes claiming a port role from somewhere neither ADR allows.
+
+    ADR 002 says a driven port lives in its own directory under
+    ``domain/`` and its implementations in ``infrastructure/``. The
+    naming rules made the first half a claim doctrine checks; this is
+    the second half, and it had been stated since ADR 002 was written
+    without ever being tested (#236).
+
+    A name ending in one of ADR 016's five role suffixes is a claim
+    about how a workflow may reach it, so the same name in ``usecases/``
+    or an ``apps/`` layer tells a reader the thing is a port when the
+    layout says it is something else. One of the two is wrong, and
+    neither can be told from the other by reading.
+
+    Repositories are outside this, as they are outside the naming rules:
+    they declare themselves by inheriting ``RepositoryOf[Entity]`` rather
+    than by what they are called, so a class ending in "Repository"
+    claims nothing for this rule to hold it to.
+
+    A port protocol under the wrong port directory is left alone here.
+    :func:`ports_misnamed_for_their_directory` already objects to it, and
+    once is enough.
+
+    Args:
+        found: Classes of a bounded context, paired with its slug, each
+            carrying a path relative to the context root
+
+    Returns:
+        One sentence per class claiming a role from the wrong layer
+    """
+    port_directories = {f"domain/{directory}" for directory in ROLES_BY_DIRECTORY}
+
+    objections = []
+    for slug, cls in found:
+        role = next(
+            (
+                suffix
+                for suffixes in ROLES_BY_DIRECTORY.values()
+                for suffix in suffixes
+                if cls.name.endswith(suffix)
+            ),
+            None,
+        )
+        if role is None:
+            continue
+        parts = PurePosixPath(cls.file).parts
+        if not parts:
+            continue
+        if parts[0] == "infrastructure":
+            continue
+        if "/".join(parts[:2]) in port_directories:
+            continue
+        objections.append(
+            f"{slug}.{cls.name}: a {role} found in {cls.file}. The protocol "
+            f"belongs in domain/{role.lower()}s/ and anything implementing "
+            f"it in infrastructure/"
+        )
+    return objections

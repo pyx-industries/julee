@@ -3,6 +3,7 @@
 import pytest
 
 from julee.core.doctrine.rules.port import (
+    port_implementations_outside_infrastructure,
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
     protocols_in,
@@ -245,3 +246,84 @@ def test_protocols_in_pairs_each_class_with_its_directory() -> None:
 
 def test_protocols_in_an_empty_directory_is_empty() -> None:
     assert protocols_in("witnesses", [], "ceap") == []
+
+
+# =============================================================================
+# What layer a port may be written in (#236)
+# =============================================================================
+
+
+def at(path: str, name: str, slug: str = "polling") -> tuple[str, ClassInfo]:
+    """A class found at a path relative to its bounded context root."""
+    return (slug, ClassInfo(name=name, file=path))
+
+
+def test_a_protocol_in_its_own_port_directory_is_where_it_belongs() -> None:
+    found = [at("domain/services/poller.py", "PollerService")]
+
+    assert port_implementations_outside_infrastructure(found) == []
+
+
+def test_an_implementation_under_infrastructure_is_where_it_belongs() -> None:
+    found = [at("infrastructure/services/http_poller.py", "HttpPollerService")]
+
+    assert port_implementations_outside_infrastructure(found) == []
+
+
+def test_a_service_in_the_apps_layer_is_objected_to() -> None:
+    """The case that found this rule a subject: a facade wearing a port's
+    name, where a reader cannot tell which half is wrong."""
+    found = [at("apps/api/services/startup.py", "SystemInitializationService")]
+
+    (objection,) = port_implementations_outside_infrastructure(found)
+
+    assert "SystemInitializationService" in objection
+    assert "apps/api/services/startup.py" in objection
+
+
+def test_a_port_in_usecases_is_objected_to() -> None:
+    found = [at("usecases/poll.py", "ScheduleCalculator")]
+
+    (objection,) = port_implementations_outside_infrastructure(found)
+
+    assert "domain/calculators/" in objection
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["ThingService", "ThingHandler", "ThingOracle", "ThingCalculator", "ThingWitness"],
+)
+def test_every_named_role_is_held_to_the_rule(name: str) -> None:
+    """All five suffixes are claims, so all five are placed."""
+    assert port_implementations_outside_infrastructure([at("apps/cli.py", name)])
+
+
+def test_a_repository_claims_nothing_and_is_left_alone() -> None:
+    """It declares its entity by inheriting RepositoryOf[Entity], which is
+    why it is exempt from the naming rules and from this one."""
+    found = [at("usecases/poll.py", "PollingRepository")]
+
+    assert port_implementations_outside_infrastructure(found) == []
+
+
+def test_a_class_claiming_no_role_is_left_alone() -> None:
+    found = [at("apps/api/routes.py", "PollingRouter")]
+
+    assert port_implementations_outside_infrastructure(found) == []
+
+
+def test_a_port_under_the_wrong_port_directory_is_left_to_the_naming_rule() -> None:
+    """ports_misnamed_for_their_directory already objects to it, and
+    reporting the same class twice helps nobody."""
+    found = [at("domain/oracles/poller.py", "PollerService")]
+
+    assert port_implementations_outside_infrastructure(found) == []
+
+
+def test_a_class_with_no_path_is_not_guessed_about() -> None:
+    assert port_implementations_outside_infrastructure([at("", "PollerService")]) == []
+
+
+def test_the_rule_is_silent_about_an_empty_codebase() -> None:
+    """Which is what the canary in the doctrine test exists to catch."""
+    assert port_implementations_outside_infrastructure([]) == []
