@@ -110,23 +110,32 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
-      # Pinned, not latest: a double is checked against a known server,
-      # and a release that changes behaviour should fail here on the day
-      # the pin moves rather than on some unrelated commit.
+      # From the GitHub release, not a registry. MinIO withdrew its
+      # public images and binaries during 2025: quay.io/minio/minio
+      # answers 401 to an anonymous pull and dl.min.io answers 410.
+      # The release assets are what is left that needs no account, and
+      # they are checksummed, so the pin is on the bytes rather than on
+      # a tag someone can move.
       - name: Start MinIO
+        env:
+          MINIO_RELEASE: RELEASE.2025-09-07T16-13-09Z
+          MINIO_SHA256: 7c5bd8512c6e966455b1d198209358b2d191c77a83ab377c4073281065fb855f
         run: |
-          docker run -d --name minio -p 9000:9000 \
-            -e MINIO_ROOT_USER=minioadmin \
-            -e MINIO_ROOT_PASSWORD=minioadmin \
-            quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+          set -euo pipefail
+          url=https://github.com/minio/minio/releases/download/$MINIO_RELEASE
+          curl -fsSL "$url/minio.linux-amd64.$MINIO_RELEASE" -o minio
+          echo "$MINIO_SHA256  minio" | sha256sum -c -
+          chmod +x minio
+          MINIO_ROOT_USER=minioadmin MINIO_ROOT_PASSWORD=minioadmin \
+            nohup ./minio server /tmp/minio-data --address :9000 >minio.log 2>&1 &
           for _ in $(seq 1 60); do
             if curl -sf http://localhost:9000/minio/health/live; then exit 0; fi
             sleep 1
           done
-          echo "MinIO did not come up"; docker logs minio; exit 1
+          echo "MinIO did not come up"; cat minio.log; exit 1
 
       # JULEE_REQUIRE_MINIO is what stops this job reporting success for
-      # skipping everything, should the container ever fail to start.
+      # skipping everything, should the server ever fail to start.
       - name: Contract tests
         env:
           MINIO_ENDPOINT: localhost:9000
