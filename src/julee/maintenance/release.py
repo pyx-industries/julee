@@ -3,7 +3,9 @@
 Release preparation and tagging script.
 
 Usage:
+    uv run python -m julee.maintenance.release notes [X.Y.Z]
     uv run python -m julee.maintenance.release prepare X.Y.Z [--message-file FILE]
+    uv run python -m julee.maintenance.release prepare X.Y.Z --edit
     uv run python -m julee.maintenance.release tag X.Y.Z
 
 The parts that decide something — what the commit says, which version a
@@ -16,11 +18,13 @@ real release.
 """
 
 import argparse
+import os
+import random
 import re
 import subprocess
 import sys
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 
 Runner = Callable[..., "subprocess.CompletedProcess[str]"]
@@ -384,6 +388,486 @@ def tag(
     print(f"\nRelease {tag_name} tagged and pushed.")
 
 
+# =============================================================================
+# Drafting release notes (#39)
+# =============================================================================
+
+ADJECTIVES = (
+    "scheming",
+    "nefarious",
+    "unrepentant",
+    "gleeful",
+    "feckless",
+    "conniving",
+    "impertinent",
+    "swaggering",
+    "devious",
+    "brazen",
+)
+"""Mischievous, so a draft in /tmp is easy to spot and fun to say."""
+
+PHYSICISTS = (
+    "einstein",
+    "bohr",
+    "heisenberg",
+    "schrodinger",
+    "dirac",
+    "pauli",
+    "planck",
+    "born",
+    "debroglie",
+    "feynman",
+)
+"""Quantum, Einstein to Feynman."""
+
+NOUNS = (
+    "kumquat",
+    "trombone",
+    "hovercraft",
+    "pemmican",
+    "wombat",
+    "spatula",
+    "gazebo",
+    "kerfuffle",
+    "bandicoot",
+    "waffle",
+)
+"""Absurd, for the same reason."""
+
+SEMVER_GUIDANCE = {
+    "patch": (
+        "A patch fixes bugs and small improvements without adding features "
+        "or breaking compatibility. Keep it brief — a sentence or two is "
+        "fine."
+    ),
+    "minor": (
+        "A minor adds features while staying backward compatible. Be "
+        "thorough: this may be the first a reader hears of them."
+    ),
+    "major": (
+        "A major may break backward compatibility. Be thorough and "
+        "specific — a reader needs to understand the impact before "
+        "upgrading."
+    ),
+}
+"""What each kind of release is for, and the tone that suits it.
+
+Written into the draft as an HTML comment, for the author to read and
+delete. Guidance that lives in a wiki is guidance nobody reads at the
+moment they need it.
+"""
+
+
+VERSION_TAG = re.compile(r"^v?\d+(\.\d+)*$")
+"""What a tag naming a version looks like.
+
+``git tag -l`` answers with every tag a repository has, and not all of
+them name releases: this one carries ``archive/docs_architecture_domain``.
+Reading those as versions is how the first run of ``notes`` fell over.
+"""
+
+
+def version_tags(tags: Iterable[str]) -> list[str]:
+    """The tags that name a version, without their leading "v".
+
+    Args:
+        tags: Every tag, as git reports them
+
+    Returns:
+        Versions, sorted oldest first, without duplicates
+    """
+    return sorted(
+        {tag.lstrip("v") for tag in tags if VERSION_TAG.match(tag)},
+        key=version_key,
+    )
+
+
+def version_key(version: str) -> tuple[int, ...]:
+    """A version as numbers, for ordering.
+
+    Args:
+        version: "1.2.3", with or without a leading "v"
+
+    Returns:
+        Its parts as integers
+    """
+    return tuple(int(part) for part in version.lstrip("v").split("."))
+
+
+def previous_version(new_version: str, tags: Iterable[str]) -> str | None:
+    """The version a release follows, which is not always the highest.
+
+    Releasing 0.3.8 as a maintenance backport, with 1.1.3 already out,
+    follows 0.3.7 and not 1.1.3. So the new version is slotted into the
+    sorted list and the one before it is the answer, rather than taking
+    the maximum.
+
+    Args:
+        new_version: The version about to be released
+        tags: Existing tags, with or without a leading "v"
+
+    Returns:
+        The version this one follows, or None if it is the first
+    """
+    versions = sorted(set(version_tags(tags)) | {new_version}, key=version_key)
+    position = versions.index(new_version)
+    return versions[position - 1] if position else None
+
+
+def release_kind(new_version: str, previous: str | None) -> str:
+    """Which of patch, minor or major this release is.
+
+    Args:
+        new_version: The version about to be released
+        previous: What it follows, or None for a first release
+
+    Returns:
+        "major", "minor", "patch", or "first" when there is nothing to
+        compare against
+    """
+    if previous is None:
+        return "first"
+    was, now = version_key(previous), version_key(new_version)
+    if now[0] != was[0]:
+        return "major"
+    if len(now) > 1 and len(was) > 1 and now[1] != was[1]:
+        return "minor"
+    return "patch"
+
+
+def next_versions(current: str | None) -> dict[str, str]:
+    """What a patch, minor or major from here would be called.
+
+    Args:
+        current: The highest released version, or None
+
+    Returns:
+        Kind to version. A first release offers only a patch, because
+        there is nothing to increment a minor or major from.
+    """
+    if current is None:
+        return {"patch": "0.0.1"}
+    major, minor, patch = (version_key(current) + (0, 0))[:3]
+    return {
+        "patch": f"{major}.{minor}.{patch + 1}",
+        "minor": f"{major}.{minor + 1}.0",
+        "major": f"{major + 1}.0.0",
+    }
+
+
+def draft_name(kind: str, version: str, words: Sequence[str]) -> str:
+    """What to call a draft file.
+
+    Args:
+        kind: "release" or "changelog"
+        version: The version being drafted
+        words: Three words, from :func:`cute_words`
+
+    Returns:
+        A filename, e.g. release-0.2.0-scheming-heisenberg-kumquat.md
+    """
+    return f"{kind}-{version}-{'-'.join(words)}.md"
+
+
+def cute_words(choose: Callable[[Sequence[str]], str]) -> tuple[str, str, str]:
+    """Three words for a draft filename.
+
+    Args:
+        choose: Picks one of a sequence; ``random.choice`` in a release
+
+    Returns:
+        An adjective, a physicist and a noun
+    """
+    return choose(ADJECTIVES), choose(PHYSICISTS), choose(NOUNS)
+
+
+def notes_template(version: str, previous: str | None, subjects: Iterable[str]) -> str:
+    """A draft for an author to cut down.
+
+    The commits are listed rather than summarised, because a summary a
+    script writes is one an author has to check before trusting, and
+    checking it costs more than writing the summary would have.
+
+    Args:
+        version: The version being released
+        previous: What it follows, or None
+        subjects: Commit subjects since the previous release
+
+    Returns:
+        Markdown, with the guidance as an HTML comment to delete
+    """
+    kind = release_kind(version, previous)
+    since = f"since {previous}" if previous else "in the first release"
+    guidance = SEMVER_GUIDANCE.get(kind, SEMVER_GUIDANCE["patch"])
+    listed = "\n".join(f"- {subject}" for subject in subjects) or "- (none)"
+    return (
+        f"<!-- {version} is a {kind} release. {guidance}\n\n"
+        f"     Write what a reader needs in order to decide whether to "
+        f"upgrade.\n"
+        f"     Delete this comment, and the commit list once you have "
+        f"used it. -->\n"
+        f"\n"
+        f"## Commits {since}\n"
+        f"\n"
+        f"{listed}\n"
+    )
+
+
+def changelog_document(version: str, releases: Iterable[tuple[str, str]]) -> str:
+    """The notes a minor or major gathers up, as context for writing it.
+
+    A patch is the sum of the commits since the last patch. A minor is
+    the culmination of every patch since the last minor, and should
+    summarise them rather than repeat them — which needs them to hand.
+
+    Args:
+        version: The version being drafted
+        releases: Version and its notes, oldest first
+
+    Returns:
+        Markdown, to read beside the draft rather than to publish
+    """
+    sections = [f"## {released}\n\n{notes.strip()}\n" for released, notes in releases]
+    body = "\n".join(sections) or "(no intermediate releases)\n"
+    return (
+        f"<!-- Context for writing {version}, not something to publish.\n"
+        f"     These are the releases it gathers up. Summarise them; the\n"
+        f"     reader of {version} has not read any of them. -->\n"
+        f"\n"
+        f"{body}"
+    )
+
+
+def gathered_releases(version: str, tags: Iterable[str]) -> list[str]:
+    """The releases a minor or major culminates, oldest first.
+
+    A minor 0.12.0 gathers the whole 0.11 line — 0.11.0 and every patch
+    after it — because that is what it is the culmination of. The
+    previous minor is included, not excluded: its notes are the ones a
+    reader of 0.12.0 has most likely not seen.
+
+    A major gathers every release since the previous major, by the same
+    reasoning one rank up.
+
+    A patch gathers nothing. It is the sum of the commits it carries,
+    which the draft already lists.
+
+    Args:
+        version: The version being drafted
+        tags: Existing tags
+
+    Returns:
+        Versions from the previous release of the same rank, inclusive,
+        up to but not including this one
+    """
+    versions = version_tags(tags)
+    here = version_key(version)
+    major, minor = (here + (0, 0))[:2]
+
+    if len(here) > 2 and here[2] != 0:
+        return []
+
+    def is_same_rank(candidate: tuple[int, ...]) -> bool:
+        padded = candidate + (0, 0)
+        if minor == 0:
+            return padded[1] == 0 and padded[2] == 0
+        return padded[0] == major and padded[2] == 0
+
+    earlier = [
+        released
+        for released in versions
+        if version_key(released) < here and is_same_rank(version_key(released))
+    ]
+    if not earlier:
+        return [v for v in versions if version_key(v) < here]
+
+    floor = version_key(earlier[-1])
+    return [released for released in versions if floor <= version_key(released) < here]
+
+
+def existing_tags(runner: Runner = run) -> list[str]:
+    """Every version tag in the repository.
+
+    Args:
+        runner: What runs the command
+
+    Returns:
+        Tag names, unordered
+    """
+    result = runner("git tag -l", check=False)
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def commit_subjects(since: str | None, runner: Runner = run) -> list[str]:
+    """The subject line of each commit since a tag.
+
+    Args:
+        since: The tag to start after, or None for the whole history
+        runner: What runs the command
+
+    Returns:
+        Subjects, newest first
+    """
+    span = f"v{since}..HEAD" if since else "HEAD"
+    result = runner(f"git log --no-merges --format=%s {span}", check=False)
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def notes_of(version: str, runner: Runner = run) -> str:
+    """What a released version said about itself.
+
+    Read from the release commit's body, which is where prepare put the
+    notes it was given.
+
+    Args:
+        version: The released version
+        runner: What runs the command
+
+    Returns:
+        The notes, or an empty string if the tag says nothing
+    """
+    result = runner(f"git log -1 --format=%b v{version}", check=False)
+    return result.stdout.strip()
+
+
+def write_drafts(
+    version: str,
+    directory: Path,
+    runner: Runner = run,
+    choose: Callable[[Sequence[str]], str] = random.choice,
+) -> tuple[Path, Path | None]:
+    """Write a draft for this release, and its context if it needs one.
+
+    Args:
+        version: The version being drafted
+        directory: Where to put the files
+        runner: What runs git
+        choose: Picks a word for the filename
+
+    Returns:
+        The draft's path, and the changelog's if one was written
+    """
+    tags = existing_tags(runner)
+    previous = previous_version(version, tags)
+    words = cute_words(choose)
+
+    draft = directory / draft_name("release", version, words)
+    draft.write_text(
+        notes_template(version, previous, commit_subjects(previous, runner)),
+        encoding="utf-8",
+    )
+
+    # A patch is the sum of the commits it carries. A minor or major is
+    # the culmination of the releases since the last one of its rank,
+    # and cannot be written well without them to hand.
+    if release_kind(version, previous) not in {"minor", "major"}:
+        return draft, None
+
+    gathered = gathered_releases(version, tags)
+    changelog = directory / draft_name("changelog", version, words)
+    changelog.write_text(
+        changelog_document(
+            version, [(each, notes_of(each, runner)) for each in gathered]
+        ),
+        encoding="utf-8",
+    )
+    return draft, changelog
+
+
+def choose_version(current: str | None, ask: Callable[[str], str]) -> str:
+    """Which version to draft, asked interactively.
+
+    Args:
+        current: The highest released version, or None
+        ask: Prompts and returns what was typed
+
+    Returns:
+        The version to draft
+
+    Raises:
+        ValueError: If the answer names no option
+    """
+    offered = next_versions(current)
+    lines = [
+        f"  {number}. {kind:6} -> {candidate}"
+        for number, (kind, candidate) in enumerate(offered.items(), start=1)
+    ]
+    lines.append(f"  {len(offered) + 1}. other  -> specify version")
+    answer = ask("\n".join(lines) + "\n\nWhich release? ").strip()
+
+    candidates = list(offered.values())
+    if answer.isdigit() and 1 <= int(answer) <= len(candidates):
+        return candidates[int(answer) - 1]
+    if answer.isdigit() and int(answer) == len(candidates) + 1:
+        answer = ask("Version: ").strip()
+    validate_version(answer)
+    return answer
+
+
+def notes(
+    version: str | None = None,
+    runner: Runner = run,
+    directory: Path | None = None,
+    ask: Callable[[str], str] = input,
+) -> Path:
+    """Write a draft of the release notes for an author to cut down.
+
+    Named rather than generated into the commit, because notes a script
+    writes are notes an author has to check, and checking costs more
+    than writing would have. What this saves is the gathering: which
+    commits, which previous release, what kind of release this is.
+
+    Args:
+        version: The version to draft, or None to be asked
+        runner: What runs git
+        directory: Where to write, defaulting to a temporary directory
+        ask: Prompts, when no version was named
+
+    Returns:
+        The draft's path
+    """
+    tags = existing_tags(runner)
+    if version is None:
+        released = version_tags(tags)
+        if not released:
+            print("No existing tags found.\n")
+        version = choose_version(released[-1] if released else None, ask)
+    validate_version(version)
+
+    draft, changelog = write_drafts(
+        version, directory or Path(tempfile.gettempdir()), runner
+    )
+    print(f"Draft:     {draft}")
+    if changelog:
+        print(f"Context:   {changelog}")
+        print("\nRead the context, then write the draft so it reads beside it.")
+    print(
+        f"\nWhen it says what you mean:\n  make release-prepare "
+        f"VERSION={version} NOTES={draft}"
+    )
+    return draft
+
+
+def edited(path: Path, editor: str, runner: Runner = run) -> bool:
+    """Open a draft, and say whether the author changed it.
+
+    Git's rule: a commit message left exactly as the template gave it
+    is taken as "I have not written this yet", and the operation stops.
+    A release nobody described is worse than no release.
+
+    Args:
+        path: The draft to open
+        editor: The command to open it with
+        runner: What runs the command
+
+    Returns:
+        True if the file differs from what was written
+    """
+    before = path.read_text(encoding="utf-8")
+    runner(f"{editor} {path}", capture=False)
+    return path.read_text(encoding="utf-8") != before
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Release preparation and tagging script"
@@ -401,6 +885,20 @@ def main() -> None:
         type=Path,
         help="File containing release notes for commit message and PR body",
     )
+    prepare_parser.add_argument(
+        "--edit",
+        "-e",
+        action="store_true",
+        help="Draft the notes, open $EDITOR, and stop if nothing was written",
+    )
+
+    # notes subcommand
+    notes_parser = subparsers.add_parser(
+        "notes", help="Draft release notes for a version"
+    )
+    notes_parser.add_argument(
+        "version", nargs="?", help="Version number (X.Y.Z); asks if omitted"
+    )
 
     # tag subcommand
     tag_parser = subparsers.add_parser("tag", help="Tag after PR is merged")
@@ -409,7 +907,18 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "prepare":
-        prepare(args.version, args.message_file)
+        message_file = args.message_file
+        if args.edit:
+            message_file = notes(args.version)
+            editor = os.environ.get("EDITOR", "emacs")
+            if not edited(message_file, editor):
+                die(
+                    f"{message_file} is unchanged, so the release says "
+                    f"nothing. Nothing was prepared."
+                )
+        prepare(args.version, message_file)
+    elif args.command == "notes":
+        notes(args.version)
     elif args.command == "tag":
         tag(args.version)
 

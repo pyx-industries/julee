@@ -18,12 +18,25 @@ from pathlib import Path
 import pytest
 
 from julee.maintenance.release import (
+    ADJECTIVES,
     INIT_VERSION,
+    NOUNS,
+    PHYSICISTS,
     PYPROJECT_VERSION,
+    changelog_document,
+    choose_version,
     claims_disagreeing_with,
     commit_message,
+    cute_words,
+    draft_name,
+    edited,
+    gathered_releases,
     get_package_init,
+    next_versions,
+    notes_template,
     prepare,
+    previous_version,
+    release_kind,
     tag,
     tag_command,
     update_version_in_file,
@@ -31,6 +44,9 @@ from julee.maintenance.release import (
     validate_version,
     version_claims,
     version_in_file,
+    version_key,
+    version_tags,
+    write_drafts,
 )
 
 pytestmark = pytest.mark.unit
@@ -565,3 +581,222 @@ def test_the_check_sees_an_init_the_selection_passed_over(repo: Path) -> None:
     (repo / "pyproject.toml").write_text('[project]\nversion = "0.7.0"\n')
 
     assert claims_disagreeing_with("0.7.0", version_claims(repo))
+
+
+# =============================================================================
+# Drafting release notes (#39)
+# =============================================================================
+
+
+TAGS = ["v0.9.0", "v0.10.0", "v0.10.1", "v0.11.0", "v0.11.1"]
+
+
+class TestReadingTheTags:
+    def test_a_tag_that_is_not_a_version_is_not_one(self) -> None:
+        """git tag -l answers with every tag, and this repository carries
+        archive/docs_architecture_domain. Reading it as a version is how
+        the first run of notes fell over."""
+        assert version_tags(["v0.1.0", "archive/docs_architecture_domain"]) == ["0.1.0"]
+
+    def test_another_project_s_tags_are_not_versions_either(self) -> None:
+        """julee's history carries viewpoints-v0.1.1 from before the split."""
+        assert version_tags(["v0.1.0", "viewpoints-v0.1.1"]) == ["0.1.0"]
+
+    def test_they_come_back_in_order(self) -> None:
+        assert version_tags(["v0.10.0", "v0.9.0"]) == ["0.9.0", "0.10.0"]
+
+    def test_ten_sorts_after_nine(self) -> None:
+        """Which string ordering gets wrong, and every release after 0.9
+        would have been compared against the wrong predecessor."""
+        assert version_key("0.10.0") > version_key("0.9.0")
+
+
+class TestWhichReleaseThisFollows:
+    def test_the_previous_tag_is_usually_the_highest(self) -> None:
+        assert previous_version("0.11.2", TAGS) == "0.11.1"
+
+    def test_a_backport_follows_its_own_line(self) -> None:
+        """Releasing 0.3.8 with 1.1.3 already out follows 0.3.7. Taking
+        the highest tag would have said 1.1.3."""
+        assert previous_version("0.3.8", ["v0.3.7", "v1.0.0", "v1.1.3"]) == "0.3.7"
+
+    def test_the_first_release_follows_nothing(self) -> None:
+        assert previous_version("0.0.1", []) is None
+
+    def test_a_version_below_every_tag_follows_nothing(self) -> None:
+        assert previous_version("0.0.1", TAGS) is None
+
+
+class TestWhatKindOfRelease:
+    def test_a_third_number_is_a_patch(self) -> None:
+        assert release_kind("0.11.2", "0.11.1") == "patch"
+
+    def test_a_second_number_is_a_minor(self) -> None:
+        assert release_kind("0.12.0", "0.11.1") == "minor"
+
+    def test_a_first_number_is_a_major(self) -> None:
+        assert release_kind("1.0.0", "0.11.1") == "major"
+
+    def test_following_nothing_is_a_first(self) -> None:
+        assert release_kind("0.0.1", None) == "first"
+
+
+class TestWhatToOffer:
+    def test_three_ways_forward_from_a_release(self) -> None:
+        assert next_versions("0.11.1") == {
+            "patch": "0.11.2",
+            "minor": "0.12.0",
+            "major": "1.0.0",
+        }
+
+    def test_a_first_release_offers_only_a_patch(self) -> None:
+        """There is nothing to increment a minor or major from."""
+        assert next_versions(None) == {"patch": "0.0.1"}
+
+    def test_a_numbered_answer_is_taken(self) -> None:
+        assert choose_version("0.11.1", lambda _: "2") == "0.12.0"
+
+    def test_other_asks_again(self) -> None:
+        answers = iter(["4", "0.3.8"])
+
+        assert choose_version("0.11.1", lambda _: next(answers)) == "0.3.8"
+
+    def test_a_version_typed_straight_in_is_taken(self) -> None:
+        assert choose_version("0.11.1", lambda _: "2.5.0") == "2.5.0"
+
+
+class TestWhatAMinorGathersUp:
+    def test_a_minor_gathers_the_whole_previous_line(self) -> None:
+        """Including the previous minor itself: its notes are the ones a
+        reader of this release has most likely not seen."""
+        assert gathered_releases("0.12.0", TAGS) == ["0.11.0", "0.11.1"]
+
+    def test_a_major_gathers_every_release_before_it(self) -> None:
+        assert gathered_releases("1.0.0", TAGS) == TAGS_AS_VERSIONS
+
+    def test_a_patch_gathers_nothing(self) -> None:
+        """It is the sum of the commits it carries, which the draft lists."""
+        assert gathered_releases("0.11.2", TAGS) == []
+
+    def test_a_first_minor_gathers_what_came_before_it(self) -> None:
+        assert gathered_releases("0.1.0", ["v0.0.1", "v0.0.2"]) == [
+            "0.0.1",
+            "0.0.2",
+        ]
+
+
+TAGS_AS_VERSIONS = ["0.9.0", "0.10.0", "0.10.1", "0.11.0", "0.11.1"]
+
+
+class TestTheDraft:
+    def test_it_says_which_kind_of_release_this_is(self) -> None:
+        assert "patch release" in notes_template("0.11.2", "0.11.1", [])
+
+    def test_it_carries_the_guidance_for_that_kind(self) -> None:
+        assert "Keep it brief" in notes_template("0.11.2", "0.11.1", [])
+
+    def test_a_minor_is_told_to_be_thorough_instead(self) -> None:
+        assert "Be thorough" in notes_template("0.12.0", "0.11.1", [])
+
+    def test_the_guidance_is_a_comment_to_delete(self) -> None:
+        """It belongs where the author is when they need it, not in a
+        wiki nobody opens at that moment."""
+        draft = notes_template("0.11.2", "0.11.1", [])
+
+        assert draft.startswith("<!--")
+        assert "-->" in draft
+
+    def test_it_lists_the_commits(self) -> None:
+        draft = notes_template("0.11.2", "0.11.1", ["Fix a thing", "Fix another"])
+
+        assert "- Fix a thing" in draft
+        assert "- Fix another" in draft
+
+    def test_it_names_what_this_release_follows(self) -> None:
+        assert "since 0.11.1" in notes_template("0.11.2", "0.11.1", [])
+
+    def test_a_first_release_says_so_instead(self) -> None:
+        assert "first release" in notes_template("0.0.1", None, [])
+
+    def test_a_release_carrying_no_commits_says_none(self) -> None:
+        assert "(none)" in notes_template("0.11.2", "0.11.1", [])
+
+
+class TestTheContextFile:
+    def test_it_says_it_is_not_for_publishing(self) -> None:
+        document = changelog_document("0.12.0", [("0.11.0", "Did a thing.")])
+
+        assert "not something to publish" in document
+
+    def test_it_carries_each_release_s_notes(self) -> None:
+        document = changelog_document(
+            "0.12.0", [("0.11.0", "Did a thing."), ("0.11.1", "Fixed it.")]
+        )
+
+        assert "## 0.11.0" in document
+        assert "Did a thing." in document
+        assert "## 0.11.1" in document
+
+    def test_it_says_so_when_there_are_none(self) -> None:
+        assert "no intermediate releases" in changelog_document("0.12.0", [])
+
+
+class TestDraftFilenames:
+    def test_it_names_the_kind_and_the_version(self) -> None:
+        name = draft_name("release", "0.2.0", ("scheming", "heisenberg", "kumquat"))
+
+        assert name == "release-0.2.0-scheming-heisenberg-kumquat.md"
+
+    def test_the_changelog_shares_the_words(self) -> None:
+        """So a pair is obviously a pair, sitting in /tmp."""
+        words = ("scheming", "heisenberg", "kumquat")
+
+        assert draft_name("changelog", "0.2.0", words).endswith("-".join(words) + ".md")
+
+    def test_the_words_come_from_the_three_lists(self) -> None:
+        adjective, physicist, noun = cute_words(lambda options: options[0])
+
+        assert adjective in ADJECTIVES
+        assert physicist in PHYSICISTS
+        assert noun in NOUNS
+
+
+class TestWritingTheDrafts:
+    def test_a_patch_writes_one_file(self, tmp_path: Path) -> None:
+        runner = FakeRunner(**{"git tag -l": "v0.11.0\n", "git log": ""})
+
+        draft, changelog = write_drafts(
+            "0.11.1", tmp_path, runner, choose=lambda options: options[0]
+        )
+
+        assert draft.exists()
+        assert changelog is None
+
+    def test_a_minor_writes_its_context_too(self, tmp_path: Path) -> None:
+        runner = FakeRunner(**{"git tag -l": "v0.11.0\n", "git log": ""})
+
+        draft, changelog = write_drafts(
+            "0.12.0", tmp_path, runner, choose=lambda options: options[0]
+        )
+
+        assert draft.exists()
+        assert changelog is not None and changelog.exists()
+
+
+class TestTheGitStyleAbort:
+    def test_a_draft_left_alone_reads_as_unwritten(self, tmp_path: Path) -> None:
+        """Git's rule. A release nobody described is worse than none."""
+        draft = tmp_path / "notes.md"
+        draft.write_text("template")
+
+        assert not edited(draft, "true", FakeRunner())
+
+    def test_a_draft_that_changed_reads_as_written(self, tmp_path: Path) -> None:
+        draft = tmp_path / "notes.md"
+        draft.write_text("template")
+
+        def editing(cmd: str, check: bool = True, capture: bool = True):
+            draft.write_text("what the release actually did")
+            return FakeRunner()(cmd, check, capture)
+
+        assert edited(draft, "editor", editing)
