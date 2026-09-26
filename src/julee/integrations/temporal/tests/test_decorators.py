@@ -496,7 +496,6 @@ class TestTypeExtraction:
 
         assert assembly_type == MockAssemblySpecification
         assert document_type == MockDocument
-        assert assembly_type != document_type
 
     def test_extracts_concrete_type_declared_without_crud(self) -> None:
         """A repository that inherits RepositoryOf[T] alone declares T."""
@@ -717,7 +716,6 @@ class TestWorkflowProxyIntegration:
 
         assert type_a == MockAssemblySpecification
         assert type_b == MockDocument
-        assert type_a != type_b
 
     def test_handles_non_generic_repository_gracefully(self) -> None:
         """Test that non-generic repositories are handled gracefully."""
