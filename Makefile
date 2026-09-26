@@ -1,6 +1,6 @@
 # Makefile for quality checks, testing and docs
 # Requires uv: https://docs.astral.sh/uv/getting-started/installation/
-.PHONY: install check docs test-contract release-notes release-prepare release-tag lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
+.PHONY: install check docs docs-serve test-contract release-notes release-prepare release-tag lint-python typecheck test-python-unit test-doctrine quality-fast-python quality-full quality-types quality-security test-unit reports clean help format-python update-requirements
 
 # Install project and dev dependencies
 install:
@@ -41,9 +41,16 @@ test-doctrine:
 # The checks CI runs; run before pushing
 check: lint-python typecheck test-python-unit test-doctrine
 
-# Build the documentation
+# Build the documentation. -W, as CI does, so a warning fails here
+# rather than after a push.
 docs:
 	uv run --extra docs sphinx-build -W --keep-going -b html docs docs/_build/html
+
+# The documentation, rebuilt as you write it. No -W: a half-written
+# cross-reference should not stop the page appearing. Build with `make
+# docs` before pushing — that is the one that matches CI.
+docs-serve:
+	uv run --extra docs sphinx-autobuild docs docs/_build/html
 
 # Fast Python quality checks (for pre-commit)
 quality-fast-python: lint-python
@@ -117,7 +124,8 @@ release-tag:
 help:
 	@echo "Available targets:"
 	@echo "  check           - The checks CI runs (lint, types, unit, doctrine)"
-	@echo "  docs            - Build the documentation"
+	@echo "  docs            - Build the documentation (-W, as CI does)"
+	@echo "  docs-serve      - Rebuild and serve it as you write"
 	@echo "  test-contract   - Doubles checked against real services (needs MINIO_ENDPOINT)"
 	@echo "  test-doctrine   - Doctrine tests against julee itself"
 	@echo "  lint-python     - Python linting (ruff)"
