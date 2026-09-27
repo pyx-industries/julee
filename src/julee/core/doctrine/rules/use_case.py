@@ -324,15 +324,10 @@ def _dtos_that_are_not_pydantic(verdicts: Iterable["Verdict"], what: str) -> lis
 def requests_that_are_not_pydantic(verdicts: Iterable["Verdict"]) -> list[str]:
     """Requests that are not pydantic DTOs.
 
-    A request is the message a driving adapter hands in. It arrives as
-    JSON, form fields or a queue payload, and pydantic is what
-    validates it before a use case reads it.
-
-    The verdicts come from :func:`julee.core.doctrine.resolution.dto_verdicts`,
-    which imports the class and asks Python. Reading bases out of the
-    AST cannot answer this: a local class called ``BaseModel``, an
-    aliased import and a base from an unparsed package all read as
-    compliant.
+    A request is the message a driving adapter hands in, and BaseModel
+    is what validates it. The verdicts come from
+    :func:`julee.core.doctrine.resolution.dto_verdicts`, which imports
+    the class rather than reading its bases.
 
     Args:
         verdicts: One per request name, from dto_verdicts

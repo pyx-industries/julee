@@ -384,10 +384,8 @@ class TestTheDomainRing:
     async def test_entities_MUST_NOT_be_pydantic_dataclasses(self, repo):
         """Domain classes MUST NOT use pydantic's dataclass decorator.
 
-        A pydantic dataclass is a dataclass by every structural test
-        and pydantic by its import, so it satisfies the rule for the
-        domain ring and the rule for the driving ring at once. Reading
-        a class is supposed to say which ring it is in.
+        It satisfies the domain's frozen-dataclass rule and imports
+        pydantic, so it says nothing about which ring it belongs to.
         """
         verdicts = []
         for ctx in await repo.list_all():

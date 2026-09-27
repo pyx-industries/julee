@@ -1,13 +1,11 @@
-"""Resolving parsed DTO names to the classes they name.
+"""Resolving parsed class names to the classes they name.
 
-Reading bases out of the AST cannot answer whether a class is a
-pydantic DTO. A local class called ``BaseModel``, a base imported from
-a package doctrine does not parse, an alias, a request defined outside
-``usecases/`` and imported back in — each of them reads as compliant
-and none of them is.
+Whether a class is a pydantic DTO cannot be read off its bases in the
+AST: a local class called ``BaseModel``, an aliased import and a base
+from an unparsed package all read the same as pydantic's.
 
-So this imports the target's use case modules and asks Python. The
-rules stay pure functions over the verdicts; the importing is here.
+So this imports the target's modules and asks Python. The rules stay
+pure functions over the verdicts.
 """
 
 import ast
@@ -27,10 +25,10 @@ __all__ = ["Verdict", "dto_verdicts", "entity_verdicts", "module_name_for"]
 
 @dataclass(frozen=True)
 class Verdict:
-    """What resolving one DTO name found.
+    """What resolving one class name found.
 
-    ``reason`` is None when the class is a pydantic DTO, and otherwise
-    says why it is not, in words that go straight into an objection.
+    ``reason`` is None when the class complies, and otherwise says why
+    not, in words an objection can use directly.
     """
 
     bounded_context: str
@@ -41,9 +39,8 @@ class Verdict:
 def module_name_for(path: Path) -> str | None:
     """The dotted module name a file is importable as.
 
-    Walks up while there is an ``__init__.py``, which is what makes the
-    directory a package. Returns None for a file in no package, since
-    there is no name to import it by.
+    Walks up while there is an ``__init__.py``. Returns None for a
+    file in no package.
 
     Args:
         path: Path to a .py file
@@ -78,10 +75,9 @@ def _import_layer(
 ) -> tuple[list[ModuleType], list[Verdict]]:
     """Import what a context keeps in one layer directory.
 
-    A file that will not parse or will not import is a verdict of its
-    own. Nothing else reports one: a file the AST parser cannot read
-    contributes no classes, so every rule passes over it in silence,
-    and a request in it is never checked by anything.
+    A file that will not parse or will not import gets a verdict of
+    its own. Nothing else reports one, because such a file contributes
+    no classes for a rule to look at.
 
     Args:
         slug: The bounded context slug
@@ -129,12 +125,9 @@ def _import_layer(
 def _not_a_dto(obj: object) -> str | None:
     """Why an object is not a DTO, or None if it is one.
 
-    A DTO is a BaseModel. A pydantic dataclass validates too, and is
-    still refused: it is a dataclass by every structural test and
-    pydantic by its import, so it satisfies the rule for the domain
-    ring and the rule for the driving ring at once. One construct that
-    passes both is the one thing that cannot say which ring a class is
-    in, which is what reading a class is supposed to tell you.
+    A DTO is a BaseModel. A pydantic dataclass validates too but is
+    refused, because it also satisfies the domain's frozen-dataclass
+    rule and so cannot say which ring it belongs to.
 
     Args:
         obj: Whatever the name resolved to
@@ -158,15 +151,8 @@ def _not_a_dto(obj: object) -> str | None:
 def _not_a_domain_class(obj: object) -> str | None:
     """Why a domain class does not belong in the domain ring.
 
-    Only pydantic dataclasses are refused here. A BaseModel entity is
-    still legal, which is what the estate has today; moving those to
-    frozen dataclasses is its own change.
-
-    A pydantic dataclass is the one that has to be shut out first,
-    because nothing else catches it. It reads as ``@dataclass(frozen=
-    True)`` at the point of use and ``decorated_with("dataclass")``
-    matches on the last segment of the path, so the frozen-dataclass
-    rule passes it and pydantic sits in the domain unremarked.
+    Only pydantic dataclasses are refused. A BaseModel entity is still
+    legal; moving those to frozen dataclasses is a separate change.
 
     Args:
         obj: Whatever the name resolved to
@@ -193,13 +179,10 @@ def _verdicts(
 ) -> list[Verdict]:
     """Resolve names against one layer's modules and judge each.
 
-    A name is looked for as an attribute of any module in the layer, so
-    it is found whether it is defined there or imported into it from
-    elsewhere.
+    A name is looked for as an attribute of any module in the layer,
+    so it is found whether defined there or imported into it.
 
-    A name that resolves to nothing is a verdict, not a pass. Doctrine
-    saw it somewhere and could not reach it, and treating that as
-    compliance is how the checked set quietly shrinks.
+    A name that resolves to nothing gets a verdict rather than a pass.
 
     Args:
         slug: The bounded context slug
