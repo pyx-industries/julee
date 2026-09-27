@@ -93,6 +93,18 @@ class ClassInfo(BaseModel):
     as far as the import can be followed, so a rule matches on the path
     rather than on how the decorator was spelled at the point of use.
     """
+    decorator_arguments: dict[str, dict[str, str]] = Field(default_factory=dict)
+    """Keyword arguments each decorator was called with, as source text.
+
+    Keyed by the decorator's last path segment, matching how
+    ``decorated_with`` reads: ``{"dataclass": {"frozen": "True"}}``. A
+    decorator applied bare has no entry.
+
+    Source text, not values, because a class is read rather than
+    imported. ``frozen=True`` is the string ``"True"``, and
+    ``frozen=SOME_CONSTANT`` is ``"SOME_CONSTANT"`` — which a rule
+    should read as not knowing, rather than guess at.
+    """
 
     def decorated_with(self, name: str) -> bool:
         """Whether a decorator of this name is applied to the class.
@@ -109,6 +121,24 @@ class ClassInfo(BaseModel):
             True if any decorator ends in that name
         """
         return any(path.rsplit(".", 1)[-1] == name for path in self.decorators)
+
+    def decorator_argument(self, name: str, keyword: str) -> str | None:
+        """What a decorator was passed for one keyword, as written.
+
+        The source text rather than a value, because this is read from a
+        file and not executed: ``@dataclass(frozen=True)`` gives
+        ``"True"``, and ``@dataclass(frozen=FROZEN)`` gives ``"FROZEN"``,
+        which a caller should treat as not knowing rather than as true.
+
+        Args:
+            name: Decorator name, matched as ``decorated_with`` does
+            keyword: The keyword argument to look for
+
+        Returns:
+            The argument's source, or None if the decorator is absent,
+            was applied bare, or was not given that keyword
+        """
+        return self.decorator_arguments.get(name, {}).get(keyword)
 
     @field_validator("name", mode="before")
     @classmethod

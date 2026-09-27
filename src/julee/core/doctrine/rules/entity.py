@@ -78,6 +78,30 @@ def _is_enum(entity: ClassInfo) -> bool:
     return any(base in ENUM_INDICATORS for base in entity.bases)
 
 
+def _is_dataclass(entity: ClassInfo) -> bool:
+    """Whether a class gets its shape from a dataclass decorator.
+
+    Such a class has no bases, so the rules here used to pass over it:
+    they filtered on ``entity.bases`` to mean "something I can reason
+    about", and a decorated class is something they can reason about
+    from the decorator instead. A downstream solution with 52
+    frozen-dataclass entities had them all discovered and two of the
+    three rules declining to check any of them (#142).
+    """
+    return entity.decorated_with("dataclass")
+
+
+def _is_frozen_dataclass(entity: ClassInfo) -> bool:
+    """Whether a dataclass was told to be immutable.
+
+    Read from the source of ``frozen=``, so anything but a literal True
+    counts as not knowing and the class is reported. A constant is worth
+    objecting to here: whether an entity is immutable should be legible
+    where it is defined.
+    """
+    return entity.decorator_argument("dataclass", "frozen") == "True"
+
+
 def entities_not_extending_Entity(found: Found) -> list[str]:
     """Entities that do not inherit immutability.
 
@@ -88,13 +112,22 @@ def entities_not_extending_Entity(found: Found) -> list[str]:
     same codebase is fine. A base this codebase cannot see is trusted,
     since whoever owns it runs their own doctrine over it.
 
+    A class with no bases complies if it is a ``@dataclass(frozen=True)``
+    — that is the same promise Entity makes, made another way. A
+    ``@dataclass`` without it is reported, which is the case this rule
+    used to miss entirely: a mutable entity, discovered and unexamined.
+
     Args:
         found: Entities paired with their bounded context
 
     Returns:
         One name per entity that is not frozen and should be
     """
-    by_name = {entity.name: (slug, entity) for slug, entity in found if entity.bases}
+    by_name = {
+        entity.name: (slug, entity)
+        for slug, entity in found
+        if entity.bases or _is_dataclass(entity)
+    }
 
     def is_compliant(name: str, visiting: frozenset[str]) -> bool:
         if name == "Entity":
@@ -108,6 +141,8 @@ def entities_not_extending_Entity(found: Found) -> list[str]:
         _, entity = by_name[name]
         if _is_enum(entity):
             return True
+        if _is_dataclass(entity):
+            return _is_frozen_dataclass(entity)
         return any(is_compliant(base, visiting | {name}) for base in entity.bases)
 
     return [
@@ -127,6 +162,11 @@ def fields_using_mutable_collections(found: Found) -> list[str]:
     Private attributes are exempt: they are mutable by design and are not
     part of what the entity serialises.
 
+    A dataclass is checked like anything else. It has no bases, so this
+    used to pass over every field on one, which meant a frozen dataclass
+    carrying ``list[str]`` — mutable through, exactly what this rule is
+    for — read as compliant (#142).
+
     Args:
         found: Entities paired with their bounded context
 
@@ -136,7 +176,7 @@ def fields_using_mutable_collections(found: Found) -> list[str]:
     return [
         f"{slug}.{entity.name}.{field.name}: {field.type_annotation}"
         for slug, entity in found
-        if entity.bases and not _is_enum(entity)
+        if (entity.bases or _is_dataclass(entity)) and not _is_enum(entity)
         for field in entity.fields
         if not field.name.startswith("_")
         and field.type_annotation.startswith(FORBIDDEN_COLLECTION_PREFIXES)
