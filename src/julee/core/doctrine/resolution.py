@@ -9,7 +9,16 @@ pure functions over the verdicts.
 """
 
 import ast
+import collections.abc
+import dataclasses
+import datetime
+import decimal
+import enum
 import importlib
+import inspect
+import pathlib
+import typing
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,7 +29,14 @@ from pydantic.dataclasses import is_pydantic_dataclass
 
 from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
-__all__ = ["Verdict", "dto_verdicts", "entity_verdicts", "module_name_for"]
+__all__ = [
+    "PRIMITIVES",
+    "Verdict",
+    "dto_verdicts",
+    "entity_verdicts",
+    "module_name_for",
+    "port_verdicts",
+]
 
 
 @dataclass(frozen=True)
@@ -237,3 +253,202 @@ def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdic
         One verdict per name, plus one per file that would not import
     """
     return _verdicts(slug, context_path, USE_CASES_PATH, names, _not_a_dto)
+
+
+PRIMITIVES = frozenset(
+    {
+        bool,
+        bytes,
+        complex,
+        float,
+        int,
+        str,
+        type(None),
+        datetime.date,
+        datetime.datetime,
+        datetime.time,
+        datetime.timedelta,
+        decimal.Decimal,
+        pathlib.PurePath,
+        pathlib.Path,
+        uuid.UUID,
+    }
+)
+"""Types a driven port may name besides the domain's own.
+
+Stdlib values with an obvious serialised form. A port dealing in these
+is not leaking a representation into the domain.
+"""
+
+
+def _foreign(annotation: object) -> list[str]:
+    """What a type expression names that a driven port may not.
+
+    Walks the expression, so ``tuple[Story, ...]`` is judged by Story
+    and ``dict[str, Any]`` by Any.
+
+    Args:
+        annotation: A resolved annotation, from get_type_hints
+
+    Returns:
+        One description per offending type, empty if all are allowed
+    """
+    if annotation is typing.Any:
+        return ["Any"]
+    if annotation is Ellipsis:
+        return []
+
+    if (origin := typing.get_origin(annotation)) is not None:
+        arguments = typing.get_args(annotation)
+        if origin is collections.abc.Callable:
+            # (args, return) — the args arrive as a list, or Ellipsis.
+            arguments = tuple(
+                argument
+                for group in arguments
+                for argument in (group if isinstance(group, list) else [group])
+            )
+        return [name for argument in arguments for name in _foreign(argument)]
+
+    if isinstance(annotation, typing.TypeVar):
+        if annotation.__bound__ is None and not annotation.__constraints__:
+            return [f"{annotation} (an unbounded type variable)"]
+        if annotation.__bound__ is not None:
+            return _foreign(annotation.__bound__)
+        return [
+            name
+            for constraint in annotation.__constraints__
+            for name in _foreign(constraint)
+        ]
+
+    if annotation in PRIMITIVES:
+        return []
+
+    if isinstance(annotation, type):
+        if issubclass(annotation, enum.Enum):
+            return []
+        if is_pydantic_dataclass(annotation):
+            return [f"{annotation.__name__} (a pydantic dataclass)"]
+        if issubclass(annotation, BaseModel):
+            return [f"{annotation.__name__} (a pydantic model)"]
+        if dataclasses.is_dataclass(annotation):
+            # __dataclass_params__ is not in the stub's DataclassInstance,
+            # and is the only place frozen= is recorded at runtime.
+            params = getattr(annotation, "__dataclass_params__", None)
+            if params is not None and params.frozen:
+                return []
+            return [f"{annotation.__name__} (a dataclass that is not frozen)"]
+        return [f"{annotation.__name__} (not a frozen dataclass)"]
+
+    return [f"{annotation!r}"]
+
+
+def _method_offences(protocol: type, method: str, function: object) -> list[str]:
+    """What one method of a protocol names that it may not.
+
+    A parameter with no annotation and a missing return type are
+    offences of their own: an unstated type is not a permitted one.
+
+    Args:
+        protocol: The port protocol the method belongs to
+        method: The method's name
+        function: The function object
+
+    Returns:
+        One sentence per offence
+    """
+    try:
+        hints = typing.get_type_hints(function)
+    except Exception as error:  # noqa: BLE001 - any resolution failure is an offence
+        return [f"{method}(): its annotations do not resolve ({error!r})"]
+
+    offences = []
+    signature = inspect.signature(function)  # type: ignore[arg-type]
+    for name, parameter in signature.parameters.items():
+        if name in {"self", "cls"} or parameter.kind is parameter.VAR_KEYWORD:
+            continue
+        if parameter.annotation is inspect.Parameter.empty:
+            offences.append(f"{method}({name}): no type is declared")
+            continue
+        offences.extend(
+            f"{method}({name}): {found}" for found in _foreign(hints.get(name))
+        )
+
+    if "return" not in hints:
+        offences.append(f"{method}(): no return type is declared")
+    else:
+        offences.extend(
+            f"{method}() returns {found}" for found in _foreign(hints["return"])
+        )
+
+    return offences
+
+
+def _is_ours(function: object, protocol: type) -> bool:
+    """Whether a method comes from the solution's code or from julee.
+
+    A port inheriting from a third-party class would otherwise have
+    that library's whole API judged as part of its surface.
+    """
+    module = getattr(function, "__module__", "") or ""
+    package = (protocol.__module__ or "").split(".")[0]
+    return module.split(".")[0] in {package, "julee"}
+
+
+def _declared_methods(protocol: type) -> dict[str, object]:
+    """The methods a protocol offers, its own and those it inherits.
+
+    Inherited ones count: a repository that declares nothing and gets
+    its CRUD from a base still offers those methods to a use case.
+
+    Args:
+        protocol: The port protocol to read
+
+    Returns:
+        Method name to function
+    """
+    ignored = set(dir(typing.Protocol)) | set(dir(object))
+    return {
+        name: member
+        for name, member in inspect.getmembers(protocol, inspect.isfunction)
+        if not name.startswith("_")
+        and name not in ignored
+        and _is_ours(member, protocol)
+    }
+
+
+def port_verdicts(
+    slug: str, context_path: Path, names_by_layer: dict[tuple[str, ...], list[str]]
+) -> list[Verdict]:
+    """Resolve driven port protocols and judge their signatures.
+
+    Args:
+        slug: The bounded context slug
+        context_path: Path to the bounded context
+        names_by_layer: Protocol names, by the layer directory holding them
+
+    Returns:
+        One verdict per offence, plus one per file that would not import
+    """
+    verdicts: list[Verdict] = []
+
+    for layer, names in names_by_layer.items():
+        modules, failures = _import_layer(slug, context_path, layer)
+        verdicts.extend(failures)
+
+        for name in names:
+            found = next(
+                (getattr(module, name) for module in modules if hasattr(module, name)),
+                None,
+            )
+            if not isinstance(found, type):
+                verdicts.append(
+                    Verdict(slug, name, "doctrine could not resolve it to a class")
+                )
+                continue
+            for method, function in _declared_methods(found).items():
+                verdicts.extend(
+                    Verdict(slug, name, offence)
+                    for offence in _method_offences(found, method, function)
+                )
+
+    return verdicts

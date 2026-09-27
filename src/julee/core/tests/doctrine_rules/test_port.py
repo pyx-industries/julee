@@ -1,14 +1,21 @@
 """Tests for the driven port rules."""
 
+import itertools
+import sys
+from pathlib import Path
+
 import pytest
 
+from julee.core.doctrine.resolution import port_verdicts
 from julee.core.doctrine.rules.port import (
     port_implementations_outside_infrastructure,
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
+    ports_using_foreign_types,
     protocols_in,
     services_bound_to_too_few_entities,
 )
+from julee.core.doctrine_constants import REPOSITORIES_PATH
 from julee.core.entities.code_info import ClassInfo, MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
 
@@ -414,3 +421,157 @@ def test_the_objection_names_the_context_and_the_protocol() -> None:
 def test_the_rule_is_silent_about_a_codebase_with_no_services() -> None:
     """Which the doctrine test reports as a skip rather than a pass."""
     assert services_bound_to_too_few_entities([], ENTITIES) == []
+
+
+# =============================================================================
+# What may cross a driven port
+# =============================================================================
+
+_UNIQUE = itertools.count()
+
+ALLOWED = {
+    "a frozen dataclass": "async def m(self) -> Story | None: ...",
+    "primitives": "async def m(self, n: int, s: str, b: bytes) -> bool: ...",
+    "None": "async def m(self) -> None: ...",
+    "an enum": "async def m(self) -> Colour: ...",
+    "a tuple of dataclasses": "async def m(self) -> tuple[Story, ...]: ...",
+    "a mapping of primitives": "async def m(self) -> Mapping[str, int]: ...",
+    "a datetime": "async def m(self) -> datetime: ...",
+    "a UUID": "async def m(self, k: UUID) -> UUID: ...",
+    "an async iterator": "def m(self) -> AsyncIterator[Story]: ...",
+}
+
+FORBIDDEN = {
+    "Any": "async def m(self) -> Any: ...",
+    "Any in a parameter": "async def m(self, v: Any) -> None: ...",
+    "dict[str, Any]": "async def m(self) -> dict[str, Any]: ...",
+    "an aliased dict[str, Any]": "async def m(self) -> Row: ...",
+    "a pydantic model": "async def m(self) -> AModel: ...",
+    "a pydantic dataclass": "async def m(self) -> APydanticDataclass: ...",
+    "a dataclass that is not frozen": "async def m(self) -> AMutableDataclass: ...",
+    "a plain class": "async def m(self) -> NotADataclass: ...",
+    "a bare dict": "async def m(self) -> dict: ...",
+    "a tuple of models": "async def m(self) -> tuple[AModel, ...]: ...",
+    "an optional model": "async def m(self) -> AModel | None: ...",
+    "no annotation on a parameter": "async def m(self, v) -> None: ...",
+    "no return type": "async def m(self, s: str): ...",
+}
+
+PORT_PREAMBLE = '''"""A driven port."""
+
+from collections.abc import AsyncIterator, Mapping
+from dataclasses import dataclass
+from datetime import datetime
+from enum import StrEnum
+from typing import Any, Protocol
+from uuid import UUID
+
+from pydantic import BaseModel
+from pydantic.dataclasses import dataclass as pydantic_dataclass
+
+Row = dict[str, Any]
+
+
+class Colour(StrEnum):
+    """A domain value."""
+
+    RED = "red"
+
+
+@dataclass(frozen=True)
+class Story:
+    """A domain object."""
+
+    slug: str
+
+
+class NotADataclass:
+    """A plain class."""
+
+
+class AModel(BaseModel):
+    """A pydantic model."""
+
+
+@pydantic_dataclass(frozen=True)
+class APydanticDataclass:
+    """A pydantic dataclass."""
+
+    slug: str
+
+
+@dataclass
+class AMutableDataclass:
+    """A dataclass that is not frozen."""
+
+    slug: str
+'''
+
+
+def a_port_context(tmp_path: Path, signature: str) -> Path:
+    """Write an importable context whose repository declares one method."""
+    package = f"port{next(_UNIQUE)}"
+    root = tmp_path / package
+    context = root / package / "stories"
+    (context / "domain" / "repositories").mkdir(parents=True)
+    (root / package / "__init__.py").write_text("")
+    (context / "__init__.py").write_text('"""Stories."""\n')
+    (context / "domain" / "__init__.py").write_text("")
+    (context / "domain" / "repositories" / "__init__.py").write_text("")
+    (context / "domain" / "repositories" / "story.py").write_text(
+        f"{PORT_PREAMBLE}\n\nclass StoryRepository(Protocol):\n"
+        f'    """A driven port."""\n\n    {signature}\n'
+    )
+    sys.path.insert(0, str(root))
+    return context
+
+
+def offences_for(context: Path) -> list[str]:
+    """What the rule objects to for that context's one repository."""
+    return ports_using_foreign_types(
+        port_verdicts("stories", context, {REPOSITORIES_PATH: ["StoryRepository"]})
+    )
+
+
+def test_driven_port_must_only_use_primitives_or_frozen_dataclasses(
+    tmp_path: Path,
+) -> None:
+    """The rule accepts domain types and refuses everything else.
+
+    Every case is tried before reporting, so a failure names all of
+    them.
+    """
+    refused = [
+        f"{what}: {offences_for(a_port_context(tmp_path, signature))}"
+        for what, signature in ALLOWED.items()
+        if offences_for(a_port_context(tmp_path, signature))
+    ]
+    assert not refused, "refused a port speaking the domain: " + "; ".join(refused)
+
+    leaked = [
+        what
+        for what, signature in FORBIDDEN.items()
+        if not offences_for(a_port_context(tmp_path, signature))
+    ]
+    assert not leaked, "accepted a port not speaking the domain: " + ", ".join(leaked)
+
+
+def test_an_objection_names_the_port_the_method_and_the_type(tmp_path: Path) -> None:
+    """So an author can act on it without rerunning anything."""
+    context = a_port_context(tmp_path, FORBIDDEN["a pydantic model"])
+
+    assert offences_for(context) == [
+        "stories.StoryRepository.m() returns AModel (a pydantic model)"
+    ]
+
+
+def test_an_unresolvable_port_name_is_reported(tmp_path: Path) -> None:
+    """A protocol doctrine found but could not import."""
+    context = a_port_context(tmp_path, ALLOWED["primitives"])
+
+    assert (
+        ports_using_foreign_types(
+            port_verdicts("stories", context, {REPOSITORIES_PATH: ["Vanished"]})
+        )
+        != []
+    )
