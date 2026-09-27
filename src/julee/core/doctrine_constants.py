@@ -88,7 +88,14 @@ INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 # =============================================================================
 
 APPS_ROOT: Final[str] = "apps"
-"""Root directory for application entry points."""
+"""Root directory for application entry points.
+
+Reserved so that a directory of this name is not read as a bounded
+context. Not required: a solution may have none, and an observability
+stack composed by a deployment is the worked example (#295). Where a
+solution composes itself is declared by ``composition_roots``, which
+defaults to this.
+"""
 
 DEPLOYMENTS_ROOT: Final[str] = "deployments"
 """Root directory for deployment configurations."""
@@ -102,15 +109,6 @@ DOCS_ROOT: Final[str] = "docs"
 
 PIPELINE_LOCATION: Final[str] = "apps/worker/pipelines.py"
 """Canonical location for pipeline definitions within a bounded context."""
-
-# =============================================================================
-# APPLICATION DISCOVERY
-# =============================================================================
-
-APP_BC_ORGANIZATION_EXCLUDES: Final[frozenset[str]] = frozenset(
-    {"shared", "tests", "__pycache__", "common"}
-)
-"""Subdirectory names excluded when detecting BC-based app organisation."""
 
 RESERVED_WORDS: Final[frozenset[str]] = frozenset(
     {

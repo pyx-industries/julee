@@ -8,6 +8,33 @@ solution, because its domain code ships as kits. Nested solutions remain
 available to any solution that wants one, and are recognised by their
 shape rather than by name.
 
+Amended again, on #295: **a solution need not have an `apps/`
+directory.** This ADR reads throughout as though every solution has one.
+Three things below are no longer true, and the last of them never was:
+
+- **`apps/` is optional.** An observability stack — Loki, Prometheus,
+  Grafana, an OTel collector, an OIDC IdP, an SMTP relay, composed by a
+  deployment — is a solution with bounded contexts modelling log,
+  metric and trace identity, retention and ingestion contracts, and no
+  deployable application of its own. It is not a lesser solution for
+  that, and nothing in doctrine says otherwise.
+- **A composition root is declared, not located.** `[tool.julee]
+  composition_roots` names them, defaulting to `("apps",)`. This is how
+  the "Apps as Composition Roots" section below should be read:
+  `apps/` is the default answer, not the only one. `julee-viewpoints`
+  already sets it to `["sphinx_hcd/sphinx", "sphinx_c4/sphinx"]`,
+  because what composes it is a Sphinx extension.
+- **Application Discovery was never built.** The section below shows a
+  `FilesystemApplicationRepository` yielding `Application` objects.
+  Neither that class nor that entity exists, or ever did. Its one
+  leftover, the `APP_BC_ORGANIZATION_EXCLUDES` constant, had no reader
+  and is gone.
+
+What stands is the reserved-word rule and the dependency direction.
+`apps` and `deployments` are still not bounded contexts, and a bounded
+context still MUST NOT import an application — which doctrine does
+enforce, through the boundary rule and `composition_roots`.
+
 ## Date
 
 2026-01-07
