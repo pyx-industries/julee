@@ -449,7 +449,7 @@ def entities_that_are_pydantic_dataclasses(
     """Entities built with pydantic's dataclass decorator.
 
     Nothing else catches these. At the point of use it is spelled
-    ``@dataclass(frozen=True)``, and :meth:`ClassInfo.decorated_with`
+    ``@dataclass(frozen=True)``, and ``ClassInfo.decorated_with``
     matches on the last segment of the dotted path, so
     :func:`entities_not_extending_Entity` reads one as a compliant
     frozen dataclass and pydantic sits in the domain unremarked.
