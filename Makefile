@@ -39,6 +39,8 @@ test-doctrine:
 	uv run pytest src/julee/core/doctrine/
 
 # The checks CI runs; run before pushing
+test: test-python-unit test-doctrine
+
 check: lint-python typecheck test-python-unit test-doctrine
 
 # Build the documentation. -W, as CI does, so a warning fails here
