@@ -8,9 +8,10 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine.resolution import dto_verdicts
 from julee.core.doctrine.rules.use_case import (
-    requests_not_extending_BaseModel,
-    responses_not_extending_BaseModel,
+    requests_that_are_not_pydantic,
+    responses_that_are_not_pydantic,
     use_case_sources_mentioning,
     use_cases_defining_next_action,
     use_cases_not_named_UseCase,
@@ -254,14 +255,33 @@ class TestDrivingPortMessages:
     A request and a response are messages at the driving port, not
     domain objects. They cross a process boundary, so they are
     validated on the way in and serialised on the way out.
+
+    Both tests resolve the class and ask Python, rather than reading
+    its bases out of the AST. The AST cannot tell a local class called
+    BaseModel from pydantic's, and the guarantee is worth nothing if it
+    can be got around by naming something badly.
     """
 
+    @staticmethod
+    async def _verdicts(repo, artifacts):
+        """Resolve every artifact name, context by context."""
+        by_context: dict[str, list[str]] = {}
+        for found in artifacts:
+            by_context.setdefault(found.bounded_context, []).append(found.artifact.name)
+
+        verdicts = []
+        for ctx in await repo.list_all():
+            verdicts.extend(
+                dto_verdicts(ctx.slug, Path(ctx.path), by_context.get(ctx.slug, []))
+            )
+        return verdicts
+
     @pytest.mark.asyncio
-    async def test_every_request_MUST_derive_from_BaseModel(self, repo):
+    async def test_every_request_MUST_be_a_pydantic_DTO(self, repo):
         """Use case requests MUST be pydantic models.
 
         A request arrives from outside as JSON, form fields or a queue
-        payload. BaseModel is what validates it.
+        payload. Pydantic is what validates it.
         """
         response = await ListRequestsUseCase(repo).execute(ListCodeArtifactsRequest())
 
@@ -270,14 +290,15 @@ class TestDrivingPortMessages:
 
         assert len(response.artifacts) > 0, "No requests found - detector may be broken"
 
-        violations = requests_not_extending_BaseModel(response.artifacts)
+        verdicts = await self._verdicts(repo, response.artifacts)
+        violations = requests_that_are_not_pydantic(verdicts)
 
         assert not violations, "Requests that are not pydantic DTOs:\n" + "\n".join(
             violations
         )
 
     @pytest.mark.asyncio
-    async def test_every_response_MUST_derive_from_BaseModel(self, repo):
+    async def test_every_response_MUST_be_a_pydantic_DTO(self, repo):
         """Use case responses MUST be pydantic models.
 
         A response is what a driving adapter turns back into JSON, a
@@ -292,7 +313,8 @@ class TestDrivingPortMessages:
             "No responses found - detector may be broken"
         )
 
-        violations = responses_not_extending_BaseModel(response.artifacts)
+        verdicts = await self._verdicts(repo, response.artifacts)
+        violations = responses_that_are_not_pydantic(verdicts)
 
         assert not violations, "Responses that are not pydantic DTOs:\n" + "\n".join(
             violations

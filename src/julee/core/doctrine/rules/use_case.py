@@ -15,20 +15,19 @@ a member and so neither appears in ClassInfo.
 
 from collections.abc import Iterable
 
+from julee.core.doctrine.resolution import Verdict
 from julee.core.doctrine_constants import (
     REQUEST_SUFFIX,
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
-from julee.core.entities.code_info import ClassInfo, MethodInfo
+from julee.core.entities.code_info import MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
 
 __all__ = [
     "GENERIC_BASE_CLASSES",
-    "NOT_PYDANTIC_BASES",
-    "PYDANTIC_BASE",
-    "requests_not_extending_BaseModel",
-    "responses_not_extending_BaseModel",
+    "requests_that_are_not_pydantic",
+    "responses_that_are_not_pydantic",
     "use_case_sources_mentioning",
     "use_cases_whose_execute_returns_the_wrong_response",
     "use_cases_whose_execute_takes_the_wrong_request",
@@ -312,160 +311,48 @@ def use_case_sources_mentioning(
     return [f"{slug}/{path}" for slug, path, text in sources if forbidden in text]
 
 
-PYDANTIC_BASE = "BaseModel"
-"""The base a request or response must reach."""
-
-NOT_PYDANTIC_BASES = frozenset(
-    {
-        "ABC",
-        "Enum",
-        "IntEnum",
-        "NamedTuple",
-        "object",
-        "Protocol",
-        "StrEnum",
-        "TypedDict",
-    }
-)
-"""Bases that are known not to be BaseModel.
-
-Unseen bases are trusted, so without these a TypedDict request would
-pass.
-"""
-
-
-def _base_name(base: str) -> str:
-    """The class name a base expression names.
-
-    Drops the module path and any subscript, so ``pydantic.BaseModel``
-    gives ``BaseModel`` and ``BaseRequest[Story]`` gives
-    ``BaseRequest``.
-
-    Args:
-        base: A base as the parser recorded it
-
-    Returns:
-        The bare class name
-    """
-    return base.split("[", 1)[0].strip().rsplit(".", 1)[-1]
-
-
-def _is_name_only(artifact: ClassInfo) -> bool:
-    """Whether the parser recorded a name rather than a parsed class.
-
-    A DTO re-exported into ``usecases/`` from a directory the parser
-    does not read arrives with a name and nothing else. ``file`` is
-    empty on those and set on every class actually read.
-
-    Args:
-        artifact: The class to test
-
-    Returns:
-        True if nothing but the name was recorded
-    """
-    return not artifact.file
-
-
-def _why_it_is_not_pydantic(
-    artifact: ClassInfo, by_name: dict[str, ClassInfo]
-) -> str | None:
-    """Why a DTO does not reach BaseModel.
-
-    The four ways to fail need four different edits, so the reason is
-    returned rather than a bool.
-
-    Args:
-        artifact: The request or response class to judge
-        by_name: The DTOs of its bounded context, for following bases
-
-    Returns:
-        A clause naming the reason, or None if it complies
-    """
-
-    def reaches_BaseModel(name: str, visiting: frozenset[str]) -> bool:
-        if name == PYDANTIC_BASE:
-            return True
-        if name in NOT_PYDANTIC_BASES or name in visiting:
-            return False
-        found = by_name.get(name)
-        if found is None or _is_name_only(found):
-            return True
-        if found.decorated_with("dataclass"):
-            return False
-        return any(
-            reaches_BaseModel(_base_name(base), visiting | {name})
-            for base in found.bases
-        )
-
-    if artifact.decorated_with("dataclass"):
-        return "it is a dataclass"
-    if not artifact.bases:
-        return "it has no base class"
-
-    named = [_base_name(base) for base in artifact.bases]
-    settled = sorted(set(named) & NOT_PYDANTIC_BASES)
-    if settled:
-        return f"it derives from {', '.join(settled)}"
-
-    if any(reaches_BaseModel(name, frozenset({artifact.name})) for name in named):
-        return None
-    return f"nothing in its bases reaches it ({', '.join(named)})"
-
-
-def _dtos_not_extending_BaseModel(
-    dtos: Iterable[CodeArtifactWithContext], what: str
-) -> list[str]:
+def _dtos_that_are_not_pydantic(verdicts: Iterable["Verdict"], what: str) -> list[str]:
     """The shared half of the request and response rules."""
-    dtos = list(dtos)
-    by_name = {found.artifact.name: found.artifact for found in dtos}
-
-    objections = []
-    for found in dtos:
-        artifact = found.artifact
-        if _is_name_only(artifact):
-            continue
-        reason = _why_it_is_not_pydantic(artifact, by_name)
-        if reason is not None:
-            objections.append(
-                f"{_named(found)}: a {what} is a pydantic DTO, but {reason}"
-            )
-    return objections
+    return [
+        f"{verdict.bounded_context}.{verdict.name}: a {what} is a pydantic "
+        f"DTO, but {verdict.reason}"
+        for verdict in verdicts
+        if verdict.reason is not None
+    ]
 
 
-def requests_not_extending_BaseModel(
-    requests: Iterable[CodeArtifactWithContext],
-) -> list[str]:
+def requests_that_are_not_pydantic(verdicts: Iterable["Verdict"]) -> list[str]:
     """Requests that are not pydantic DTOs.
 
     A request is the message a driving adapter hands in. It arrives as
-    JSON, form fields or a queue payload, and BaseModel is what
+    JSON, form fields or a queue payload, and pydantic is what
     validates it before a use case reads it.
 
-    Bases are followed within the bounded context, so a request
-    extending another request complies. A base doctrine cannot see is
-    trusted, except for :data:`NOT_PYDANTIC_BASES`.
+    The verdicts come from :func:`julee.core.doctrine.resolution.dto_verdicts`,
+    which imports the class and asks Python. Reading bases out of the
+    AST cannot answer this: a local class called ``BaseModel``, an
+    aliased import and a base from an unparsed package all read as
+    compliant.
 
     Args:
-        requests: The request classes a codebase has
+        verdicts: One per request name, from dto_verdicts
 
     Returns:
         One sentence per request that nothing validates
     """
-    return _dtos_not_extending_BaseModel(requests, "request")
+    return _dtos_that_are_not_pydantic(verdicts, "request")
 
 
-def responses_not_extending_BaseModel(
-    responses: Iterable[CodeArtifactWithContext],
-) -> list[str]:
+def responses_that_are_not_pydantic(verdicts: Iterable["Verdict"]) -> list[str]:
     """Responses that are not pydantic DTOs.
 
     A response is what a driving adapter serialises. One that is not a
-    BaseModel leaves each adapter to work out how on its own.
+    pydantic model leaves each adapter to work out how on its own.
 
     Args:
-        responses: The response classes a codebase has
+        verdicts: One per response name, from dto_verdicts
 
     Returns:
         One sentence per response an adapter cannot serialise
     """
-    return _dtos_not_extending_BaseModel(responses, "response")
+    return _dtos_that_are_not_pydantic(verdicts, "response")
