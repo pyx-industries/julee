@@ -51,12 +51,19 @@ vocabulary for talking about sequences, the other is mutable
 containers.
 """
 
-USE_CASE_PACKAGES = ("domain", "usecases")
+USE_CASE_PACKAGES = ("domain", "dtos", "usecases")
 """The parts of its own bounded context a use case may reach for.
 
-Its ring and the ring inside it. ``infrastructure`` and ``apps`` are
-the two it may not, and they are the two a kit does not offer either
-(ADR 012 §3).
+Its ring, the ring inside it, and the messages at its edge.
+``infrastructure`` and ``apps`` are the two it may not, and they are
+the two a kit does not offer either (ADR 012 §3).
+
+``dtos`` is the only package of a bounded context that imports
+pydantic. A request and a response must be pydantic models, and no
+file under ``usecases/`` may import pydantic, so without somewhere
+else to put them the rules cannot all be satisfied at once. Keeping
+them in their own package says what they are: messages at the driving
+port, not use cases and not domain.
 """
 
 OUTWARD_JULEE_PACKAGES = (
