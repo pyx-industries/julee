@@ -113,6 +113,18 @@ One directory per port, and every port found by its directory. Nothing
 here is found by its name: a name is a claim doctrine checks, never the
 mechanism that locates the thing.
 
+**Both axes say what a port is compatible with, not what makes it one.**
+Every port here is something a use case declares and a composition root
+supplies. A computation an entity does on its own fields satisfies
+"bound to any number of entities, callable inline, deterministic" and is
+still not a Calculator, because nobody supplies it and nobody could
+supply a different one. `Relationship.is_cross_system` is not a port; it
+is what a relationship knows about itself. The test that separates them
+is under **Calculator** below, and it is the one
+to apply before reaching for a directory — surveying three kits found
+113 methods and properties on their entities and **not one** that should
+become a port (julee-kits#72).
+
 Being reachable inline is one property with three reasons, and the
 reasons are worth distinguishing because they are different promises:
 
@@ -202,6 +214,29 @@ intrinsic rule with one right answer is a method on the entity. A rule
 that varies by adopter, tenant or deployment is a Calculator, because the
 entity cannot carry every adopter's version of it and should not import
 what it would need to.
+
+`NewDataCalculator` says this about itself: the IDs it returns are
+"opaque strings from the polling system's perspective. Their meaning is
+defined by the bounded context that supplies the calculator, which is
+why this is a port and not a method here." Two adopters of the polling
+kit legitimately disagree about what counts as a new item. No two
+adopters of c4 disagree about whether a relationship crosses a system
+boundary.
+
+So the question is not whether the computation is complicated, or
+deterministic, or reaches across several entities. It is whether two
+adopters could want different answers from the same inputs. If they
+could, it is theirs to supply. If they could not, it is the entity's to
+know, and moving it out produces the anemic domain model rather than a
+cleaner one.
+
+A value object's constructor is not a Calculator either, for the same
+reason and one more: it is constructed inline with nothing injected, and
+there is no seam to supply anything through.
+`ContentMultihash.of(content)` looked like a candidate — deterministic,
+reached for by use cases, not a fact about any one Document — until the
+value-object work gave it a type to be the constructor of (#44 made the
+case that two adopters disagreeing about it is exactly the bug).
 
 This is the seam a kit uses to require something from its adopter, which
 is ADR 012's contribution contract running the other way.
