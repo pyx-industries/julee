@@ -37,6 +37,45 @@ class MethodInfo(BaseModel):
     return_type: str = ""
     docstring: str = ""
     source: str = ""
+    decorators: list[str] = Field(default_factory=list)
+    """Dotted paths of the method's decorators, imports followed.
+
+    The same shape as :attr:`ClassInfo.decorators`, and for the same
+    reason: a rule asks what a method *is*, not how the decorator
+    happened to be spelled where it was applied. ``field_validator``
+    imported from pydantic, from a package that re-exports it, or under
+    an alias all resolve to ``pydantic.field_validator``.
+    """
+
+    returns: list[str] = Field(default_factory=list)
+    """The source text of each ``return`` expression in the body.
+
+    Text rather than a value, because this is read from a file rather
+    than run — the same choice :attr:`ClassInfo.decorator_arguments`
+    makes. A bare ``return`` contributes nothing.
+
+    Recorded because what a method hands back is a fact about it that
+    rules want: :func:`~julee.core.doctrine.rules.entity.validators_that_transform`
+    asks whether a
+    validator returns the value it was given, and the alternative was
+    to have one rule re-read the source, which ADR 002 puts the wrong
+    way round.
+    """
+
+    def decorated_with(self, name: str) -> bool:
+        """Whether a decorator of this name is applied to the method.
+
+        Matched on the last path segment, so a decorator re-exported
+        from a package and imported from there still counts as the same
+        decorator.
+
+        Args:
+            name: Decorator name, without a module path
+
+        Returns:
+            True if any decorator ends in that name
+        """
+        return any(path.rsplit(".", 1)[-1] == name for path in self.decorators)
 
     @property
     def parameter_names(self) -> list[str]:
