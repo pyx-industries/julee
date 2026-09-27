@@ -22,6 +22,7 @@ __all__ = [
     "OUTWARD_JULEE_PACKAGES",
     "USE_CASE_PACKAGES",
     "absolute_module",
+    "usecases_importing_other_usecases",
     "usecases_importing_outward",
 ]
 
@@ -180,4 +181,54 @@ def usecases_importing_outward(
         reason = _why_forbidden(module, context_packages.get(slug, slug), kits)
         if reason is not None:
             objections.append(f"{info.file}:{info.line} imports {module}, but {reason}")
+    return objections
+
+
+def usecases_importing_other_usecases(
+    imports: Iterable[tuple[str, str, ImportInfo]],
+    context_packages: dict[str, str],
+    kit_packages: Iterable[str] = (),
+) -> list[str]:
+    """Use cases that reach for another use case.
+
+    Not a question of direction — a sibling is in the same ring, so
+    the inward rule has nothing to say about it. This is coupling
+    inside a ring. A use case that needs another one to happen
+    notifies a role and lets the composition root decide who fills it;
+    importing it directly couples the two and bypasses the handler
+    that exists for exactly this (ADR 003).
+
+    The caller passes only the imports made by modules that define a
+    use case, which is what leaves a facade alone: ``__init__.py``
+    re-exports and defines none, and every kit's public surface
+    currently depends on it.
+
+    That narrowing is a concession to re-exports rather than
+    something the rule wants. A package that does not re-export has
+    no facade to spare, and this becomes the simpler rule it should
+    have been: ``usecases`` comes out of
+    :data:`USE_CASE_PACKAGES` and the caller stops filtering.
+
+    ``julee.core.usecases`` is a ring in rather than a sibling, so the
+    generic CRUD bases and ``try_use_case_step`` stay reachable.
+
+    Args:
+        imports: Bounded context slug, the importing file's package,
+            and one import — from use-case-defining modules only
+        context_packages: Package path, by bounded context slug
+        kit_packages: Packages of the kits the solution adopts
+
+    Returns:
+        One sentence per use case reaching for another
+    """
+    objections = []
+    for slug, package, info in imports:
+        module = absolute_module(info, package)
+        owners = [context_packages.get(slug, slug), *kit_packages]
+        if any(_is_within(module, f"{owner}.usecases") for owner in owners):
+            objections.append(
+                f"{info.file}:{info.line} imports {module}, but a use case "
+                f"hands a condition to a handler rather than calling another "
+                f"use case"
+            )
     return objections
