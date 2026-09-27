@@ -72,31 +72,40 @@ ALLOWED = {
 """What a use case may reach for."""
 
 FORBIDDEN = {
-    "pydantic": "from pydantic import BaseModel",
-    "a third-party package": "import yaml",
-    "json": "import json",
-    "io": "import io",
-    "logging": "import logging",
-    "os": "import os",
-    "asyncio": "import asyncio",
-    "random": "import random",
-    "time": "import time",
-    "hashlib": "import hashlib",
-    "collections": "import collections",
-    "pathlib": "from pathlib import Path",
+    "pydantic": ("from pydantic import BaseModel", "pydantic"),
+    "a third-party package": ("import yaml", "yaml"),
+    "json": ("import json", "json"),
+    "io": ("import io", "io"),
+    "logging": ("import logging", "logging"),
+    "os": ("import os", "os"),
+    "asyncio": ("import asyncio", "asyncio"),
+    "random": ("import random", "random"),
+    "time": ("import time", "time"),
+    "hashlib": ("import hashlib", "hashlib"),
+    "collections": ("import collections", "collections"),
+    "pathlib": ("from pathlib import Path", "pathlib"),
     "its own infrastructure": (
-        "from acme.stories.infrastructure.memory import MemoryStoryRepository"
+        "from acme.stories.infrastructure.memory import MemoryStoryRepository",
+        "acme.stories.infrastructure.memory",
     ),
     "its own infrastructure relatively": (
-        "from ..infrastructure.memory import MemoryStoryRepository"
+        "from ..infrastructure.other import Other",
+        "acme.stories.infrastructure.other",
     ),
-    "julee's adapters": "from julee.repositories.memory.base import MemoryRepositoryMixin",
-    "julee's integrations": "from julee.integrations.temporal import clock",
-    "an import inside a function": (
-        "if True:\n    import json  # deferred, and still an import"
+    "julee's adapters": (
+        "from julee.repositories.memory.base import MemoryRepositoryMixin",
+        "julee.repositories.memory.base",
+    ),
+    "julee's integrations": (
+        "from julee.integrations.temporal import clock",
+        "julee.integrations.temporal",
+    ),
+    "an import deferred inside a block": (
+        "if True:\n    import csv  # deferred, and still an import",
+        "csv",
     ),
 }
-"""What a use case may not reach for.
+"""What a use case may not reach for, with the module each must name.
 
 Keyed by what is wrong, so one module carries them all and the
 objections can be told apart in one run.
@@ -143,9 +152,18 @@ def a_solution(root: Path, imports: tuple[str, ...]) -> Path:
         context / "usecases",
     ):
         (package / "__init__.py").write_text("")
+    # A package init doing a relative import: its own package is the
+    # package, not the one above, and getting that wrong made every
+    # relative import in an __init__ resolve one level too high.
+    (context / "usecases" / "__init__.py").write_text(
+        'from .other import OtherUseCase\n\n__all__ = ["OtherUseCase"]\n'
+    )
     (context / "domain" / "models" / "story.py").write_text(ENTITY)
     (context / "domain" / "repositories" / "story.py").write_text(PORT)
     (context / "infrastructure" / "memory.py").write_text(ADAPTER)
+    (context / "infrastructure" / "other.py").write_text(
+        '"""Another adapter."""\n\n\nclass Other:\n    """Not for a use case."""\n'
+    )
     (context / "usecases" / "other.py").write_text(
         '"""Another use case."""\n\n\nclass OtherUseCase:\n    """Another."""\n'
     )
@@ -169,9 +187,18 @@ def test_a_usecase_may_import_only_inward(tmp_path: Path) -> None:
         f"doctrine refused a use case importing only inward:\n{good.stdout}"
     )
 
-    bad = run_import_doctrine(a_solution(tmp_path / "bad", tuple(FORBIDDEN.values())))
+    bad = run_import_doctrine(
+        a_solution(
+            tmp_path / "bad",
+            tuple(statement for statement, _ in FORBIDDEN.values()),
+        )
+    )
     assert_doctrine_ran(bad, EXPECTED_IMPORT_TESTS, IMPORT_SELECTOR)
     assert bad.returncode != 0, f"doctrine passed all of them:\n{bad.stdout}"
 
-    missed = [what for what in FORBIDDEN if what.split()[-1] not in bad.stdout]
+    missed = [
+        what
+        for what, (_, module) in FORBIDDEN.items()
+        if f"imports {module}," not in bad.stdout
+    ]
     assert not missed, "the doctrine suite did not object to: " + ", ".join(missed)
