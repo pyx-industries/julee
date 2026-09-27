@@ -32,6 +32,12 @@ class ImportInfo(BaseModel):
         description="Names taken from it, empty for a plain import",
     )
     is_relative: bool = Field(default=False, description="True for a from-dot import")
+    level: int = Field(
+        default=0,
+        description="How many dots a relative import used; 0 when absolute",
+    )
+    """Without it ``from .sibling import x`` and ``from ..infrastructure
+    import x`` are the same import, and only one of them is allowed."""
     file: str = Field(default="", description="The file the import is in")
     line: int = Field(default=0, description="Where in that file")
 
@@ -72,6 +78,7 @@ def extract_imports(file_path: Path) -> list[ImportInfo]:
                     module=node.module or "",
                     names=tuple(alias.name for alias in node.names),
                     is_relative=node.level > 0,
+                    level=node.level,
                     file=str(file_path),
                     line=node.lineno,
                 )

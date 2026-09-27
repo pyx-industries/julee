@@ -31,6 +31,7 @@ from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
 __all__ = [
     "PRIMITIVES",
+    "package_of",
     "Verdict",
     "dto_verdicts",
     "entity_verdicts",
@@ -67,12 +68,36 @@ def module_name_for(path: Path) -> str | None:
     if (parent := path.parent) is None or not (parent / "__init__.py").exists():
         return None
 
-    parts = [path.stem]
-    directory = parent
+    if path.name == "__init__.py":
+        # A package's __init__ is imported by the package's own name.
+        parts: list[str] = []
+        directory = parent
+    else:
+        parts = [path.stem]
+        directory = parent
     while (directory / "__init__.py").exists():
         parts.append(directory.name)
         directory = directory.parent
     return ".".join(reversed(parts))
+
+
+def package_of(path: Path) -> str:
+    """The package a file's relative imports resolve against.
+
+    For ``a/b/c.py`` that is ``a.b``; for ``a/b/__init__.py`` it is
+    ``a.b`` as well, since a package's init sits in the package rather
+    than beside it.
+
+    Args:
+        path: Path to a .py file
+
+    Returns:
+        The dotted package path, empty if the file is in no package
+    """
+    name = module_name_for(path) or ""
+    if path.name == "__init__.py":
+        return name
+    return name.rsplit(".", 1)[0] if "." in name else ""
 
 
 def _files_under(directory: Path) -> list[Path]:

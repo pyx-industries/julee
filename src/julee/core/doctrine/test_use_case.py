@@ -8,7 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.doctrine.resolution import dto_verdicts
+from julee.core.doctrine.resolution import (
+    dto_verdicts,
+    module_name_for,
+    package_of,
+)
+from julee.core.doctrine.rules.dependency import usecases_importing_outward
 from julee.core.doctrine.rules.use_case import (
     requests_that_are_not_pydantic,
     responses_that_are_not_pydantic,
@@ -25,6 +30,7 @@ from julee.core.doctrine.rules.use_case import (
 from julee.core.doctrine_constants import (
     USE_CASE_SUFFIX,
 )
+from julee.core.parsers.imports import ImportInfo, extract_imports
 from julee.core.usecases.code_artifact.list_requests import ListRequestsUseCase
 from julee.core.usecases.code_artifact.list_responses import ListResponsesUseCase
 from julee.core.usecases.code_artifact.list_use_cases import ListUseCasesUseCase
@@ -318,3 +324,47 @@ class TestDrivingPortMessages:
         assert not violations, "Responses that are not pydantic DTOs:\n" + "\n".join(
             violations
         )
+
+
+class TestTheDependencyRule:
+    """Doctrine about what a use case may reach for."""
+
+    @pytest.mark.asyncio
+    async def test_a_usecase_MUST_import_only_inward(self, repo, kits):
+        """A use case MUST import only what points inward.
+
+        Its own context's domain/ and usecases/, an adopted kit's same
+        two, julee's entities, ports and use case bases, and the few
+        standard library modules that are the language rather than the
+        outside world.
+
+        Imports anywhere in a file count, a deferred one inside a
+        function included.
+        """
+        contexts = await repo.list_all()
+        if not contexts:
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        kit_packages = [kit.package for kit in kits if getattr(kit, "package", None)]
+
+        found: list[tuple[str, str, ImportInfo]] = []
+        packages: dict[str, str] = {}
+        for ctx in contexts:
+            context_path = Path(ctx.path)
+            packages[ctx.slug] = (
+                module_name_for(context_path / "__init__.py") or ctx.slug
+            )
+            for py_file in sorted((context_path / "usecases").rglob("*.py")):
+                if "tests" in py_file.parts:
+                    continue
+                package = package_of(py_file)
+                found.extend(
+                    (ctx.slug, package, info) for info in extract_imports(py_file)
+                )
+
+        if not found:
+            pytest.skip("No use case imports in target codebase — nothing to check")
+
+        violations = usecases_importing_outward(found, packages, kit_packages)
+
+        assert not violations, "Use cases importing outward:\n" + "\n".join(violations)
