@@ -420,8 +420,8 @@ def a_verdict(
     return Verdict(bounded_context=context, name=name, reason=reason)
 
 
-def test_pydantic_request_dto_allowed() -> None:
-    """The ordinary case."""
+def test_clean_verdict_allowed() -> None:
+    """A verdict with no reason is not an objection."""
     assert requests_that_are_not_pydantic([a_verdict()]) == []
 
 
@@ -491,98 +491,86 @@ def reason_for(context: Path, name: str) -> str | None:
     return next(v.reason for v in verdicts if v.name == name)
 
 
-def test_pydantic_request_dto_resolves_clean(tmp_path: Path) -> None:
-    """The ordinary case, end to end."""
-    assert reason_for(a_context(tmp_path, PYDANTIC_REQUEST), "GetStoryRequest") is None
+PLAIN_CLASS = '"""Get a story."""\n\n\nclass GetStoryRequest:\n    """Which story."""\n'
+
+LOCAL_BASEMODEL = (
+    '"""Get a story."""\n\n\n'
+    'class BaseModel:\n    """Not pydantic\'s."""\n\n\n'
+    'class GetStoryRequest(BaseModel):\n    """Which story."""\n'
+)
+
+FOREIGN_BASE = (
+    '"""Get a story."""\n\n'
+    "from argparse import Namespace\n\n\n"
+    'class GetStoryRequest(Namespace):\n    """Which story."""\n'
+)
+
+STDLIB_DATACLASS = (
+    '"""Get a story."""\n\n'
+    "from dataclasses import dataclass\n\n\n"
+    "@dataclass(frozen=True)\n"
+    'class GetStoryRequest:\n    """Which story."""\n\n    slug: str\n'
+)
+
+PYDANTIC_DATACLASS = (
+    '"""Get a story."""\n\n'
+    "from pydantic.dataclasses import dataclass\n\n\n"
+    "@dataclass(frozen=True)\n"
+    'class GetStoryRequest:\n    """Which story."""\n\n    slug: str\n'
+)
+
+ALIASED_BASEMODEL = (
+    '"""Get a story."""\n\n'
+    "from pydantic import BaseModel as BM\n\n\n"
+    'class GetStoryRequest(BM):\n    """Which story."""\n\n    slug: str\n'
+)
 
 
-def test_class_named_basemodel_rejected(tmp_path: Path) -> None:
-    """Reading bases out of the AST passed this."""
-    context = a_context(
-        tmp_path,
-        '"""Get a story."""\n\n\n'
-        "class BaseModel:\n"
-        '    """Not pydantic\'s."""\n\n\n'
-        "class GetStoryRequest(BaseModel):\n"
-        '    """Which story."""\n',
-    )
-
-    assert reason_for(context, "GetStoryRequest") is not None
-
-
-def test_foreign_base_rejected(tmp_path: Path) -> None:
-    """An unseen base used to be trusted."""
-    context = a_context(
-        tmp_path,
-        '"""Get a story."""\n\n'
-        "from argparse import Namespace\n\n\n"
-        "class GetStoryRequest(Namespace):\n"
-        '    """Which story."""\n',
-    )
-
-    assert reason_for(context, "GetStoryRequest") is not None
-
-
-def test_dto_defined_outside_usecases_rejected(tmp_path: Path) -> None:
-    """Moving it out and importing it back used to bypass the rule."""
-    context = a_context(
-        tmp_path,
+NOT_A_BASEMODEL = {
+    "a plain class": (PLAIN_CLASS, ""),
+    "a stdlib dataclass": (STDLIB_DATACLASS, ""),
+    "a pydantic dataclass": (PYDANTIC_DATACLASS, ""),
+    "a local class called BaseModel": (LOCAL_BASEMODEL, ""),
+    "a base from an unparsed package": (FOREIGN_BASE, ""),
+    "a class defined outside usecases/": (
         '"""Get a story."""\n\n'
         "from acme.stories.messages import GetStoryRequest\n\n"
         '__all__ = ["GetStoryRequest"]\n',
-        messages='"""Messages."""\n\n\nclass GetStoryRequest:\n    """Not pydantic."""\n',
-    )
+        '"""Messages."""\n\n\nclass GetStoryRequest:\n    """Not pydantic."""\n',
+    ),
+}
+"""Ways a DTO can fail to be a BaseModel.
 
-    assert reason_for(context, "GetStoryRequest") is not None
+Every one reads as compliant to a check that follows bases in the AST,
+which is what the first version of this rule did.
+"""
+
+IS_A_BASEMODEL = {
+    "a plain import": PYDANTIC_REQUEST,
+    "an aliased import": ALIASED_BASEMODEL,
+}
+"""Ways of being one. How it was spelled is not what it is."""
 
 
-def test_pydantic_dataclass_request_dto_rejected(tmp_path: Path) -> None:
-    """It validates, and is still not a DTO.
+def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
+    """The resolver accepts a BaseModel DTO and refuses anything else.
 
-    Structurally it is a plain dataclass — no base, is_dataclass True,
-    replace works — so it would satisfy a domain rule too. A construct
-    that passes the rule for both rings cannot say which ring it is in.
+    Every case is tried before reporting, so a failure names all of
+    them rather than only the first.
     """
-    context = a_context(
-        tmp_path,
-        '"""Get a story."""\n\n'
-        "from pydantic.dataclasses import dataclass\n\n\n"
-        "@dataclass(frozen=True)\n"
-        "class GetStoryRequest:\n"
-        '    """Which story."""\n\n'
-        "    slug: str\n",
-    )
+    wrong = [
+        what
+        for what, source in IS_A_BASEMODEL.items()
+        if reason_for(a_context(tmp_path, source), "GetStoryRequest") is not None
+    ]
+    assert not wrong, f"refused a BaseModel DTO: {', '.join(wrong)}"
 
-    assert "pydantic dataclass" in (reason_for(context, "GetStoryRequest") or "")
-
-
-def test_stdlib_dataclass_request_dto_rejected(tmp_path: Path) -> None:
-    """It does not validate, so it is not a DTO."""
-    context = a_context(
-        tmp_path,
-        '"""Get a story."""\n\n'
-        "from dataclasses import dataclass\n\n\n"
-        "@dataclass(frozen=True)\n"
-        "class GetStoryRequest:\n"
-        '    """Which story."""\n\n'
-        "    slug: str\n",
-    )
-
-    assert reason_for(context, "GetStoryRequest") is not None
-
-
-def test_aliased_pydantic_import_allowed(tmp_path: Path) -> None:
-    """How it was spelled is not what it is."""
-    context = a_context(
-        tmp_path,
-        '"""Get a story."""\n\n'
-        "from pydantic import BaseModel as BM\n\n\n"
-        "class GetStoryRequest(BM):\n"
-        '    """Which story."""\n\n'
-        "    slug: str\n",
-    )
-
-    assert reason_for(context, "GetStoryRequest") is None
+    leaked = [
+        what
+        for what, (source, messages) in NOT_A_BASEMODEL.items()
+        if reason_for(a_context(tmp_path, source, messages), "GetStoryRequest") is None
+    ]
+    assert not leaked, f"accepted a DTO that is not a BaseModel: {', '.join(leaked)}"
 
 
 def test_unparseable_usecase_file_rejected(tmp_path: Path) -> None:

@@ -140,14 +140,14 @@ def a_solution(tmp_path: Path, usecase: str, messages: str = "") -> Path:
     """Write a julee solution with one bounded context.
 
     Args:
-        tmp_path: Where to write it
+        tmp_path: The solution root to write into
         usecase: Source for usecases/get_story.py
         messages: Source for a messages.py outside usecases/, if any
 
     Returns:
         The solution root, ready to pass as JULEE_TARGET
     """
-    root = tmp_path / "solution"
+    root = tmp_path
     context = root / "src" / "acme" / "stories"
     (context / "usecases").mkdir(parents=True)
     (root / "pyproject.toml").write_text(
@@ -225,55 +225,48 @@ def assert_doctrine_ran(result: subprocess.CompletedProcess[str]) -> None:
     )
 
 
-def test_pydantic_dtos_allowed(tmp_path: Path) -> None:
-    """A solution whose request and response are BaseModels passes.
+NOT_A_BASEMODEL = {
+    "a plain class": (PLAIN_REQUEST, ""),
+    "a stdlib dataclass": (STDLIB_DATACLASS_REQUEST, ""),
+    "a pydantic dataclass": (PYDANTIC_DATACLASS_REQUEST, ""),
+    "a local class called BaseModel": (LOCAL_BASEMODEL, ""),
+    "a class defined outside usecases/": (REQUEST_FROM_ELSEWHERE, MESSAGES_ELSEWHERE),
+    "a response that is a plain class": (PLAIN_RESPONSE, ""),
+}
+"""Ways a DTO can fail to be a BaseModel.
 
-    A rule that fires on everything guarantees as little as one that
-    fires on nothing.
+Listed rather than left to the obvious one because every one of these
+reads as compliant to a check that follows bases in the AST, which is
+what the first version of this rule did.
+"""
+
+
+def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
+    """The doctrine suite passes a BaseModel DTO and fails anything else.
+
+    Both halves in one test because they are one statement. A rule that
+    fires on everything guarantees as little as one that fires on
+    nothing, so the first assertion is not decoration.
+
+    Every disguise is tried before reporting, so a failure names all of
+    them that leaked rather than only the first.
     """
-    result = run_doctrine(a_solution(tmp_path, GOOD))
+    good = run_doctrine(a_solution(tmp_path / "good", GOOD))
+    assert_doctrine_ran(good)
+    assert good.returncode == 0, f"doctrine failed correct code:\n{good.stdout}"
+    assert f"{EXPECTED_TESTS} passed" in good.stdout, good.stdout
 
-    assert_doctrine_ran(result)
-    assert result.returncode == 0, result.stdout
-    assert f"{EXPECTED_TESTS} passed" in result.stdout, result.stdout
+    leaked = []
+    for what, (usecase, messages) in NOT_A_BASEMODEL.items():
+        result = run_doctrine(
+            a_solution(tmp_path / what.replace(" ", "-"), usecase, messages)
+        )
+        assert_doctrine_ran(result)
+        if result.returncode == 0:
+            leaked.append(what)
+        elif "is a pydantic DTO, but" not in result.stdout:
+            leaked.append(f"{what} (failed for another reason)")
 
-
-def assert_rejected(tmp_path: Path, usecase: str, messages: str = "") -> None:
-    """Run the doctrine over a bad solution and require it to fail."""
-    result = run_doctrine(a_solution(tmp_path, usecase, messages))
-
-    assert_doctrine_ran(result)
-    assert result.returncode != 0, f"doctrine passed it:\n{result.stdout}"
-    assert "is a pydantic DTO, but" in result.stdout, (
-        f"doctrine failed for some other reason:\n{result.stdout}"
+    assert not leaked, "the doctrine suite accepted a DTO that is not a BaseModel: " + (
+        ", ".join(leaked)
     )
-
-
-def test_non_pydantic_request_dto_rejected(tmp_path: Path) -> None:
-    """A request inheriting nothing."""
-    assert_rejected(tmp_path, PLAIN_REQUEST)
-
-
-def test_non_pydantic_response_dto_rejected(tmp_path: Path) -> None:
-    """A response inheriting nothing."""
-    assert_rejected(tmp_path, PLAIN_RESPONSE)
-
-
-def test_pydantic_dataclass_request_dto_rejected(tmp_path: Path) -> None:
-    """It validates, and is still not a BaseModel."""
-    assert_rejected(tmp_path, PYDANTIC_DATACLASS_REQUEST)
-
-
-def test_stdlib_dataclass_request_dto_rejected(tmp_path: Path) -> None:
-    """A frozen dataclass is the domain's tool, not the driving port's."""
-    assert_rejected(tmp_path, STDLIB_DATACLASS_REQUEST)
-
-
-def test_class_named_basemodel_rejected(tmp_path: Path) -> None:
-    """A local class of that name is not pydantic's."""
-    assert_rejected(tmp_path, LOCAL_BASEMODEL)
-
-
-def test_dto_defined_outside_usecases_rejected(tmp_path: Path) -> None:
-    """Moving it out and importing it back is not an escape."""
-    assert_rejected(tmp_path, REQUEST_FROM_ELSEWHERE, MESSAGES_ELSEWHERE)
