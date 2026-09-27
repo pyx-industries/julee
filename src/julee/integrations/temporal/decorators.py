@@ -19,7 +19,6 @@ from typing import (
     get_origin,
 )
 
-from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
@@ -289,18 +288,21 @@ def temporal_workflow_proxy(
                     f"from BaseRepository[ConcreteType]."
                 )
 
-            # Determine if return type needs Pydantic validation
-            needs_validation = _needs_pydantic_validation(return_annotation)
             is_optional = _is_optional_type(return_annotation)
             inner_type = (
                 _get_optional_inner_type(return_annotation)
                 if is_optional
                 else return_annotation
             )
+            # Whether there is a type worth handing to the converter. Any
+            # class will do: it decodes a pydantic model, a frozen
+            # dataclass and a plain one alike, and asked for none it
+            # answers with a dict.
+            needs_result_type = _is_decodable_type(inner_type)
 
             def create_workflow_method(
                 method_name: str,
-                needs_validation: bool,
+                needs_result_type: bool,
                 is_optional: bool,
                 inner_type: Any,
                 original_method: Any,
@@ -341,39 +343,43 @@ def temporal_workflow_proxy(
                             f"arguments instead of: {list(kwargs.keys())}"
                         )
 
-                    # Execute the activity
+                    # Execute the activity, telling the converter what it
+                    # is decoding into. Without result_type it is given no
+                    # type and answers with a dict, whatever the method
+                    # promised — for a pydantic model as much as anything
+                    # else — and the block below then rebuilt the model by
+                    # hand. Handing over the type is what that block was
+                    # working around (#142).
                     if activity_args:
                         raw_result = await workflow.execute_activity(
                             activity_name,
                             args=activity_args,
                             start_to_close_timeout=activity_timeout,
                             retry_policy=retry_policy,
+                            result_type=inner_type if needs_result_type else None,
                         )
                     else:
                         raw_result = await workflow.execute_activity(
                             activity_name,
                             start_to_close_timeout=activity_timeout,
                             retry_policy=retry_policy,
+                            result_type=inner_type if needs_result_type else None,
                         )
 
-                    # Handle return value validation
+                    # Normally a no-op now: the converter has already
+                    # built the entity. It still runs for a solution whose
+                    # converter hands back a dict anyway, so that this
+                    # change takes nothing away from one.
                     result = raw_result
-                    if needs_validation and raw_result is not None:
-                        if hasattr(inner_type, "model_validate"):
-                            result = inner_type.model_validate(
-                                raw_result,
-                                context={"temporal_validation": True},
-                            )
-                        else:
-                            # For other types, just return as-is
-                            result = raw_result
-                    elif (
-                        is_optional
-                        and raw_result is not None
+                    if (
+                        raw_result is not None
+                        and needs_result_type
+                        and not isinstance(raw_result, inner_type)
                         and hasattr(inner_type, "model_validate")
                     ):
                         result = inner_type.model_validate(
-                            raw_result, context={"temporal_validation": True}
+                            raw_result,
+                            context={"temporal_validation": True},
                         )
 
                     # Log completion
@@ -395,7 +401,7 @@ def temporal_workflow_proxy(
                 method_name,
                 create_workflow_method(
                     method_name,
-                    needs_validation,
+                    needs_result_type,
                     is_optional,
                     inner_type,
                     original_method,
@@ -430,24 +436,30 @@ def temporal_workflow_proxy(
     return decorator
 
 
-def _needs_pydantic_validation(annotation: Any) -> bool:
-    """Check if a type annotation indicates a Pydantic model."""
-    if annotation is None or annotation == inspect.Signature.empty:
+def _is_decodable_type(annotation: Any) -> bool:
+    """Whether this annotation is a type the converter can decode into.
+
+    Any concrete class counts. Temporal's pydantic converter builds a
+    pydantic model, a dataclass, or a plain class from a payload given
+    the type; given none it answers with a dict, which is what the
+    proxy used to get and then repair by hand for pydantic only (#142).
+
+    Excluded are the cases where there is nothing to hand over: an
+    unannotated method, None, ``Any``, and anything that is not a class
+    — a generic alias like ``list[Story]``, for instance, which reaches
+    here unsubstituted and would be rejected by execute_activity.
+
+    Args:
+        annotation: The return annotation, TypeVars already substituted
+
+    Returns:
+        True if it can usefully be passed as result_type
+    """
+    if annotation is None or annotation is Any:
         return False
-
-    # Handle Optional types
-    if _is_optional_type(annotation):
-        inner_type = _get_optional_inner_type(annotation)
-        return _is_pydantic_model(inner_type)
-
-    return _is_pydantic_model(annotation)
-
-
-def _is_pydantic_model(type_hint: Any) -> bool:
-    """Check if a type is a Pydantic model."""
-    if inspect.isclass(type_hint) and issubclass(type_hint, BaseModel):
-        return True
-    return False
+    if annotation is inspect.Signature.empty:
+        return False
+    return inspect.isclass(annotation)
 
 
 def _is_optional_type(annotation: Any) -> bool:

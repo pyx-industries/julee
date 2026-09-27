@@ -8,6 +8,7 @@ async methods as Temporal activities and handle type substitution correctly.
 # Standard library imports
 import asyncio
 import inspect
+from dataclasses import dataclass
 from typing import (
     Any,
     Protocol,
@@ -27,7 +28,8 @@ from temporalio import activity
 import julee.integrations.temporal.decorators as decorators_module
 from julee.integrations.temporal.decorators import (
     _extract_concrete_type_from_base,
-    _needs_pydantic_validation,
+    _get_optional_inner_type,
+    _is_decodable_type,
     _substitute_typevar_with_concrete,
     temporal_activity_registration,
     temporal_workflow_proxy,
@@ -621,35 +623,55 @@ class TestTypeSubstitution:
             assert "MockAssemblySpecification" in error_message
 
 
-class TestPydanticValidationDetection:
-    """Tests for _needs_pydantic_validation function."""
+class TestDecodableTypeDetection:
+    """What is worth handing to the converter as result_type.
 
-    def test_detects_pydantic_model_types(self) -> None:
-        """Test detection of Pydantic model types."""
-        assert _needs_pydantic_validation(MockAssemblySpecification)
-        assert _needs_pydantic_validation(MockDocument)
+    This used to ask whether the return type was a pydantic model,
+    because the proxy rebuilt the model itself and could only do that
+    for pydantic. The converter needs no such help: given any class it
+    decodes into it, and given none it answers with a dict (#142).
+    """
 
-    def test_detects_optional_pydantic_types(self) -> None:
-        """Test detection of Optional[PydanticModel] types."""
-        assert _needs_pydantic_validation(MockAssemblySpecification | None)
-        assert _needs_pydantic_validation(MockDocument | None)
+    def test_a_pydantic_model_is_decodable(self) -> None:
+        assert _is_decodable_type(MockAssemblySpecification)
+        assert _is_decodable_type(MockDocument)
 
-    def test_rejects_non_pydantic_types(self) -> None:
-        """Test that non-Pydantic types are not flagged for validation."""
-        assert not _needs_pydantic_validation(str)
-        assert not _needs_pydantic_validation(int)
-        assert not _needs_pydantic_validation(dict)
-        assert not _needs_pydantic_validation(str | None)
+    def test_a_dataclass_is_decodable(self) -> None:
+        """The case the old predicate said no to, which is why a
+        frozen-dataclass entity came back from an activity as a dict."""
 
-    def test_rejects_typevar_types(self) -> None:
-        """Test TypeVar types aren't flagged for validation (the bug)."""
-        assert not _needs_pydantic_validation(T)
-        assert not _needs_pydantic_validation(T | None)
+        @dataclass(frozen=True)
+        class Reading:
+            taken_at: str
 
-    def test_handles_none_and_empty(self) -> None:
-        """Test handling of None and Signature.empty."""
-        assert not _needs_pydantic_validation(None)
-        assert not _needs_pydantic_validation(inspect.Signature.empty)
+        assert _is_decodable_type(Reading)
+
+    def test_a_plain_class_is_decodable(self) -> None:
+        class Plain:
+            pass
+
+        assert _is_decodable_type(Plain)
+
+    def test_builtins_are_decodable_too(self) -> None:
+        """str and int are classes, and the converter handles them. The
+        old predicate excluded them because it was asking a different
+        question: whether the proxy had to rebuild something."""
+        assert _is_decodable_type(str)
+        assert _is_decodable_type(int)
+
+    def test_a_typevar_is_not(self) -> None:
+        """Unsubstituted, there is no type to hand over."""
+        assert not _is_decodable_type(T)
+
+    def test_a_generic_alias_is_not(self) -> None:
+        """list[Story] is not a class, and execute_activity rejects it."""
+        assert not _is_decodable_type(list[str])
+
+    def test_none_and_empty_and_Any_are_not(self) -> None:
+        """An unannotated method has nothing to say about its result."""
+        assert not _is_decodable_type(None)
+        assert not _is_decodable_type(inspect.Signature.empty)
+        assert not _is_decodable_type(Any)
 
 
 class TestWorkflowProxyIntegration:
@@ -739,19 +761,22 @@ class TestWorkflowProxyIntegration:
 class TestEndToEndTypeSubstitution:
     """End-to-end tests demonstrating the complete type substitution fix."""
 
-    def test_type_substitution_enables_pydantic_validation(self) -> None:
-        """Test type substitution enables Pydantic validation."""
-        # Simulate the problematic method signature: Optional[~T]
+    def test_type_substitution_gives_the_converter_a_type(self) -> None:
+        """Substitution is what makes result_type possible at all.
+
+        The proxy reads Optional[~T] off a generic base, so until the
+        TypeVar is substituted there is no class to hand over and the
+        converter would answer with a dict.
+        """
         original_annotation: Any = T | None
 
-        # Before fix: TypeVar prevents validation
-        assert not _needs_pydantic_validation(original_annotation)
+        assert not _is_decodable_type(_get_optional_inner_type(original_annotation))
 
-        # After substitution: Concrete type enables validation
         substituted_annotation = _substitute_typevar_with_concrete(
             original_annotation, MockAssemblySpecification
         )
-        assert _needs_pydantic_validation(substituted_annotation)
+
+        assert _is_decodable_type(_get_optional_inner_type(substituted_annotation))
 
     def test_demonstrates_original_problem_and_solution(self) -> None:
         """Test dict vs Pydantic object problem and solution."""
