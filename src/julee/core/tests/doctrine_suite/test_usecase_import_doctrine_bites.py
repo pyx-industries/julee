@@ -229,3 +229,68 @@ def test_a_usecase_may_import_only_inward(tmp_path: Path) -> None:
         if f"imports {module}," not in bad.stdout
     ]
     assert not missed, "the doctrine suite did not object to: " + ", ".join(missed)
+
+
+# =============================================================================
+# A use case does not call another use case
+# =============================================================================
+
+SIBLING_SELECTOR = "import_another_usecase"
+EXPECTED_SIBLING_TESTS = 1
+
+CALLS_A_SIBLING = {
+    "a sibling use case by name": (
+        "from acme.stories.usecases.other import OtherUseCase",
+        "acme.stories.usecases.other",
+    ),
+    "a sibling use case relatively": (
+        "from .other import OtherUseCase",
+        "acme.stories.usecases.other",
+    ),
+}
+"""Ways one use case reaches for another.
+
+Both are inward, so the ring rule says nothing about either. What is
+wrong with them is coupling inside a ring, not direction.
+"""
+
+MINDS_ITS_OWN_BUSINESS = (
+    "from acme.stories.domain.models.story import Story",
+    "from acme.stories.dtos.get_story import GetStoryRequest",
+    "from julee.core.usecases import generic_crud",
+    "from julee.core.usecases.decorators import try_use_case_step",
+)
+"""What a use case may still reach for.
+
+The last two are julee's use case bases and its step decorator. They
+are a ring in, not a sibling, and every generated CRUD module in the
+estate imports them.
+"""
+
+
+def test_a_usecase_must_not_import_another_usecase(tmp_path: Path) -> None:
+    """The doctrine objects when a use case reaches for a use case.
+
+    A facade is left alone: usecases/__init__.py re-exports and
+    defines no use case, and every kit's public surface depends on it.
+    """
+    good = run_doctrine(
+        a_solution(tmp_path / "minds-own-business", MINDS_ITS_OWN_BUSINESS),
+        IMPORT_TEST,
+        SIBLING_SELECTOR,
+    )
+    assert_doctrine_ran(good, EXPECTED_SIBLING_TESTS, SIBLING_SELECTOR)
+    assert good.returncode == 0, f"doctrine refused a use case:\n{good.stdout}"
+
+    missed = []
+    for what, (statement, module) in CALLS_A_SIBLING.items():
+        bad = run_doctrine(
+            a_solution(tmp_path / what.replace(" ", "-"), (statement,)),
+            IMPORT_TEST,
+            SIBLING_SELECTOR,
+        )
+        assert_doctrine_ran(bad, EXPECTED_SIBLING_TESTS, SIBLING_SELECTOR)
+        if bad.returncode == 0 or module not in bad.stdout:
+            missed.append(what)
+
+    assert not missed, "the doctrine suite did not object to: " + ", ".join(missed)
