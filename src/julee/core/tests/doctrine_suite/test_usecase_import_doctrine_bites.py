@@ -43,6 +43,28 @@ class StoryRepository(Protocol):
     async def get(self, slug: str) -> Story | None: ...
 '''
 
+DTOS = '''"""The messages this use case takes and returns."""
+
+from pydantic import BaseModel, ConfigDict
+
+
+class GetStoryRequest(BaseModel):
+    """Which story to fetch."""
+
+    model_config = ConfigDict(frozen=True)
+
+    slug: str
+
+
+class GetStoryResponse(BaseModel):
+    """The story that was found."""
+
+    model_config = ConfigDict(frozen=True)
+
+    title: str
+'''
+"""Pydantic lives here and nowhere else inside a bounded context."""
+
 ADAPTER = '''"""A repository that keeps stories in memory."""
 
 
@@ -55,6 +77,8 @@ ALLOWED = {
     "its own ports": (
         "from acme.stories.domain.repositories.story import StoryRepository"
     ),
+    "its own dtos": "from acme.stories.dtos.get_story import GetStoryRequest",
+    "its own dtos relatively": "from ..dtos.get_story import GetStoryResponse",
     "a sibling use case by name": "from acme.stories.usecases.other import OtherUseCase",
     "a sibling use case relatively": "from .other import OtherUseCase",
     "its own domain relatively": "from ..domain.models.story import Story",
@@ -143,12 +167,14 @@ def a_solution(root: Path, imports: tuple[str, ...]) -> Path:
     (context / "domain" / "models").mkdir(parents=True)
     (context / "domain" / "repositories").mkdir(parents=True)
     (context / "infrastructure").mkdir(parents=True)
+    (context / "dtos").mkdir(parents=True)
     (context / "usecases").mkdir(parents=True)
     for package in (
         context / "domain",
         context / "domain" / "models",
         context / "domain" / "repositories",
         context / "infrastructure",
+        context / "dtos",
         context / "usecases",
     ):
         (package / "__init__.py").write_text("")
@@ -160,6 +186,7 @@ def a_solution(root: Path, imports: tuple[str, ...]) -> Path:
     )
     (context / "domain" / "models" / "story.py").write_text(ENTITY)
     (context / "domain" / "repositories" / "story.py").write_text(PORT)
+    (context / "dtos" / "get_story.py").write_text(DTOS)
     (context / "infrastructure" / "memory.py").write_text(ADAPTER)
     (context / "infrastructure" / "other.py").write_text(
         '"""Another adapter."""\n\n\nclass Other:\n    """Not for a use case."""\n'
