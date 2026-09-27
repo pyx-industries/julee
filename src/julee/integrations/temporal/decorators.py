@@ -378,10 +378,7 @@ def temporal_workflow_proxy(
                         and not isinstance(raw_result, inner_type)
                         and hasattr(inner_type, "model_validate")
                     ):
-                        result = inner_type.model_validate(
-                            raw_result,
-                            context={"temporal_validation": True},
-                        )
+                        result = inner_type.model_validate(raw_result)
 
                     # Log completion
                     logger.debug(
