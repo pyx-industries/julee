@@ -25,12 +25,12 @@ from typing import Protocol
 import pytest
 from temporalio import workflow
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
 from julee.core.repositories.base import BaseRepository
 from julee.integrations.temporal.activities import collect_activities_from_instances
-from julee.integrations.temporal.data_converter import temporal_data_converter
 from julee.integrations.temporal.decorators import (
     temporal_activity_registration,
     temporal_workflow_proxy,
@@ -118,7 +118,7 @@ class AskForStories:
 async def env() -> AsyncIterator[WorkflowEnvironment]:
     """A time-skipping Temporal, with the converter the kits' workers use."""
     async with await WorkflowEnvironment.start_time_skipping(
-        data_converter=temporal_data_converter
+        data_converter=pydantic_data_converter
     ) as started:
         yield started
 
