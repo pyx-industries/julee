@@ -31,7 +31,7 @@ __all__ = [
     "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
     "entities_not_extending_Entity",
-    "entities_that_are_pydantic_dataclasses",
+    "entities_that_are_not_frozen_dataclasses",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
     "validators_that_transform",
@@ -443,16 +443,21 @@ def validators_that_transform(found: Found) -> list[str]:
     return objections
 
 
-def entities_that_are_pydantic_dataclasses(
+def entities_that_are_not_frozen_dataclasses(
     verdicts: Iterable["Verdict"],
 ) -> list[str]:
-    """Entities built with pydantic's dataclass decorator.
+    """Domain classes that are not frozen stdlib dataclasses.
 
-    :func:`entities_not_extending_Entity` passes these, because both
-    decorators are spelled ``@dataclass(frozen=True)`` at the point of
-    use. The verdicts come from
+    A frozen dataclass, an enum, or a subclass of an immutable builtin
+    such as ``str``. A pydantic model brings a serialisation library
+    into the innermost ring; a pydantic dataclass brings it while
+    reading as a plain dataclass everywhere else.
+
+    The verdicts come from
     :func:`julee.core.doctrine.resolution.entity_verdicts`, which
-    imports the class rather than reading the decorator.
+    imports the class. Neither of pydantic's forms can be told from
+    the AST: ``Entity`` is a name, and both decorators are spelled
+    ``@dataclass(frozen=True)`` at the point of use.
 
     Args:
         verdicts: One per entity name, from entity_verdicts

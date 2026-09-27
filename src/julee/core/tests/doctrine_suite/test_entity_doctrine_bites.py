@@ -27,10 +27,6 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from julee.core.entities.entity import Entity
-
-
-class _Authored(BaseModel):
-    """A base of the solution's own, which is a pydantic model."""
 '''
 
 ALLOWED = {
@@ -62,6 +58,7 @@ FORBIDDEN = {
         "Story",
     ),
     "a local base that is a pydantic model": (
+        'class _Authored(BaseModel):\n    """A base of the solution\'s own."""\n\n\n'
         'class Story(_Authored):\n    """A unit of work."""\n\n    slug: str\n',
         "Story",
     ),

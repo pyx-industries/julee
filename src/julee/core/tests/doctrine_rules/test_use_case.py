@@ -11,11 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.doctrine.resolution import Verdict, dto_verdicts, entity_verdicts
-from julee.core.doctrine.rules.entity import (
-    entities_not_extending_Entity,
-    entities_that_are_pydantic_dataclasses,
-)
+from julee.core.doctrine.resolution import Verdict, dto_verdicts
 from julee.core.doctrine.rules.use_case import (
     requests_that_are_not_pydantic,
     responses_that_are_not_pydantic,
@@ -608,91 +604,3 @@ def test_unresolvable_dto_name_rejected(tmp_path: Path) -> None:
 def test_missing_usecases_directory_yields_nothing(tmp_path: Path) -> None:
     """Nothing to import is not a failure."""
     assert dto_verdicts("stories", tmp_path / "nowhere", []) == []
-
-
-# =============================================================================
-# The domain ring
-# =============================================================================
-
-
-def a_domain_context(tmp_path: Path, model_source: str) -> Path:
-    """Write an importable context with one domain model module."""
-    package = f"pkg{next(_UNIQUE)}"
-    root = tmp_path / package
-    context = root / package / "stories"
-    (context / "domain" / "models").mkdir(parents=True)
-    (root / package / "__init__.py").write_text("")
-    (context / "__init__.py").write_text('"""Stories."""\n')
-    (context / "domain" / "__init__.py").write_text("")
-    (context / "domain" / "models" / "__init__.py").write_text("")
-    (context / "domain" / "models" / "story.py").write_text(model_source)
-    sys.path.insert(0, str(root))
-    return context
-
-
-def test_stdlib_dataclass_entity_allowed(tmp_path: Path) -> None:
-    """stdlib dataclasses are what the domain ring is built from."""
-    context = a_domain_context(
-        tmp_path,
-        '"""Story."""\n\nfrom dataclasses import dataclass\n\n\n'
-        "@dataclass(frozen=True)\n"
-        "class Story:\n"
-        '    """A unit of work."""\n\n'
-        "    slug: str\n",
-    )
-
-    assert (
-        entities_that_are_pydantic_dataclasses(
-            entity_verdicts("stories", context, ["Story"])
-        )
-        == []
-    )
-
-
-def test_pydantic_dataclass_entity_rejected(tmp_path: Path) -> None:
-    """pydantic's decorator in domain/models/."""
-    context = a_domain_context(
-        tmp_path,
-        '"""Story."""\n\nfrom pydantic.dataclasses import dataclass\n\n\n'
-        "@dataclass(frozen=True)\n"
-        "class Story:\n"
-        '    """A unit of work."""\n\n'
-        "    slug: str\n",
-    )
-
-    assert (
-        entities_that_are_pydantic_dataclasses(
-            entity_verdicts("stories", context, ["Story"])
-        )
-        != []
-    )
-
-
-def test_basemodel_entity_allowed(tmp_path: Path) -> None:
-    """Still legal; moving those to dataclasses is a separate change."""
-    context = a_domain_context(
-        tmp_path,
-        '"""Story."""\n\nfrom pydantic import BaseModel\n\n\n'
-        "class Story(BaseModel, frozen=True):\n"
-        '    """A unit of work."""\n\n'
-        "    slug: str\n",
-    )
-
-    assert (
-        entities_that_are_pydantic_dataclasses(
-            entity_verdicts("stories", context, ["Story"])
-        )
-        == []
-    )
-
-
-def test_frozen_rule_passes_pydantic_dataclass() -> None:
-    """The frozen-dataclass rule passes what the new rule catches."""
-    story = ClassInfo(
-        name="Story",
-        file="domain/models/story.py",
-        decorators=["pydantic.dataclasses.dataclass"],
-        decorator_arguments={"dataclass": {"frozen": "True"}},
-    )
-
-    assert entities_not_extending_Entity([("hcd", story)]) == []
