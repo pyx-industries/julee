@@ -35,7 +35,6 @@ ALLOWED = {
     "an IntEnum": 'class Story(IntEnum):\n    """A value."""\n\n    FIRST = 1\n',
     "a str value object": 'class Story(str):\n    """A value."""\n\n    __slots__ = ()\n',
     "an int value object": 'class Story(int):\n    """A value."""\n',
-    "a tuple value object": 'class Story(tuple):\n    """A value."""\n',
     "a frozen dataclass extending one": (
         '@dataclass(frozen=True)\nclass Base:\n    """A base."""\n\n    slug: str\n\n\n'
         '@dataclass(frozen=True)\nclass Story(Base):\n    """A story."""\n\n    t: str\n'
@@ -56,6 +55,8 @@ FORBIDDEN = {
         '@dataclass\nclass Story:\n    """A story."""\n\n    slug: str\n'
     ),
     "a plain class": 'class Story:\n    """A story."""\n\n    slug: str\n',
+    "a tuple subclass": 'class Story(tuple):\n    """Immutable, and not a category."""\n',
+    "a frozenset subclass": 'class Story(frozenset):\n    """Also not a category."""\n',
 }
 
 
