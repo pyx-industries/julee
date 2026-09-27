@@ -109,10 +109,23 @@ def test_a_relative_import_of_a_sibling_is_allowed() -> None:
     assert objections("other", level=1) == []
 
 
-def test_an_adopted_kit_offers_its_domain_and_use_cases() -> None:
-    """A solution's use case may build on a kit it adopted."""
-    assert objections("julee_hcd.domain.models.story", kits=("julee_hcd",)) == []
-    assert objections("julee_hcd.usecases.get_story", kits=("julee_hcd",)) == []
+@pytest.mark.parametrize(
+    "module",
+    [
+        "julee_hcd.domain.models.story",
+        "julee_hcd.usecases.get_story",
+        "julee_hcd.dtos.get_story",
+    ],
+    ids=["domain", "usecases", "dtos"],
+)
+def test_an_adopted_kit_offers_the_same_three_packages(module: str) -> None:
+    """A solution's use case may build on a kit it adopted.
+
+    The same three it may reach for in its own context, because
+    USE_CASE_PACKAGES answers both questions. A kit's messages are
+    part of what it offers: calling its use cases means naming them.
+    """
+    assert objections(module, kits=("julee_hcd",)) == []
 
 
 def test_an_adopted_kit_does_not_offer_its_insides() -> None:
