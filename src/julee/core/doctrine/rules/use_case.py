@@ -20,11 +20,15 @@ from julee.core.doctrine_constants import (
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
-from julee.core.entities.code_info import MethodInfo
+from julee.core.entities.code_info import ClassInfo, MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
 
 __all__ = [
     "GENERIC_BASE_CLASSES",
+    "NOT_PYDANTIC_BASES",
+    "PYDANTIC_BASE",
+    "requests_not_extending_BaseModel",
+    "responses_not_extending_BaseModel",
     "use_case_sources_mentioning",
     "use_cases_whose_execute_returns_the_wrong_response",
     "use_cases_whose_execute_takes_the_wrong_request",
@@ -306,3 +310,183 @@ def use_case_sources_mentioning(
         One sentence per file containing it
     """
     return [f"{slug}/{path}" for slug, path, text in sources if forbidden in text]
+
+
+PYDANTIC_BASE = "BaseModel"
+"""What a request or a response must reach through its bases."""
+
+NOT_PYDANTIC_BASES = frozenset(
+    {
+        "ABC",
+        "Enum",
+        "IntEnum",
+        "NamedTuple",
+        "object",
+        "Protocol",
+        "StrEnum",
+        "TypedDict",
+    }
+)
+"""Bases that settle the question the other way.
+
+A base doctrine cannot see is trusted, which is how every inheritance
+rule here works. These are the ones it does not need to see to know:
+none of them is a ``BaseModel``, and a request deriving from one is a
+message the driving port cannot validate, whatever else it inherits.
+
+Without this set they would all have been trusted — a ``TypedDict``
+request would have satisfied a rule written to forbid exactly that.
+"""
+
+
+def _base_name(base: str) -> str:
+    """The class a base expression names.
+
+    Bases are recorded as they were written, so the same class arrives
+    as ``BaseModel``, ``pydantic.BaseModel`` or ``BaseRequest[Story]``
+    depending on the author. The module path and the subscript are how
+    it was spelled; the last segment is what it is.
+
+    Args:
+        base: A base as the parser recorded it
+
+    Returns:
+        The bare class name
+    """
+    return base.split("[", 1)[0].strip().rsplit(".", 1)[-1]
+
+
+def _is_a_name_doctrine_only_saw_imported(artifact: ClassInfo) -> bool:
+    """Whether the parser recorded a name rather than a class.
+
+    A request re-exported into ``usecases/`` from somewhere the parser
+    does not read — ``_generated/`` is the case it was built for —
+    reaches the rules as a ClassInfo holding a name and nothing else.
+    It has no bases because none were read, not because it has none,
+    and reporting it would be objecting to what doctrine failed to
+    look at rather than to anything an author wrote.
+
+    ``file`` is the discriminator: the parser sets it on every class it
+    actually read, and leaves it empty on these.
+    """
+    return not artifact.file
+
+
+def _why_it_is_not_pydantic(
+    artifact: ClassInfo, by_name: dict[str, ClassInfo]
+) -> str | None:
+    """What to tell an author about a DTO that does not reach BaseModel.
+
+    Returns None when it does reach it. Otherwise a clause naming the
+    reason, because the four ways to fail this want four different
+    edits and an objection that does not say which leaves the author to
+    diff their class against a rule they cannot read.
+
+    Args:
+        artifact: The request or response class to judge
+        by_name: The DTOs of its bounded context, for following bases
+
+    Returns:
+        A clause, or None if the class complies
+    """
+
+    def reaches_BaseModel(name: str, visiting: frozenset[str]) -> bool:
+        if name == PYDANTIC_BASE:
+            return True
+        if name in NOT_PYDANTIC_BASES or name in visiting:
+            return False
+        found = by_name.get(name)
+        if found is None or _is_a_name_doctrine_only_saw_imported(found):
+            return True
+        if found.decorated_with("dataclass"):
+            return False
+        return any(
+            reaches_BaseModel(_base_name(base), visiting | {name})
+            for base in found.bases
+        )
+
+    if artifact.decorated_with("dataclass"):
+        return "it is a dataclass"
+    if not artifact.bases:
+        return "it has no base class"
+
+    named = [_base_name(base) for base in artifact.bases]
+    settled = sorted(set(named) & NOT_PYDANTIC_BASES)
+    if settled:
+        return f"it derives from {', '.join(settled)}"
+
+    if any(reaches_BaseModel(name, frozenset({artifact.name})) for name in named):
+        return None
+    return f"nothing in its bases reaches it ({', '.join(named)})"
+
+
+def _dtos_not_extending_BaseModel(
+    dtos: Iterable[CodeArtifactWithContext], what: str
+) -> list[str]:
+    """The shared half of the request and response rules."""
+    dtos = list(dtos)
+    by_name = {found.artifact.name: found.artifact for found in dtos}
+
+    objections = []
+    for found in dtos:
+        artifact = found.artifact
+        if _is_a_name_doctrine_only_saw_imported(artifact):
+            continue
+        reason = _why_it_is_not_pydantic(artifact, by_name)
+        if reason is not None:
+            objections.append(
+                f"{_named(found)}: a {what} is a pydantic DTO, but {reason}"
+            )
+    return objections
+
+
+def requests_not_extending_BaseModel(
+    requests: Iterable[CodeArtifactWithContext],
+) -> list[str]:
+    """Requests that are not pydantic DTOs.
+
+    A request is the message a driving adapter hands in, so it arrives
+    from outside as JSON, form fields or a queue payload and has to be
+    validated before anything reads it. ``BaseModel`` is what does the
+    validating, and a request that does not derive from it is a shape
+    nothing checked.
+
+    This is the driving half of the rule that pydantic belongs at the
+    edges. It says nothing about what a use case does with the request
+    once it has one, and nothing about the domain behind it; both are
+    rules of their own.
+
+    Compliance is followed through bases, so a request extending another
+    request in the same bounded context is fine. A base doctrine cannot
+    see is trusted, the way every inheritance rule here trusts one —
+    except for the handful in :data:`NOT_PYDANTIC_BASES`, which need no
+    looking at.
+
+    Args:
+        requests: The request classes a codebase has
+
+    Returns:
+        One sentence per request that nothing validates
+    """
+    return _dtos_not_extending_BaseModel(requests, "request")
+
+
+def responses_not_extending_BaseModel(
+    responses: Iterable[CodeArtifactWithContext],
+) -> list[str]:
+    """Responses that are not pydantic DTOs.
+
+    The mirror of :func:`requests_not_extending_BaseModel`, and the
+    reason it is a separate rule rather than the same one run twice is
+    that the two fail for opposite reasons. A request is unvalidated
+    input; a response is output a driving adapter has to serialise, and
+    one that is not a ``BaseModel`` leaves every adapter to work out how
+    on its own.
+
+    Args:
+        responses: The response classes a codebase has
+
+    Returns:
+        One sentence per response an adapter cannot serialise
+    """
+    return _dtos_not_extending_BaseModel(responses, "response")

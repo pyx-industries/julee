@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 
 from julee.core.doctrine.rules.use_case import (
+    requests_not_extending_BaseModel,
+    responses_not_extending_BaseModel,
     use_case_sources_mentioning,
     use_cases_defining_next_action,
     use_cases_not_named_UseCase,
@@ -242,5 +244,66 @@ class TestExecutionAgnosticism:
         violations = use_case_sources_mentioning(sources, "temporalio")
 
         assert not violations, "Use case files importing temporalio:\n" + "\n".join(
+            violations
+        )
+
+
+class TestDrivingPortMessages:
+    """Doctrine about the messages a use case takes and returns (ADR 017).
+
+    A request and a response are messages at the driving port, not
+    domain objects. They cross a process boundary — HTTP, a queue, a
+    CLI, a Sphinx build — so they have to be validated on the way in
+    and serialised on the way out, and pydantic is what julee uses to
+    do both.
+
+    That is the whole of what pydantic is for. These two tests fix it
+    at the edge so that the rules which keep it out of everywhere else
+    have somewhere to say it belongs.
+    """
+
+    @pytest.mark.asyncio
+    async def test_every_request_MUST_derive_from_BaseModel(self, repo):
+        """Use case requests MUST be pydantic models.
+
+        A request arrives from outside as JSON, form fields or a queue
+        payload. Deriving from BaseModel is what makes the shape a
+        claim the driving adapter checks rather than one the use case
+        discovers by reading an attribute that is not there.
+        """
+        response = await ListRequestsUseCase(repo).execute(ListCodeArtifactsRequest())
+
+        if not await repo.list_all():
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        assert len(response.artifacts) > 0, "No requests found - detector may be broken"
+
+        violations = requests_not_extending_BaseModel(response.artifacts)
+
+        assert not violations, "Requests that are not pydantic DTOs:\n" + "\n".join(
+            violations
+        )
+
+    @pytest.mark.asyncio
+    async def test_every_response_MUST_derive_from_BaseModel(self, repo):
+        """Use case responses MUST be pydantic models.
+
+        A response is what a driving adapter has to turn back into
+        JSON, a template context or a CLI table. One that is not a
+        BaseModel leaves every adapter to work that out separately,
+        which is how two adapters over one use case come to disagree.
+        """
+        response = await ListResponsesUseCase(repo).execute(ListCodeArtifactsRequest())
+
+        if not await repo.list_all():
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        assert len(response.artifacts) > 0, (
+            "No responses found - detector may be broken"
+        )
+
+        violations = responses_not_extending_BaseModel(response.artifacts)
+
+        assert not violations, "Responses that are not pydantic DTOs:\n" + "\n".join(
             violations
         )
