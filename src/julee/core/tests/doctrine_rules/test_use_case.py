@@ -523,8 +523,13 @@ def test_a_dto_defined_outside_usecases_is_still_checked(tmp_path: Path) -> None
     assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_a_pydantic_dataclass_is_allowed(tmp_path: Path) -> None:
-    """It validates, so it is a DTO. This used to be a false objection."""
+def test_a_pydantic_dataclass_is_reported(tmp_path: Path) -> None:
+    """It validates, and is still not a DTO.
+
+    Structurally it is a plain dataclass — no base, is_dataclass True,
+    replace works — so it would satisfy a domain rule too. A construct
+    that passes the rule for both rings cannot say which ring it is in.
+    """
     context = a_context(
         tmp_path,
         '"""Get a story."""\n\n'
@@ -535,7 +540,7 @@ def test_a_pydantic_dataclass_is_allowed(tmp_path: Path) -> None:
         "    slug: str\n",
     )
 
-    assert reason_for(context, "GetStoryRequest") is None
+    assert "pydantic dataclass" in (reason_for(context, "GetStoryRequest") or "")
 
 
 def test_a_stdlib_dataclass_is_reported(tmp_path: Path) -> None:

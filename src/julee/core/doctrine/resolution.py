@@ -119,16 +119,33 @@ def _import_usecase_modules(
     return modules, failures
 
 
-def _is_pydantic(obj: object) -> bool:
-    """Whether an object validates its fields the way a DTO must.
+def _not_a_dto(obj: object) -> str | None:
+    """Why an object is not a DTO, or None if it is one.
 
-    A pydantic dataclass counts. It is not a BaseModel, but it
-    validates on construction, which is the whole of what a DTO is
-    being asked for here.
+    A DTO is a BaseModel. A pydantic dataclass validates too, and is
+    still refused: it is a dataclass by every structural test and
+    pydantic by its import, so it satisfies the rule for the domain
+    ring and the rule for the driving ring at once. One construct that
+    passes both is the one thing that cannot say which ring a class is
+    in, which is what reading a class is supposed to tell you.
+
+    Args:
+        obj: Whatever the name resolved to
+
+    Returns:
+        A clause for the objection, or None
     """
     if not isinstance(obj, type):
-        return False
-    return issubclass(obj, BaseModel) or is_pydantic_dataclass(obj)
+        return f"{obj!r} is not a class"
+    if is_pydantic_dataclass(obj):
+        return (
+            "it is a pydantic dataclass. A DTO is a BaseModel; a pydantic "
+            "dataclass reads as a plain dataclass everywhere else and so "
+            "belongs to neither ring"
+        )
+    if not issubclass(obj, BaseModel):
+        return f"{obj!r} is not a pydantic BaseModel"
+    return None
 
 
 def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:
@@ -161,11 +178,7 @@ def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdic
             verdicts.append(
                 Verdict(slug, name, "doctrine could not resolve it to a class")
             )
-        elif not _is_pydantic(found):
-            verdicts.append(
-                Verdict(slug, name, f"{found!r} is not a pydantic model or dataclass")
-            )
         else:
-            verdicts.append(Verdict(slug, name, None))
+            verdicts.append(Verdict(slug, name, _not_a_dto(found)))
 
     return verdicts
