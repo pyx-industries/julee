@@ -52,6 +52,11 @@ src/julee/contrib/
 │   │   └── services/                     # Service PROTOCOLS
 │   │       └── __init__.py
 │   │
+│   ├── dtos/                             # Messages at the driving port
+│   │   ├── __init__.py
+│   │   ├── extract_assemble_data.py
+│   │   └── validate_document.py
+│   │
 │   ├── use_cases/                        # Application business rules
 │   │   ├── __init__.py
 │   │   ├── extract_assemble_data.py
@@ -124,6 +129,7 @@ In Julee solution architecture, an **accelerator** is a collection of pipelines 
 
 Each contrib module has the same structure as an external Julee solution:
 - `domain/`: Models, repository protocols, service protocols
+- `dtos/`: Request and response messages at the driving port
 - `use_cases/`: Business logic
 - `infrastructure/`: Repository and service implementations
 - `apps/`: Entry points (API routes, CLI commands, worker pipelines)
@@ -132,7 +138,27 @@ Each contrib module has the same structure as an external Julee solution:
 
 This means a contrib module can theoretically be extracted to its own repository and deployed independently.
 
-#### 2. Tests Co-located Within Modules
+#### 2. Pydantic Lives in `dtos/` and Nowhere Else
+
+A request and a response are messages a driving adapter hands in and
+serialises back out, so they are pydantic models and are validated on
+the way in. A domain class is a frozen dataclass and a driven port
+speaks nothing but the domain, so neither may be pydantic.
+
+That leaves one place for pydantic inside a bounded context, and
+`dtos/` is it. A use case imports the message classes and builds a
+response by naming one; it never imports pydantic itself, and never
+calls `model_dump`, `model_copy` or `model_validate`. Turning a domain
+object into a message is the message's own job, which a `from_domain`
+or `of` classmethod on the DTO is the usual way to say.
+
+`dtos/` was added after the four ring rules landed, because together
+they had left the messages nowhere legal to live: a request must be a
+`BaseModel`, no file under `use_cases/` may import pydantic, and a use
+case may import only its own `domain/` and `use_cases/`. The gap
+showed up the first time a kit was held to all four at once.
+
+#### 3. Tests Co-located Within Modules
 
 Tests live inside each contrib module in a `tests/` subdirectory. This:
 - Ships tests with the module (useful for downstream verification)
@@ -140,7 +166,7 @@ Tests live inside each contrib module in a `tests/` subdirectory. This:
 - Follows existing Julee conventions (`julee/domain/models/*/tests/`)
 - Works with pytest's test discovery (`testpaths = ["src/julee"]`)
 
-#### 3. Modules Import from Framework Core
+#### 4. Modules Import from Framework Core
 
 Contrib modules import shared infrastructure from the Julee framework core - utilities, base classes, and decorators that are genuinely framework-level concerns.
 
@@ -148,7 +174,7 @@ Contrib modules do NOT duplicate framework code. They extend and compose it.
 
 Any shared utilities needed by multiple contrib modules belong in the framework core (e.g., `julee.util`), not in a shadow framework within contrib.
 
-#### 4. Public API via `__init__.py`
+#### 5. Public API via `__init__.py`
 
 Each module's `__init__.py` exports the public API:
 
@@ -172,7 +198,7 @@ from julee.contrib.ceap import ExtractAssembleDataUseCase
 from julee.contrib.ontology_mapper import MapOntologyUseCase
 ```
 
-#### 5. Apps Provide Integration Points
+#### 6. Apps Provide Integration Points
 
 The `apps/` directory provides ready-to-use integration points:
 
@@ -191,7 +217,7 @@ app = FastAPI()
 app.include_router(ceap_router, prefix="/ceap")
 ```
 
-#### 6. Deploy Directory for Standalone Operation
+#### 7. Deploy Directory for Standalone Operation
 
 The optional `deploy/` directory enables a contrib module to run as a standalone service:
 
