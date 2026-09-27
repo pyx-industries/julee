@@ -13,6 +13,7 @@ import from this module.
 import ast
 import functools
 import logging
+import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -43,6 +44,33 @@ def _griffe_load_file(py_file: Path) -> griffe.Module | None:
         logger.warning(f"Could not parse {py_file}: {e}")
         return None
     return loaded if isinstance(loaded, griffe.Module) else None
+
+
+def _return_expressions(source: str | None) -> list[str]:
+    """The source text of each return expression in a function body.
+
+    Read from the function's own source rather than from a structure
+    griffe offers, because griffe models signatures and docstrings and
+    does not keep statements. Dedented first: a method's source starts
+    indented and will not parse on its own otherwise.
+
+    A body that cannot be parsed yields nothing rather than raising. A
+    rule reading this then has nothing to object to, which is the right
+    failure: doctrine reporting a parse accident as a design fault
+    would be a false objection, and those are worse than a missing rule
+    (#260).
+    """
+    if not source:
+        return []
+    try:
+        tree = ast.parse(textwrap.dedent(source))
+    except SyntaxError:
+        return []
+    return [
+        ast.unparse(node.value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Return) and node.value is not None
+    ]
 
 
 def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo":
@@ -92,6 +120,9 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
                 parameters=params,
                 return_type=str(member.returns) if member.returns else "",
                 docstring=method_doc,
+                source=member.source or "",
+                decorators=[d.callable_path for d in member.decorators],
+                returns=_return_expressions(member.source),
             )
         )
 
@@ -556,6 +587,12 @@ def _parse_pipeline_class(
                     parameters=params,
                     return_type=ast.unparse(node.returns) if node.returns else "",
                     docstring=method_doc.split("\n")[0].strip() if method_doc else "",
+                    decorators=[ast.unparse(d) for d in node.decorator_list],
+                    returns=[
+                        ast.unparse(r.value)
+                        for r in ast.walk(node)
+                        if isinstance(r, ast.Return) and r.value is not None
+                    ],
                 )
             )
 

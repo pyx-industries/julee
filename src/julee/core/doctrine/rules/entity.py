@@ -25,12 +25,14 @@ __all__ = [
     "ENUM_INDICATORS",
     "FORBIDDEN_COLLECTION_PREFIXES",
     "READ_DOMAIN_PACKAGES",
+    "VALIDATOR_DECORATORS",
     "contexts_whose_entities_doctrine_cannot_see",
     "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
     "entities_not_extending_Entity",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
+    "validators_that_transform",
 ]
 
 Found = Iterable[tuple[str, ClassInfo]]
@@ -41,6 +43,12 @@ ENUM_INDICATORS = {"str", "int", "Enum"}
 
 FORBIDDEN_COLLECTION_PREFIXES = ("list[", "List[", "set[", "Set[", "dict[", "Dict[")
 """Annotations that can be mutated through, whatever frozen says."""
+
+VALIDATOR_DECORATORS = frozenset({"field_validator", "model_validator"})
+"""The decorators that make a method a validator."""
+
+_IMPLICIT_PARAMETERS = frozenset({"cls", "self"})
+"""Parameters that are the class or the instance, not the value."""
 
 READ_DOMAIN_PACKAGES = frozenset(
     path[-1]
@@ -345,4 +353,89 @@ def copies_that_skip_a_validator(
             f"{path}:{line}: model_copy writes {subject} that will not "
             f"run. Use evolve() instead"
         )
+    return objections
+
+
+def validators_that_transform(found: Found) -> list[str]:
+    """Validators that hand back something other than what they were given.
+
+    A validator that returns a changed value is not checking anything.
+    It is deciding what the field holds, which is normalisation, which
+    belongs in the *type* of the field rather than in every entity that
+    carries one.
+
+    The argument is not stylistic. A normalising validator is a
+    constructor written in the wrong place, and being in the wrong place
+    it gets copied — unevenly. c4 had a slug field that ran ``slugify``
+    and eight fields *naming* those slugs that ran ``strip``, so a
+    component could name a container that could not be found. The lookup
+    came back empty rather than wrong: no exception, no log line, no
+    failing test (julee-kits#70).
+
+    A type cannot be copied unevenly. Both ends of a reference declared
+    ``Slug`` agree because there is one implementation of what a slug is
+    and every route reaches it — including deserialisation, which a
+    validator on the constructor does not always cover.
+
+    The measurement that prompted this: 76 of 83 validators across the
+    estate were transformers, 53 of them literally ``v.strip()``.
+    :mod:`julee.core.entities.text` is where those went.
+
+    Three further consequences, each of which bit before the rule:
+
+    - ``model_copy(update=...)`` does not run validators, so a
+      transformer skipped there leaves an entity holding something its
+      own annotation forbids. :func:`copies_that_skip_a_validator` is
+      that problem from the other side, and it stops being needed as
+      this one is obeyed.
+    - :meth:`julee.core.entities.entity.Entity.evolve` exists to re-run
+      transformers. With nothing
+      to re-run it converges with ``model_copy``.
+    - A frozen dataclass has no validators at all (#307). Work that
+      lives in one has to move before entities can stop being pydantic
+      models; work that lives in a type moves with it.
+
+    What counts as compliant is returning a parameter unchanged —
+    ``return v``. Anything else is reported: a call, a literal, an
+    attribute, a comprehension. ``return None`` is included on purpose,
+    because turning an empty value into None is the same decision made
+    quietly.
+
+    A validator with no ``return`` at all is compliant and useful: it
+    raises or says nothing, which is what checking looks like.
+
+    This rule cannot see a validator on something that is not an entity
+    — an API request model, say. That is not blindness to hide: those
+    are not what the rule is about, and a request that declares the
+    entity's field *type* gets the rule for free rather than borrowing
+    it (julee-kits#71).
+
+    Args:
+        found: Entities paired with their bounded context
+
+    Returns:
+        One sentence per validator that returns something else
+    """
+    objections = []
+    for slug, entity in found:
+        for method in entity.methods:
+            if not any(method.decorated_with(d) for d in VALIDATOR_DECORATORS):
+                continue
+            value_parameters = {
+                name
+                for name in method.parameter_names
+                if name not in _IMPLICIT_PARAMETERS
+            }
+            transforms = sorted(
+                {r for r in method.returns if r not in value_parameters}
+            )
+            if not transforms:
+                continue
+            objections.append(
+                f"{slug}.{entity.name}.{method.name} returns "
+                f"{', '.join(transforms)} rather than what it was given. A "
+                f"validator that changes a value is deciding what the field "
+                f"holds, which belongs in the field's type — see "
+                f"julee.core.entities.text"
+            )
     return objections

@@ -10,12 +10,14 @@ from pathlib import Path
 import pytest
 
 from julee.core.doctrine.rules.entity import (
+    VALIDATOR_DECORATORS,
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
     fields_named_workflow_id,
     fields_using_mutable_collections,
+    validators_that_transform,
 )
 from julee.core.doctrine_constants import ENTITIES_PATH
 from julee.core.parsers.ast import parse_bounded_context
@@ -281,4 +283,93 @@ class TestChangingAnEntity:
         assert not violations, (
             "Fields with validators changed through model_copy:\n"
             + "\n".join(violations)
+        )
+
+
+class TestWhatAValidatorIsFor:
+    """Doctrine about what a validator may do."""
+
+    @pytest.mark.asyncio
+    async def test_a_validator_MUST_NOT_return_a_changed_value(self, repo) -> None:
+        """A validator MUST return the value it was given, or raise.
+
+        A validator that returns something else is not checking
+        anything. It is deciding what the field holds, which is
+        normalisation, and normalisation belongs in the field's *type*.
+
+        The argument is not stylistic. A normalising validator is a
+        constructor written in the wrong place, and being in the wrong
+        place it gets copied — unevenly. c4 had a slug field that ran
+        slugify and eight fields naming those slugs that ran strip, so a
+        component could name a container that could not be found. The
+        lookup came back empty rather than wrong: no exception, no log
+        line, no failing test (julee-kits#70).
+
+        A type cannot be copied unevenly. Declare both ends Slug and
+        they agree, because there is one implementation of what a slug
+        is and every route reaches it — deserialisation included, which
+        is where a constructor-side check does not always run.
+
+        julee.core.entities.text is where the estate's went: 76 of 83
+        validators were transformers, 53 of them literally v.strip().
+
+        A validator with no return at all complies. Raising, or saying
+        nothing, is what checking looks like.
+        """
+        found = [
+            (ctx.slug, entity)
+            for ctx in await repo.list_all()
+            if (info := parse_bounded_context(Path(ctx.path))) is not None
+            for entity in info.entities
+        ]
+
+        violations = validators_that_transform(found)
+
+        assert not violations, "Validators that change what they were given:\n" + (
+            "\n".join(violations)
+        )
+
+    @pytest.mark.asyncio
+    async def test_doctrine_can_see_a_validator_where_one_exists(self, repo) -> None:
+        """Whatever the rule above reads, it must be reading something.
+
+        The rule passes over a codebase with no validators, and reads
+        identically to one over a codebase that complies. That much is
+        fine: zero validators is the destination, not a blind spot.
+
+        What is not fine is the rule finding zero because the parser
+        stopped recording decorators. Then every codebase passes and
+        nothing says so — the failure this repository keeps meeting
+        (#175, #231, #142).
+
+        So this asserts the mechanism rather than the count: where a
+        method's own source carries a validator decorator, the parsed
+        view of it must agree. A target with no validators at all skips,
+        having nothing to prove.
+        """
+        entities = [
+            entity
+            for ctx in await repo.list_all()
+            if (info := parse_bounded_context(Path(ctx.path))) is not None
+            for entity in info.entities
+        ]
+        by_source = {
+            f"{entity.name}.{method.name}"
+            for entity in entities
+            for method in entity.methods
+            if any(f"@{d}" in (method.source or "") for d in VALIDATOR_DECORATORS)
+        }
+        if not by_source:
+            pytest.skip("No validators in target codebase, so nothing to see")
+
+        by_parse = {
+            f"{entity.name}.{method.name}"
+            for entity in entities
+            for method in entity.methods
+            if any(method.decorated_with(d) for d in VALIDATOR_DECORATORS)
+        }
+
+        assert by_source <= by_parse, (
+            "Doctrine cannot see validators that are there:\n"
+            + "\n".join(sorted(by_source - by_parse))
         )
