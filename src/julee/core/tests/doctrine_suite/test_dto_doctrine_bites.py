@@ -5,22 +5,15 @@ doctrine suite itself as a subprocess against a solution on disk and
 asserts the outcome, so it fails if the suite stops objecting.
 """
 
-import os
 import re
-import subprocess
-import sys
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
+from .harness import a_julee_solution, assert_doctrine_ran, run_doctrine
+
 pytestmark = pytest.mark.unit
-
-REPO_ROOT = Path(__file__).resolve().parents[5]
-"""The repository root: doctrine_suite, tests, core, julee, src, root.
-
-The doctrine run needs it as its cwd to find pytest's config.
-"""
 
 DOCTRINE_TEST = "src/julee/core/doctrine/test_use_case.py"
 SELECTOR = "pydantic_DTO"
@@ -130,81 +123,13 @@ def a_solution(root: Path, usecase: str, messages: str = "") -> Path:
     Returns:
         The root, ready to pass as JULEE_TARGET
     """
-    context = root / "src" / "acme" / "stories"
+    context = a_julee_solution(root)
     (context / "usecases").mkdir(parents=True)
-    (root / "pyproject.toml").write_text(
-        '[project]\nname = "acme"\nversion = "0.1.0"\n\n'
-        '[tool.julee]\nsearch_root = "src/acme"\ndocs_root = "docs"\n'
-    )
-    (root / "src" / "acme" / "__init__.py").write_text('"""Acme."""\n')
-    (context / "__init__.py").write_text('"""Stories."""\n')
     (context / "usecases" / "__init__.py").write_text("")
     (context / "usecases" / "get_story.py").write_text(usecase)
     if messages:
         (context / "messages.py").write_text(messages)
     return root
-
-
-def run_doctrine(target: Path) -> subprocess.CompletedProcess[str]:
-    """Run the DTO doctrine against a solution, as a real pytest run.
-
-    A subprocess, so that what is exercised is the suite's collection,
-    fixtures and assertions rather than a function it calls.
-
-    Args:
-        target: The solution root
-
-    Returns:
-        The finished process, stdout captured
-    """
-    env = {
-        **os.environ,
-        "JULEE_TARGET": str(target),
-        "PYTHONPATH": str(target / "src"),
-    }
-    env.pop("COV_CORE_SOURCE", None)
-    return subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            DOCTRINE_TEST,
-            "-k",
-            SELECTOR,
-            "-q",
-            "--no-cov",
-            "-p",
-            "no:cacheprovider",
-            "-p",
-            "no:xdist",
-            "-o",
-            "addopts=",
-        ],
-        cwd=REPO_ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-
-
-def assert_doctrine_ran(result: subprocess.CompletedProcess[str]) -> None:
-    """Check both doctrine tests were collected and run.
-
-    Args:
-        result: A finished doctrine run
-    """
-    assert "no tests ran" not in result.stdout, (
-        f"the doctrine tests were not collected — has {SELECTOR} been "
-        f"renamed or deleted?\n{result.stdout}"
-    )
-    ran = sum(
-        int(count) for count, _ in re.findall(r"(\d+) (passed|failed)", result.stdout)
-    )
-    assert ran == EXPECTED_TESTS, (
-        f"expected {EXPECTED_TESTS} doctrine tests, {ran} ran — one has "
-        f"been deleted or renamed:\n{result.stdout}"
-    )
 
 
 def not_a_basemodel() -> dict[str, tuple[str, str]]:
@@ -258,16 +183,18 @@ def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
     Both directions are asserted, and every case runs before reporting
     so a failure names all of them.
     """
-    good = run_doctrine(a_solution(tmp_path / "good", GOOD))
-    assert_doctrine_ran(good)
+    good = run_doctrine(a_solution(tmp_path / "good", GOOD), DOCTRINE_TEST, SELECTOR)
+    assert_doctrine_ran(good, EXPECTED_TESTS, SELECTOR)
     assert good.returncode == 0, f"doctrine failed correct code:\n{good.stdout}"
     assert f"{EXPECTED_TESTS} passed" in good.stdout, good.stdout
 
     leaked = []
     for what, (usecase, messages) in NOT_A_BASEMODEL.items():
         root = tmp_path / re.sub(r"[^a-zA-Z]+", "-", what)
-        result = run_doctrine(a_solution(root, usecase, messages))
-        assert_doctrine_ran(result)
+        result = run_doctrine(
+            a_solution(root, usecase, messages), DOCTRINE_TEST, SELECTOR
+        )
+        assert_doctrine_ran(result, EXPECTED_TESTS, SELECTOR)
         if result.returncode == 0:
             leaked.append(what)
         elif "is a pydantic DTO, but" not in result.stdout:
