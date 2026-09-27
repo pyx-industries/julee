@@ -16,7 +16,7 @@ from julee.core.doctrine.rules.entity import (
     copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
-    entities_that_are_pydantic_dataclasses,
+    entities_that_are_not_frozen_dataclasses,
     fields_named_workflow_id,
     fields_using_mutable_collections,
     validators_that_transform,
@@ -381,25 +381,38 @@ class TestTheDomainRing:
     """Doctrine about what a domain class may be built from."""
 
     @pytest.mark.asyncio
-    async def test_entities_MUST_NOT_be_pydantic_dataclasses(self, repo):
-        """Domain classes MUST NOT use pydantic's dataclass decorator.
+    async def test_entities_MUST_be_frozen_dataclasses(self, repo):
+        """A domain class MUST be a frozen stdlib dataclass.
 
-        It satisfies the domain's frozen-dataclass rule and imports
-        pydantic, so it says nothing about which ring it belongs to.
+        Or an enum, or a subclass of an immutable builtin such as str
+        — the ring asks for immutability, not for a decorator.
+
+        Pydantic is refused in both its forms. A model carries a
+        serialisation library into the innermost ring. A pydantic
+        dataclass carries it while reading as a plain dataclass
+        everywhere else, so it satisfies this rule and the rule for
+        the driving ring at once and says which ring it is in to
+        neither.
         """
+        contexts = await repo.list_all()
+        if not contexts:
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
         verdicts = []
-        for ctx in await repo.list_all():
+        found_any = False
+        for ctx in contexts:
             info = parse_bounded_context(Path(ctx.path))
             if info is None:
                 continue
-            verdicts.extend(
-                entity_verdicts(
-                    ctx.slug, Path(ctx.path), [e.name for e in info.entities]
-                )
-            )
+            names = [entity.name for entity in info.entities]
+            found_any = found_any or bool(names)
+            verdicts.extend(entity_verdicts(ctx.slug, Path(ctx.path), names))
 
-        violations = entities_that_are_pydantic_dataclasses(verdicts)
+        if not found_any:
+            pytest.skip("No domain classes in target codebase — nothing to check")
+
+        violations = entities_that_are_not_frozen_dataclasses(verdicts)
 
         assert not violations, (
-            "Entities built with pydantic's dataclass:\n" + "\n".join(violations)
+            "Domain classes that are not frozen dataclasses:\n" + "\n".join(violations)
         )

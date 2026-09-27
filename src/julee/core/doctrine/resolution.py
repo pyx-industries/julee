@@ -189,11 +189,24 @@ def _not_a_dto(obj: object) -> str | None:
     return None
 
 
-def _not_a_domain_class(obj: object) -> str | None:
-    """Why a domain class does not belong in the domain ring.
+IMMUTABLE_BUILTINS = (bytes, float, frozenset, int, str, tuple)
+"""Builtins a value object may subclass and still be immutable.
 
-    Only pydantic dataclasses are refused. A BaseModel entity is still
-    legal; moving those to frozen dataclasses is a separate change.
+``Slug``, ``Name`` and ``ContentMultihash`` are str subclasses. They
+carry a rule about their own text and nothing can change them after
+construction, which is what the domain ring asks for; being a
+dataclass is not the point, immutability is.
+"""
+
+
+def _not_a_domain_class(obj: object) -> str | None:
+    """Why a class does not belong in the domain ring, or None if it does.
+
+    A domain class is a frozen stdlib dataclass, an enum, or a
+    subclass of an immutable builtin. Pydantic is refused in both its
+    forms: a model carries a serialisation library into the ring, and
+    a dataclass of pydantic's reads as a plain one everywhere while
+    importing pydantic all the same.
 
     Args:
         obj: Whatever the name resolved to
@@ -203,12 +216,27 @@ def _not_a_domain_class(obj: object) -> str | None:
     """
     if not isinstance(obj, type):
         return None
+
+    if issubclass(obj, enum.Enum):
+        return None
+    if issubclass(obj, IMMUTABLE_BUILTINS):
+        return None
+
     if is_pydantic_dataclass(obj):
         return (
             "it is a pydantic dataclass. The domain uses stdlib "
             "dataclasses; this one reads as one and imports pydantic"
         )
-    return None
+    if issubclass(obj, BaseModel):
+        return "it is a pydantic model. A domain class is a frozen dataclass"
+
+    if dataclasses.is_dataclass(obj):
+        params = getattr(obj, "__dataclass_params__", None)
+        if params is not None and params.frozen:
+            return None
+        return "it is a dataclass that is not frozen"
+
+    return "it is not a frozen dataclass, an enum or an immutable value"
 
 
 def _verdicts(
