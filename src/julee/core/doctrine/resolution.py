@@ -12,6 +12,7 @@ rules stay pure functions over the verdicts; the importing is here.
 
 import ast
 import importlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -19,7 +20,9 @@ from types import ModuleType
 from pydantic import BaseModel
 from pydantic.dataclasses import is_pydantic_dataclass
 
-__all__ = ["Verdict", "dto_verdicts", "module_name_for"]
+from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
+
+__all__ = ["Verdict", "dto_verdicts", "entity_verdicts", "module_name_for"]
 
 
 @dataclass(frozen=True)
@@ -59,22 +62,21 @@ def module_name_for(path: Path) -> str | None:
     return ".".join(reversed(parts))
 
 
-def _usecase_files(context_path: Path) -> list[Path]:
-    """Every use case file of a context, tests excluded."""
-    usecases = context_path / "usecases"
-    if not usecases.is_dir():
+def _files_under(directory: Path) -> list[Path]:
+    """Every module in a layer directory, tests excluded."""
+    if not directory.is_dir():
         return []
     return sorted(
         path
-        for path in usecases.rglob("*.py")
+        for path in directory.rglob("*.py")
         if "tests" not in path.parts and path.name != "__init__.py"
     )
 
 
-def _import_usecase_modules(
-    slug: str, context_path: Path
+def _import_layer(
+    slug: str, context_path: Path, layer: tuple[str, ...]
 ) -> tuple[list[ModuleType], list[Verdict]]:
-    """Import what a context keeps under usecases/.
+    """Import what a context keeps in one layer directory.
 
     A file that will not parse or will not import is a verdict of its
     own. Nothing else reports one: a file the AST parser cannot read
@@ -84,14 +86,19 @@ def _import_usecase_modules(
     Args:
         slug: The bounded context slug
         context_path: Path to the bounded context
+        layer: Path segments of the directory, e.g. ("usecases",)
 
     Returns:
         The modules that imported, and a verdict per file that did not
     """
+    directory = context_path
+    for segment in layer:
+        directory = directory / segment
+
     modules: list[ModuleType] = []
     failures: list[Verdict] = []
 
-    for path in _usecase_files(context_path):
+    for path in _files_under(directory):
         relative = path.relative_to(context_path)
         try:
             ast.parse(path.read_text(encoding="utf-8"))
@@ -148,12 +155,47 @@ def _not_a_dto(obj: object) -> str | None:
     return None
 
 
-def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:
-    """Resolve DTO names against the context's use case modules.
+def _not_a_domain_class(obj: object) -> str | None:
+    """Why a domain class does not belong in the domain ring.
 
-    A name is looked for as an attribute of any module under
-    ``usecases/``, so it is found whether it is defined there or
-    imported into it from elsewhere.
+    Only pydantic dataclasses are refused here. A BaseModel entity is
+    still legal, which is what the estate has today; moving those to
+    frozen dataclasses is its own change.
+
+    A pydantic dataclass is the one that has to be shut out first,
+    because nothing else catches it. It reads as ``@dataclass(frozen=
+    True)`` at the point of use and ``decorated_with("dataclass")``
+    matches on the last segment of the path, so the frozen-dataclass
+    rule passes it and pydantic sits in the domain unremarked.
+
+    Args:
+        obj: Whatever the name resolved to
+
+    Returns:
+        A clause for the objection, or None
+    """
+    if not isinstance(obj, type):
+        return None
+    if is_pydantic_dataclass(obj):
+        return (
+            "it is a pydantic dataclass. The domain uses stdlib "
+            "dataclasses; this one reads as one and imports pydantic"
+        )
+    return None
+
+
+def _verdicts(
+    slug: str,
+    context_path: Path,
+    layer: tuple[str, ...],
+    names: list[str],
+    judge: Callable[[object], str | None],
+) -> list[Verdict]:
+    """Resolve names against one layer's modules and judge each.
+
+    A name is looked for as an attribute of any module in the layer, so
+    it is found whether it is defined there or imported into it from
+    elsewhere.
 
     A name that resolves to nothing is a verdict, not a pass. Doctrine
     saw it somewhere and could not reach it, and treating that as
@@ -162,12 +204,14 @@ def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdic
     Args:
         slug: The bounded context slug
         context_path: Path to the bounded context
-        names: The Request or Response class names the parser found
+        layer: Path segments of the layer directory
+        names: The class names the parser found
+        judge: What to ask of each resolved class
 
     Returns:
         One verdict per name, plus one per file that would not import
     """
-    modules, verdicts = _import_usecase_modules(slug, context_path)
+    modules, verdicts = _import_layer(slug, context_path, layer)
 
     for name in names:
         found = next(
@@ -179,6 +223,34 @@ def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdic
                 Verdict(slug, name, "doctrine could not resolve it to a class")
             )
         else:
-            verdicts.append(Verdict(slug, name, _not_a_dto(found)))
+            verdicts.append(Verdict(slug, name, judge(found)))
 
     return verdicts
+
+
+def entity_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:
+    """Resolve entity names against the context's domain models.
+
+    Args:
+        slug: The bounded context slug
+        context_path: Path to the bounded context
+        names: The entity class names the parser found
+
+    Returns:
+        One verdict per name, plus one per file that would not import
+    """
+    return _verdicts(slug, context_path, ENTITIES_PATH, names, _not_a_domain_class)
+
+
+def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:
+    """Resolve DTO names against the context's use case modules.
+
+    Args:
+        slug: The bounded context slug
+        context_path: Path to the bounded context
+        names: The Request or Response class names the parser found
+
+    Returns:
+        One verdict per name, plus one per file that would not import
+    """
+    return _verdicts(slug, context_path, USE_CASES_PATH, names, _not_a_dto)
