@@ -207,7 +207,7 @@ def run_doctrine(target: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
-def assert_ran_both(result: subprocess.CompletedProcess[str]) -> None:
+def assert_doctrine_ran(result: subprocess.CompletedProcess[str]) -> None:
     """The selector must still collect both tests.
 
     Without this a deleted doctrine test reads as a clean run.
@@ -225,55 +225,55 @@ def assert_ran_both(result: subprocess.CompletedProcess[str]) -> None:
     )
 
 
-def test_a_solution_whose_dtos_are_pydantic_passes(tmp_path: Path) -> None:
-    """The suite must not fail correct code.
+def test_pydantic_dtos_allowed(tmp_path: Path) -> None:
+    """A solution whose request and response are BaseModels passes.
 
     A rule that fires on everything guarantees as little as one that
     fires on nothing.
     """
     result = run_doctrine(a_solution(tmp_path, GOOD))
 
-    assert_ran_both(result)
+    assert_doctrine_ran(result)
     assert result.returncode == 0, result.stdout
     assert f"{EXPECTED_TESTS} passed" in result.stdout, result.stdout
 
 
-@pytest.mark.parametrize(
-    ("what", "usecase", "messages"),
-    [
-        ("a request inheriting nothing", PLAIN_REQUEST, ""),
-        ("a response inheriting nothing", PLAIN_RESPONSE, ""),
-        ("a pydantic dataclass request", PYDANTIC_DATACLASS_REQUEST, ""),
-        ("a stdlib dataclass request", STDLIB_DATACLASS_REQUEST, ""),
-        ("a local class called BaseModel", LOCAL_BASEMODEL, ""),
-        ("dtos defined outside usecases/", REQUEST_FROM_ELSEWHERE, MESSAGES_ELSEWHERE),
-    ],
-    ids=[
-        "request-inherits-nothing",
-        "response-inherits-nothing",
-        "pydantic-dataclass-request",
-        "stdlib-dataclass-request",
-        "local-class-called-BaseModel",
-        "dtos-outside-usecases",
-    ],
-)
-def test_the_doctrine_suite_fails_on(
-    tmp_path: Path, what: str, usecase: str, messages: str
-) -> None:
-    """Each of these must fail the doctrine suite, not merely a rule.
-
-    Args:
-        tmp_path: Where the solution is written
-        what: What is wrong with it, for the failure message
-        usecase: Source for its use case module
-        messages: Source for a module outside usecases/, if any
-    """
+def assert_rejected(tmp_path: Path, usecase: str, messages: str = "") -> None:
+    """Run the doctrine over a bad solution and require it to fail."""
     result = run_doctrine(a_solution(tmp_path, usecase, messages))
 
-    assert_ran_both(result)
-    assert result.returncode != 0, (
-        f"doctrine passed a solution with {what}:\n{result.stdout}"
-    )
+    assert_doctrine_ran(result)
+    assert result.returncode != 0, f"doctrine passed it:\n{result.stdout}"
     assert "is a pydantic DTO, but" in result.stdout, (
-        f"doctrine failed for some other reason than {what}:\n{result.stdout}"
+        f"doctrine failed for some other reason:\n{result.stdout}"
     )
+
+
+def test_non_pydantic_request_dto_rejected(tmp_path: Path) -> None:
+    """A request inheriting nothing."""
+    assert_rejected(tmp_path, PLAIN_REQUEST)
+
+
+def test_non_pydantic_response_dto_rejected(tmp_path: Path) -> None:
+    """A response inheriting nothing."""
+    assert_rejected(tmp_path, PLAIN_RESPONSE)
+
+
+def test_pydantic_dataclass_request_dto_rejected(tmp_path: Path) -> None:
+    """It validates, and is still not a BaseModel."""
+    assert_rejected(tmp_path, PYDANTIC_DATACLASS_REQUEST)
+
+
+def test_stdlib_dataclass_request_dto_rejected(tmp_path: Path) -> None:
+    """A frozen dataclass is the domain's tool, not the driving port's."""
+    assert_rejected(tmp_path, STDLIB_DATACLASS_REQUEST)
+
+
+def test_class_named_basemodel_rejected(tmp_path: Path) -> None:
+    """A local class of that name is not pydantic's."""
+    assert_rejected(tmp_path, LOCAL_BASEMODEL)
+
+
+def test_dto_defined_outside_usecases_rejected(tmp_path: Path) -> None:
+    """Moving it out and importing it back is not an escape."""
+    assert_rejected(tmp_path, REQUEST_FROM_ELSEWHERE, MESSAGES_ELSEWHERE)
