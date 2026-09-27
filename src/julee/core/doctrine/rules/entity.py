@@ -9,6 +9,7 @@ parsing has already happened: nothing here reads a file.
 
 from collections.abc import Iterable
 
+from julee.core.doctrine.resolution import Verdict
 from julee.core.doctrine_constants import (
     CALCULATORS_PATH,
     ENTITIES_PATH,
@@ -30,6 +31,7 @@ __all__ = [
     "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
     "entities_not_extending_Entity",
+    "entities_that_are_pydantic_dataclasses",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
     "validators_that_transform",
@@ -439,3 +441,33 @@ def validators_that_transform(found: Found) -> list[str]:
                 f"julee.core.entities.text"
             )
     return objections
+
+
+def entities_that_are_pydantic_dataclasses(
+    verdicts: Iterable["Verdict"],
+) -> list[str]:
+    """Entities built with pydantic's dataclass decorator.
+
+    Nothing else catches these. At the point of use it is spelled
+    ``@dataclass(frozen=True)``, and :meth:`ClassInfo.decorated_with`
+    matches on the last segment of the dotted path, so
+    :func:`entities_not_extending_Entity` reads one as a compliant
+    frozen dataclass and pydantic sits in the domain unremarked.
+
+    The verdicts come from
+    :func:`julee.core.doctrine.resolution.entity_verdicts`, which
+    imports the class. The decorator's path is in the AST, but an
+    import bound to a local name is not, and the check is worth no more
+    than the spellings it happens to know.
+
+    Args:
+        verdicts: One per entity name, from entity_verdicts
+
+    Returns:
+        One sentence per entity carrying pydantic into the domain
+    """
+    return [
+        f"{verdict.bounded_context}.{verdict.name}: {verdict.reason}"
+        for verdict in verdicts
+        if verdict.reason is not None
+    ]

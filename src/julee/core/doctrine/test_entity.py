@@ -9,12 +9,14 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine.resolution import entity_verdicts
 from julee.core.doctrine.rules.entity import (
     VALIDATOR_DECORATORS,
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
     entities_not_extending_Entity,
+    entities_that_are_pydantic_dataclasses,
     fields_named_workflow_id,
     fields_using_mutable_collections,
     validators_that_transform,
@@ -372,4 +374,34 @@ class TestWhatAValidatorIsFor:
         assert by_source <= by_parse, (
             "Doctrine cannot see validators that are there:\n"
             + "\n".join(sorted(by_source - by_parse))
+        )
+
+
+class TestTheDomainRing:
+    """Doctrine about what a domain class may be built from."""
+
+    @pytest.mark.asyncio
+    async def test_entities_MUST_NOT_be_pydantic_dataclasses(self, repo):
+        """Domain classes MUST NOT use pydantic's dataclass decorator.
+
+        A pydantic dataclass is a dataclass by every structural test
+        and pydantic by its import, so it satisfies the rule for the
+        domain ring and the rule for the driving ring at once. Reading
+        a class is supposed to say which ring it is in.
+        """
+        verdicts = []
+        for ctx in await repo.list_all():
+            info = parse_bounded_context(Path(ctx.path))
+            if info is None:
+                continue
+            verdicts.extend(
+                entity_verdicts(
+                    ctx.slug, Path(ctx.path), [e.name for e in info.entities]
+                )
+            )
+
+        violations = entities_that_are_pydantic_dataclasses(verdicts)
+
+        assert not violations, (
+            "Entities built with pydantic's dataclass:\n" + "\n".join(violations)
         )
