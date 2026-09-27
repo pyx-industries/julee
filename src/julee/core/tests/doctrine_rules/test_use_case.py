@@ -420,26 +420,26 @@ def a_verdict(
     return Verdict(bounded_context=context, name=name, reason=reason)
 
 
-def test_a_request_that_resolved_to_a_pydantic_model_is_allowed() -> None:
+def test_pydantic_request_dto_allowed() -> None:
     """The ordinary case."""
     assert requests_that_are_not_pydantic([a_verdict()]) == []
 
 
-def test_a_request_with_a_reason_is_reported() -> None:
+def test_request_with_a_reason_rejected() -> None:
     """A verdict carrying a reason is a violation."""
     assert requests_that_are_not_pydantic([a_verdict(reason="it is a str")]) == [
         "hcd.GetStoryRequest: a request is a pydantic DTO, but it is a str"
     ]
 
 
-def test_a_response_with_a_reason_is_reported() -> None:
+def test_response_with_a_reason_rejected() -> None:
     """The other half, worded for a response."""
     assert responses_that_are_not_pydantic(
         [a_verdict(name="GetStoryResponse", reason="it is a str")]
     ) == ["hcd.GetStoryResponse: a response is a pydantic DTO, but it is a str"]
 
 
-def test_the_dto_objection_names_the_context() -> None:
+def test_objection_names_bounded_context() -> None:
     """Two kits may both have a GetStoryRequest."""
     objection = requests_that_are_not_pydantic([a_verdict(reason="x")])[0]
 
@@ -491,12 +491,12 @@ def reason_for(context: Path, name: str) -> str | None:
     return next(v.reason for v in verdicts if v.name == name)
 
 
-def test_a_pydantic_model_resolves_clean(tmp_path: Path) -> None:
+def test_pydantic_request_dto_resolves_clean(tmp_path: Path) -> None:
     """The ordinary case, end to end."""
     assert reason_for(a_context(tmp_path, PYDANTIC_REQUEST), "GetStoryRequest") is None
 
 
-def test_a_local_class_named_BaseModel_does_not_satisfy_it(tmp_path: Path) -> None:
+def test_class_named_basemodel_rejected(tmp_path: Path) -> None:
     """Reading bases out of the AST passed this."""
     context = a_context(
         tmp_path,
@@ -510,7 +510,7 @@ def test_a_local_class_named_BaseModel_does_not_satisfy_it(tmp_path: Path) -> No
     assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_a_base_from_an_unparsed_package_does_not_satisfy_it(tmp_path: Path) -> None:
+def test_foreign_base_rejected(tmp_path: Path) -> None:
     """An unseen base used to be trusted."""
     context = a_context(
         tmp_path,
@@ -523,7 +523,7 @@ def test_a_base_from_an_unparsed_package_does_not_satisfy_it(tmp_path: Path) -> 
     assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_a_dto_defined_outside_usecases_is_still_checked(tmp_path: Path) -> None:
+def test_dto_defined_outside_usecases_rejected(tmp_path: Path) -> None:
     """Moving it out and importing it back used to bypass the rule."""
     context = a_context(
         tmp_path,
@@ -536,7 +536,7 @@ def test_a_dto_defined_outside_usecases_is_still_checked(tmp_path: Path) -> None
     assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_a_pydantic_dataclass_is_reported(tmp_path: Path) -> None:
+def test_pydantic_dataclass_request_dto_rejected(tmp_path: Path) -> None:
     """It validates, and is still not a DTO.
 
     Structurally it is a plain dataclass — no base, is_dataclass True,
@@ -556,7 +556,7 @@ def test_a_pydantic_dataclass_is_reported(tmp_path: Path) -> None:
     assert "pydantic dataclass" in (reason_for(context, "GetStoryRequest") or "")
 
 
-def test_a_stdlib_dataclass_is_reported(tmp_path: Path) -> None:
+def test_stdlib_dataclass_request_dto_rejected(tmp_path: Path) -> None:
     """It does not validate, so it is not a DTO."""
     context = a_context(
         tmp_path,
@@ -571,7 +571,7 @@ def test_a_stdlib_dataclass_is_reported(tmp_path: Path) -> None:
     assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_an_aliased_pydantic_import_is_allowed(tmp_path: Path) -> None:
+def test_aliased_pydantic_import_allowed(tmp_path: Path) -> None:
     """How it was spelled is not what it is."""
     context = a_context(
         tmp_path,
@@ -585,21 +585,21 @@ def test_an_aliased_pydantic_import_is_allowed(tmp_path: Path) -> None:
     assert reason_for(context, "GetStoryRequest") is None
 
 
-def test_a_file_that_does_not_parse_is_reported(tmp_path: Path) -> None:
+def test_unparseable_usecase_file_rejected(tmp_path: Path) -> None:
     """It contributes no classes, so every other rule passes over it."""
     context = a_context(tmp_path, '"""Broken."""\n\nclass R:\n    x: int =\n')
 
     assert [v.reason for v in dto_verdicts("stories", context, [])] != []
 
 
-def test_a_name_that_resolves_to_nothing_is_reported(tmp_path: Path) -> None:
+def test_unresolvable_dto_name_rejected(tmp_path: Path) -> None:
     """Doctrine saw it and could not reach it. That is not compliance."""
     context = a_context(tmp_path, PYDANTIC_REQUEST)
 
     assert reason_for(context, "VanishedRequest") is not None
 
 
-def test_a_context_with_no_usecases_directory_yields_nothing(tmp_path: Path) -> None:
+def test_missing_usecases_directory_yields_nothing(tmp_path: Path) -> None:
     """Nothing to import is not a failure."""
     assert dto_verdicts("stories", tmp_path / "nowhere", []) == []
 
@@ -624,7 +624,7 @@ def a_domain_context(tmp_path: Path, model_source: str) -> Path:
     return context
 
 
-def test_a_stdlib_frozen_dataclass_entity_is_allowed(tmp_path: Path) -> None:
+def test_stdlib_dataclass_entity_allowed(tmp_path: Path) -> None:
     """What the domain ring is meant to be built from."""
     context = a_domain_context(
         tmp_path,
@@ -643,7 +643,7 @@ def test_a_stdlib_frozen_dataclass_entity_is_allowed(tmp_path: Path) -> None:
     )
 
 
-def test_a_pydantic_dataclass_entity_is_reported(tmp_path: Path) -> None:
+def test_pydantic_dataclass_entity_rejected(tmp_path: Path) -> None:
     """The hole this rule exists for.
 
     entities_not_extending_Entity passes this: decorated_with matches
@@ -666,7 +666,7 @@ def test_a_pydantic_dataclass_entity_is_reported(tmp_path: Path) -> None:
     )
 
 
-def test_a_BaseModel_entity_is_still_allowed(tmp_path: Path) -> None:
+def test_basemodel_entity_allowed(tmp_path: Path) -> None:
     """Moving those to dataclasses is a separate change, not this rule."""
     context = a_domain_context(
         tmp_path,
@@ -684,7 +684,7 @@ def test_a_BaseModel_entity_is_still_allowed(tmp_path: Path) -> None:
     )
 
 
-def test_the_existing_frozen_rule_passes_what_this_one_catches() -> None:
+def test_frozen_rule_passes_pydantic_dataclass() -> None:
     """Why the new rule had to exist, pinned so it cannot be forgotten."""
     story = ClassInfo(
         name="Story",
