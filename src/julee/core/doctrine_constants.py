@@ -101,7 +101,14 @@ DEPLOYMENTS_ROOT: Final[str] = "deployments"
 """Root directory for deployment configurations."""
 
 DOCS_ROOT: Final[str] = "docs"
-"""Root directory for solution documentation (required)."""
+"""Root directory for solution documentation.
+
+Reserved so that a directory of this name is not read as a bounded
+context, which is all this does. It said "(required)" and nothing
+required it: no rule asks for a docs/, and none of the five kits has
+one. Whether a solution must document itself, and where, is open —
+``SolutionConfig.docs_root`` is the knob it would be answered through.
+"""
 
 # =============================================================================
 # PIPELINE CONVENTIONS

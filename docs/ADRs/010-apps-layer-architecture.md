@@ -29,6 +29,11 @@ Three things below are no longer true, and the last of them never was:
   Neither that class nor that entity exists, or ever did. Its one
   leftover, the `APP_BC_ORGANIZATION_EXCLUDES` constant, had no reader
   and is gone.
+- **`docs/` is reserved, not required.** The table below said it was
+  required for every solution, and nothing has ever required it: there
+  is no rule, and none of the five kits has a `docs/`. Whether a
+  solution must document itself, and where, is an open question, and
+  `SolutionConfig.docs_root` is the knob it would be answered through.
 
 What stands is the reserved-word rule and the dependency direction.
 `apps` and `deployments` are still not bounded contexts, and a bounded
@@ -69,7 +74,7 @@ Certain top-level directory names are **reserved words** - they have special arc
 | `apps` | `APPS_ROOT` | Application layer entry points |
 | `deployments` | `DEPLOYMENTS_ROOT` | Deployment configurations |
 | `deployment` | `LAYER_DEPLOYMENT` | Legacy singular form |
-| `docs` | `DOCS_ROOT` | Documentation (required for every solution) |
+| `docs` | `DOCS_ROOT` | Documentation (reserved, not required — see Status) |
 
 Every top-level directory is treated as a bounded context (or nested solution) **except** reserved words.
 
