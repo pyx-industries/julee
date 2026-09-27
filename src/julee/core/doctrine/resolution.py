@@ -31,6 +31,7 @@ from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
 __all__ = [
     "PRIMITIVES",
+    "VALUE_OBJECT_BASES",
     "package_of",
     "Verdict",
     "dto_verdicts",
@@ -189,24 +190,32 @@ def _not_a_dto(obj: object) -> str | None:
     return None
 
 
-IMMUTABLE_BUILTINS = (bytes, float, frozenset, int, str, tuple)
-"""Builtins a value object may subclass and still be immutable.
+VALUE_OBJECT_BASES = (int, str)
+"""What a value object may be built on.
 
-``Slug``, ``Name`` and ``ContentMultihash`` are str subclasses. They
-carry a rule about their own text and nothing can change them after
-construction, which is what the domain ring asks for; being a
-dataclass is not the point, immutability is.
+The domain ring holds two kinds of class. An entity has identity and
+is a frozen dataclass. A value object has none — it is the value, and
+two with the same contents are the same thing — so it is built on the
+value it wraps and carries the rule about what that value may be.
+``Slug``, ``Name`` and ``ContentMultihash`` are the worked examples.
+
+Two bases, because those are the two a value object is built on.
+Widening this to every immutable builtin would admit ``class
+Point(tuple)``, which is immutable and is not a stated category.
 """
 
 
 def _not_a_domain_class(obj: object) -> str | None:
     """Why a class does not belong in the domain ring, or None if it does.
 
-    A domain class is a frozen stdlib dataclass, an enum, or a
-    subclass of an immutable builtin. Pydantic is refused in both its
-    forms: a model carries a serialisation library into the ring, and
-    a dataclass of pydantic's reads as a plain one everywhere while
-    importing pydantic all the same.
+    Two categories are allowed. An entity is a frozen stdlib
+    dataclass. A value object is an enum, or is built on one of
+    :data:`VALUE_OBJECT_BASES`.
+
+    Pydantic is refused in both its forms: a model carries a
+    serialisation library into the ring, and a dataclass of pydantic's
+    reads as a plain one everywhere while importing pydantic all the
+    same.
 
     Args:
         obj: Whatever the name resolved to
@@ -219,7 +228,7 @@ def _not_a_domain_class(obj: object) -> str | None:
 
     if issubclass(obj, enum.Enum):
         return None
-    if issubclass(obj, IMMUTABLE_BUILTINS):
+    if issubclass(obj, VALUE_OBJECT_BASES):
         return None
 
     if is_pydantic_dataclass(obj):
@@ -236,7 +245,11 @@ def _not_a_domain_class(obj: object) -> str | None:
             return None
         return "it is a dataclass that is not frozen"
 
-    return "it is not a frozen dataclass, an enum or an immutable value"
+    return (
+        "it is neither an entity nor a value object. An entity is a "
+        "frozen dataclass; a value object is an enum or is built on "
+        "str or int"
+    )
 
 
 def _verdicts(

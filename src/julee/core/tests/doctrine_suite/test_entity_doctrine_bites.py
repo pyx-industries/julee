@@ -37,8 +37,7 @@ ALLOWED = {
     "a StrEnum": 'class Colour(StrEnum):\n    """A domain value."""\n\n    RED = "red"\n',
     "an IntEnum": 'class Rank(IntEnum):\n    """A domain value."""\n\n    FIRST = 1\n',
     "a str value object": (
-        'class Slug(str):\n    """Immutable already, being a str."""\n\n'
-        "    __slots__ = ()\n"
+        'class Slug(str):\n    """A value object."""\n\n    __slots__ = ()\n'
     ),
     "a frozen dataclass extending one": (
         '@dataclass(frozen=True)\nclass Base:\n    """A base."""\n\n    slug: str\n\n\n'
@@ -73,6 +72,10 @@ FORBIDDEN = {
     ),
     "a plain class": (
         'class Story:\n    """A unit of work."""\n\n    slug: str\n',
+        "Story",
+    ),
+    "a tuple subclass": (
+        'class Story(tuple):\n    """Immutable, and not a stated category."""\n',
         "Story",
     ),
 }

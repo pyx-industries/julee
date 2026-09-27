@@ -382,10 +382,12 @@ class TestTheDomainRing:
 
     @pytest.mark.asyncio
     async def test_entities_MUST_be_frozen_dataclasses(self, repo):
-        """A domain class MUST be a frozen stdlib dataclass.
+        """A domain class MUST be an entity or a value object.
 
-        Or an enum, or a subclass of an immutable builtin such as str
-        — the ring asks for immutability, not for a decorator.
+        An entity has identity and is a frozen stdlib dataclass. A
+        value object is the value it wraps — two with the same
+        contents are the same thing — so it is an enum or is built on
+        str or int.
 
         Pydantic is refused in both its forms. A model carries a
         serialisation library into the innermost ring. A pydantic

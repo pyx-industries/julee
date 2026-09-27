@@ -446,12 +446,15 @@ def validators_that_transform(found: Found) -> list[str]:
 def entities_that_are_not_frozen_dataclasses(
     verdicts: Iterable["Verdict"],
 ) -> list[str]:
-    """Domain classes that are not frozen stdlib dataclasses.
+    """Domain classes that are neither an entity nor a value object.
 
-    A frozen dataclass, an enum, or a subclass of an immutable builtin
-    such as ``str``. A pydantic model brings a serialisation library
-    into the innermost ring; a pydantic dataclass brings it while
-    reading as a plain dataclass everywhere else.
+    The domain ring holds two kinds of class. An entity has identity
+    and is a frozen stdlib dataclass. A value object is the value it
+    wraps, so it is an enum or is built on ``str`` or ``int``.
+
+    A pydantic model brings a serialisation library into the innermost
+    ring; a pydantic dataclass brings it while reading as a plain
+    dataclass everywhere else.
 
     The verdicts come from
     :func:`julee.core.doctrine.resolution.entity_verdicts`, which
