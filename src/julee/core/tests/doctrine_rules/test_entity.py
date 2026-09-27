@@ -114,6 +114,90 @@ def test_a_cycle_in_the_bases_does_not_hang() -> None:
 
 
 # =============================================================================
+# Entities that are dataclasses (#142)
+# =============================================================================
+
+
+def a_dataclass(
+    name: str = "Story",
+    frozen: str | None = "True",
+    fields: tuple[tuple[str, str], ...] = (("slug", "str"),),
+    slug: str = "hcd",
+) -> tuple[str, ClassInfo]:
+    """An entity shaped by a decorator rather than by a base class.
+
+    ``frozen`` is source text, as the parser reads it: None for a bare
+    ``@dataclass``, "True" for ``frozen=True``, or any other expression
+    someone wrote there.
+    """
+    return (
+        slug,
+        ClassInfo(
+            name=name,
+            bases=[],
+            decorators=["dataclasses.dataclass"],
+            decorator_arguments=(
+                {"dataclass": {"frozen": frozen}} if frozen is not None else {}
+            ),
+            fields=[
+                FieldInfo(name=n, type_annotation=annotation)
+                for n, annotation in fields
+            ],
+        ),
+    )
+
+
+def test_a_frozen_dataclass_is_allowed() -> None:
+    """It makes the same promise Entity does, by another route."""
+    assert entities_not_extending_Entity([a_dataclass()]) == []
+
+
+def test_a_dataclass_that_is_not_frozen_is_reported() -> None:
+    """The case this rule used to miss altogether: a mutable entity,
+    discovered by the parser and examined by nothing, because filtering
+    on entity.bases dropped every class that has none (#142)."""
+    assert entities_not_extending_Entity([a_dataclass(frozen=None)]) == ["hcd.Story"]
+
+
+def test_frozen_set_to_anything_but_True_is_reported() -> None:
+    """A class is read, not imported, so a constant cannot be resolved.
+    Whether an entity is immutable should be legible where it is
+    defined, so not knowing is reported rather than assumed."""
+    assert entities_not_extending_Entity([a_dataclass(frozen="FROZEN")]) == [
+        "hcd.Story"
+    ]
+
+
+def test_frozen_False_is_reported() -> None:
+    assert entities_not_extending_Entity([a_dataclass(frozen="False")]) == ["hcd.Story"]
+
+
+def test_a_dataclass_field_may_not_be_a_mutable_collection() -> None:
+    """frozen=True stops reassignment, not appending, here as anywhere.
+    This passed over every field on a dataclass, so a frozen one
+    carrying list[str] read as compliant (#142)."""
+    found = [a_dataclass(fields=(("tags", "list[str]"),))]
+
+    assert fields_using_mutable_collections(found) == ["hcd.Story.tags: list[str]"]
+
+
+def test_a_dataclass_with_immutable_fields_is_fine() -> None:
+    found = [a_dataclass(fields=(("tags", "tuple[str, ...]"),))]
+
+    assert fields_using_mutable_collections(found) == []
+
+
+def test_a_plain_class_with_no_bases_is_still_left_alone() -> None:
+    """The bases filter also meant "something I can reason about", and a
+    class that is neither decorated nor derived is not an entity this
+    rule has anything to say about."""
+    plain = ("hcd", ClassInfo(name="Helper", bases=[]))
+
+    assert entities_not_extending_Entity([plain]) == []
+    assert fields_using_mutable_collections([plain]) == []
+
+
+# =============================================================================
 # Frozen all the way down
 # =============================================================================
 

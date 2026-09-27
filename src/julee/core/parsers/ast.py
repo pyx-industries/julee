@@ -14,7 +14,7 @@ import ast
 import functools
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import griffe
 
@@ -103,7 +103,37 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
         fields=fields,
         methods=methods,
         decorators=[d.callable_path for d in cls.decorators],
+        decorator_arguments=_decorator_arguments(cls.decorators),
     )
+
+
+def _decorator_arguments(decorators: Any) -> dict[str, dict[str, str]]:
+    """The keyword arguments each decorator was called with.
+
+    Keyed by the decorator's last path segment, so a rule reads them the
+    same way ``ClassInfo.decorated_with`` matches. A decorator applied
+    bare contributes nothing: griffe gives a plain name rather than a
+    call, and there is nothing to record.
+
+    Args:
+        decorators: The griffe decorators on a class
+
+    Returns:
+        Decorator name to keyword to the argument's source text
+    """
+    arguments: dict[str, dict[str, str]] = {}
+    for decorator in decorators:
+        call = decorator.value
+        if not isinstance(call, griffe.ExprCall):
+            continue
+        keywords = {
+            argument.name: str(argument.value)
+            for argument in call.arguments
+            if isinstance(argument, griffe.ExprKeyword)
+        }
+        if keywords:
+            arguments[decorator.callable_path.rsplit(".", 1)[-1]] = keywords
+    return arguments
 
 
 def _classes_from_file(py_file: Path, relative_to: Path) -> list["ClassInfo"]:

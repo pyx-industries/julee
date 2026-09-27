@@ -948,3 +948,104 @@ class TestDecorators:
         (repo,) = parse_python_classes(tmp_path)
 
         assert not repo.decorated_with("registration")
+
+
+class TestDecoratorArguments:
+    """Tests for the keyword arguments a decorator was called with.
+
+    Source text rather than values, because a class is read and not
+    imported. Doctrine needs this to tell ``@dataclass(frozen=True)``
+    from ``@dataclass``, which is the difference between an immutable
+    entity and a mutable one (#142).
+    """
+
+    def test_a_bare_decorator_records_no_arguments(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n\n@dataclass\nclass Thing:\n    pass\n",
+        )
+
+        (thing,) = parse_python_classes(tmp_path)
+
+        assert thing.decorator_arguments == {}
+        assert thing.decorator_argument("dataclass", "frozen") is None
+
+    def test_a_keyword_is_recorded_under_the_decorator_name(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n"
+            "\n"
+            "@dataclass(frozen=True)\n"
+            "class Thing:\n"
+            "    pass\n",
+        )
+
+        (thing,) = parse_python_classes(tmp_path)
+
+        assert thing.decorator_arguments == {"dataclass": {"frozen": "True"}}
+        assert thing.decorator_argument("dataclass", "frozen") == "True"
+
+    def test_several_keywords_are_all_recorded(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n"
+            "\n"
+            "@dataclass(frozen=True, slots=True)\n"
+            "class Thing:\n"
+            "    pass\n",
+        )
+
+        (thing,) = parse_python_classes(tmp_path)
+
+        assert thing.decorator_arguments["dataclass"] == {
+            "frozen": "True",
+            "slots": "True",
+        }
+
+    def test_an_argument_is_source_text_not_a_value(self, tmp_path):
+        """A constant cannot be resolved without importing, so what comes
+        back is what was written. A caller decides what to make of it."""
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n"
+            "\n"
+            "FROZEN = True\n"
+            "\n"
+            "@dataclass(frozen=FROZEN)\n"
+            "class Thing:\n"
+            "    pass\n",
+        )
+
+        (thing,) = parse_python_classes(tmp_path)
+
+        assert thing.decorator_argument("dataclass", "frozen") == "FROZEN"
+
+    def test_a_positional_argument_is_not_a_keyword(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from julee.integrations.temporal.decorators import "
+            "temporal_activity_registration\n"
+            "\n"
+            '@temporal_activity_registration("util.file_storage.minio")\n'
+            "class Repo:\n"
+            "    pass\n",
+        )
+
+        (repo,) = parse_python_classes(tmp_path)
+
+        assert repo.decorator_arguments == {}
+
+    def test_an_unasked_decorator_gives_nothing(self, tmp_path):
+        _write(
+            tmp_path / "m.py",
+            "from dataclasses import dataclass\n"
+            "\n"
+            "@dataclass(frozen=True)\n"
+            "class Thing:\n"
+            "    pass\n",
+        )
+
+        (thing,) = parse_python_classes(tmp_path)
+
+        assert thing.decorator_argument("attrs", "frozen") is None
+        assert thing.decorator_argument("dataclass", "slots") is None
