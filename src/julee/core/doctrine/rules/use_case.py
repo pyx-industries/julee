@@ -313,7 +313,7 @@ def use_case_sources_mentioning(
 
 
 PYDANTIC_BASE = "BaseModel"
-"""What a request or a response must reach through its bases."""
+"""The base a request or response must reach."""
 
 NOT_PYDANTIC_BASES = frozenset(
     {
@@ -327,25 +327,19 @@ NOT_PYDANTIC_BASES = frozenset(
         "TypedDict",
     }
 )
-"""Bases that settle the question the other way.
+"""Bases that are known not to be BaseModel.
 
-A base doctrine cannot see is trusted, which is how every inheritance
-rule here works. These are the ones it does not need to see to know:
-none of them is a ``BaseModel``, and a request deriving from one is a
-message the driving port cannot validate, whatever else it inherits.
-
-Without this set they would all have been trusted — a ``TypedDict``
-request would have satisfied a rule written to forbid exactly that.
+Unseen bases are trusted, so without these a TypedDict request would
+pass.
 """
 
 
 def _base_name(base: str) -> str:
-    """The class a base expression names.
+    """The class name a base expression names.
 
-    Bases are recorded as they were written, so the same class arrives
-    as ``BaseModel``, ``pydantic.BaseModel`` or ``BaseRequest[Story]``
-    depending on the author. The module path and the subscript are how
-    it was spelled; the last segment is what it is.
+    Drops the module path and any subscript, so ``pydantic.BaseModel``
+    gives ``BaseModel`` and ``BaseRequest[Story]`` gives
+    ``BaseRequest``.
 
     Args:
         base: A base as the parser recorded it
@@ -356,18 +350,18 @@ def _base_name(base: str) -> str:
     return base.split("[", 1)[0].strip().rsplit(".", 1)[-1]
 
 
-def _is_a_name_doctrine_only_saw_imported(artifact: ClassInfo) -> bool:
-    """Whether the parser recorded a name rather than a class.
+def _is_name_only(artifact: ClassInfo) -> bool:
+    """Whether the parser recorded a name rather than a parsed class.
 
-    A request re-exported into ``usecases/`` from somewhere the parser
-    does not read — ``_generated/`` is the case it was built for —
-    reaches the rules as a ClassInfo holding a name and nothing else.
-    It has no bases because none were read, not because it has none,
-    and reporting it would be objecting to what doctrine failed to
-    look at rather than to anything an author wrote.
+    A DTO re-exported into ``usecases/`` from a directory the parser
+    does not read arrives with a name and nothing else. ``file`` is
+    empty on those and set on every class actually read.
 
-    ``file`` is the discriminator: the parser sets it on every class it
-    actually read, and leaves it empty on these.
+    Args:
+        artifact: The class to test
+
+    Returns:
+        True if nothing but the name was recorded
     """
     return not artifact.file
 
@@ -375,19 +369,17 @@ def _is_a_name_doctrine_only_saw_imported(artifact: ClassInfo) -> bool:
 def _why_it_is_not_pydantic(
     artifact: ClassInfo, by_name: dict[str, ClassInfo]
 ) -> str | None:
-    """What to tell an author about a DTO that does not reach BaseModel.
+    """Why a DTO does not reach BaseModel.
 
-    Returns None when it does reach it. Otherwise a clause naming the
-    reason, because the four ways to fail this want four different
-    edits and an objection that does not say which leaves the author to
-    diff their class against a rule they cannot read.
+    The four ways to fail need four different edits, so the reason is
+    returned rather than a bool.
 
     Args:
         artifact: The request or response class to judge
         by_name: The DTOs of its bounded context, for following bases
 
     Returns:
-        A clause, or None if the class complies
+        A clause naming the reason, or None if it complies
     """
 
     def reaches_BaseModel(name: str, visiting: frozenset[str]) -> bool:
@@ -396,7 +388,7 @@ def _why_it_is_not_pydantic(
         if name in NOT_PYDANTIC_BASES or name in visiting:
             return False
         found = by_name.get(name)
-        if found is None or _is_a_name_doctrine_only_saw_imported(found):
+        if found is None or _is_name_only(found):
             return True
         if found.decorated_with("dataclass"):
             return False
@@ -430,7 +422,7 @@ def _dtos_not_extending_BaseModel(
     objections = []
     for found in dtos:
         artifact = found.artifact
-        if _is_a_name_doctrine_only_saw_imported(artifact):
+        if _is_name_only(artifact):
             continue
         reason = _why_it_is_not_pydantic(artifact, by_name)
         if reason is not None:
@@ -445,22 +437,13 @@ def requests_not_extending_BaseModel(
 ) -> list[str]:
     """Requests that are not pydantic DTOs.
 
-    A request is the message a driving adapter hands in, so it arrives
-    from outside as JSON, form fields or a queue payload and has to be
-    validated before anything reads it. ``BaseModel`` is what does the
-    validating, and a request that does not derive from it is a shape
-    nothing checked.
+    A request is the message a driving adapter hands in. It arrives as
+    JSON, form fields or a queue payload, and BaseModel is what
+    validates it before a use case reads it.
 
-    This is the driving half of the rule that pydantic belongs at the
-    edges. It says nothing about what a use case does with the request
-    once it has one, and nothing about the domain behind it; both are
-    rules of their own.
-
-    Compliance is followed through bases, so a request extending another
-    request in the same bounded context is fine. A base doctrine cannot
-    see is trusted, the way every inheritance rule here trusts one —
-    except for the handful in :data:`NOT_PYDANTIC_BASES`, which need no
-    looking at.
+    Bases are followed within the bounded context, so a request
+    extending another request complies. A base doctrine cannot see is
+    trusted, except for :data:`NOT_PYDANTIC_BASES`.
 
     Args:
         requests: The request classes a codebase has
@@ -476,12 +459,8 @@ def responses_not_extending_BaseModel(
 ) -> list[str]:
     """Responses that are not pydantic DTOs.
 
-    The mirror of :func:`requests_not_extending_BaseModel`, and the
-    reason it is a separate rule rather than the same one run twice is
-    that the two fail for opposite reasons. A request is unvalidated
-    input; a response is output a driving adapter has to serialise, and
-    one that is not a ``BaseModel`` leaves every adapter to work out how
-    on its own.
+    A response is what a driving adapter serialises. One that is not a
+    BaseModel leaves each adapter to work out how on its own.
 
     Args:
         responses: The response classes a codebase has

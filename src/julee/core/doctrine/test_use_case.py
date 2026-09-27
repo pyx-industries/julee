@@ -249,17 +249,11 @@ class TestExecutionAgnosticism:
 
 
 class TestDrivingPortMessages:
-    """Doctrine about the messages a use case takes and returns (ADR 017).
+    """Doctrine about the messages a use case takes and returns.
 
     A request and a response are messages at the driving port, not
-    domain objects. They cross a process boundary — HTTP, a queue, a
-    CLI, a Sphinx build — so they have to be validated on the way in
-    and serialised on the way out, and pydantic is what julee uses to
-    do both.
-
-    That is the whole of what pydantic is for. These two tests fix it
-    at the edge so that the rules which keep it out of everywhere else
-    have somewhere to say it belongs.
+    domain objects. They cross a process boundary, so they are
+    validated on the way in and serialised on the way out.
     """
 
     @pytest.mark.asyncio
@@ -267,9 +261,7 @@ class TestDrivingPortMessages:
         """Use case requests MUST be pydantic models.
 
         A request arrives from outside as JSON, form fields or a queue
-        payload. Deriving from BaseModel is what makes the shape a
-        claim the driving adapter checks rather than one the use case
-        discovers by reading an attribute that is not there.
+        payload. BaseModel is what validates it.
         """
         response = await ListRequestsUseCase(repo).execute(ListCodeArtifactsRequest())
 
@@ -288,10 +280,8 @@ class TestDrivingPortMessages:
     async def test_every_response_MUST_derive_from_BaseModel(self, repo):
         """Use case responses MUST be pydantic models.
 
-        A response is what a driving adapter has to turn back into
-        JSON, a template context or a CLI table. One that is not a
-        BaseModel leaves every adapter to work that out separately,
-        which is how two adapters over one use case come to disagree.
+        A response is what a driving adapter turns back into JSON, a
+        template context or a CLI table.
         """
         response = await ListResponsesUseCase(repo).execute(ListCodeArtifactsRequest())
 

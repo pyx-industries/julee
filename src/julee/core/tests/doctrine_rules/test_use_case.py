@@ -396,9 +396,8 @@ def test_only_the_offending_file_is_named() -> None:
 # =============================================================================
 # Requests and responses are pydantic DTOs
 #
-# julee declares bounded_contexts = "none", so the doctrine test over the
-# estate has no subject here and skips. These are the only evidence the
-# rules work, which is the whole reason they are this thorough.
+# julee declares bounded_contexts = "none", so the doctrine tests skip
+# here and these are the only evidence the rules work.
 # =============================================================================
 
 
@@ -409,11 +408,7 @@ def a_dto(
     file: str = "usecases/get_story.py",
     decorators: tuple[str, ...] = (),
 ) -> CodeArtifactWithContext:
-    """A request or response class, compliant unless told otherwise.
-
-    ``file`` is set because the parser sets it on every class it reads,
-    and its absence means something specific the rules act on.
-    """
+    """A request or response class, compliant unless told otherwise."""
     return CodeArtifactWithContext(
         bounded_context=context,
         artifact=ClassInfo(
@@ -436,12 +431,7 @@ def test_a_request_with_no_base_class_is_reported() -> None:
 
 
 def test_a_request_that_is_a_dataclass_is_reported() -> None:
-    """A frozen dataclass is the right answer in the domain, not here.
-
-    This is the one worth being explicit about while the migration is
-    on: a dataclass everywhere is the direction of travel, and the
-    driving port is the exception it must not swallow.
-    """
+    """A dataclass is the right answer in the domain, not at the edge."""
     objections = requests_not_extending_BaseModel(
         [a_dto(bases=(), decorators=("dataclasses.dataclass",))]
     )
@@ -462,22 +452,18 @@ def test_a_dataclass_request_is_reported_even_with_a_base() -> None:
 
 
 def test_a_TypedDict_request_is_reported() -> None:
-    """A base doctrine does not need to see to rule out.
-
-    Trusting every unseen base is what the other inheritance rules do,
-    and it would have let this through.
-    """
+    """Trusting every unseen base would let this through."""
     assert requests_not_extending_BaseModel([a_dto(bases=("TypedDict",))]) != []
 
 
 @pytest.mark.parametrize("base", ["NamedTuple", "Protocol", "object", "Enum"])
 def test_the_other_settled_bases_are_reported(base: str) -> None:
-    """Each for the same reason: none of them is a BaseModel."""
+    """None of them is a BaseModel."""
     assert requests_not_extending_BaseModel([a_dto(bases=(base,))]) != []
 
 
 def test_a_request_extending_another_request_is_allowed() -> None:
-    """Compliance is followed through bases within the context."""
+    """Bases are followed within the context."""
     assert (
         requests_not_extending_BaseModel(
             [
@@ -490,7 +476,7 @@ def test_a_request_extending_another_request_is_allowed() -> None:
 
 
 def test_a_chain_of_requests_reaching_nothing_is_reported() -> None:
-    """Following bases has to be able to end in a failure, not just a stop."""
+    """Following bases has to be able to end in a failure."""
     objections = requests_not_extending_BaseModel(
         [
             a_dto(name="ListStoriesRequest", bases=("PagedRequest",)),
@@ -502,7 +488,7 @@ def test_a_chain_of_requests_reaching_nothing_is_reported() -> None:
 
 
 def test_a_cycle_in_the_dto_bases_does_not_hang() -> None:
-    """Two classes naming each other is not a real hierarchy, but it parses."""
+    """Two classes naming each other parses, even though it cannot run."""
     assert (
         requests_not_extending_BaseModel(
             [
@@ -515,11 +501,7 @@ def test_a_cycle_in_the_dto_bases_does_not_hang() -> None:
 
 
 def test_a_base_from_outside_the_context_is_trusted() -> None:
-    """The same trust every inheritance rule here extends.
-
-    julee's own ListCodeArtifactsRequest is a BaseModel, and a kit
-    deriving from it cannot show doctrine that.
-    """
+    """A kit deriving from julee's own DTOs cannot show doctrine that."""
     assert (
         requests_not_extending_BaseModel([a_dto(bases=("ListCodeArtifactsRequest",))])
         == []
@@ -546,18 +528,13 @@ def test_a_subscripted_base_is_read() -> None:
     )
 
 
-def test_a_name_doctrine_only_saw_imported_is_not_reported() -> None:
-    """The parser records a re-exported DTO as a name and nothing else.
-
-    It has no bases because none were read. Reporting it would be
-    objecting to what doctrine failed to look at, which is a false
-    objection — it tells an author their correct work is wrong.
-    """
+def test_a_name_only_class_is_not_reported() -> None:
+    """It has no bases because none were read, not because it has none."""
     assert requests_not_extending_BaseModel([a_dto(bases=(), file="")]) == []
 
 
 def test_a_name_only_base_does_not_condemn_what_derives_from_it() -> None:
-    """The same blind spot, reached through a base rather than directly."""
+    """The same gap, reached through a base rather than directly."""
     assert (
         requests_not_extending_BaseModel(
             [
@@ -577,7 +554,7 @@ def test_a_dto_objection_names_the_context_and_the_class() -> None:
 
 
 def test_the_objection_says_which_bases_it_followed() -> None:
-    """So an author can see what doctrine read, not just that it refused."""
+    """So an author can see what doctrine read."""
     objection = requests_not_extending_BaseModel(
         [
             a_dto(name="GetStoryRequest", bases=("PagedRequest",)),
@@ -605,14 +582,7 @@ def test_a_response_with_no_base_class_is_reported() -> None:
 
 
 def test_each_rule_resolves_only_within_its_own_half() -> None:
-    """Where the trust boundary sits, asserted rather than assumed.
-
-    Each rule is handed only its own half of the DTOs, so a base that
-    is a response is a base this rule cannot see, and unseen means
-    trusted. Pinning it here because it is a limit rather than a
-    property: widening the pool later should break this test and make
-    someone decide, instead of silently changing what the rule checks.
-    """
+    """A response is a base the request rule cannot see, so it is trusted."""
     assert (
         requests_not_extending_BaseModel(
             [a_dto(name="GetStoryRequest", bases=("GetStoryResponse",))]
