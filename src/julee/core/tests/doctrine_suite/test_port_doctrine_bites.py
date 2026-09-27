@@ -5,7 +5,6 @@ doctrine suite itself as a subprocess against a solution on disk and
 asserts the outcome, so it fails if the suite stops objecting.
 """
 
-import re
 import subprocess
 from pathlib import Path
 
@@ -44,17 +43,12 @@ class Story:
     slug: str
 '''
 
-PREAMBLE = '''"""A driven port."""
+EXTRAS = '''"""Types a port should not be speaking."""
 
 from dataclasses import dataclass
-from typing import Any, Protocol
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-
-from acme.stories.domain.models.story import Story
-
-Row = dict[str, Any]
 
 
 class NotADataclass:
@@ -78,49 +72,73 @@ class AMutableDataclass:
 
     slug: str
 '''
+"""Kept out of the port directory, where every class is read as a port."""
 
-SIGNATURES = {
-    "a frozen dataclass": "async def get(self, slug: str) -> Story | None: ...",
-    "primitives": "async def count(self, since: int) -> int: ...",
-    "a tuple of dataclasses": "async def all(self) -> tuple[Story, ...]: ...",
-}
+PREAMBLE = '''"""A driven port."""
+
+from typing import Any, Protocol
+
+from acme.stories.domain.models.extras import (
+    AModel,
+    AMutableDataclass,
+    APydanticDataclass,
+    NotADataclass,
+)
+from acme.stories.domain.models.story import Story
+
+Row = dict[str, Any]
+'''
+
+ALLOWED = (
+    "async def get(self, slug: str) -> Story | None: ...",
+    "async def count(self, since: int) -> int: ...",
+    "async def all(self) -> tuple[Story, ...]: ...",
+    "async def touch(self) -> None: ...",
+)
 """Signatures a driven port may have."""
 
-FORBIDDEN_SIGNATURES = {
-    "Any in a return": "async def get(self, slug: str) -> Any: ...",
-    "Any in a parameter": "async def put(self, value: Any) -> None: ...",
-    "dict[str, Any]": "async def get(self, slug: str) -> dict[str, Any]: ...",
-    "an aliased dict[str, Any]": "async def get(self, slug: str) -> Row: ...",
-    "a pydantic model": "async def get(self, slug: str) -> AModel: ...",
-    "a pydantic dataclass": "async def get(self, slug: str) -> APydanticDataclass: ...",
-    "a mutable dataclass": "async def get(self, slug: str) -> AMutableDataclass: ...",
-    "a plain class": "async def get(self, slug: str) -> NotADataclass: ...",
-    "an unannotated parameter": "async def put(self, value) -> None: ...",
-    "an undeclared return": "async def put(self, slug: str): ...",
+FORBIDDEN = {
+    "any_return": "async def any_return(self, slug: str) -> Any: ...",
+    "any_parameter": "async def any_parameter(self, value: Any) -> None: ...",
+    "dict_of_any": "async def dict_of_any(self) -> dict[str, Any]: ...",
+    "aliased_dict_of_any": "async def aliased_dict_of_any(self) -> Row: ...",
+    "a_pydantic_model": "async def a_pydantic_model(self) -> AModel: ...",
+    "a_pydantic_dataclass": (
+        "async def a_pydantic_dataclass(self) -> APydanticDataclass: ..."
+    ),
+    "a_mutable_dataclass": (
+        "async def a_mutable_dataclass(self) -> AMutableDataclass: ..."
+    ),
+    "a_plain_class": "async def a_plain_class(self) -> NotADataclass: ...",
+    "unannotated_parameter": "async def unannotated_parameter(self, value) -> None: ...",
+    "undeclared_return": "async def undeclared_return(self, slug: str): ...",
 }
 """Ways a driven port can speak something other than the domain.
 
-Each is a signature that reads as ordinary Python and says nothing a
-caller in the domain could act on.
+Keyed by method name, so one protocol carries them all and the
+objections can be told apart in one run.
 """
 
 
-def a_port_module(protocol: str, signature: str) -> str:
-    """A protocol module with one method of the given signature."""
+def a_port_module(protocol: str, signatures: tuple[str, ...]) -> str:
+    """A protocol module declaring the given methods."""
+    body = "\n\n".join(f"    {signature}" for signature in signatures)
     return (
         f"{PREAMBLE}\n\nclass {protocol}(Protocol):\n"
-        f'    """A driven port."""\n\n    {signature}\n'
+        f'    """A driven port."""\n\n' + body + "\n"
     )
 
 
-def a_solution(root: Path, layer: str, protocol: str, signature: str) -> Path:
-    """Write a julee solution whose one driven port has that signature.
+def a_solution(
+    root: Path, layer: str, protocol: str, signatures: tuple[str, ...]
+) -> Path:
+    """Write a julee solution whose one driven port declares those methods.
 
     Args:
         root: The solution root to write into
         layer: The port directory, e.g. "repositories"
         protocol: The protocol class name
-        signature: The one method it declares
+        signatures: The methods it declares
 
     Returns:
         The root, ready to pass as JULEE_TARGET
@@ -134,8 +152,9 @@ def a_solution(root: Path, layer: str, protocol: str, signature: str) -> Path:
         (package / "__init__.py").write_text("")
     (context / "domain" / layer / "__init__.py").write_text("")
     (context / "domain" / "models" / "story.py").write_text(ENTITY)
+    (context / "domain" / "models" / "extras.py").write_text(EXTRAS)
     (context / "domain" / layer / "story.py").write_text(
-        a_port_module(protocol, signature)
+        a_port_module(protocol, signatures)
     )
     return root
 
@@ -150,30 +169,39 @@ def test_driven_port_must_only_use_primitives_or_frozen_dataclasses(
 ) -> None:
     """The doctrine passes a port speaking the domain and fails any other.
 
-    Every port directory gets every signature, and every case runs
-    before reporting so a failure names all of them.
+    Every port directory gets both, and every case runs before
+    reporting so a failure names all of them.
     """
-    wrong = []
+    refused = []
+    missed = []
+
     for layer, protocol in PORT_LAYERS.items():
-        for what, signature in SIGNATURES.items():
-            root = tmp_path / f"ok-{layer}-{re.sub(r'[^a-zA-Z]+', '-', what)}"
-            result = run_port_doctrine(a_solution(root, layer, protocol, signature))
-            assert_doctrine_ran(result, EXPECTED_PORT_TESTS, PORT_SELECTOR)
-            if result.returncode != 0:
-                wrong.append(f"a {layer} port using {what}")
+        good = run_port_doctrine(
+            a_solution(tmp_path / f"ok-{layer}", layer, protocol, ALLOWED)
+        )
+        assert_doctrine_ran(good, EXPECTED_PORT_TESTS, PORT_SELECTOR)
+        if good.returncode != 0:
+            refused.append(f"a {layer} port speaking the domain:\n{good.stdout}")
 
-    assert not wrong, "doctrine refused a port speaking the domain: " + ", ".join(wrong)
+        bad = run_port_doctrine(
+            a_solution(
+                tmp_path / f"bad-{layer}",
+                layer,
+                protocol,
+                tuple(FORBIDDEN.values()),
+            )
+        )
+        assert_doctrine_ran(bad, EXPECTED_PORT_TESTS, PORT_SELECTOR)
+        if bad.returncode == 0:
+            missed.append(f"every offence in a {layer} port")
+            continue
+        missed.extend(
+            f"{method} in a {layer} port"
+            for method in FORBIDDEN
+            if method not in bad.stdout
+        )
 
-    leaked = []
-    for layer, protocol in PORT_LAYERS.items():
-        for what, signature in FORBIDDEN_SIGNATURES.items():
-            root = tmp_path / f"bad-{layer}-{re.sub(r'[^a-zA-Z]+', '-', what)}"
-            result = run_port_doctrine(a_solution(root, layer, protocol, signature))
-            assert_doctrine_ran(result, EXPECTED_PORT_TESTS, PORT_SELECTOR)
-            if result.returncode == 0:
-                leaked.append(f"a {layer} port using {what}")
-
-    assert not leaked, (
-        "the doctrine suite accepted a driven port that does not speak the "
-        "domain: " + ", ".join(leaked)
+    assert not refused, "doctrine refused a port speaking the domain: " + "".join(
+        refused
     )
+    assert not missed, "the doctrine suite did not object to: " + ", ".join(missed)

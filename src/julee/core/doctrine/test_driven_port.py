@@ -8,13 +8,23 @@ from pathlib import Path
 
 import pytest
 
+from julee.core.doctrine.resolution import port_verdicts
 from julee.core.doctrine.rules.port import (
     ROLES_BY_DIRECTORY,
     port_implementations_outside_infrastructure,
     ports_bound_to_entities_they_should_not_be,
     ports_misnamed_for_their_directory,
+    ports_using_foreign_types,
     protocols_in,
     services_bound_to_too_few_entities,
+)
+from julee.core.doctrine_constants import (
+    CALCULATORS_PATH,
+    HANDLERS_PATH,
+    ORACLES_PATH,
+    REPOSITORIES_PATH,
+    SERVICES_PATH,
+    WITNESSES_PATH,
 )
 from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
 
@@ -294,4 +304,58 @@ class TestDrivenPortPlacement:
             "The placement rule read no class under domain/ or "
             "infrastructure/, so it cannot tell a layer from a path and "
             "would pass whatever the codebase did"
+        )
+
+
+class TestDrivenPortTypes:
+    """Doctrine about what crosses a driven port."""
+
+    @pytest.mark.asyncio
+    async def test_a_port_MUST_only_domain_types(self, repo):
+        """A driven port MUST accept and return only domain types.
+
+        A stdlib primitive, an enum, or one of the context's frozen
+        dataclasses. Anything else is a representation the domain
+        would have to know about: a pydantic model carries a
+        serialisation library into it, and dict[str, Any] carries no
+        meaning at all.
+
+        Annotations are resolved rather than read, so Any behind a type
+        alias and an aliased import are both caught. Inherited methods
+        count, since a repository that declares nothing still offers
+        what its base provides.
+        """
+        contexts = await repo.list_all()
+        if not contexts:
+            pytest.skip("No bounded contexts in target codebase — nothing to check")
+
+        layers = {
+            REPOSITORIES_PATH: "repository_protocols",
+            SERVICES_PATH: "service_protocols",
+            HANDLERS_PATH: "handler_protocols",
+            ORACLES_PATH: "oracle_protocols",
+            CALCULATORS_PATH: "calculator_protocols",
+            WITNESSES_PATH: "witness_protocols",
+        }
+
+        verdicts = []
+        found_any = False
+        for ctx in contexts:
+            info = parse_bounded_context(Path(ctx.path))
+            if info is None:
+                continue
+            names_by_layer = {
+                layer: [protocol.name for protocol in getattr(info, attribute)]
+                for layer, attribute in layers.items()
+            }
+            found_any = found_any or any(names_by_layer.values())
+            verdicts.extend(port_verdicts(ctx.slug, Path(ctx.path), names_by_layer))
+
+        if not found_any:
+            pytest.skip("No driven ports in target codebase — nothing to check")
+
+        violations = ports_using_foreign_types(verdicts)
+
+        assert not violations, (
+            "Driven ports using types outside the domain:\n" + "\n".join(violations)
         )

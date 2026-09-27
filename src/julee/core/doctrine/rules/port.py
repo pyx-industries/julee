@@ -15,6 +15,7 @@ here reads a file or imports a module.
 from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 
+from julee.core.doctrine.resolution import Verdict
 from julee.core.doctrine_constants import (
     CALCULATOR_SUFFIX,
     HANDLER_SUFFIX,
@@ -32,6 +33,7 @@ __all__ = [
     "ports_bound_to_entities_they_should_not_be",
     "services_bound_to_too_few_entities",
     "ports_misnamed_for_their_directory",
+    "ports_using_foreign_types",
 ]
 
 ROLES_BY_DIRECTORY: Mapping[str, tuple[str, ...]] = {
@@ -320,3 +322,29 @@ def services_bound_to_too_few_entities(
             f"{remedy}"
         )
     return objections
+
+
+def ports_using_foreign_types(verdicts: Iterable["Verdict"]) -> list[str]:
+    """Driven ports whose signatures name something outside the domain.
+
+    A driven port is the domain's own vocabulary, written down. What
+    crosses it may be a stdlib primitive, an enum, or one of the
+    context's frozen dataclasses — anything else is a representation
+    the domain would have to know about.
+
+    The verdicts come from
+    :func:`julee.core.doctrine.resolution.port_verdicts`, which
+    resolves the annotations rather than reading them, so ``Any``
+    behind a type alias and an aliased import are both caught.
+
+    Args:
+        verdicts: One per offence, from port_verdicts
+
+    Returns:
+        One sentence per offence
+    """
+    return [
+        f"{verdict.bounded_context}.{verdict.name}.{verdict.reason}"
+        for verdict in verdicts
+        if verdict.reason is not None
+    ]
