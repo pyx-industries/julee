@@ -464,10 +464,8 @@ PYDANTIC_REQUEST = (
 def a_context(tmp_path: Path, usecase_source: str, messages: str = "") -> Path:
     """Write an importable bounded context and put its root on sys.path.
 
-    Each gets its own top-level package name. import_module caches by
-    dotted name, so a shared one means the first test to run decides
-    what every later test imports — which passed one at a time and
-    failed in the suite.
+    Each gets its own top-level package name, because import_module
+    caches by dotted name.
     """
     package = f"pkg{next(_UNIQUE)}"
     root = tmp_path / package
@@ -491,97 +489,117 @@ def reason_for(context: Path, name: str) -> str | None:
     return next(v.reason for v in verdicts if v.name == name)
 
 
-PLAIN_CLASS = '"""Get a story."""\n\n\nclass GetStoryRequest:\n    """Which story."""\n'
-
-LOCAL_BASEMODEL = (
-    '"""Get a story."""\n\n\n'
-    'class BaseModel:\n    """Not pydantic\'s."""\n\n\n'
-    'class GetStoryRequest(BaseModel):\n    """Which story."""\n'
-)
-
-FOREIGN_BASE = (
-    '"""Get a story."""\n\n'
-    "from argparse import Namespace\n\n\n"
-    'class GetStoryRequest(Namespace):\n    """Which story."""\n'
-)
-
-STDLIB_DATACLASS = (
-    '"""Get a story."""\n\n'
-    "from dataclasses import dataclass\n\n\n"
-    "@dataclass(frozen=True)\n"
-    'class GetStoryRequest:\n    """Which story."""\n\n    slug: str\n'
-)
-
-PYDANTIC_DATACLASS = (
-    '"""Get a story."""\n\n'
-    "from pydantic.dataclasses import dataclass\n\n\n"
-    "@dataclass(frozen=True)\n"
-    'class GetStoryRequest:\n    """Which story."""\n\n    slug: str\n'
-)
-
-ALIASED_BASEMODEL = (
-    '"""Get a story."""\n\n'
-    "from pydantic import BaseModel as BM\n\n\n"
-    'class GetStoryRequest(BM):\n    """Which story."""\n\n    slug: str\n'
-)
+ROLES = ("request", "response")
+"""The two halves of a use case's contract, checked alike."""
 
 
-NOT_A_BASEMODEL = {
-    "a plain class": (PLAIN_CLASS, ""),
-    "a stdlib dataclass": (STDLIB_DATACLASS, ""),
-    "a pydantic dataclass": (PYDANTIC_DATACLASS, ""),
-    "a local class called BaseModel": (LOCAL_BASEMODEL, ""),
-    "a base from an unparsed package": (FOREIGN_BASE, ""),
-    "a class defined outside usecases/": (
-        '"""Get a story."""\n\n'
-        "from acme.stories.messages import GetStoryRequest\n\n"
-        '__all__ = ["GetStoryRequest"]\n',
-        '"""Messages."""\n\n\nclass GetStoryRequest:\n    """Not pydantic."""\n',
+def class_of(role: str) -> str:
+    """The class name a role has, e.g. GetStoryRequest."""
+    return f"GetStory{role.capitalize()}"
+
+
+SHAPES = {
+    "a plain class": 'class {name}:\n    """A message."""\n',
+    "a stdlib dataclass": (
+        "from dataclasses import dataclass\n\n\n"
+        "@dataclass(frozen=True)\n"
+        'class {name}:\n    """A message."""\n\n    slug: str\n'
+    ),
+    "a pydantic dataclass": (
+        "from pydantic.dataclasses import dataclass\n\n\n"
+        "@dataclass(frozen=True)\n"
+        'class {name}:\n    """A message."""\n\n    slug: str\n'
+    ),
+    "a local class called BaseModel": (
+        'class BaseModel:\n    """Not pydantic\'s."""\n\n\n'
+        'class {name}(BaseModel):\n    """A message."""\n'
+    ),
+    "a base from an unparsed package": (
+        "from argparse import Namespace\n\n\n"
+        'class {name}(Namespace):\n    """A message."""\n'
     ),
 }
-"""Ways a DTO can fail to be a BaseModel.
+"""What a DTO can be instead of a BaseModel, as module bodies."""
 
-Every one reads as compliant to a check that follows bases in the AST,
-which is what the first version of this rule did.
-"""
+SPELLINGS = {
+    "a plain import": (
+        "from pydantic import BaseModel\n\n\n"
+        'class {name}(BaseModel):\n    """A message."""\n\n    slug: str\n'
+    ),
+    "an aliased import": (
+        "from pydantic import BaseModel as BM\n\n\n"
+        'class {name}(BM):\n    """A message."""\n\n    slug: str\n'
+    ),
+}
+"""Ways of importing BaseModel. The spelling is not the class."""
+
+
+def a_module(body: str, name: str) -> str:
+    """A use case module whose DTO has the given shape."""
+    return '"""Get a story."""\n\n' + body.format(name=name)
+
+
+def not_a_basemodel() -> dict[str, tuple[str, str, str]]:
+    """Every shape in SHAPES, applied to each role in turn.
+
+    Returns:
+        What is wrong, mapped to the module source, a messages source
+        and the class name to resolve
+    """
+    cases: dict[str, tuple[str, str, str]] = {}
+    for role in ROLES:
+        name = class_of(role)
+        for shape, body in SHAPES.items():
+            cases[f"a {role} that is {shape}"] = (a_module(body, name), "", name)
+        cases[f"a {role} defined outside usecases/"] = (
+            '"""Get a story."""\n\n'
+            f"from acme.stories.messages import {name}\n\n"
+            f'__all__ = ["{name}"]\n',
+            f'"""Messages."""\n\n\nclass {name}:\n    """Not pydantic."""\n',
+            name,
+        )
+    return cases
+
+
+NOT_A_BASEMODEL = not_a_basemodel()
 
 IS_A_BASEMODEL = {
-    "a plain import": PYDANTIC_REQUEST,
-    "an aliased import": ALIASED_BASEMODEL,
+    f"{role} by {spelling}": (a_module(body, class_of(role)), class_of(role))
+    for role in ROLES
+    for spelling, body in SPELLINGS.items()
 }
-"""Ways of being one. How it was spelled is not what it is."""
 
 
 def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
     """The resolver accepts a BaseModel DTO and refuses anything else.
 
-    Every case is tried before reporting, so a failure names all of
-    them rather than only the first.
+    Both roles and both directions, with every case run before
+    reporting so a failure names all of them.
     """
     wrong = [
         what
-        for what, source in IS_A_BASEMODEL.items()
-        if reason_for(a_context(tmp_path, source), "GetStoryRequest") is not None
+        for what, (source, name) in IS_A_BASEMODEL.items()
+        if reason_for(a_context(tmp_path, source), name) is not None
     ]
     assert not wrong, f"refused a BaseModel DTO: {', '.join(wrong)}"
 
     leaked = [
         what
-        for what, (source, messages) in NOT_A_BASEMODEL.items()
-        if reason_for(a_context(tmp_path, source, messages), "GetStoryRequest") is None
+        for what, (source, messages, name) in NOT_A_BASEMODEL.items()
+        if reason_for(a_context(tmp_path, source, messages), name) is None
     ]
     assert not leaked, f"accepted a DTO that is not a BaseModel: {', '.join(leaked)}"
 
 
 def test_unparseable_usecase_file_rejected(tmp_path: Path) -> None:
-    """It contributes no classes, so every other rule passes over it."""
+    """A file the parser cannot read contributes no classes."""
     context = a_context(tmp_path, '"""Broken."""\n\nclass R:\n    x: int =\n')
 
     assert [v.reason for v in dto_verdicts("stories", context, [])] != []
 
 
 def test_unresolvable_dto_name_rejected(tmp_path: Path) -> None:
-    """Doctrine saw it and could not reach it. That is not compliance."""
+    """A name doctrine found but could not resolve."""
     context = a_context(tmp_path, PYDANTIC_REQUEST)
 
     assert reason_for(context, "VanishedRequest") is not None
@@ -613,7 +631,7 @@ def a_domain_context(tmp_path: Path, model_source: str) -> Path:
 
 
 def test_stdlib_dataclass_entity_allowed(tmp_path: Path) -> None:
-    """What the domain ring is meant to be built from."""
+    """stdlib dataclasses are what the domain ring is built from."""
     context = a_domain_context(
         tmp_path,
         '"""Story."""\n\nfrom dataclasses import dataclass\n\n\n'
@@ -632,11 +650,7 @@ def test_stdlib_dataclass_entity_allowed(tmp_path: Path) -> None:
 
 
 def test_pydantic_dataclass_entity_rejected(tmp_path: Path) -> None:
-    """The hole this rule exists for.
-
-    entities_not_extending_Entity passes this: decorated_with matches
-    on the last path segment, and both decorators end in "dataclass".
-    """
+    """pydantic's decorator in domain/models/."""
     context = a_domain_context(
         tmp_path,
         '"""Story."""\n\nfrom pydantic.dataclasses import dataclass\n\n\n'
@@ -655,7 +669,7 @@ def test_pydantic_dataclass_entity_rejected(tmp_path: Path) -> None:
 
 
 def test_basemodel_entity_allowed(tmp_path: Path) -> None:
-    """Moving those to dataclasses is a separate change, not this rule."""
+    """Still legal; moving those to dataclasses is a separate change."""
     context = a_domain_context(
         tmp_path,
         '"""Story."""\n\nfrom pydantic import BaseModel\n\n\n'
@@ -673,7 +687,7 @@ def test_basemodel_entity_allowed(tmp_path: Path) -> None:
 
 
 def test_frozen_rule_passes_pydantic_dataclass() -> None:
-    """Why the new rule had to exist, pinned so it cannot be forgotten."""
+    """The frozen-dataclass rule passes what the new rule catches."""
     story = ClassInfo(
         name="Story",
         file="domain/models/story.py",

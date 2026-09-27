@@ -256,10 +256,9 @@ class TestDrivingPortMessages:
     domain objects. They cross a process boundary, so they are
     validated on the way in and serialised on the way out.
 
-    Both tests resolve the class and ask Python, rather than reading
-    its bases out of the AST. The AST cannot tell a local class called
-    BaseModel from pydantic's, and the guarantee is worth nothing if it
-    can be got around by naming something badly.
+    Both tests resolve the class and ask Python rather than reading
+    its bases, which cannot tell a local class called BaseModel from
+    pydantic's.
     """
 
     @staticmethod

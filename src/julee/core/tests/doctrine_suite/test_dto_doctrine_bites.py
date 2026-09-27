@@ -1,19 +1,15 @@
 """The DTO doctrine, run against solutions written for the purpose.
 
-Every other test here checks a rule function. These check the suite:
-doctrine is pointed at a solution on disk and the outcome is asserted,
-so severing the wire between a rule and its assertion, or deleting the
-doctrine test, fails the build.
-
-Both were done deliberately before this file existed. Neither was
-caught: the rule kept all its unit tests, and the suite simply ran one
-test fewer.
+The tests in doctrine_rules/ check rule functions. This one runs the
+doctrine suite itself as a subprocess against a solution on disk and
+asserts the outcome, so it fails if the suite stops objecting.
 """
 
 import os
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -21,133 +17,119 @@ import pytest
 pytestmark = pytest.mark.unit
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
-"""The repository root, which the doctrine run needs as its cwd.
+"""The repository root: doctrine_suite, tests, core, julee, src, root.
 
-Counted from this file: doctrine_suite, tests, core, julee, src, root.
-Written as parents[4] first, which is src/, where pytest finds no
-config and collects nothing — and a run that collects nothing has no
-failures, so every "must fail" test passed for the wrong reason.
+The doctrine run needs it as its cwd to find pytest's config.
 """
+
 DOCTRINE_TEST = "src/julee/core/doctrine/test_use_case.py"
 SELECTOR = "pydantic_DTO"
 EXPECTED_TESTS = 2
 """How many tests the selector must collect.
 
-Asserted rather than assumed. A deleted doctrine test collects nothing,
-pytest exits 5, and without this the suite would read as "no failures".
+A deleted doctrine test collects nothing, and a run that collects
+nothing reports no failures.
 """
 
-GOOD = '''"""Get a story."""
+ROLES = ("request", "response")
+
+
+def class_of(role: str) -> str:
+    """The class name a role has, e.g. GetStoryRequest."""
+    return f"GetStory{role.capitalize()}"
+
+
+def other_than(role: str) -> str:
+    """The other role."""
+    return "response" if role == "request" else "request"
+
+
+def a_basemodel(name: str) -> str:
+    """A DTO deriving from pydantic.BaseModel."""
+    return f'class {name}(BaseModel):\n    """A message."""\n'
+
+
+def a_plain_class(name: str) -> str:
+    """A DTO deriving from nothing."""
+    return f'class {name}:\n    """A message."""\n'
+
+
+def a_stdlib_dataclass(name: str) -> str:
+    """A DTO built with dataclasses.dataclass."""
+    return f'@dataclass(frozen=True)\nclass {name}:\n    """A message."""\n'
+
+
+def a_pydantic_dataclass(name: str) -> str:
+    """A DTO built with pydantic.dataclasses.dataclass."""
+    return f'@pydantic_dataclass(frozen=True)\nclass {name}:\n    """A message."""\n'
+
+
+def a_local_basemodel(name: str) -> str:
+    """A DTO deriving from a local class named BaseModel."""
+    return f'class {name}(_BaseModel):\n    """A message."""\n'
+
+
+SHAPES: dict[str, Callable[[str], str]] = {
+    "a plain class": a_plain_class,
+    "a stdlib dataclass": a_stdlib_dataclass,
+    "a pydantic dataclass": a_pydantic_dataclass,
+    "a local class called BaseModel": a_local_basemodel,
+}
+"""What a DTO can be instead of a BaseModel."""
+
+PREAMBLE = '''"""Get a story."""
+
+from dataclasses import dataclass
 
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 
-class GetStoryRequest(BaseModel):
-    """Which story."""
+class _BaseModel:
+    """A class named BaseModel that is not pydantic\'s."""
+'''
 
-    slug: str
-
-
-class GetStoryResponse(BaseModel):
-    """The story."""
-
-    title: str
-
+USE_CASE = '''
 
 class GetStoryUseCase:
     """Fetch one story by its slug."""
 
     async def execute(self, request: GetStoryRequest) -> GetStoryResponse:
         """Fetch it."""
-        return GetStoryResponse(title="x")
-'''
-
-PLAIN_REQUEST = GOOD.replace(
-    "class GetStoryRequest(BaseModel):", "class GetStoryRequest:"
-)
-
-PLAIN_RESPONSE = GOOD.replace(
-    "class GetStoryResponse(BaseModel):", "class GetStoryResponse:"
-)
-
-PYDANTIC_DATACLASS_REQUEST = GOOD.replace(
-    "from pydantic import BaseModel",
-    "from pydantic import BaseModel\nfrom pydantic.dataclasses import dataclass",
-).replace(
-    "class GetStoryRequest(BaseModel):",
-    "@dataclass(frozen=True)\nclass GetStoryRequest:",
-)
-
-STDLIB_DATACLASS_REQUEST = GOOD.replace(
-    "from pydantic import BaseModel",
-    "from dataclasses import dataclass\n\nfrom pydantic import BaseModel",
-).replace(
-    "class GetStoryRequest(BaseModel):",
-    "@dataclass(frozen=True)\nclass GetStoryRequest:",
-)
-
-REQUEST_FROM_ELSEWHERE = '''"""Get a story."""
-
-from acme.stories.messages import GetStoryRequest, GetStoryResponse
-
-__all__ = ["GetStoryRequest", "GetStoryResponse"]
-
-
-class GetStoryUseCase:
-    """Fetch one story by its slug."""
-
-    async def execute(self, request: GetStoryRequest) -> GetStoryResponse:
-        """Fetch it."""
-        return GetStoryResponse()
-'''
-
-MESSAGES_ELSEWHERE = '''"""Messages, kept out of usecases/."""
-
-
-class GetStoryRequest:
-    """Not pydantic."""
-
-
-class GetStoryResponse:
-    """Not pydantic either."""
-'''
-
-LOCAL_BASEMODEL = '''"""Get a story."""
-
-
-class BaseModel:
-    """Ours, not pydantic's."""
-
-
-class GetStoryRequest(BaseModel):
-    """Which story."""
-
-
-class GetStoryResponse(BaseModel):
-    """The story."""
-
-
-class GetStoryUseCase:
-    """Fetch one story by its slug."""
-
-    async def execute(self, request: GetStoryRequest) -> GetStoryResponse:
-        """Fetch it."""
-        return GetStoryResponse()
+        raise NotImplementedError
 '''
 
 
-def a_solution(tmp_path: Path, usecase: str, messages: str = "") -> Path:
+def a_usecase_module(request: str, response: str, imported: str = "") -> str:
+    """Assemble a use case module from its two DTOs.
+
+    Args:
+        request: Source for the request class, or "" if imported
+        response: Source for the response class, or "" if imported
+        imported: An import line, for a DTO defined elsewhere
+
+    Returns:
+        The module source
+    """
+    parts = [PREAMBLE]
+    if imported:
+        parts.append(f"\n{imported}\n")
+    parts.extend(f"\n\n{source}" for source in (request, response) if source)
+    parts.append(USE_CASE)
+    return "".join(parts)
+
+
+def a_solution(root: Path, usecase: str, messages: str = "") -> Path:
     """Write a julee solution with one bounded context.
 
     Args:
-        tmp_path: The solution root to write into
+        root: The solution root to write into
         usecase: Source for usecases/get_story.py
         messages: Source for a messages.py outside usecases/, if any
 
     Returns:
-        The solution root, ready to pass as JULEE_TARGET
+        The root, ready to pass as JULEE_TARGET
     """
-    root = tmp_path
     context = root / "src" / "acme" / "stories"
     (context / "usecases").mkdir(parents=True)
     (root / "pyproject.toml").write_text(
@@ -166,9 +148,8 @@ def a_solution(tmp_path: Path, usecase: str, messages: str = "") -> Path:
 def run_doctrine(target: Path) -> subprocess.CompletedProcess[str]:
     """Run the DTO doctrine against a solution, as a real pytest run.
 
-    A subprocess rather than an in-process call, because what is under
-    test is the doctrine suite: its collection, its fixtures and its
-    assertions, not a function it happens to call.
+    A subprocess, so that what is exercised is the suite's collection,
+    fixtures and assertions rather than a function it calls.
 
     Args:
         target: The solution root
@@ -208,9 +189,10 @@ def run_doctrine(target: Path) -> subprocess.CompletedProcess[str]:
 
 
 def assert_doctrine_ran(result: subprocess.CompletedProcess[str]) -> None:
-    """The selector must still collect both tests.
+    """Check both doctrine tests were collected and run.
 
-    Without this a deleted doctrine test reads as a clean run.
+    Args:
+        result: A finished doctrine run
     """
     assert "no tests ran" not in result.stdout, (
         f"the doctrine tests were not collected — has {SELECTOR} been "
@@ -225,31 +207,56 @@ def assert_doctrine_ran(result: subprocess.CompletedProcess[str]) -> None:
     )
 
 
-NOT_A_BASEMODEL = {
-    "a plain class": (PLAIN_REQUEST, ""),
-    "a stdlib dataclass": (STDLIB_DATACLASS_REQUEST, ""),
-    "a pydantic dataclass": (PYDANTIC_DATACLASS_REQUEST, ""),
-    "a local class called BaseModel": (LOCAL_BASEMODEL, ""),
-    "a class defined outside usecases/": (REQUEST_FROM_ELSEWHERE, MESSAGES_ELSEWHERE),
-    "a response that is a plain class": (PLAIN_RESPONSE, ""),
-}
-"""Ways a DTO can fail to be a BaseModel.
+def not_a_basemodel() -> dict[str, tuple[str, str]]:
+    """Every shape in SHAPES, applied to each role in turn.
 
-Listed rather than left to the obvious one because every one of these
-reads as compliant to a check that follows bases in the AST, which is
-what the first version of this rule did.
-"""
+    The other role is left as a BaseModel, so a failure names the half
+    that was broken.
+
+    Returns:
+        What is wrong, mapped to the use case and messages sources
+    """
+    cases: dict[str, tuple[str, str]] = {}
+
+    for role in ROLES:
+        name = class_of(role)
+        counterpart = a_basemodel(class_of(other_than(role)))
+
+        for shape, build in SHAPES.items():
+            broken = build(name)
+            request, response = (
+                (broken, counterpart) if role == "request" else (counterpart, broken)
+            )
+            cases[f"a {role} that is {shape}"] = (
+                a_usecase_module(request, response),
+                "",
+            )
+
+        request, response = (
+            ("", counterpart) if role == "request" else (counterpart, "")
+        )
+        cases[f"a {role} defined outside usecases/"] = (
+            a_usecase_module(
+                request,
+                response,
+                imported=f"from acme.stories.messages import {name}",
+            ),
+            f'"""Messages."""\n\n\nclass {name}:\n    """Not pydantic."""\n',
+        )
+
+    return cases
+
+
+NOT_A_BASEMODEL = not_a_basemodel()
+
+GOOD = a_usecase_module(a_basemodel("GetStoryRequest"), a_basemodel("GetStoryResponse"))
 
 
 def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
     """The doctrine suite passes a BaseModel DTO and fails anything else.
 
-    Both halves in one test because they are one statement. A rule that
-    fires on everything guarantees as little as one that fires on
-    nothing, so the first assertion is not decoration.
-
-    Every disguise is tried before reporting, so a failure names all of
-    them that leaked rather than only the first.
+    Both directions are asserted, and every case runs before reporting
+    so a failure names all of them.
     """
     good = run_doctrine(a_solution(tmp_path / "good", GOOD))
     assert_doctrine_ran(good)
@@ -258,9 +265,8 @@ def test_dto_must_be_a_subclass_of_pydantic_baseclass(tmp_path: Path) -> None:
 
     leaked = []
     for what, (usecase, messages) in NOT_A_BASEMODEL.items():
-        result = run_doctrine(
-            a_solution(tmp_path / what.replace(" ", "-"), usecase, messages)
-        )
+        root = tmp_path / re.sub(r"[^a-zA-Z]+", "-", what)
+        result = run_doctrine(a_solution(root, usecase, messages))
         assert_doctrine_ran(result)
         if result.returncode == 0:
             leaked.append(what)

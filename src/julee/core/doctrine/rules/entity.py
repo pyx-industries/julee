@@ -448,17 +448,11 @@ def entities_that_are_pydantic_dataclasses(
 ) -> list[str]:
     """Entities built with pydantic's dataclass decorator.
 
-    Nothing else catches these. At the point of use it is spelled
-    ``@dataclass(frozen=True)``, and ``ClassInfo.decorated_with``
-    matches on the last segment of the dotted path, so
-    :func:`entities_not_extending_Entity` reads one as a compliant
-    frozen dataclass and pydantic sits in the domain unremarked.
-
-    The verdicts come from
+    :func:`entities_not_extending_Entity` passes these, because both
+    decorators are spelled ``@dataclass(frozen=True)`` at the point of
+    use. The verdicts come from
     :func:`julee.core.doctrine.resolution.entity_verdicts`, which
-    imports the class. The decorator's path is in the AST, but an
-    import bound to a local name is not, and the check is worth no more
-    than the spellings it happens to know.
+    imports the class rather than reading the decorator.
 
     Args:
         verdicts: One per entity name, from entity_verdicts
