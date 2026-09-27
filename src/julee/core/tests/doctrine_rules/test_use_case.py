@@ -5,11 +5,16 @@ not. The second half matters as much: a rule that fires on everything
 passes its own test suite just as happily as one that fires on nothing.
 """
 
+import itertools
+import sys
+from pathlib import Path
+
 import pytest
 
+from julee.core.doctrine.resolution import Verdict, dto_verdicts
 from julee.core.doctrine.rules.use_case import (
-    requests_not_extending_BaseModel,
-    responses_not_extending_BaseModel,
+    requests_that_are_not_pydantic,
+    responses_that_are_not_pydantic,
     use_case_sources_mentioning,
     use_cases_defining_next_action,
     use_cases_not_named_UseCase,
@@ -396,196 +401,186 @@ def test_only_the_offending_file_is_named() -> None:
 # =============================================================================
 # Requests and responses are pydantic DTOs
 #
-# julee declares bounded_contexts = "none", so the doctrine tests skip
-# here and these are the only evidence the rules work.
+# The rules format verdicts; the verdicts come from importing the class.
+# Both halves are tested, the second against packages written to disk,
+# because every way this leaked before was a way the AST read as fine.
 # =============================================================================
 
 
-def a_dto(
+def a_verdict(
     name: str = "GetStoryRequest",
     context: str = "hcd",
-    bases: tuple[str, ...] = ("BaseModel",),
-    file: str = "usecases/get_story.py",
-    decorators: tuple[str, ...] = (),
-) -> CodeArtifactWithContext:
-    """A request or response class, compliant unless told otherwise."""
-    return CodeArtifactWithContext(
-        bounded_context=context,
-        artifact=ClassInfo(
-            name=name,
-            bases=list(bases),
-            file=file,
-            decorators=list(decorators),
-        ),
-    )
+    reason: str | None = None,
+) -> Verdict:
+    """One resolved DTO name."""
+    return Verdict(bounded_context=context, name=name, reason=reason)
 
 
-def test_a_request_deriving_from_BaseModel_is_allowed() -> None:
+def test_a_request_that_resolved_to_a_pydantic_model_is_allowed() -> None:
     """The ordinary case."""
-    assert requests_not_extending_BaseModel([a_dto()]) == []
+    assert requests_that_are_not_pydantic([a_verdict()]) == []
 
 
-def test_a_request_with_no_base_class_is_reported() -> None:
-    """A bare class validates nothing."""
-    assert requests_not_extending_BaseModel([a_dto(bases=())]) != []
-
-
-def test_a_request_that_is_a_dataclass_is_reported() -> None:
-    """A dataclass is the right answer in the domain, not at the edge."""
-    objections = requests_not_extending_BaseModel(
-        [a_dto(bases=(), decorators=("dataclasses.dataclass",))]
-    )
-
-    assert objections == [
-        "hcd.GetStoryRequest: a request is a pydantic DTO, but it is a dataclass"
+def test_a_request_with_a_reason_is_reported() -> None:
+    """A verdict carrying a reason is a violation."""
+    assert requests_that_are_not_pydantic([a_verdict(reason="it is a str")]) == [
+        "hcd.GetStoryRequest: a request is a pydantic DTO, but it is a str"
     ]
 
 
-def test_a_dataclass_request_is_reported_even_with_a_base() -> None:
-    """The decorator decides the shape whatever the class inherits."""
-    assert (
-        requests_not_extending_BaseModel(
-            [a_dto(bases=("Mixin",), decorators=("dataclasses.dataclass",))]
-        )
-        != []
-    )
+def test_a_response_with_a_reason_is_reported() -> None:
+    """The other half, worded for a response."""
+    assert responses_that_are_not_pydantic(
+        [a_verdict(name="GetStoryResponse", reason="it is a str")]
+    ) == ["hcd.GetStoryResponse: a response is a pydantic DTO, but it is a str"]
 
 
-def test_a_TypedDict_request_is_reported() -> None:
-    """Trusting every unseen base would let this through."""
-    assert requests_not_extending_BaseModel([a_dto(bases=("TypedDict",))]) != []
-
-
-@pytest.mark.parametrize("base", ["NamedTuple", "Protocol", "object", "Enum"])
-def test_the_other_settled_bases_are_reported(base: str) -> None:
-    """None of them is a BaseModel."""
-    assert requests_not_extending_BaseModel([a_dto(bases=(base,))]) != []
-
-
-def test_a_request_extending_another_request_is_allowed() -> None:
-    """Bases are followed within the context."""
-    assert (
-        requests_not_extending_BaseModel(
-            [
-                a_dto(name="ListStoriesRequest", bases=("PagedRequest",)),
-                a_dto(name="PagedRequest", bases=("BaseModel",)),
-            ]
-        )
-        == []
-    )
-
-
-def test_a_chain_of_requests_reaching_nothing_is_reported() -> None:
-    """Following bases has to be able to end in a failure."""
-    objections = requests_not_extending_BaseModel(
-        [
-            a_dto(name="ListStoriesRequest", bases=("PagedRequest",)),
-            a_dto(name="PagedRequest", bases=()),
-        ]
-    )
-
-    assert len(objections) == 2
-
-
-def test_a_cycle_in_the_dto_bases_does_not_hang() -> None:
-    """Two classes naming each other parses, even though it cannot run."""
-    assert (
-        requests_not_extending_BaseModel(
-            [
-                a_dto(name="ARequest", bases=("BRequest",)),
-                a_dto(name="BRequest", bases=("ARequest",)),
-            ]
-        )
-        != []
-    )
-
-
-def test_a_base_from_outside_the_context_is_trusted() -> None:
-    """A kit deriving from julee's own DTOs cannot show doctrine that."""
-    assert (
-        requests_not_extending_BaseModel([a_dto(bases=("ListCodeArtifactsRequest",))])
-        == []
-    )
-
-
-def test_a_qualified_pydantic_BaseModel_is_read() -> None:
-    """``pydantic.BaseModel`` and ``BaseModel`` are the same class."""
-    assert (
-        requests_not_extending_BaseModel([a_dto(bases=("pydantic.BaseModel",))]) == []
-    )
-
-
-def test_a_subscripted_base_is_read() -> None:
-    """``BaseRequest[Story]`` names BaseRequest."""
-    assert (
-        requests_not_extending_BaseModel(
-            [
-                a_dto(name="GetStoryRequest", bases=("BaseRequest[Story]",)),
-                a_dto(name="BaseRequest", bases=("BaseModel",)),
-            ]
-        )
-        == []
-    )
-
-
-def test_a_name_only_class_is_not_reported() -> None:
-    """It has no bases because none were read, not because it has none."""
-    assert requests_not_extending_BaseModel([a_dto(bases=(), file="")]) == []
-
-
-def test_a_name_only_base_does_not_condemn_what_derives_from_it() -> None:
-    """The same gap, reached through a base rather than directly."""
-    assert (
-        requests_not_extending_BaseModel(
-            [
-                a_dto(name="GetStoryRequest", bases=("GeneratedRequest",)),
-                a_dto(name="GeneratedRequest", bases=(), file=""),
-            ]
-        )
-        == []
-    )
-
-
-def test_a_dto_objection_names_the_context_and_the_class() -> None:
+def test_the_dto_objection_names_the_context() -> None:
     """Two kits may both have a GetStoryRequest."""
-    objection = requests_not_extending_BaseModel([a_dto(bases=())])[0]
+    objection = requests_that_are_not_pydantic([a_verdict(reason="x")])[0]
 
     assert objection.startswith("hcd.GetStoryRequest:")
 
 
-def test_the_objection_says_which_bases_it_followed() -> None:
-    """So an author can see what doctrine read."""
-    objection = requests_not_extending_BaseModel(
-        [
-            a_dto(name="GetStoryRequest", bases=("PagedRequest",)),
-            a_dto(name="PagedRequest", bases=()),
-        ]
-    )[0]
+# =============================================================================
+# The resolver, against packages written to disk
+# =============================================================================
 
-    assert "PagedRequest" in objection
+_UNIQUE = itertools.count()
 
-
-def test_a_response_deriving_from_BaseModel_is_allowed() -> None:
-    """The ordinary case, on the other half."""
-    assert responses_not_extending_BaseModel([a_dto(name="GetStoryResponse")]) == []
+PYDANTIC_REQUEST = (
+    '"""Get a story."""\n\n'
+    "from pydantic import BaseModel\n\n\n"
+    "class GetStoryRequest(BaseModel):\n"
+    '    """Which story."""\n\n'
+    "    slug: str\n"
+)
 
 
-def test_a_response_with_no_base_class_is_reported() -> None:
-    """An adapter has to serialise it."""
-    objections = responses_not_extending_BaseModel(
-        [a_dto(name="GetStoryResponse", bases=())]
+def a_context(tmp_path: Path, usecase_source: str, messages: str = "") -> Path:
+    """Write an importable bounded context and put its root on sys.path."""
+    root = tmp_path / f"root{next(_UNIQUE)}"
+    context = root / "acme" / "stories"
+    (context / "usecases").mkdir(parents=True)
+    (root / "acme" / "__init__.py").write_text("")
+    (context / "__init__.py").write_text('"""Stories."""\n')
+    (context / "usecases" / "__init__.py").write_text("")
+    (context / "usecases" / "get_story.py").write_text(usecase_source)
+    if messages:
+        (context / "messages.py").write_text(messages)
+    sys.path.insert(0, str(root))
+    return context
+
+
+def reason_for(context: Path, name: str) -> str | None:
+    """The verdict's reason for one name."""
+    verdicts = dto_verdicts("stories", context, [name])
+    return next(v.reason for v in verdicts if v.name == name)
+
+
+def test_a_pydantic_model_resolves_clean(tmp_path: Path) -> None:
+    """The ordinary case, end to end."""
+    assert reason_for(a_context(tmp_path, PYDANTIC_REQUEST), "GetStoryRequest") is None
+
+
+def test_a_local_class_named_BaseModel_does_not_satisfy_it(tmp_path: Path) -> None:
+    """Reading bases out of the AST passed this."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n\n'
+        "class BaseModel:\n"
+        '    """Not pydantic\'s."""\n\n\n'
+        "class GetStoryRequest(BaseModel):\n"
+        '    """Which story."""\n',
     )
 
-    assert objections == [
-        "hcd.GetStoryResponse: a response is a pydantic DTO, but it has no base class"
-    ]
+    assert reason_for(context, "GetStoryRequest") is not None
 
 
-def test_each_rule_resolves_only_within_its_own_half() -> None:
-    """A response is a base the request rule cannot see, so it is trusted."""
-    assert (
-        requests_not_extending_BaseModel(
-            [a_dto(name="GetStoryRequest", bases=("GetStoryResponse",))]
-        )
-        == []
+def test_a_base_from_an_unparsed_package_does_not_satisfy_it(tmp_path: Path) -> None:
+    """An unseen base used to be trusted."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n'
+        "from argparse import Namespace\n\n\n"
+        "class GetStoryRequest(Namespace):\n"
+        '    """Which story."""\n',
     )
+
+    assert reason_for(context, "GetStoryRequest") is not None
+
+
+def test_a_dto_defined_outside_usecases_is_still_checked(tmp_path: Path) -> None:
+    """Moving it out and importing it back used to bypass the rule."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n'
+        "from acme.stories.messages import GetStoryRequest\n\n"
+        '__all__ = ["GetStoryRequest"]\n',
+        messages='"""Messages."""\n\n\nclass GetStoryRequest:\n    """Not pydantic."""\n',
+    )
+
+    assert reason_for(context, "GetStoryRequest") is not None
+
+
+def test_a_pydantic_dataclass_is_allowed(tmp_path: Path) -> None:
+    """It validates, so it is a DTO. This used to be a false objection."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n'
+        "from pydantic.dataclasses import dataclass\n\n\n"
+        "@dataclass(frozen=True)\n"
+        "class GetStoryRequest:\n"
+        '    """Which story."""\n\n'
+        "    slug: str\n",
+    )
+
+    assert reason_for(context, "GetStoryRequest") is None
+
+
+def test_a_stdlib_dataclass_is_reported(tmp_path: Path) -> None:
+    """It does not validate, so it is not a DTO."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n'
+        "from dataclasses import dataclass\n\n\n"
+        "@dataclass(frozen=True)\n"
+        "class GetStoryRequest:\n"
+        '    """Which story."""\n\n'
+        "    slug: str\n",
+    )
+
+    assert reason_for(context, "GetStoryRequest") is not None
+
+
+def test_an_aliased_pydantic_import_is_allowed(tmp_path: Path) -> None:
+    """How it was spelled is not what it is."""
+    context = a_context(
+        tmp_path,
+        '"""Get a story."""\n\n'
+        "from pydantic import BaseModel as BM\n\n\n"
+        "class GetStoryRequest(BM):\n"
+        '    """Which story."""\n\n'
+        "    slug: str\n",
+    )
+
+    assert reason_for(context, "GetStoryRequest") is None
+
+
+def test_a_file_that_does_not_parse_is_reported(tmp_path: Path) -> None:
+    """It contributes no classes, so every other rule passes over it."""
+    context = a_context(tmp_path, '"""Broken."""\n\nclass R:\n    x: int =\n')
+
+    assert [v.reason for v in dto_verdicts("stories", context, [])] != []
+
+
+def test_a_name_that_resolves_to_nothing_is_reported(tmp_path: Path) -> None:
+    """Doctrine saw it and could not reach it. That is not compliance."""
+    context = a_context(tmp_path, PYDANTIC_REQUEST)
+
+    assert reason_for(context, "VanishedRequest") is not None
+
+
+def test_a_context_with_no_usecases_directory_yields_nothing(tmp_path: Path) -> None:
+    """Nothing to import is not a failure."""
+    assert dto_verdicts("stories", tmp_path / "nowhere", []) == []
