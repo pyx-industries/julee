@@ -17,6 +17,7 @@ from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
     DeletableWidgetRepository,
+    CheckedWidgetRepository,
     DerivedIdWidgetRepository,
     MintingWidgetRepository,
     SelfNamingWidgetRepository,
@@ -36,6 +37,7 @@ def _generate_widget_crud(
     repo: str = "WidgetRepository",
     include_delete: bool = False,
     entity: str = "Widget",
+    update_fields: list[tuple[str, str]] | None = None,
 ) -> ModuleType:
     """Generate CRUD for a fixture entity and import the result."""
     out_file = generate(
@@ -47,7 +49,7 @@ def _generate_widget_crud(
         create_fields=create_fields,
         # colour carries a default the update side has to discard, since on an
         # update the only useful default is "not mentioned".
-        update_fields=[("name", "str"), ("colour", 'str = "beige"')],
+        update_fields=update_fields or [("name", "str"), ("colour", 'str = "beige"')],
         include_delete=include_delete,
         out_dir=out_dir,
     )
@@ -483,3 +485,57 @@ async def test_an_entity_whose_id_is_a_property_is_not_handed_one(
 
     assert response.derived_id_widget.slug == "api-to-db"
     assert await repo.get("api-to-db") is not None
+
+
+async def test_updating_a_frozen_dataclass_entity(tmp_path: Path) -> None:
+    """An update rebuilds a dataclass entity rather than model_copying it.
+
+    The base class reached for model_copy, which a dataclass has not
+    got. c4 found it the moment its entities stopped being pydantic —
+    polling never did, having no CRUD at all.
+    """
+    crud = _generate_widget_crud(
+        tmp_path / "update-dataclass",
+        create_fields=[("left", "str"), ("right", "str")],
+        module_name="generated_update_dataclass",
+        entity="DerivedIdWidget",
+        repo="DerivedIdWidgetRepository",
+        update_fields=[("left", "str"), ("right", "str")],
+    )
+    repo = DerivedIdWidgetRepository()
+    await crud.CreateDerivedIdWidgetUseCase(repo).execute(
+        crud.CreateDerivedIdWidgetRequest(left="api", right="db")
+    )
+
+    response = await crud.UpdateDerivedIdWidgetUseCase(repo).execute(
+        crud.UpdateDerivedIdWidgetRequest(slug="api-to-db", left="gateway")
+    )
+
+    assert response.derived_id_widget.left == "gateway"
+    assert response.derived_id_widget.right == "db"
+
+
+async def test_an_update_still_has_to_satisfy_the_entity(tmp_path: Path) -> None:
+    """replace() runs __post_init__, so a rule survives an update.
+
+    model_copy does not validate, which is the long-standing
+    complaint about it. A dataclass gets the stronger behaviour for
+    free, and this pins that it is actually happening.
+    """
+    crud = _generate_widget_crud(
+        tmp_path / "update-validates",
+        create_fields=[("slug", 'str = ""'), ("name", "str")],
+        module_name="generated_update_validates",
+        entity="CheckedWidget",
+        repo="CheckedWidgetRepository",
+        update_fields=[("name", "str")],
+    )
+    repo = CheckedWidgetRepository()
+    await crud.CreateCheckedWidgetUseCase(repo).execute(
+        crud.CreateCheckedWidgetRequest(slug="w", name="fine")
+    )
+
+    with pytest.raises(ValueError, match="may not be blank"):
+        await crud.UpdateCheckedWidgetUseCase(repo).execute(
+            crud.UpdateCheckedWidgetRequest(slug="w", name="")
+        )

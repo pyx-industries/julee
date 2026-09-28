@@ -5,8 +5,9 @@ projects call generate_crud.py to emit concrete, doctrine-compliant use case
 subclasses for a specific entity and repository.
 """
 
+import dataclasses
 from abc import abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
 from julee.repositories.base import Deletable
 
@@ -115,11 +116,35 @@ class UpdateUseCase(Generic[E, R]):
         self.repo = repo
 
     async def _update_by_id(self, entity_id: str, updates: dict[str, Any]) -> E:
-        """Fetch entity, apply field updates via model_copy, save and return."""
+        """Fetch the entity, apply the changes, save it and return it.
+
+        A frozen dataclass is rebuilt with ``dataclasses.replace``,
+        which runs ``__post_init__`` — so whatever the entity refuses
+        to be, it still refuses to be after an update. A pydantic
+        model uses ``model_copy``, which does not validate, and is
+        what the estate has until its entities finish moving.
+
+        Args:
+            entity_id: Which entity to change
+            updates: The fields to change and their new values
+
+        Returns:
+            The saved entity
+
+        Raises:
+            EntityNotFoundError: If nothing is stored under that id
+        """
         entity = await self.repo.get(entity_id)  # type: ignore[attr-defined]
         if entity is None:
             raise EntityNotFoundError(entity_id)
-        updated: E = entity.model_copy(update=updates)
+        updated: E
+        if dataclasses.is_dataclass(entity) and not isinstance(entity, type):
+            # replace() is typed as returning the DataclassInstance
+            # protocol rather than the entity's own type, which is a
+            # limit of the stub and not of the call.
+            updated = cast("E", dataclasses.replace(entity, **updates))
+        else:
+            updated = entity.model_copy(update=updates)
         await self.repo.save(updated)  # type: ignore[attr-defined]
         return updated
 
