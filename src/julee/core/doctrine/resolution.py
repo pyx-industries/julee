@@ -408,7 +408,12 @@ def _foreign(annotation: object) -> list[str]:
     return [f"{annotation!r}"]
 
 
-def _method_offences(protocol: type, method: str, function: object) -> list[str]:
+def _method_offences(
+    protocol: type,
+    method: str,
+    function: object,
+    arguments: dict[object, object] | None = None,
+) -> list[str]:
     """What one method of a protocol names that it may not.
 
     A parameter with no annotation and a missing return type are
@@ -426,6 +431,9 @@ def _method_offences(protocol: type, method: str, function: object) -> list[str]
         hints = typing.get_type_hints(function)
     except Exception as error:  # noqa: BLE001 - any resolution failure is an offence
         return [f"{method}(): its annotations do not resolve ({error!r})"]
+
+    arguments = arguments or {}
+    hints = {name: _substituted(hint, arguments) for name, hint in hints.items()}
 
     offences = []
     signature = inspect.signature(function)  # type: ignore[arg-type]
@@ -458,6 +466,59 @@ def _is_ours(function: object, protocol: type) -> bool:
     module = getattr(function, "__module__", "") or ""
     package = (protocol.__module__ or "").split(".")[0]
     return module.split(".")[0] in {package, "julee"}
+
+
+def _type_arguments(protocol: type) -> dict[object, object]:
+    """What a protocol bound its bases' type variables to.
+
+    ``StoryRepository(RepositoryOf[Story])`` binds ``RepositoryOf``'s
+    ``T`` to ``Story``. Without that, an inherited ``get`` reads as
+    returning the bare ``T``, and a rule can only report what the
+    TypeVar was declared to accept — which describes the base class
+    rather than the port in front of it.
+
+    Bases are followed, so a repository three deep still resolves.
+
+    Args:
+        protocol: The port protocol to read
+
+    Returns:
+        Each inherited type variable mapped to its argument
+    """
+    bound: dict[object, object] = {}
+    for base in getattr(protocol, "__orig_bases__", ()):
+        origin, arguments = typing.get_origin(base), typing.get_args(base)
+        if origin is None or not arguments:
+            continue
+        for parameter, argument in zip(
+            getattr(origin, "__parameters__", ()), arguments, strict=False
+        ):
+            bound.setdefault(parameter, argument)
+        if isinstance(origin, type):
+            for parameter, argument in _type_arguments(origin).items():
+                bound.setdefault(parameter, bound.get(argument, argument))
+    return bound
+
+
+def _substituted(annotation: object, arguments: dict[object, object]) -> object:
+    """The annotation with any inherited type variables replaced."""
+    if not arguments:
+        return annotation
+    if annotation in arguments:
+        return arguments[annotation]
+    inner = typing.get_args(annotation)
+    if not inner:
+        return annotation
+    replaced = tuple(_substituted(item, arguments) for item in inner)
+    if replaced == inner:
+        return annotation
+    origin = typing.get_origin(annotation)
+    try:
+        return origin[replaced] if origin is not None else annotation
+    except TypeError:
+        # A form that will not be rebuilt, such as Callable's argument
+        # list. Judged unsubstituted, which is the cautious answer.
+        return annotation
 
 
 def _declared_methods(protocol: type) -> dict[str, object]:
@@ -511,10 +572,11 @@ def port_verdicts(
                     Verdict(slug, name, "doctrine could not resolve it to a class")
                 )
                 continue
+            arguments = _type_arguments(found)
             for method, function in _declared_methods(found).items():
                 verdicts.extend(
                     Verdict(slug, name, offence)
-                    for offence in _method_offences(found, method, function)
+                    for offence in _method_offences(found, method, function, arguments)
                 )
 
     return verdicts
