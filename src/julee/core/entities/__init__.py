@@ -34,9 +34,12 @@ def kernel_entity_names() -> frozenset[str]:
     the kit's own entities do (#237).
 
     ``Entity`` itself is left out: it is the base every entity inherits,
-    not one of them. ``ContentStream`` is not here because it is not a
-    record — it is a stream a repository hands back, and binding to one
-    is not what this counts.
+    not one of them. ``ContentStream`` and ``Acknowledgement`` are not
+    here because neither is a record — one is a stream a repository
+    hands back, the other is a handler's answer — and binding is about
+    records. Both are excluded by being no kind of ``BaseModel``, which
+    is a thin thread to hang a decision on, so both are asserted absent
+    in ``test_kernel_entities`` and ``test_acknowledgement``.
 
     Returns:
         The names, for intersecting with a protocol's referenced types

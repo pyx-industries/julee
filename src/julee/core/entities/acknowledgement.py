@@ -6,10 +6,11 @@ providing radio communication semantics (wilco/unable/roger) for handler
 service responses.
 """
 
-from pydantic import BaseModel, Field
+from dataclasses import dataclass, field
 
 
-class Acknowledgement(BaseModel):
+@dataclass(frozen=True)
+class Acknowledgement:
     """
     Acknowledgement response from handler services using radio communication semantics.
 
@@ -20,14 +21,16 @@ class Acknowledgement(BaseModel):
       about whether it will act - the wilco/unable distinction is not provided
     """
 
-    will_comply: bool | None = Field(
-        default=None,
-        description="None = roger (no commitment), True = wilco (will process), False = unable (cannot process)",
-    )
-    info: list[str] = Field(
-        default_factory=list,
-        description="Informational messages about handler processing",
-    )
+    will_comply: bool | None = None
+    """None = roger (no commitment), True = wilco, False = unable."""
+
+    info: list[str] = field(default_factory=list)
+    """What the handler had to say about the handoff.
+
+    A list rather than a tuple, which is shallow for a frozen class.
+    Tightening it is a change to every caller that builds one by
+    extending another's, and those live in the kits.
+    """
 
     @classmethod
     def wilco(
