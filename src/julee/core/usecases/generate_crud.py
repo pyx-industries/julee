@@ -132,12 +132,75 @@ def _optional_field_lines(fields: list[tuple[str, str]], indent: str = "    ") -
     return "\n".join(lines)
 
 
+def _message_names(
+    entity: str,
+    plural_entity: str,
+    include_get: bool,
+    include_list: bool,
+    include_create: bool,
+    include_update: bool,
+    include_delete: bool,
+) -> list[str]:
+    """Every message class the use case module has to import."""
+    names: list[str] = []
+    if include_get:
+        names += [f"Get{entity}Request", f"Get{entity}Response"]
+    if include_list:
+        names += [f"List{plural_entity}Request", f"List{plural_entity}Response"]
+    if include_create:
+        names += [f"Create{entity}Request", f"Create{entity}Response"]
+    if include_update:
+        names += [f"Update{entity}Request", f"Update{entity}Response"]
+    if include_delete:
+        names += [f"Delete{entity}Request", f"Delete{entity}Response"]
+    return names
+
+
+def _write(directory: Path, name: str, sections: list[str]) -> Path:
+    """Write one generated module, making its package if need be."""
+    directory.mkdir(parents=True, exist_ok=True)
+    init = directory / "__init__.py"
+    if not init.exists():
+        init.write_text(f'"""{directory.name.capitalize()}."""\n')
+    path = directory / name
+    path.write_text("\n\n".join(sections) + "\n")
+    return path
+
+
+def _tidy(*paths: Path) -> None:
+    """Hand the generated files to ruff, and say so if it refuses.
+
+    Both passes, not just the formatter. The emitted import block
+    carries names a given entity may not use and is in the order the
+    generator happened to build it, so without ``check --fix`` the
+    output fails the lint every kit runs — which is why the committed
+    files had tidier imports than the generator ever wrote. Generated
+    code that needs a human to finish it is not generated.
+    """
+    for argv in (
+        ["uv", "run", "ruff", "check", "--fix", "--quiet"],
+        ["uv", "run", "ruff", "format", "--quiet"],
+    ):
+        result = subprocess.run(
+            [*argv, *[str(path) for path in paths]], capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            print(
+                f"Warning: {argv[2]} {argv[3]} failed:\n{result.stderr}",
+                file=sys.stderr,
+            )
+
+
 # ---------------------------------------------------------------------------
 # Section generators
+#
+# Each comes in two halves. The messages are pydantic and land in dtos/;
+# the use case speaks the domain and lands in usecases/, importing the
+# messages by name and pydantic never.
 # ---------------------------------------------------------------------------
 
 
-def _get_section(entity: str, snake: str, id_field: str) -> str:
+def _get_messages(entity: str, snake: str, id_field: str) -> str:
     return f"""\
 class Get{entity}Request(BaseModel):
     \"\"\"Request for getting a {entity} by {id_field}.\"\"\"
@@ -149,8 +212,11 @@ class Get{entity}Response(BaseModel):
     \"\"\"Response for getting a {entity}.\"\"\"
 
     {snake}: {entity}
+"""
 
 
+def _get_usecase(entity: str, snake: str, id_field: str) -> str:
+    return f"""\
 class Get{entity}UseCase(GetUseCase[{entity}, {entity}Repository]):
     \"\"\"Get a {entity} by {id_field}.\"\"\"
 
@@ -165,9 +231,7 @@ class Get{entity}UseCase(GetUseCase[{entity}, {entity}Repository]):
 """
 
 
-def _list_section(
-    entity: str, snake: str, plural_snake: str, plural_entity: str
-) -> str:
+def _list_messages(entity: str, plural_snake: str, plural_entity: str) -> str:
     return f"""\
 class List{plural_entity}Request(BaseModel):
     \"\"\"Request for listing all {plural_entity}.\"\"\"
@@ -178,8 +242,13 @@ class List{plural_entity}Response(BaseModel):
 
     {plural_snake}: list[{entity}]
     total_count: int
+"""
 
 
+def _list_usecase(
+    entity: str, snake: str, plural_snake: str, plural_entity: str
+) -> str:
+    return f"""\
 class List{plural_entity}UseCase(ListUseCase[{entity}, {entity}Repository]):
     \"\"\"List all {plural_entity}.\"\"\"
 
@@ -187,20 +256,41 @@ class List{plural_entity}UseCase(ListUseCase[{entity}, {entity}Repository]):
         \"\"\"Initialise with the {snake} repository.\"\"\"
         super().__init__(repo)
 
-    async def execute(self, request: List{plural_entity}Request) -> List{plural_entity}Response:
+    async def execute(
+        self, request: List{plural_entity}Request
+    ) -> List{plural_entity}Response:
         \"\"\"Execute the list {plural_snake} use case.\"\"\"
         entities = await self._list_all()
-        return List{plural_entity}Response({plural_snake}=entities, total_count=len(entities))
+        return List{plural_entity}Response(
+            {plural_snake}=entities, total_count=len(entities)
+        )
 """
 
 
-def _create_section(
+def _create_messages(
+    entity: str, snake: str, create_fields: list[tuple[str, str]]
+) -> str:
+    field_lines = _field_lines(create_fields)
+    return f"""\
+class Create{entity}Request(BaseModel):
+    \"\"\"Request for creating a {entity}.\"\"\"
+
+{field_lines}
+
+
+class Create{entity}Response(BaseModel):
+    \"\"\"Response for creating a {entity}.\"\"\"
+
+    {snake}: {entity}
+"""
+
+
+def _create_usecase(
     entity: str,
     snake: str,
     id_field: str,
     create_fields: list[tuple[str, str]],
 ) -> str:
-    field_lines = _field_lines(create_fields)
     # An id among the create fields is a natural key the caller already knows,
     # so it is passed as the entity id rather than as another field; passing
     # it both ways would hand _build_entity the same keyword twice.
@@ -213,18 +303,6 @@ def _create_section(
         for name in kwarg_names
     )
     return f"""\
-class Create{entity}Request(BaseModel):
-    \"\"\"Request for creating a {entity}.\"\"\"
-
-{field_lines}
-
-
-class Create{entity}Response(BaseModel):
-    \"\"\"Response for creating a {entity}.\"\"\"
-
-    {snake}: {entity}
-
-
 class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
     \"\"\"Create a new {entity}.\"\"\"
 
@@ -245,7 +323,7 @@ class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
 """
 
 
-def _update_section(
+def _update_messages(
     entity: str,
     snake: str,
     id_field: str,
@@ -263,13 +341,26 @@ class Update{entity}Request(BaseModel):
     {id_field}: str
 {field_lines}
 
+    def changes(self) -> dict[str, Any]:
+        \"\"\"The fields the caller named, without the {id_field}.
+
+        Which fields a caller named is a pydantic question — it is the
+        difference between a field left out and one set to its default
+        — so the message answers it. A use case asks for the changes
+        and never learns how they were worked out.
+        \"\"\"
+        return self.model_dump(exclude={{"{id_field}"}}, exclude_unset=True)
+
 
 class Update{entity}Response(BaseModel):
     \"\"\"Response for updating a {entity}.\"\"\"
 
     {snake}: {entity}
+"""
 
 
+def _update_usecase(entity: str, snake: str, id_field: str) -> str:
+    return f"""\
 class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
     \"\"\"Update a {entity}.\"\"\"
 
@@ -279,15 +370,12 @@ class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
 
     async def execute(self, request: Update{entity}Request) -> Update{entity}Response:
         \"\"\"Execute the update {snake} use case.\"\"\"
-        entity = await self._update_by_id(
-            request.{id_field},
-            request.model_dump(exclude={{"{id_field}"}}, exclude_unset=True),
-        )
+        entity = await self._update_by_id(request.{id_field}, request.changes())
         return Update{entity}Response({snake}=entity)
 """
 
 
-def _delete_section(entity: str, snake: str, id_field: str) -> str:
+def _delete_messages(entity: str, id_field: str) -> str:
     return f"""\
 class Delete{entity}Request(BaseModel):
     \"\"\"Request for deleting a {entity} by {id_field}.\"\"\"
@@ -299,8 +387,11 @@ class Delete{entity}Response(BaseModel):
     \"\"\"Response for deleting a {entity}.\"\"\"
 
     deleted: bool
+"""
 
 
+def _delete_usecase(entity: str, snake: str, id_field: str) -> str:
+    return f"""\
 class Delete{entity}UseCase(DeleteUseCase[{entity}, {entity}Repository]):
     \"\"\"Delete a {entity} by {id_field}.
 
@@ -341,7 +432,20 @@ def generate(
     plural: str | None = None,
     out_dir: Path,
 ) -> Path:
-    """Generate a crud_{entity_snake}.py file into out_dir."""
+    """Generate a bounded context's CRUD for one entity.
+
+    Writes two files, because the rings they belong to are different:
+    ``dtos/crud_{snake}.py`` holds the messages and is the only one
+    that imports pydantic, and ``usecases/crud_{snake}.py`` holds the
+    use cases and imports the messages by name.
+
+    Args:
+        out_dir: The bounded context package, not a layer inside it.
+            Both directories are created beneath it.
+
+    Returns:
+        The use case file, which is what a caller usually wants to name
+    """
     snake = _to_snake(entity)
     # inflect knows English, which is not always the same as knowing what
     # a domain calls several of something: it makes "personae" of a
@@ -369,16 +473,62 @@ def generate(
         base_classes.append("DeleteUseCase")
     base_imports = ", ".join(["EntityNotFoundError"] + base_classes)
 
-    # Build import block
+    # The messages: pydantic, the entity they carry, and nothing else.
+    message_imports = []
+    typing_for_messages = set(typing_names)
+    if include_update:
+        typing_for_messages.add("Any")
+    if typing_for_messages:
+        message_imports.append(
+            f"from typing import {', '.join(sorted(typing_for_messages))}"
+        )
+    message_imports.append("from pydantic import BaseModel")
+    message_imports.append("")
+    message_imports.append(f"from {entity_module} import {entity}")
+    for extra in _extra_entity_imports(all_fields, entity_module, entity):
+        message_imports.append(extra)
+
+    messages = [
+        f'"""Generated CRUD messages for {entity}.\n\nDo not edit — regenerate with generate-crud.sh.\n"""',
+        "\n".join(message_imports),
+    ]
+    if include_get:
+        messages.append(_get_messages(entity, snake, id_field))
+    if include_list:
+        messages.append(_list_messages(entity, plural_snake, plural_entity))
+    if include_create:
+        messages.append(_create_messages(entity, snake, create_fields))
+    if include_update:
+        messages.append(_update_messages(entity, snake, id_field, update_fields))
+    if include_delete:
+        messages.append(_delete_messages(entity, id_field))
+
+    # The use cases: the domain, the ports, the messages by name.
+    names = sorted(
+        _message_names(
+            entity,
+            plural_entity,
+            include_get,
+            include_list,
+            include_create,
+            include_update,
+            include_delete,
+        )
+    )
     imports = []
-    if typing_names:
-        imports.append(f"from typing import {', '.join(sorted(typing_names))}")
-    imports.append("from pydantic import BaseModel")
-    imports.append("")
+    if include_create:
+        imports.append("from typing import Any")
+        imports.append("")
     imports.append(f"from {entity_module} import {entity}")
     for extra in _extra_entity_imports(all_fields, entity_module, entity):
         imports.append(extra)
     imports.append(f"from {repo_module} import {repo}")
+    # Relative, because the messages sit beside the use cases in the
+    # same bounded context and the generator has no business working
+    # out what that context is called.
+    imports.append(
+        f"from ..dtos.crud_{snake} import (\n    " + ",\n    ".join(names) + ",\n)"
+    )
     imports.append(
         f"from julee.core.usecases.generic_crud import (\n    {base_imports},\n)"
     )
@@ -388,38 +538,24 @@ def generate(
     if repo != f"{entity}Repository":
         imports.append(f"\n{entity}Repository = {repo}")
 
-    # Build sections
     sections = [
-        f'"""Generated CRUD use cases for {entity}.\n\nDo not edit — regenerate with make generate-crud.\n"""',
+        f'"""Generated CRUD use cases for {entity}.\n\nDo not edit — regenerate with generate-crud.sh.\n"""',
         "\n".join(imports),
     ]
-
     if include_get:
-        sections.append(_get_section(entity, snake, id_field))
+        sections.append(_get_usecase(entity, snake, id_field))
     if include_list:
-        sections.append(_list_section(entity, snake, plural_snake, plural_entity))
+        sections.append(_list_usecase(entity, snake, plural_snake, plural_entity))
     if include_create:
-        sections.append(_create_section(entity, snake, id_field, create_fields))
+        sections.append(_create_usecase(entity, snake, id_field, create_fields))
     if include_update:
-        sections.append(_update_section(entity, snake, id_field, update_fields))
+        sections.append(_update_usecase(entity, snake, id_field))
     if include_delete:
-        sections.append(_delete_section(entity, snake, id_field))
+        sections.append(_delete_usecase(entity, snake, id_field))
 
-    content = "\n\n".join(sections) + "\n"
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / f"crud_{snake}.py"
-    out_file.write_text(content)
-
-    # Format with ruff
-    result = subprocess.run(
-        ["uv", "run", "ruff", "format", str(out_file)],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print(f"Warning: ruff format failed:\n{result.stderr}", file=sys.stderr)
-
+    dtos_file = _write(out_dir / "dtos", f"crud_{snake}.py", messages)
+    out_file = _write(out_dir / "usecases", f"crud_{snake}.py", sections)
+    _tidy(dtos_file, out_file)
     return out_file
 
 

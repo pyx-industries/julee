@@ -14,6 +14,7 @@ from types import ModuleType
 import pytest
 
 from julee.core.usecases.generate_crud import generate
+from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
     DeletableWidgetRepository,
     MintingWidgetRepository,
@@ -47,12 +48,35 @@ def _generate_widget_crud(
         include_delete=include_delete,
         out_dir=out_dir,
     )
-    spec = importlib.util.spec_from_file_location(module_name, out_file)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
+    # Imported as part of a package rather than from its path, because
+    # the generated use cases import their messages from the dtos
+    # package beside them. Loading the file alone would leave that
+    # relative import with nothing to be relative to — and would be
+    # testing the generator in a shape no kit ever uses.
+    return _import_generated(out_dir, out_file, module_name)
+
+
+def _import_generated(out_dir: Path, out_file: Path, module_name: str) -> ModuleType:
+    """Import a generated module as part of its bounded context.
+
+    Args:
+        out_dir: The context package the generator wrote into
+        out_file: The generated use case module
+        module_name: A name unique to this test, so two generated
+            packages in one run do not collide in sys.modules
+
+    Returns:
+        The imported module
+    """
+    package = out_dir.name
+    (out_dir / "__init__.py").write_text('"""A generated context."""\n')
+    sys.path.insert(0, str(out_dir.parent))
+    try:
+        for stale in [name for name in sys.modules if name.startswith(package)]:
+            del sys.modules[stale]
+        return importlib.import_module(f"{package}.usecases.{out_file.stem}")
+    finally:
+        sys.path.remove(str(out_dir.parent))
 
 
 @pytest.fixture
@@ -204,7 +228,7 @@ async def test_updating_an_absent_entity_is_not_a_silent_create(
     """Update means update."""
     repo = MintingWidgetRepository()
 
-    with pytest.raises(crud.EntityNotFoundError):
+    with pytest.raises(EntityNotFoundError):
         await crud.UpdateWidgetUseCase(repo).execute(
             crud.UpdateWidgetRequest(slug="missing", name="Nothing")
         )
@@ -234,11 +258,14 @@ def test_a_caller_can_say_what_several_of_something_are_called(
         plural="Widgeten",
         out_dir=tmp_path / "plural",
     )
-    source = out_file.read_text()
+    use_cases = out_file.read_text()
+    messages = (out_file.parent.parent / "dtos" / out_file.name).read_text()
 
-    assert "class ListWidgetenUseCase" in source
-    assert "widgeten: list[Widget]" in source
-    assert "ListWidgetsUseCase" not in source
+    assert "class ListWidgetenUseCase" in use_cases
+    assert "ListWidgetsUseCase" not in use_cases
+    # The plural names the response field too, and that now lives with
+    # the messages rather than beside the use case that returns it.
+    assert "widgeten: list[Widget]" in messages
 
 
 # =============================================================================

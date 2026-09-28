@@ -93,7 +93,7 @@ def a_solution_with_generated_crud(root: Path) -> Path:
         create_fields=[("slug", "str"), ("title", 'str=""')],
         update_fields=[("title", "str")],
         include_delete=True,
-        out_dir=context / "usecases",
+        out_dir=context,
     )
     return root
 
