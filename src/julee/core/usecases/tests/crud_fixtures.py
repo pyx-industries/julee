@@ -139,3 +139,32 @@ class DerivedIdWidgetRepository:
     async def save(self, entity: DerivedIdWidget) -> None:
         """Store the widget under the slug it works out."""
         self.storage[entity.slug] = entity
+
+
+@dataclass(frozen=True)
+class CheckedWidget:
+    """A widget with a rule of its own, checked on construction."""
+
+    slug: str
+    name: str = ""
+
+    def __post_init__(self) -> None:
+        """Refuse a widget with no name."""
+        if not self.name:
+            raise ValueError("a widget's name may not be blank")
+
+
+class CheckedWidgetRepository:
+    """A repository for widgets that check themselves."""
+
+    def __init__(self) -> None:
+        """Start empty."""
+        self.storage: dict[str, CheckedWidget] = {}
+
+    async def get(self, entity_id: str) -> CheckedWidget | None:
+        """Return the widget with this slug, or None."""
+        return self.storage.get(entity_id)
+
+    async def save(self, entity: CheckedWidget) -> None:
+        """Store the widget under its slug."""
+        self.storage[entity.slug] = entity
