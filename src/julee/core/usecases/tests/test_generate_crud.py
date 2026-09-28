@@ -17,6 +17,7 @@ from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
     DeletableWidgetRepository,
+    DerivedIdWidgetRepository,
     MintingWidgetRepository,
     SelfNamingWidgetRepository,
     Widget,
@@ -455,3 +456,30 @@ def test_a_plain_str_id_is_not_wrapped(tmp_path: Path) -> None:
 
     assert "slug=entity_id" in source
     assert "str(entity_id)" not in source
+
+
+async def test_an_entity_whose_id_is_a_property_is_not_handed_one(
+    tmp_path: Path,
+) -> None:
+    """An id that is a property is derived, not chosen and not minted.
+
+    c4's Relationship is named after its two ends. There is nothing
+    for a caller to supply and no repository to ask, so the generated
+    create must neither pass an id nor reach for generate_id — the
+    repository has none, and asking would fail.
+    """
+    crud = _generate_widget_crud(
+        tmp_path / "derived-id",
+        create_fields=[("left", "str"), ("right", "str")],
+        module_name="generated_derived_id",
+        entity="DerivedIdWidget",
+        repo="DerivedIdWidgetRepository",
+    )
+    repo = DerivedIdWidgetRepository()
+
+    response = await crud.CreateDerivedIdWidgetUseCase(repo).execute(
+        crud.CreateDerivedIdWidgetRequest(left="api", right="db")
+    )
+
+    assert response.derived_id_widget.slug == "api-to-db"
+    assert await repo.get("api-to-db") is not None

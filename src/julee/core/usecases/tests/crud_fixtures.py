@@ -8,6 +8,7 @@ There are two repositories because there are two ways an entity comes by its
 identity: one the repository mints, and one the caller already knows.
 """
 
+from dataclasses import dataclass
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -102,4 +103,39 @@ class SelfNamingWidgetRepository:
 
     async def save(self, entity: SelfNamingWidget) -> None:
         """Store the widget under its slug."""
+        self.storage[entity.slug] = entity
+
+
+@dataclass(frozen=True)
+class DerivedIdWidget:
+    """A widget whose identity is not a field at all.
+
+    c4's Relationship is the real case: it is named after its two
+    ends, so there is nothing to choose, nothing to mint, and nothing
+    to store. A property says that where a field with a default only
+    implies it.
+    """
+
+    left: str
+    right: str
+
+    @property
+    def slug(self) -> Slug:
+        """Name it after what it joins."""
+        return Slug(f"{self.left}-to-{self.right}")
+
+
+class DerivedIdWidgetRepository:
+    """A repository with no generate_id, because nothing mints here."""
+
+    def __init__(self) -> None:
+        """Start empty."""
+        self.storage: dict[str, DerivedIdWidget] = {}
+
+    async def get(self, entity_id: str) -> DerivedIdWidget | None:
+        """Return the widget with this slug, or None."""
+        return self.storage.get(entity_id)
+
+    async def save(self, entity: DerivedIdWidget) -> None:
+        """Store the widget under the slug it works out."""
         self.storage[entity.slug] = entity
