@@ -575,3 +575,64 @@ def test_an_unresolvable_port_name_is_reported(tmp_path: Path) -> None:
         )
         != []
     )
+
+
+# =============================================================================
+# A port that declares its entity through a generic base
+# =============================================================================
+
+GENERIC_PORT = (
+    '"""A driven port that names its entity on its base."""\n\n'
+    "from typing import Protocol, TypeVar\n\n"
+    "from dataclasses import dataclass\n\n\n"
+    "@dataclass(frozen=True)\n"
+    'class Story:\n    """A domain object."""\n\n    slug: str\n\n\n'
+    'T = TypeVar("T")\n\n\n'
+    "class RepositoryOf(Protocol[T]):\n"
+    '    """What every repository offers."""\n\n'
+    "    async def get(self, entity_id: str) -> T | None: ...\n\n"
+    "    async def save(self, entity: T) -> None: ...\n\n\n"
+    "class StoryRepository(RepositoryOf[Story], Protocol):\n"
+    '    """Stories, stored somewhere."""\n'
+)
+
+
+def test_an_entity_named_on_a_base_is_what_crosses_the_port(
+    tmp_path: Path,
+) -> None:
+    """A repository says its entity by parameterising its base.
+
+    ``StoryRepository(RepositoryOf[Story])`` declares exactly what
+    ``get`` returns, in the form mypy reads. Reading the inherited
+    method without substituting gives the bare TypeVar, and the rule
+    then reports whatever the TypeVar is bounded by — which is a fact
+    about the base class and not about this port at all.
+    """
+    context = a_port_context(tmp_path, GENERIC_PORT)
+
+    assert offences_for(context) == []
+
+
+def test_a_base_still_names_something_the_domain_may_not_hold(
+    tmp_path: Path,
+) -> None:
+    """Substituting must not make the rule blind.
+
+    The same shape, parameterised with a pydantic model rather than a
+    dataclass, is still an objection — and now names the model rather
+    than the TypeVar's bound.
+    """
+    context = a_port_context(
+        tmp_path,
+        GENERIC_PORT.replace(
+            '@dataclass(frozen=True)\nclass Story:\n    """A domain object."""\n\n    slug: str',
+            'class Story(BaseModel):\n    """A pydantic model."""',
+        ).replace(
+            "from dataclasses import dataclass", "from pydantic import BaseModel"
+        ),
+    )
+
+    objections = offences_for(context)
+
+    assert objections != []
+    assert any("Story" in objection for objection in objections), objections
