@@ -24,9 +24,9 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Generic, TypeVar
 
-from pydantic import BaseModel
-
-T = TypeVar("T", bound=BaseModel)
+# Unbounded: a domain entity is a frozen dataclass. Nothing here calls
+# a pydantic method — a subclass says how its entity serialises.
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 

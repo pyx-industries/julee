@@ -86,7 +86,7 @@ or the protocol is in the wrong directory.
 
 Repositories are the exception to the naming rule.
 A repository declares itself by inheriting
-:py:class:`~julee.repositories.base.RepositoryOf`,
+:py:class:`~julee.core.repositories.base.RepositoryOf`,
 which mypy reads as well as doctrine,
 and that is a stronger claim than a suffix.
 

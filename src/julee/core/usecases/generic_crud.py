@@ -9,7 +9,7 @@ import dataclasses
 from abc import abstractmethod
 from typing import Any, Generic, TypeVar, cast
 
-from julee.repositories.base import Deletable
+from julee.core.repositories.base import Deletable
 
 E = TypeVar("E")
 R = TypeVar("R")

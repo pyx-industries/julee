@@ -18,13 +18,14 @@ Classes using this mixin must provide:
 - self.logger: logging.Logger instance
 """
 
+import dataclasses
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
-from pydantic import BaseModel
-
-T = TypeVar("T", bound=BaseModel)
+# Unbounded: a domain entity is a frozen dataclass, and the few places
+# here that rebuild one ask the entity how rather than assuming pydantic.
+T = TypeVar("T")
 
 
 class MemoryRepositoryMixin(Generic[T]):
@@ -168,7 +169,7 @@ class MemoryRepositoryMixin(Generic[T]):
         same line — six byte-identical ones in c4 alone.
 
         Reports rather than raising: "it was already gone" is the outcome
-        the caller asked for. See :class:`julee.repositories.base.Deletable`.
+        the caller asked for. See :class:`julee.core.repositories.base.Deletable`.
 
         Args:
             entity_id: Identifier of the entity to remove
@@ -229,7 +230,7 @@ class MemoryRepositoryMixin(Generic[T]):
         updated_at to the current time.
 
         Args:
-            entity: Pydantic model with created_at and updated_at fields
+            entity: Entity with created_at and updated_at fields
 
         Returns:
             New entity instance with updated timestamps (or original if no
@@ -248,9 +249,14 @@ class MemoryRepositoryMixin(Generic[T]):
         if hasattr(entity, "updated_at"):
             updates["updated_at"] = now
 
-        if updates:
-            return entity.model_copy(update=updates)
-        return entity
+        if not updates:
+            return entity
+        if dataclasses.is_dataclass(entity) and not isinstance(entity, type):
+            # replace() is typed as returning the DataclassInstance
+            # protocol rather than the entity's own type, which is a
+            # limit of the stub and not of the call.
+            return cast("T", dataclasses.replace(entity, **updates))
+        return cast("T", entity.model_copy(update=updates))  # type: ignore[attr-defined]
 
     def _add_entity_specific_log_data(
         self, entity: T, log_data: dict[str, Any]

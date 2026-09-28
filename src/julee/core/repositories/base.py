@@ -19,7 +19,9 @@ All repository operations follow the same principles:
   distinguishes it from the ports a workflow may call inline.
 
 - **Domain Objects**: Methods accept and return domain objects or primitives,
-  never framework-specific types.
+  never framework-specific types. These protocols live in the domain ring
+  for that reason: a bounded context's ``domain/repositories/`` builds on
+  them, and a domain module may not reach into an adapters package.
 
 In Temporal workflow contexts, these protocols are implemented by workflow
 stubs that delegate to activities for durability and proper error handling.
@@ -27,13 +29,14 @@ stubs that delegate to activities for durability and proper error handling.
 
 from typing import Protocol, TypeVar, runtime_checkable
 
-from pydantic import BaseModel
-
-# Type variable bound to Pydantic BaseModel for domain entities
-T = TypeVar("T", bound=BaseModel)
+# The entity a repository is bound to. Deliberately unbounded: what may
+# cross a driven port is decided by doctrine, which requires a frozen
+# dataclass, and a bound naming pydantic here would contradict it — and
+# did, holding five kernel entities as models to keep mypy quiet.
+T = TypeVar("T")
 # The marker names its entity and never takes or returns one, so its
 # parameter is covariant, which is what a protocol with no methods needs.
-T_co = TypeVar("T_co", bound=BaseModel, covariant=True)
+T_co = TypeVar("T_co", covariant=True)
 
 
 class RepositoryOf(Protocol[T_co]):
@@ -53,7 +56,7 @@ class RepositoryOf(Protocol[T_co]):
     the other five it is.
 
     Type Parameter:
-        T_co: The domain entity type (must extend Pydantic BaseModel)
+        T_co: The domain entity type
     """
 
 
@@ -66,7 +69,7 @@ class BaseRepository(RepositoryOf[T], Protocol[T]):
     while eliminating code duplication.
 
     Type Parameter:
-        T: The domain entity type (must extend Pydantic BaseModel)
+        T: The domain entity type
     """
 
     async def get(self, entity_id: str) -> T | None:
@@ -220,7 +223,7 @@ class Deletable(RepositoryOf[T_co], Protocol[T_co]):
     and never passed or returned.
 
     Type Parameter:
-        T_co: The domain entity type (must extend Pydantic BaseModel)
+        T_co: The domain entity type
     """
 
     async def delete(self, entity_id: str) -> bool:
