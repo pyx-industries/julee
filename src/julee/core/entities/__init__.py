@@ -19,6 +19,36 @@ from pydantic import BaseModel
 __all__ = ["kernel_entity_names"]
 
 
+def kernel_classes() -> dict[str, type]:
+    """Every class the kernel's entity modules define, whatever it is.
+
+    Deliberately unfiltered. ``kernel_entity_names`` keeps only what
+    is a ``BaseModel``, which is the right question for arity and the
+    wrong one for anything that asks what these classes *should* be:
+    as they become frozen dataclasses they would drop out of that set
+    one by one, and a rule reading it would go quiet rather than
+    green.
+
+    ``Entity`` is left out. It is the base an entity inherits, not one
+    of them.
+
+    Returns:
+        Each class by name, for a caller that judges them
+    """
+    found: dict[str, type] = {}
+    for module in pkgutil.iter_modules(__path__):
+        if module.name.startswith("_") or module.name == "tests":
+            continue
+        imported = import_module(f"{__name__}.{module.name}")
+        for name, obj in vars(imported).items():
+            if not isinstance(obj, type) or obj.__module__ != imported.__name__:
+                continue
+            if name == "Entity" or name.startswith("_"):
+                continue
+            found[name] = obj
+    return found
+
+
 def kernel_entity_names() -> frozenset[str]:
     """Every entity the kernel offers, by name.
 
