@@ -412,3 +412,46 @@ async def test_a_slug_the_caller_named_is_still_kept(tmp_path: Path) -> None:
     )
 
     assert response.self_naming_widget.slug == "chosen"
+
+
+def test_the_generated_create_names_the_ids_real_type(tmp_path: Path) -> None:
+    """A slug field typed Slug must be constructed as one.
+
+    The request says str because that is what crosses the wire, and
+    the entity says Slug because that is what it is. Handing the str
+    straight over type-checks nowhere: c4 had Slug(entity_id) written
+    into every generated create by hand, and a regeneration took it
+    out and failed mypy in six files.
+    """
+    out_file = generate(
+        entity="SelfNamingWidget",
+        entity_module=FIXTURES,
+        repo="SelfNamingWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", 'str = ""'), ("name", "str")],
+        update_fields=[("name", "str")],
+        out_dir=tmp_path / "id-type",
+    )
+    source = out_file.read_text()
+
+    assert "slug=Slug(entity_id)" in source
+    assert "from julee.core.entities.text import Slug" in source
+
+
+def test_a_plain_str_id_is_not_wrapped(tmp_path: Path) -> None:
+    """Nothing is wrapped that does not need wrapping."""
+    out_file = generate(
+        entity="Widget",
+        entity_module=FIXTURES,
+        repo="WidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", "str"), ("name", "str")],
+        update_fields=[("name", "str")],
+        out_dir=tmp_path / "plain-id",
+    )
+    source = out_file.read_text()
+
+    assert "slug=entity_id" in source
+    assert "str(entity_id)" not in source
