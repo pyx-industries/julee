@@ -21,7 +21,9 @@ import argparse
 import re
 import subprocess
 import sys
+from importlib import import_module
 from pathlib import Path
+from typing import get_type_hints
 
 import inflect as inflect_lib
 
@@ -285,6 +287,38 @@ class Create{entity}Response(BaseModel):
 """
 
 
+def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] | None:
+    """The type the entity declares for its id, if it is not a plain str.
+
+    Read by importing the entity and asking, because what a request
+    calls the field and what the entity calls it are different
+    questions. c4's create fields say ``slug:str`` — what crosses the
+    wire — for entities whose field is a ``Slug``. No amount of
+    scanning the arguments would find that.
+
+    Args:
+        entity_module: Dotted path of the entity's module
+        entity: The entity's class name
+        id_field: The field it is identified by
+
+    Returns:
+        The type's module and name, or None if it is a plain str
+    """
+    try:
+        found = getattr(import_module(entity_module), entity)
+        annotation = get_type_hints(found).get(id_field)
+    except Exception as unreachable:  # noqa: BLE001 - reported, not swallowed
+        print(
+            f"Warning: could not read {entity}.{id_field}'s type "
+            f"({unreachable!r}); generating it as a plain str",
+            file=sys.stderr,
+        )
+        return None
+    if annotation is None or annotation is str or not isinstance(annotation, type):
+        return None
+    return annotation.__module__, annotation.__name__
+
+
 def _names_itself(id_field: str, create_fields: list[tuple[str, str]]) -> bool:
     """Whether the entity derives its own id when none is given.
 
@@ -310,6 +344,7 @@ def _create_usecase(
     snake: str,
     id_field: str,
     create_fields: list[tuple[str, str]],
+    id_type: str = "",
 ) -> str:
     # An id among the create fields is a natural key the caller already knows,
     # so it is passed as the entity id rather than as another field; passing
@@ -325,6 +360,9 @@ def _create_usecase(
     # An entity that names itself must not be handed the field empty:
     # a Slug refuses an empty string before any default_factory could
     # derive one, so the field is left out rather than passed blank.
+    # The entity's own type for the field, so a Slug is constructed as
+    # one rather than handed a str the annotation does not allow.
+    built_id = f"{id_type}(entity_id)" if id_type else "entity_id"
     if _names_itself(id_field, create_fields):
         derives_its_own = f"""
 
@@ -346,7 +384,7 @@ class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
 
     def _build_entity(self, entity_id: str, **kwargs: Any) -> {entity}:
         \"\"\"Construct a {entity} from a generated ID and request fields.{derives_its_own}
-        return {entity}({id_field}=entity_id, **kwargs)
+        return {entity}({id_field}={built_id}, **kwargs)
 
     async def execute(self, request: Create{entity}Request) -> Create{entity}Response:
         \"\"\"Execute the create {snake} use case.\"\"\"
@@ -537,6 +575,9 @@ def generate(
     if include_delete:
         messages.append(_delete_messages(entity, id_field))
 
+    declared_id = _id_type(entity_module, entity, id_field)
+    id_type_name = declared_id[1] if declared_id else ""
+
     # The use cases: the domain, the ports, the messages by name.
     names = sorted(
         _message_names(
@@ -557,6 +598,8 @@ def generate(
     for extra in _extra_entity_imports(all_fields, entity_module, entity):
         imports.append(extra)
     imports.append(f"from {repo_module} import {repo}")
+    if declared_id:
+        imports.append(f"from {declared_id[0]} import {declared_id[1]}")
     # Relative, because the messages sit beside the use cases in the
     # same bounded context and the generator has no business working
     # out what that context is called.
@@ -581,7 +624,9 @@ def generate(
     if include_list:
         sections.append(_list_usecase(entity, snake, plural_snake, plural_entity))
     if include_create:
-        sections.append(_create_usecase(entity, snake, id_field, create_fields))
+        sections.append(
+            _create_usecase(entity, snake, id_field, create_fields, id_type_name)
+        )
     if include_update:
         sections.append(_update_usecase(entity, snake, id_field))
     if include_delete:
