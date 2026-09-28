@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from julee.core.entities.text import Slug
+from julee.core.entities.text import Name, NonEmptyText, Slug
 
 
 class Widget(BaseModel):
@@ -166,5 +166,38 @@ class CheckedWidgetRepository:
         return self.storage.get(entity_id)
 
     async def save(self, entity: CheckedWidget) -> None:
+        """Store the widget under its slug."""
+        self.storage[entity.slug] = entity
+
+
+@dataclass(frozen=True)
+class NamedWidget:
+    """A widget whose name is a value object, like its slug.
+
+    The id is not the only field an entity declares as something
+    stronger than a str. hcd has five entities with a Name, a
+    NonEmptyText or a tuple of Slugs among their ordinary fields, and a
+    request says str for every one of them because that is what crosses
+    the wire.
+    """
+
+    slug: Slug
+    name: Name
+    title: NonEmptyText
+    note: str = ""
+
+
+class NamedWidgetRepository:
+    """A repository for widgets with value objects in them."""
+
+    def __init__(self) -> None:
+        """Start empty."""
+        self.storage: dict[str, NamedWidget] = {}
+
+    async def get(self, entity_id: str) -> NamedWidget | None:
+        """Return the widget with this slug, or None."""
+        return self.storage.get(entity_id)
+
+    async def save(self, entity: NamedWidget) -> None:
         """Store the widget under its slug."""
         self.storage[entity.slug] = entity

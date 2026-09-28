@@ -13,6 +13,7 @@ from types import ModuleType
 
 import pytest
 
+from julee.core.entities.text import Name
 from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
@@ -20,6 +21,7 @@ from julee.core.usecases.tests.crud_fixtures import (
     DeletableWidgetRepository,
     DerivedIdWidgetRepository,
     MintingWidgetRepository,
+    NamedWidgetRepository,
     SelfNamingWidgetRepository,
     Widget,
     WidgetRepository,
@@ -539,3 +541,105 @@ async def test_an_update_still_has_to_satisfy_the_entity(tmp_path: Path) -> None
         await crud.UpdateCheckedWidgetUseCase(repo).execute(
             crud.UpdateCheckedWidgetRequest(slug="w", name="")
         )
+
+
+def test_the_generated_create_builds_every_value_object(tmp_path: Path) -> None:
+    """Not just the id. Any field the entity declares as one.
+
+    The id has been wrapped since the generator learned to read the
+    entity's own annotations, and every other field was left as the str
+    the request declares. Nothing caught it: _build_entity takes
+    **kwargs: Any, so mypy sees nothing, and pydantic coerced the str
+    on the way in so nothing failed at runtime either. Against a frozen
+    dataclass the str is simply stored, and the first symptom is an
+    AttributeError for .normalized deep inside a repository lookup.
+    """
+    out_file = generate(
+        entity="NamedWidget",
+        entity_module=FIXTURES,
+        repo="NamedWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[
+            ("slug", "str"),
+            ("name", "str"),
+            ("title", "str"),
+            ("note", 'str = ""'),
+        ],
+        update_fields=[("name", "str"), ("note", "str")],
+        out_dir=tmp_path / "value-objects",
+    )
+    source = out_file.read_text()
+
+    assert "name=Name(request.name)" in source
+    assert "title=NonEmptyText(request.title)" in source
+
+
+def test_a_plain_field_is_left_alone(tmp_path: Path) -> None:
+    """A str field stays a str, so the wrapping is not indiscriminate.
+
+    A generator that wrapped everything would pass this suite's other
+    tests just as well as one that wrapped the right things.
+    """
+    out_file = generate(
+        entity="NamedWidget",
+        entity_module=FIXTURES,
+        repo="NamedWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", "str"), ("name", "str"), ("note", 'str = ""')],
+        update_fields=[("note", "str")],
+        out_dir=tmp_path / "plain-field",
+    )
+    source = out_file.read_text()
+
+    assert "note=request.note," in source
+
+
+def test_the_value_object_types_are_imported(tmp_path: Path) -> None:
+    """Naming a type is not enough; the module has to import it."""
+    out_file = generate(
+        entity="NamedWidget",
+        entity_module=FIXTURES,
+        repo="NamedWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", "str"), ("name", "str"), ("title", "str")],
+        update_fields=[("name", "str")],
+        out_dir=tmp_path / "vo-imports",
+    )
+    source = out_file.read_text()
+
+    assert "from julee.core.entities.text import Name, NonEmptyText, Slug" in source
+
+
+async def test_an_update_rebuilds_the_value_objects_too(tmp_path: Path) -> None:
+    """A change arrives as a str and must reach the entity as what it is.
+
+    request.changes() reports what the caller named, in the request's
+    types. dataclasses.replace does not coerce, so without this an
+    update writes a plain str into a Name field and the entity is
+    quietly wrong from then on.
+    """
+    out_file = generate(
+        entity="NamedWidget",
+        entity_module=FIXTURES,
+        repo="NamedWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", "str"), ("name", "str"), ("title", "str")],
+        update_fields=[("name", "str"), ("note", "str")],
+        out_dir=tmp_path / "vo-update",
+    )
+    crud = _import_generated(tmp_path / "vo-update", out_file, "vo_update_crud")
+    repo = NamedWidgetRepository()
+    await crud.CreateNamedWidgetUseCase(repo).execute(
+        crud.CreateNamedWidgetRequest(slug="w-1", name="first", title="A title")
+    )
+
+    response = await crud.UpdateNamedWidgetUseCase(repo).execute(
+        crud.UpdateNamedWidgetRequest(slug="w-1", name="second")
+    )
+
+    assert isinstance(response.named_widget.name, Name)
+    assert response.named_widget.name.normalized == "second"
