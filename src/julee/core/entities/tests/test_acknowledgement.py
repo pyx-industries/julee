@@ -19,19 +19,30 @@ pytestmark = pytest.mark.unit
 class TestItIsADomainClass:
     """The domain ring holds frozen dataclasses, not pydantic models."""
 
-    def test_it_is_a_frozen_dataclass(self) -> None:
-        """What the driven port rule requires of anything crossing one."""
+    def test_it_is_a_dataclass(self) -> None:
+        """What the driven port rule requires of anything crossing one.
+
+        Frozen is asserted below, by trying to change one. Reading
+        ``__dataclass_params__`` would say the same thing and say it
+        worse: ruff wants the attribute and mypy wants the getattr,
+        and neither of them is evidence that anything is actually
+        immutable.
+        """
         assert dataclasses.is_dataclass(Acknowledgement)
-        assert Acknowledgement.__dataclass_params__.frozen
 
     def test_it_is_not_a_pydantic_model(self) -> None:
         """A handler returns this across a driven port, so it may not be."""
         assert not issubclass(Acknowledgement, BaseModel)
 
     def test_it_cannot_be_changed_after_the_fact(self) -> None:
-        """An answer given is an answer given."""
+        """An answer given is an answer given.
+
+        mypy refuses the assignment outright now, which is the better
+        half of the guarantee — the ignore below is the evidence. This
+        asserts the runtime half, for code mypy never sees.
+        """
         with pytest.raises(dataclasses.FrozenInstanceError):
-            Acknowledgement.wilco().will_comply = False
+            Acknowledgement.wilco().will_comply = False  # type: ignore[misc]
 
 
 class TestTheThreeAnswers:
@@ -51,8 +62,11 @@ class TestTheThreeAnswers:
 
     def test_each_answer_excludes_the_others(self) -> None:
         """Three answers, and exactly one of them at a time."""
-        for made in (Acknowledgement.wilco(), Acknowledgement.unable(),
-                     Acknowledgement.roger()):
+        for made in (
+            Acknowledgement.wilco(),
+            Acknowledgement.unable(),
+            Acknowledgement.roger(),
+        ):
             assert [made.is_wilco, made.is_unable, made.is_roger].count(True) == 1
 
     def test_it_carries_what_the_handler_said(self) -> None:
