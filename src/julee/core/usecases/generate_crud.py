@@ -287,6 +287,31 @@ class Create{entity}Response(BaseModel):
 """
 
 
+def _derives_its_id(entity_module: str, entity: str, id_field: str) -> bool:
+    """Whether the entity works its id out rather than holding one.
+
+    A property where a field would be. Asked of the entity rather
+    than inferred from the arguments, because the arguments cannot
+    say it: a field simply absent from the create list looks the same
+    as one the repository is expected to mint.
+
+    Args:
+        entity_module: Dotted path of the entity's module
+        entity: The entity's class name
+        id_field: The field it is identified by
+
+    Returns:
+        True if the id is a property and nothing may supply it
+    """
+    try:
+        found = getattr(import_module(entity_module), entity)
+    except Exception:  # noqa: BLE001 - absent is answered by the other rules
+        return False
+    return id_field not in get_type_hints(found) and isinstance(
+        getattr(found, id_field, None), property
+    )
+
+
 def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] | None:
     """The type the entity declares for its id, if it is not a plain str.
 
@@ -345,6 +370,7 @@ def _create_usecase(
     id_field: str,
     create_fields: list[tuple[str, str]],
     id_type: str = "",
+    derived: bool = False,
 ) -> str:
     # An id among the create fields is a natural key the caller already knows,
     # so it is passed as the entity id rather than as another field; passing
@@ -363,7 +389,19 @@ def _create_usecase(
     # The entity's own type for the field, so a Slug is constructed as
     # one rather than handed a str the annotation does not allow.
     built_id = f"{id_type}(entity_id)" if id_type else "entity_id"
-    if _names_itself(id_field, create_fields):
+    if derived:
+        # Nothing supplies it and nothing mints it, so the id is not
+        # passed at all — and _create is handed an empty one so it does
+        # not reach for a generate_id the repository has not got.
+        field_kwargs = '            entity_id="",\n' + field_kwargs
+    constructed = "**kwargs" if derived else f"{id_field}={built_id}, **kwargs"
+    if derived:
+        derives_its_own = f"""
+
+        The entity works its own {id_field} out from what it carries,
+        so it is not passed one.
+        \"\"\""""
+    elif _names_itself(id_field, create_fields):
         derives_its_own = f"""
 
         A request that names no {id_field} leaves the entity to work
@@ -384,7 +422,7 @@ class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
 
     def _build_entity(self, entity_id: str, **kwargs: Any) -> {entity}:
         \"\"\"Construct a {entity} from a generated ID and request fields.{derives_its_own}
-        return {entity}({id_field}={built_id}, **kwargs)
+        return {entity}({constructed})
 
     async def execute(self, request: Create{entity}Request) -> Create{entity}Response:
         \"\"\"Execute the create {snake} use case.\"\"\"
@@ -575,7 +613,8 @@ def generate(
     if include_delete:
         messages.append(_delete_messages(entity, id_field))
 
-    declared_id = _id_type(entity_module, entity, id_field)
+    derives_id = _derives_its_id(entity_module, entity, id_field)
+    declared_id = None if derives_id else _id_type(entity_module, entity, id_field)
     id_type_name = declared_id[1] if declared_id else ""
 
     # The use cases: the domain, the ports, the messages by name.
@@ -625,7 +664,14 @@ def generate(
         sections.append(_list_usecase(entity, snake, plural_snake, plural_entity))
     if include_create:
         sections.append(
-            _create_usecase(entity, snake, id_field, create_fields, id_type_name)
+            _create_usecase(
+                entity,
+                snake,
+                id_field,
+                create_fields,
+                id_type_name,
+                derives_id,
+            )
         )
     if include_update:
         sections.append(_update_usecase(entity, snake, id_field))
