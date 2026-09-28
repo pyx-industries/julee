@@ -13,7 +13,7 @@ implement something they should refuse.
 import pytest
 from pydantic import BaseModel
 
-from julee.repositories.base import BaseRepository, Deletable, RepositoryOf
+from julee.core.repositories.base import BaseRepository, Deletable, RepositoryOf
 
 pytestmark = pytest.mark.unit
 

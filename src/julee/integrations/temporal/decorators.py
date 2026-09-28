@@ -22,7 +22,7 @@ from typing import (
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from julee.repositories.base import BaseRepository, RepositoryOf
+from julee.core.repositories.base import BaseRepository, RepositoryOf
 
 from .activities import discover_protocol_methods
 

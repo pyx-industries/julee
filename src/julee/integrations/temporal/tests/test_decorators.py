@@ -26,6 +26,7 @@ from temporalio import activity
 
 # Project imports
 import julee.integrations.temporal.decorators as decorators_module
+from julee.core.repositories.base import BaseRepository, RepositoryOf
 from julee.integrations.temporal.decorators import (
     _extract_concrete_type_from_base,
     _get_optional_inner_type,
@@ -34,7 +35,6 @@ from julee.integrations.temporal.decorators import (
     temporal_activity_registration,
     temporal_workflow_proxy,
 )
-from julee.repositories.base import BaseRepository, RepositoryOf
 
 pytestmark = pytest.mark.unit
 

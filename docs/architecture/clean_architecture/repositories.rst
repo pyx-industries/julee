@@ -64,7 +64,7 @@ Implementing Repositories
 
 Repository protocols can define any interface suitable for the domain.
 For the common case of simple CRUD operations,
-:py:class:`~julee.repositories.base.BaseRepository` provides a generic starting point:
+:py:class:`~julee.core.repositories.base.BaseRepository` provides a generic starting point:
 
 .. code-block:: python
 
