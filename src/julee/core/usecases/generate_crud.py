@@ -21,6 +21,7 @@ import argparse
 import re
 import subprocess
 import sys
+from collections.abc import Iterable
 from importlib import import_module
 from pathlib import Path
 from typing import get_type_hints
@@ -312,14 +313,59 @@ def _derives_its_id(entity_module: str, entity: str, id_field: str) -> bool:
     )
 
 
-def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] | None:
-    """The type the entity declares for its id, if it is not a plain str.
+def _value_object_types(
+    entity_module: str, entity: str, fields: Iterable[str]
+) -> dict[str, tuple[str, str]]:
+    """The types the entity declares for these fields, where not plain str.
 
     Read by importing the entity and asking, because what a request
-    calls the field and what the entity calls it are different
-    questions. c4's create fields say ``slug:str`` — what crosses the
-    wire — for entities whose field is a ``Slug``. No amount of
-    scanning the arguments would find that.
+    calls a field and what the entity calls it are different questions.
+    c4 and hcd both say ``name:str`` in their create fields — what
+    crosses the wire — for entities whose field is a ``Name``. No
+    amount of scanning the arguments would find that.
+
+    This used to answer for the id alone. Every other field was passed
+    on as the str the request declared, and nothing caught it: the
+    generated ``_build_entity`` takes ``**kwargs: Any``, so mypy sees
+    nothing, and pydantic coerced the str on the way in, so nothing
+    failed at runtime either. Against a frozen dataclass the str is
+    simply stored.
+
+    Args:
+        entity_module: Dotted path of the entity's module
+        entity: The entity's class name
+        fields: The field names to ask about
+
+    Returns:
+        Each field that is not a plain str, mapped to its type's module
+        and name
+    """
+    try:
+        found = getattr(import_module(entity_module), entity)
+        annotations = get_type_hints(found)
+    except Exception as unreachable:  # noqa: BLE001 - reported, not swallowed
+        print(
+            f"Warning: could not read {entity}'s field types "
+            f"({unreachable!r}); generating them as plain strs",
+            file=sys.stderr,
+        )
+        return {}
+    found_types = {}
+    for name in fields:
+        annotation = annotations.get(name)
+        if annotation is None or annotation is str or not isinstance(annotation, type):
+            continue
+        if not issubclass(annotation, str):
+            # Only a value object built on str is constructible from
+            # the str a request carries. An enum, a bool or a nested
+            # entity is the caller's to pass as itself.
+            continue
+        found_types[name] = (annotation.__module__, annotation.__name__)
+    return found_types
+
+
+def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] | None:
+    """The type the entity declares for its id, if it is not a plain str.
 
     Args:
         entity_module: Dotted path of the entity's module
@@ -329,19 +375,7 @@ def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] 
     Returns:
         The type's module and name, or None if it is a plain str
     """
-    try:
-        found = getattr(import_module(entity_module), entity)
-        annotation = get_type_hints(found).get(id_field)
-    except Exception as unreachable:  # noqa: BLE001 - reported, not swallowed
-        print(
-            f"Warning: could not read {entity}.{id_field}'s type "
-            f"({unreachable!r}); generating it as a plain str",
-            file=sys.stderr,
-        )
-        return None
-    if annotation is None or annotation is str or not isinstance(annotation, type):
-        return None
-    return annotation.__module__, annotation.__name__
+    return _value_object_types(entity_module, entity, [id_field]).get(id_field)
 
 
 def _names_itself(id_field: str, create_fields: list[tuple[str, str]]) -> bool:
@@ -364,6 +398,30 @@ def _names_itself(id_field: str, create_fields: list[tuple[str, str]]) -> bool:
     )
 
 
+def _as_declared(
+    name: str, id_field: str, value_objects: dict[str, tuple[str, str]]
+) -> str:
+    """How a create use case passes one request field on to _create.
+
+    The id is the exception: it travels as ``entity_id`` and is built
+    as its declared type inside ``_build_entity``, so wrapping it here
+    too would construct it twice.
+
+    Args:
+        name: The keyword _create is given, or "entity_id"
+        id_field: What the entity calls its id
+        value_objects: Field name to its type's module and name
+
+    Returns:
+        An expression reading the field off the request, built as the
+        type the entity declares when that is not a plain str
+    """
+    if name == "entity_id":
+        return f"request.{id_field}"
+    declared = value_objects.get(name)
+    return f"{declared[1]}(request.{name})" if declared else f"request.{name}"
+
+
 def _create_usecase(
     entity: str,
     snake: str,
@@ -371,6 +429,7 @@ def _create_usecase(
     create_fields: list[tuple[str, str]],
     id_type: str = "",
     derived: bool = False,
+    value_objects: dict[str, tuple[str, str]] | None = None,
 ) -> str:
     # An id among the create fields is a natural key the caller already knows,
     # so it is passed as the entity id rather than as another field; passing
@@ -379,8 +438,9 @@ def _create_usecase(
     kwarg_names = [name for name, _ in create_fields if name != id_field]
     if caller_supplies_id:
         kwarg_names.insert(0, "entity_id")
+    built = value_objects or {}
     field_kwargs = "\n".join(
-        f"            {name}=request.{id_field if name == 'entity_id' else name},"
+        f"            {name}={_as_declared(name, id_field, built)},"
         for name in kwarg_names
     )
     # An entity that names itself must not be handed the field empty:
@@ -469,7 +529,31 @@ class Update{entity}Response(BaseModel):
 """
 
 
-def _update_usecase(entity: str, snake: str, id_field: str) -> str:
+def _update_usecase(
+    entity: str,
+    snake: str,
+    id_field: str,
+    value_objects: dict[str, tuple[str, str]] | None = None,
+) -> str:
+    built = value_objects or {}
+    if built:
+        # A change arrives in the request's types, and replace() does not
+        # coerce, so a field the entity declares as a value object is
+        # built as one here or it is stored as the str it arrived as.
+        # None is left alone: it means the caller cleared the field.
+        rebuild = "\n".join(
+            f'        if changes.get("{name}") is not None:\n'
+            f'            changes["{name}"] = {declared[1]}(changes["{name}"])'
+            for name, declared in sorted(built.items())
+        )
+        body = f"""        changes = request.changes()
+{rebuild}
+        entity = await self._update_by_id(request.{id_field}, changes)"""
+    else:
+        body = (
+            f"        entity = await self._update_by_id("
+            f"request.{id_field}, request.changes())"
+        )
     return f"""\
 class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
     \"\"\"Update a {entity}.\"\"\"
@@ -480,9 +564,34 @@ class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
 
     async def execute(self, request: Update{entity}Request) -> Update{entity}Response:
         \"\"\"Execute the update {snake} use case.\"\"\"
-        entity = await self._update_by_id(request.{id_field}, request.changes())
+{body}
         return Update{entity}Response({snake}=entity)
 """
+
+
+def _by_module(
+    declared_id: tuple[str, str] | None,
+    *field_types: dict[str, tuple[str, str]],
+) -> dict[str, list[str]]:
+    """Every value object type the generated module names, by module.
+
+    Grouped so a module is imported once however many of its types are
+    used, which is what ruff would rewrite the imports into anyway.
+
+    Args:
+        declared_id: The id's type, if it has one
+        field_types: Field name to type, for each set of fields
+
+    Returns:
+        Module path to the sorted names imported from it
+    """
+    found: dict[str, set[str]] = {}
+    everything = [declared_id] if declared_id else []
+    for group in field_types:
+        everything.extend(group.values())
+    for module, name in everything:
+        found.setdefault(module, set()).add(name)
+    return {module: sorted(names) for module, names in sorted(found.items())}
 
 
 def _delete_messages(entity: str, id_field: str) -> str:
@@ -617,6 +726,15 @@ def generate(
     declared_id = None if derives_id else _id_type(entity_module, entity, id_field)
     id_type_name = declared_id[1] if declared_id else ""
 
+    # Every other field the entity declares as something stronger than
+    # a str, so a create and an update both hand it over as what it is.
+    created_as = _value_object_types(
+        entity_module, entity, [name for name, _ in create_fields if name != id_field]
+    )
+    updated_as = _value_object_types(
+        entity_module, entity, [name for name, _ in update_fields]
+    )
+
     # The use cases: the domain, the ports, the messages by name.
     names = sorted(
         _message_names(
@@ -637,8 +755,8 @@ def generate(
     for extra in _extra_entity_imports(all_fields, entity_module, entity):
         imports.append(extra)
     imports.append(f"from {repo_module} import {repo}")
-    if declared_id:
-        imports.append(f"from {declared_id[0]} import {declared_id[1]}")
+    for module, imported in _by_module(declared_id, created_as, updated_as).items():
+        imports.append(f"from {module} import {', '.join(imported)}")
     # Relative, because the messages sit beside the use cases in the
     # same bounded context and the generator has no business working
     # out what that context is called.
@@ -671,10 +789,11 @@ def generate(
                 create_fields,
                 id_type_name,
                 derives_id,
+                created_as,
             )
         )
     if include_update:
-        sections.append(_update_usecase(entity, snake, id_field))
+        sections.append(_update_usecase(entity, snake, id_field, updated_as))
     if include_delete:
         sections.append(_delete_usecase(entity, snake, id_field))
 
