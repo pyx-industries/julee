@@ -6,29 +6,68 @@ storing a file is not a domain concept, unlike the documents, credentials
 or specifications a solution stores.
 """
 
+import os
 from collections.abc import Mapping
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from pydantic import (
-    Field,
-    field_validator,
+MAX_FILE_BYTES = 50 * 1024 * 1024
+"""The largest upload accepted, to keep one caller from exhausting the store."""
+
+MAX_FILENAME_LENGTH = 255
+"""What most filesystems accept in a single path component."""
+
+DANGEROUS_IN_A_FILENAME = (
+    "..",
+    "~",
+    "$",
+    "`",
+    "|",
+    "&",
+    ";",
+    "(",
+    ")",
+    "{",
+    "}",
+    "[",
+    "]",
 )
+"""Patterns refused in a filename.
 
-from julee.core.entities.entity import Entity
+Path traversal, and shell metacharacters for the benefit of anything
+downstream that hands the name to a shell.
+"""
+
+ALLOWED_CONTENT_TYPES = frozenset(
+    {
+        "text/plain",
+        "text/csv",
+        "application/json",
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "application/zip",
+        "application/octet-stream",
+    }
+)
+"""Content types a caller may upload."""
 
 
-class FileMetadata(Entity):
+@dataclass(frozen=True)
+class FileMetadata:
     """Metadata about a stored file."""
 
     file_id: str
     filename: str | None = None
     content_type: str | None = None
     size_bytes: int | None = None
-    uploaded_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
-    metadata: Mapping[str, str] = Field(default_factory=dict)
+    uploaded_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    metadata: Mapping[str, str] = field(default_factory=dict)
 
 
-class FileUploadArgs(Entity):
+@dataclass(frozen=True)
+class FileUploadArgs:
     """
     Arguments for file upload with security validation.
 
@@ -41,87 +80,65 @@ class FileUploadArgs(Entity):
     filename: str
     data: bytes
     content_type: str
-    metadata: Mapping[str, str] = Field(default_factory=dict)
+    metadata: Mapping[str, str] = field(default_factory=dict)
 
-    @field_validator("filename")
-    @classmethod
-    def validate_filename(cls, v: str) -> str:
-        """Validate and sanitize filename to prevent path traversal
-        attacks."""
-        import os
+    def __post_init__(self) -> None:
+        """Check every argument, and replace the filename with a safe one.
 
-        if not v or not v.strip():
-            raise ValueError("Filename cannot be empty")
+        These were three ``field_validator`` methods. The filename one
+        both refused names and rewrote them, so it has to run here and
+        write its answer back rather than only raise: a caller that
+        sends "../../etc/passwd" gets "passwd" stored, which is the
+        point of it.
 
-        # Remove any path components to prevent directory traversal
-        sanitized = os.path.basename(v.strip())
+        Raises:
+            ValueError: If the filename, size or content type is refused
+        """
+        object.__setattr__(self, "filename", _a_safe_filename(self.filename))
 
-        # Check for dangerous patterns
-        dangerous_patterns = [
-            "..",
-            "~",
-            "$",
-            "`",
-            "|",
-            "&",
-            ";",
-            "(",
-            ")",
-            "{",
-            "}",
-            "[",
-            "]",
-        ]
-        for pattern in dangerous_patterns:
-            if pattern in sanitized:
-                raise ValueError(f"Filename contains dangerous pattern: {pattern}")
-
-        # Ensure filename has reasonable length
-        if len(sanitized) > 255:
-            raise ValueError("Filename too long (max 255 characters)")
-
-        # Ensure filename is not empty after sanitization
-        if not sanitized:
-            raise ValueError("Filename is empty after sanitization")
-
-        return sanitized
-
-    @field_validator("data")
-    @classmethod
-    def validate_file_size(cls, v: bytes) -> bytes:
-        """Validate file size to prevent resource exhaustion."""
-        max_size = 50 * 1024 * 1024  # 50MB limit
-        if len(v) > max_size:
-            raise ValueError(
-                f"File size {len(v)} bytes exceeds maximum allowed size of "
-                f"{max_size} bytes"
-            )
-
-        if len(v) == 0:
+        if not self.data:
             raise ValueError("File cannot be empty")
-
-        return v
-
-    @field_validator("content_type")
-    @classmethod
-    def validate_content_type(cls, v: str) -> str:
-        """Validate content type against allowed types."""
-        allowed_types = {
-            "text/plain",
-            "text/csv",
-            "application/json",
-            "application/pdf",
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "application/zip",
-            "application/octet-stream",
-        }
-
-        if v not in allowed_types:
+        if len(self.data) > MAX_FILE_BYTES:
             raise ValueError(
-                f"Content type '{v}' not allowed. Allowed types: "
-                f"{', '.join(sorted(allowed_types))}"
+                f"File size {len(self.data)} bytes exceeds maximum allowed "
+                f"size of {MAX_FILE_BYTES} bytes"
             )
 
-        return v
+        if self.content_type not in ALLOWED_CONTENT_TYPES:
+            raise ValueError(
+                f"Content type '{self.content_type}' not allowed. Allowed "
+                f"types: {', '.join(sorted(ALLOWED_CONTENT_TYPES))}"
+            )
+
+
+def _a_safe_filename(name: str) -> str:
+    """The filename to store, or a refusal.
+
+    Args:
+        name: What the caller asked for
+
+    Returns:
+        The name with any path components removed
+
+    Raises:
+        ValueError: If the name is empty, too long, or holds something
+            dangerous
+    """
+    if not name or not name.strip():
+        raise ValueError("Filename cannot be empty")
+
+    # Remove any path components to prevent directory traversal
+    sanitized = os.path.basename(name.strip())
+
+    for pattern in DANGEROUS_IN_A_FILENAME:
+        if pattern in sanitized:
+            raise ValueError(f"Filename contains dangerous pattern: {pattern}")
+
+    if len(sanitized) > MAX_FILENAME_LENGTH:
+        raise ValueError(f"Filename too long (max {MAX_FILENAME_LENGTH} characters)")
+
+    # Ensure filename is not empty after sanitization
+    if not sanitized:
+        raise ValueError("Filename is empty after sanitization")
+
+    return sanitized

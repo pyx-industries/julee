@@ -10,12 +10,12 @@ meanings. In julee, bounded contexts follow Clean Architecture patterns
 and "scream" at the top level of the codebase.
 """
 
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from pydantic import BaseModel, Field, field_validator
 
-
-class StructuralMarkers(BaseModel):
+@dataclass(frozen=True)
+class StructuralMarkers:
     """Structural markers indicating what a bounded context contains.
 
     These markers reflect the Clean Architecture layers present in a
@@ -40,7 +40,8 @@ class StructuralMarkers(BaseModel):
         return self.has_domain_models or self.has_domain_use_cases
 
 
-class BoundedContext(BaseModel):
+@dataclass(frozen=True)
+class BoundedContext:
     """A linguistic and conceptual boundary around a domain model.
 
     In Domain-Driven Design, a bounded context defines the scope within which
@@ -60,38 +61,43 @@ class BoundedContext(BaseModel):
     """
 
     # Identity
-    slug: str = Field(description="Directory name / import path segment")
-    path: str = Field(description="Filesystem path relative to project root")
-    description: str | None = Field(
-        default=None,
-        description="First line of __init__.py docstring, if present",
-    )
+    slug: str
+    """Directory name / import path segment."""
+
+    path: str
+    """Filesystem path relative to project root."""
+
+    description: str | None = None
+    """First line of __init__.py docstring, if present."""
 
     # Classification
-    is_nested: bool = Field(
-        default=False,
-        description="True if discovered inside a nested solution rather than "
-        "at the top level of the search root",
-    )
-    is_viewpoint: bool = Field(
-        default=False,
-        description="True if this context describes a solution rather than "
-        "implementing a domain. Declared by the kit that provides it",
-    )
+    is_nested: bool = False
+    """True if discovered inside a nested solution rather than at the top
+    level of the search root."""
+
+    is_viewpoint: bool = False
+    """True if this context describes a solution rather than implementing
+    a domain. Declared by the kit that provides it."""
 
     # Structure
-    markers: StructuralMarkers = Field(
-        default_factory=StructuralMarkers,
-        description="What structural elements this context contains",
-    )
+    markers: StructuralMarkers = field(default_factory=StructuralMarkers)
+    """What structural elements this context contains."""
 
-    @field_validator("slug", mode="before")
-    @classmethod
-    def validate_slug(cls, v: str) -> str:
-        """Validate slug is not empty."""
-        if not v or not v.strip():
+    def __post_init__(self) -> None:
+        """Check the slug is not empty, and trim it.
+
+        This was a ``field_validator`` in ``mode="before"``. It both
+        refused an empty slug and returned a stripped one, so it decided
+        what the field holds rather than only checking it, and the
+        stripping has to survive the conversion or a context read from a
+        padded directory name stops matching its own import path.
+
+        Raises:
+            ValueError: If the slug is empty or only whitespace
+        """
+        if not self.slug or not self.slug.strip():
             raise ValueError("slug cannot be empty")
-        return v.strip()
+        object.__setattr__(self, "slug", self.slug.strip())
 
     @property
     def absolute_path(self) -> Path:
