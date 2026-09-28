@@ -285,6 +285,26 @@ class Create{entity}Response(BaseModel):
 """
 
 
+def _names_itself(id_field: str, create_fields: list[tuple[str, str]]) -> bool:
+    """Whether the entity derives its own id when none is given.
+
+    An id among the create fields carrying a default says the caller
+    may leave it out, and something else settles it. c4's Relationship
+    is named after its two ends and its DynamicStep after its sequence
+    and number, so there is nothing to choose and nothing to mint.
+
+    Args:
+        id_field: The field the entity is identified by
+        create_fields: The create request's fields, with any defaults
+
+    Returns:
+        True if the id is optional on the way in
+    """
+    return any(
+        name == id_field and "=" in annotation for name, annotation in create_fields
+    )
+
+
 def _create_usecase(
     entity: str,
     snake: str,
@@ -302,6 +322,20 @@ def _create_usecase(
         f"            {name}=request.{id_field if name == 'entity_id' else name},"
         for name in kwarg_names
     )
+    # An entity that names itself must not be handed the field empty:
+    # a Slug refuses an empty string before any default_factory could
+    # derive one, so the field is left out rather than passed blank.
+    if _names_itself(id_field, create_fields):
+        derives_its_own = f"""
+
+        A request that names no {id_field} leaves the entity to work
+        one out, so the field is left out rather than passed empty.
+        \"\"\"
+        if not entity_id:
+            return {entity}(**kwargs)
+"""
+    else:
+        derives_its_own = '"""'
     return f"""\
 class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
     \"\"\"Create a new {entity}.\"\"\"
@@ -311,7 +345,7 @@ class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
         super().__init__(repo)
 
     def _build_entity(self, entity_id: str, **kwargs: Any) -> {entity}:
-        \"\"\"Construct a {entity} from a generated ID and request fields.\"\"\"
+        \"\"\"Construct a {entity} from a generated ID and request fields.{derives_its_own}
         return {entity}({id_field}=entity_id, **kwargs)
 
     async def execute(self, request: Create{entity}Request) -> Create{entity}Response:
