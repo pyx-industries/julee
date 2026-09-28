@@ -31,9 +31,10 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
         result = await workflow.execute_activity(
             "util.file_storage.minio.upload_file",
             args,
+            result_type=FileMetadata,
             start_to_close_timeout=self.activity_timeout,
         )
-        return FileMetadata.model_validate(result)
+        return result  # type: ignore[no-any-return]
 
     async def download_file(self, file_id: str) -> bytes | None:
         """Download a file from storage via Temporal activity."""
@@ -51,8 +52,7 @@ class WorkflowFileStorageRepositoryProxy(FileStorageRepository):
         result = await workflow.execute_activity(
             "util.file_storage.minio.get_file_metadata",
             file_id,
+            result_type=FileMetadata,
             start_to_close_timeout=self.activity_timeout,
         )
-        if result is None:
-            return None
-        return FileMetadata.model_validate(result)
+        return result  # type: ignore[no-any-return]

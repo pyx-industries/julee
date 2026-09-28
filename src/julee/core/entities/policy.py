@@ -24,10 +24,11 @@ skip_policies = ["temporal-pipelines"]  # Opt out of framework defaults
 ```
 """
 
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
 
 
-class Policy(BaseModel, frozen=True):
+@dataclass(frozen=True)
+class Policy:
     """An adoptable strategic choice with compliance tests.
 
     Policies represent the "how" decisions in a julee solution. They are
@@ -35,53 +36,68 @@ class Policy(BaseModel, frozen=True):
     defaults.
     """
 
-    slug: str = Field(description="Unique identifier (e.g., 'sphinx-documentation')")
-    name: str = Field(description="Human-readable name")
-    description: str = Field(description="What this policy requires and why")
-    framework_default: bool = Field(
-        default=False,
-        description="If True, applies to all julee solutions by default",
-    )
-    requires: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Other policy slugs this policy depends on",
-    )
-    test_module: str = Field(
-        default="",
-        description="Dotted path to the compliance test module",
-    )
+    slug: str
+    """Unique identifier (e.g., 'sphinx-documentation')."""
+
+    name: str
+    """Human-readable name."""
+
+    description: str
+    """What this policy requires and why."""
+
+    framework_default: bool = False
+    """If True, applies to all julee solutions by default."""
+
+    requires: tuple[str, ...] = ()
+    """Other policy slugs this policy depends on."""
+
+    test_module: str = ""
+    """Dotted path to the compliance test module."""
 
 
-class PolicyAdoption(BaseModel, frozen=True):
+@dataclass(frozen=True)
+class PolicyAdoption:
     """A solution's adoption of a policy.
 
     Tracks which policies a solution has adopted and how (explicit
     adoption, framework default, or dependency).
     """
 
-    policy_slug: str = Field(description="The policy being adopted")
-    source: str = Field(
-        description="How adopted: 'explicit', 'framework_default', 'dependency'"
-    )
-    skipped: bool = Field(default=False, description="If True, explicitly opted out")
+    policy_slug: str
+    """The policy being adopted."""
+
+    source: str
+    """How it was adopted.
+
+    One of 'explicit', 'framework_default' or 'dependency'.
+    """
+
+    skipped: bool = False
+    """If True, explicitly opted out."""
 
 
-class PolicyVerificationResult(BaseModel, frozen=True):
+@dataclass(frozen=True)
+class PolicyVerificationResult:
     """Result of verifying a policy's compliance."""
 
-    policy_slug: str = Field(description="The policy that was verified")
-    passed: bool = Field(description="Whether all compliance tests passed")
-    violations: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Violation messages if any",
-    )
-    skipped: bool = Field(
-        default=False, description="If True, policy was not applicable"
-    )
-    skip_reason: str = Field(default="", description="Why the policy was skipped")
+    policy_slug: str
+    """The policy that was verified."""
+
+    passed: bool
+    """Whether all compliance tests passed."""
+
+    violations: tuple[str, ...] = ()
+    """Violation messages if any."""
+
+    skipped: bool = False
+    """If True, policy was not applicable."""
+
+    skip_reason: str = ""
+    """Why the policy was skipped."""
 
 
-class SolutionPolicyConfig(BaseModel, frozen=True):
+@dataclass(frozen=True)
+class SolutionPolicyConfig:
     """Policy configuration for a solution.
 
     Read from [tool.julee] in pyproject.toml. Presence of this section
@@ -100,46 +116,42 @@ class SolutionPolicyConfig(BaseModel, frozen=True):
     ```
     """
 
-    is_julee_solution: bool = Field(
-        default=False,
-        description="True if [tool.julee] section exists",
-    )
-    policies: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Explicitly adopted policy slugs",
-    )
-    skip_policies: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Explicitly skipped policy slugs (framework defaults)",
-    )
-    kits: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Slugs of kits this solution adopts. Installing a kit "
-        "does not activate it; adoption is explicit",
-    )
-    search_root: str | None = Field(
-        default=None,
-        description="Root directory for bounded context discovery (relative to project root). "
-        "Required for introspection features.",
-    )
-    docs_root: str | None = Field(
-        default=None,
-        description="Root directory for documentation (relative to project root). "
-        "Required for HCD features.",
-    )
-    bounded_contexts: str | None = Field(
-        default=None,
-        description='Set to "none" by a codebase that deliberately has no '
-        "bounded contexts under search_root — a framework, or a projection "
-        "over kits. Doctrine objects to an undeclared emptiness, because a "
-        "run with no subject passes every rule and reads exactly like a run "
-        "over a codebase that complies.",
-    )
-    composition_roots: tuple[str, ...] = Field(
-        default=("apps",),
-        description="Directories, relative to search_root, where this "
-        "solution wires kits together. Only these may import a kit's "
-        "infrastructure; every other bounded context is held to what the "
-        "kit offers. Defaults to apps/, which is where a composition root "
-        "usually lives (ADR 010).",
-    )
+    is_julee_solution: bool = False
+    """True if [tool.julee] section exists."""
+
+    policies: tuple[str, ...] = ()
+    """Explicitly adopted policy slugs."""
+
+    skip_policies: tuple[str, ...] = ()
+    """Explicitly skipped policy slugs (framework defaults)."""
+
+    kits: tuple[str, ...] = ()
+    """Slugs of kits this solution adopts.
+
+    Installing a kit does not activate it; adoption is explicit.
+    """
+
+    search_root: str | None = None
+    """Root directory for bounded context discovery, relative to the
+    project root. Required for introspection features."""
+
+    docs_root: str | None = None
+    """Root directory for documentation, relative to the project root.
+    Required for HCD features."""
+
+    bounded_contexts: str | None = None
+    """Set to "none" by a codebase that deliberately has none.
+
+    A framework, or a projection over kits. Doctrine objects to an
+    undeclared emptiness, because a run with no subject passes every
+    rule and reads exactly like a run over a codebase that complies.
+    """
+
+    composition_roots: tuple[str, ...] = ("apps",)
+    """Directories, relative to search_root, where this solution wires
+    kits together.
+
+    Only these may import a kit's infrastructure; every other bounded
+    context is held to what the kit offers. Defaults to apps/, which is
+    where a composition root usually lives (ADR 010).
+    """
