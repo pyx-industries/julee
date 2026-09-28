@@ -19,7 +19,7 @@ import inspect
 import pathlib
 import typing
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -31,6 +31,7 @@ from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
 
 __all__ = [
     "PRIMITIVES",
+    "domain_class_verdicts",
     "VALUE_OBJECT_BASES",
     "package_of",
     "Verdict",
@@ -250,6 +251,27 @@ def _not_a_domain_class(obj: object) -> str | None:
         "frozen dataclass; a value object is an enum or is built on "
         "str or int"
     )
+
+
+def domain_class_verdicts(slug: str, classes: Mapping[str, object]) -> list[Verdict]:
+    """Judge classes already in hand by the domain ring's rule.
+
+    :func:`entity_verdicts` imports a bounded context's
+    ``domain/models/``. julee has no bounded contexts, so its own
+    entities have no such directory to be found in — but they cross
+    kits' driven ports, so they are held to the same rule by the same
+    judge rather than a second one written beside it.
+
+    Args:
+        slug: What to call the codebase in an objection
+        classes: The classes to judge, by name
+
+    Returns:
+        One verdict per class
+    """
+    return [
+        Verdict(slug, name, _not_a_domain_class(obj)) for name, obj in classes.items()
+    ]
 
 
 def _verdicts(

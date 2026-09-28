@@ -2,7 +2,9 @@
 
 import pytest
 
-from julee.core.entities import kernel_entity_names
+from julee.core.doctrine.resolution import domain_class_verdicts
+from julee.core.doctrine.rules.entity import entities_that_are_not_frozen_dataclasses
+from julee.core.entities import kernel_classes, kernel_entity_names
 
 pytestmark = pytest.mark.unit
 
@@ -47,3 +49,48 @@ def test_nothing_from_outside_the_entities_package_leaks_in() -> None:
     took every BaseModel subclass it found in one would offer it.
     """
     assert "BaseModel" not in kernel_entity_names()
+
+
+class TestTheKernelIsADomainToo:
+    """The kernel's entities cross kits' driven ports, so they are
+    held to the ring rule the kits are held to.
+
+    Nothing was holding them to it. The domain rule reads a bounded
+    context's ``domain/models/``; julee declares it has no bounded
+    contexts, so its own entities have never been looked at — and
+    ``Accelerator`` is a pydantic model that hcd's repository is bound
+    to, which hcd cannot do anything about.
+    """
+
+    def test_the_kernel_offers_classes_to_judge(self) -> None:
+        """The canary, and the reason discovery is unfiltered.
+
+        ``kernel_entity_names`` keeps only what is a ``BaseModel``, so
+        reading it here would empty itself as entities converted and
+        this would pass by finding nothing.
+        """
+        assert kernel_classes()
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "19 kernel entities are still pydantic models and ContentStream "
+            "is not a record at all. Strict, so that fixing them fails here "
+            "until this marker goes with them — a gap that stops being a gap "
+            "and leaves its marker behind is how the next one gets missed."
+        ),
+    )
+    def test_every_kernel_entity_is_a_domain_class(self) -> None:
+        """A kernel entity MUST be a frozen dataclass or a value object.
+
+        The same judge the kits get, not a second rule written beside
+        it: an entity is a frozen stdlib dataclass, an enum, or built
+        on str or int.
+        """
+        violations = entities_that_are_not_frozen_dataclasses(
+            domain_class_verdicts("julee", kernel_classes())
+        )
+
+        assert not violations, (
+            "Kernel classes that are not domain classes:\n" + "\n".join(violations)
+        )
