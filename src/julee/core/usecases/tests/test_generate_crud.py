@@ -16,8 +16,8 @@ import pytest
 from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
-    DeletableWidgetRepository,
     CheckedWidgetRepository,
+    DeletableWidgetRepository,
     DerivedIdWidgetRepository,
     MintingWidgetRepository,
     SelfNamingWidgetRepository,
