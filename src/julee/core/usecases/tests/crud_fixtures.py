@@ -8,7 +8,11 @@ There are two repositories because there are two ways an entity comes by its
 identity: one the repository mints, and one the caller already knows.
 """
 
-from pydantic import BaseModel
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from julee.core.entities.text import Slug
 
 
 class Widget(BaseModel):
@@ -60,3 +64,42 @@ class DeletableWidgetRepository(WidgetRepository):
     async def delete(self, entity_id: str) -> bool:
         """Remove the widget, saying whether there was one to remove."""
         return self.storage.pop(entity_id, None) is not None
+
+
+def _name_it_after_its_name(data: dict[str, Any]) -> Slug:
+    """Derive a slug the way c4's Relationship derives one."""
+    return Slug(f"{data['name']}-derived")
+
+
+class SelfNamingWidget(BaseModel):
+    """A widget that works out its own slug when nobody supplies one.
+
+    Shaped like c4's Relationship and DynamicStep, which are the real
+    cases: a relationship is identified by its two ends and a step by
+    its sequence and number, so there is nothing for a caller to
+    choose and nothing for a repository to mint.
+
+    The Slug type is what makes this bite. A default_factory alone
+    would tolerate an empty string being passed — Slug refuses one,
+    so handing the field over empty fails before anything can derive
+    it. That is exactly what the kits hit.
+    """
+
+    name: str
+    slug: Slug = Field(default_factory=_name_it_after_its_name)
+
+
+class SelfNamingWidgetRepository:
+    """A repository for widgets that name themselves."""
+
+    def __init__(self) -> None:
+        """Start empty."""
+        self.storage: dict[str, SelfNamingWidget] = {}
+
+    async def get(self, entity_id: str) -> SelfNamingWidget | None:
+        """Return the widget with this slug, or None."""
+        return self.storage.get(entity_id)
+
+    async def save(self, entity: SelfNamingWidget) -> None:
+        """Store the widget under its slug."""
+        self.storage[entity.slug] = entity

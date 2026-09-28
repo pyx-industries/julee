@@ -17,6 +17,7 @@ from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
     DeletableWidgetRepository,
+    SelfNamingWidgetRepository,
     MintingWidgetRepository,
     Widget,
     WidgetRepository,
@@ -33,10 +34,11 @@ def _generate_widget_crud(
     module_name: str = "generated_crud_widget",
     repo: str = "WidgetRepository",
     include_delete: bool = False,
+    entity: str = "Widget",
 ) -> ModuleType:
-    """Generate CRUD for the Widget fixture and import the result."""
+    """Generate CRUD for a fixture entity and import the result."""
     out_file = generate(
-        entity="Widget",
+        entity=entity,
         entity_module=FIXTURES,
         repo=repo,
         repo_module=FIXTURES,
@@ -360,3 +362,53 @@ async def test_deleting_one_leaves_the_others(deletable_crud: ModuleType) -> Non
     await use_case.execute(deletable_crud.DeleteWidgetRequest(slug="a"))
 
     assert await repo.get("b") is not None
+
+
+# =============================================================================
+# An entity that names itself
+# =============================================================================
+
+
+async def test_an_entity_that_names_itself_is_not_handed_an_empty_id(
+    tmp_path: Path,
+) -> None:
+    """An id field with a default means the caller may leave it out.
+
+    c4's Relationship and DynamicStep derive a slug from what they
+    already carry, so passing an empty one defeats the derivation.
+    Both had this branch hand-written into files headed "Do not edit",
+    and a regeneration reverted it — which is the whole argument for
+    the generator knowing.
+    """
+    crud = _generate_widget_crud(
+        tmp_path / "self-naming",
+        create_fields=[("slug", 'str = ""'), ("name", "str")],
+        module_name="generated_self_naming",
+        entity="SelfNamingWidget",
+        repo="SelfNamingWidgetRepository",
+    )
+    repo = SelfNamingWidgetRepository()
+
+    response = await crud.CreateSelfNamingWidgetUseCase(repo).execute(
+        crud.CreateSelfNamingWidgetRequest(name="a-widget")
+    )
+
+    assert response.self_naming_widget.slug == "a-widget-derived"
+
+
+async def test_a_slug_the_caller_named_is_still_kept(tmp_path: Path) -> None:
+    """Deriving is what happens when nobody said, not instead of saying."""
+    crud = _generate_widget_crud(
+        tmp_path / "self-naming-explicit",
+        create_fields=[("slug", 'str = ""'), ("name", "str")],
+        module_name="generated_self_naming_explicit",
+        entity="SelfNamingWidget",
+        repo="SelfNamingWidgetRepository",
+    )
+    repo = SelfNamingWidgetRepository()
+
+    response = await crud.CreateSelfNamingWidgetUseCase(repo).execute(
+        crud.CreateSelfNamingWidgetRequest(slug="chosen", name="a-widget")
+    )
+
+    assert response.self_naming_widget.slug == "chosen"
