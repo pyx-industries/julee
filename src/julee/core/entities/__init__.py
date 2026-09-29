@@ -11,6 +11,7 @@ Import directly from submodules:
     from julee.core.entities.pipeline import Pipeline
 """
 
+import dataclasses
 import pkgutil
 from importlib import import_module
 
@@ -49,6 +50,36 @@ def kernel_classes() -> dict[str, type]:
     return found
 
 
+NOT_RECORDS = frozenset({"Entity", "ContentStream", "Acknowledgement"})
+"""Kernel classes that are not entities, so nothing binds to them.
+
+``Entity`` is the base an entity inherits, not one of them.
+``ContentStream`` is a stream a repository hands back, and
+``Acknowledgement`` is a handler's answer. Binding is about records,
+and none of these is one.
+
+Named here rather than inferred. All three used to fall out of
+:func:`kernel_entity_names` for not being a ``BaseModel``, which said
+nothing about what they are and stopped being true of
+``Acknowledgement`` the day it became a frozen dataclass.
+"""
+
+
+def _is_a_record(obj: type) -> bool:
+    """Whether a class is the kind of thing a repository keeps.
+
+    A value object is not: ``Slug`` is a str and ``ClaimKind`` an enum,
+    and neither is stored under an id.
+
+    Args:
+        obj: A class defined in one of the entity modules
+
+    Returns:
+        True for a pydantic model or a dataclass
+    """
+    return issubclass(obj, BaseModel) or dataclasses.is_dataclass(obj)
+
+
 def kernel_entity_names() -> frozenset[str]:
     """Every entity the kernel offers, by name.
 
@@ -63,13 +94,14 @@ def kernel_entity_names() -> frozenset[str]:
     — so they must count toward what a protocol is bound to, exactly as
     the kit's own entities do (#237).
 
-    ``Entity`` itself is left out: it is the base every entity inherits,
-    not one of them. ``ContentStream`` and ``Acknowledgement`` are not
-    here because neither is a record — one is a stream a repository
-    hands back, the other is a handler's answer — and binding is about
-    records. Both are excluded by being no kind of ``BaseModel``, which
-    is a thin thread to hang a decision on, so both are asserted absent
-    in ``test_kernel_entities`` and ``test_acknowledgement``.
+    What counts is being a record: a pydantic model or a dataclass. It
+    used to be ``BaseModel`` alone, and that thread snapped the moment
+    an entity became a frozen dataclass — ``Accelerator`` simply left
+    the set, and the rules that read it went quiet rather than wrong,
+    which is worse.
+
+    ``NOT_RECORDS`` says which kernel classes are left out and why,
+    rather than leaving it to what they happen to inherit.
 
     Returns:
         The names, for intersecting with a protocol's referenced types
@@ -80,9 +112,9 @@ def kernel_entity_names() -> frozenset[str]:
             continue
         imported = import_module(f"{__name__}.{module.name}")
         for name, obj in vars(imported).items():
-            if not isinstance(obj, type) or not issubclass(obj, BaseModel):
+            if not isinstance(obj, type) or not _is_a_record(obj):
                 continue
-            if obj.__module__ != imported.__name__ or name == "Entity":
+            if obj.__module__ != imported.__name__ or name in NOT_RECORDS:
                 continue
             names.add(name)
     return frozenset(names)
