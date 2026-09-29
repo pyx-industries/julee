@@ -4,10 +4,13 @@ A subprocess, so that what is exercised is the suite's collection,
 fixtures and assertions rather than a function it calls.
 """
 
+import importlib
 import os
 import re
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -15,6 +18,34 @@ REPO_ROOT = Path(__file__).resolve().parents[5]
 
 The doctrine run needs it as its cwd to find pytest's config.
 """
+
+
+@contextmanager
+def importable(root: Path) -> Iterator[None]:
+    """Make a written solution importable from this process, then forget it.
+
+    The doctrine runs in a subprocess with PYTHONPATH set and never
+    needed this. The CRUD generator imports the entity it is given to
+    read its fields, and it does that in this process — so a test that
+    generates has to put the solution on the path first, and take its
+    modules out of sys.modules afterwards or the next test's ``acme``
+    is this one's.
+
+    Args:
+        root: The solution root, whose src/ goes on the path
+
+    Yields:
+        Nothing; the solution is importable inside the block
+    """
+    src = str(root / "src")
+    sys.path.insert(0, src)
+    importlib.invalidate_caches()
+    try:
+        yield
+    finally:
+        sys.path.remove(src)
+        for name in [m for m in sys.modules if m == "acme" or m.startswith("acme.")]:
+            del sys.modules[name]
 
 
 def run_doctrine(

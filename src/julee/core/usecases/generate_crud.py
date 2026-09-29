@@ -18,13 +18,16 @@ Usage::
 """
 
 import argparse
+import dataclasses
 import re
 import subprocess
 import sys
+import types
 from collections.abc import Iterable
+from enum import Enum
 from importlib import import_module
 from pathlib import Path
-from typing import get_type_hints
+from typing import Union, get_args, get_origin, get_type_hints
 
 import inflect as inflect_lib
 
@@ -200,7 +203,222 @@ def _tidy(*paths: Path) -> None:
 # Each comes in two halves. The messages are pydantic and land in dtos/;
 # the use case speaks the domain and lands in usecases/, importing the
 # messages by name and pydantic never.
+#
+# A response never holds the entity. It held one — ``story: Story`` —
+# and a message built around an entity is the entity's shape under
+# another name, so whoever read the message depended on the domain. ceap
+# found out twice, over HTTP and in Temporal history. Every response
+# carries an {Entity}Message instead, built from the entity by of().
 # ---------------------------------------------------------------------------
+
+
+def _the_entity(entity_module: str, entity: str) -> type:
+    """Import the entity, or stop.
+
+    The message is built from the entity's fields, so an entity the
+    generator cannot see is one it cannot write a message for. The
+    value-object lookups warn and carry on with plain strs when the
+    import fails; here that would mean emitting the entity itself,
+    which is the defect, so it is refused instead.
+
+    Args:
+        entity_module: Dotted path of the entity's module
+        entity: The entity's class name
+
+    Returns:
+        The entity class
+
+    Raises:
+        ImportError: If the module or the class cannot be reached
+    """
+    try:
+        found = getattr(import_module(entity_module), entity)
+    except Exception as unreachable:  # noqa: BLE001 - re-raised, not swallowed
+        raise ImportError(
+            f"cannot import {entity} from {entity_module}, and the message "
+            f"is built from its fields: {unreachable!r}"
+        ) from unreachable
+    if not isinstance(found, type):
+        raise ImportError(f"{entity_module}.{entity} is {found!r}, not a class")
+    return found
+
+
+_BUILTIN_ORIGINS: dict[object, str] = {
+    tuple: "tuple",
+    list: "list",
+    dict: "dict",
+    set: "set",
+    frozenset: "frozenset",
+}
+"""Generic origins that need no import to spell."""
+
+
+def _is_checked_str(hint: object) -> bool:
+    """Whether a hint is a value object built on str, and not an enum.
+
+    Slug and Name are how the domain says a str has been checked. A
+    StrEnum is also a str subclass and is not that: it is a name the
+    message's reader may know, so it is kept.
+    """
+    return (
+        isinstance(hint, type)
+        and issubclass(hint, str)
+        and hint is not str
+        and not issubclass(hint, Enum)
+    )
+
+
+def _is_optional(hint: object) -> bool:
+    """Whether a hint is ``X | None`` for exactly one X."""
+    if not (isinstance(hint, types.UnionType) or get_origin(hint) is Union):
+        return False
+    args = get_args(hint)
+    return len(args) == 2 and type(None) in args
+
+
+def _spell(hint: object, imports: dict[str, set[str]]) -> str:
+    """The source for a type hint as a message declares it.
+
+    A checked str is spelled ``str``: the message's reader is not the
+    one checking. Everything else is spelled as the entity spelled it,
+    and what it needs importing is collected on the way.
+
+    Args:
+        hint: A resolved type hint, from get_type_hints
+        imports: Module path to the names to import from it, added to
+
+    Returns:
+        The annotation's source text
+
+    Raises:
+        TypeError: For a hint this has no spelling for
+    """
+    if hint is type(None):
+        return "None"
+    if hint is Ellipsis:
+        return "..."
+    if isinstance(hint, types.UnionType) or get_origin(hint) is Union:
+        return " | ".join(_spell(arg, imports) for arg in get_args(hint))
+    origin = get_origin(hint)
+    if origin is not None:
+        inner = ", ".join(_spell(arg, imports) for arg in get_args(hint))
+        if origin in _BUILTIN_ORIGINS:
+            return f"{_BUILTIN_ORIGINS[origin]}[{inner}]"
+        imports.setdefault(origin.__module__, set()).add(origin.__name__)
+        return f"{origin.__name__}[{inner}]"
+    if _is_checked_str(hint):
+        return "str"
+    if isinstance(hint, type):
+        if hint.__module__ == "builtins":
+            return hint.__name__
+        imports.setdefault(hint.__module__, set()).add(hint.__name__)
+        return hint.__name__
+    raise TypeError(f"no spelling for {hint!r} in a message")
+
+
+def _carried(hint: object, source: str) -> str:
+    """The expression that carries one entity field into the message.
+
+    Identity for almost everything: an enum, a bool, a value object
+    that is a dataclass all cross as they are. A checked str becomes a
+    plain one, and a container of them is rebuilt around that.
+
+    Args:
+        hint: The field's resolved type hint
+        source: The expression reading the field off the entity
+
+    Returns:
+        An expression the message's of() passes for the field
+    """
+    if _is_optional(hint):
+        (inner_hint,) = [arg for arg in get_args(hint) if arg is not type(None)]
+        inner = _carried(inner_hint, source)
+        return source if inner == source else f"None if {source} is None else {inner}"
+    origin = get_origin(hint)
+    if origin in (tuple, list, set, frozenset):
+        args = get_args(hint)
+        item = _carried(args[0], "item") if args else "item"
+        if item == "item":
+            return source
+        return f"{_BUILTIN_ORIGINS[origin]}({item} for item in {source})"
+    if origin is not None and origin is not Union and len(get_args(hint)) == 2:
+        # A mapping. Its origin may be dict or collections.abc.Mapping.
+        key_hint, value_hint = get_args(hint)
+        key = _carried(key_hint, "key")
+        value = _carried(value_hint, "value")
+        if key == "key" and value == "value":
+            return source
+        return f"{{{key}: {value} for key, value in {source}.items()}}"
+    if _is_checked_str(hint):
+        return f"str({source})"
+    return source
+
+
+def _message_fields(found: type, id_field: str) -> tuple[str, dict[str, set[str]], str]:
+    """The message's fields, read off the entity.
+
+    The entity's dataclass fields, and its id even when that is a
+    property rather than a field: c4's Relationship works its slug out
+    from its two ends, and a message without the id is one a caller
+    cannot ask for the entity back with. No other property is carried.
+    What an entity derives for its own convenience is not a message's
+    business, and a caller that wants it named can ask for a field.
+
+    Args:
+        found: The entity class
+        id_field: What the entity calls its id
+
+    Returns:
+        The field declarations, the imports they need by module, and
+        the keyword arguments of() passes to build the message
+
+    Raises:
+        TypeError: If the entity is not a dataclass
+    """
+    if not dataclasses.is_dataclass(found):
+        raise TypeError(
+            f"{found.__name__} is not a dataclass, so has no fields to carry"
+        )
+    hints = get_type_hints(found)
+    fields = list(dataclasses.fields(found))
+    imports: dict[str, set[str]] = {}
+    declared = []
+    carried = []
+    derived_id = getattr(found, id_field, None)
+    if id_field not in hints and isinstance(derived_id, property) and derived_id.fget:
+        hint = get_type_hints(derived_id.fget).get("return", str)
+        declared.append(f"    {id_field}: {_spell(hint, imports)}")
+        carried.append(
+            f"            {id_field}={_carried(hint, f'entity.{id_field}')},"
+        )
+    for field in fields:
+        hint = hints[field.name]
+        declared.append(f"    {field.name}: {_spell(hint, imports)}")
+        carried.append(
+            f"            {field.name}={_carried(hint, f'entity.{field.name}')},"
+        )
+    return "\n".join(declared), imports, "\n".join(carried)
+
+
+def _entity_message(entity: str, snake: str, declared: str, carried: str) -> str:
+    return f"""\
+class {entity}Message(BaseModel):
+    \"\"\"What a {entity} is, as a use case reports it.
+
+    Built from the entity and never holding one. A checked string goes
+    out as str, a value object rides inside as it is, and an enum stays
+    what it was.
+    \"\"\"
+
+{declared}
+
+    @classmethod
+    def of(cls, entity: {entity}) -> "{entity}Message":
+        \"\"\"The message for one {snake}.\"\"\"
+        return cls(
+{carried}
+        )
+"""
 
 
 def _get_messages(entity: str, snake: str, id_field: str) -> str:
@@ -214,7 +432,12 @@ class Get{entity}Request(BaseModel):
 class Get{entity}Response(BaseModel):
     \"\"\"Response for getting a {entity}.\"\"\"
 
-    {snake}: {entity}
+    {snake}: {entity}Message
+
+    @classmethod
+    def of(cls, entity: {entity}) -> "Get{entity}Response":
+        \"\"\"The response for the {snake} that was found.\"\"\"
+        return cls({snake}={entity}Message.of(entity))
 """
 
 
@@ -230,7 +453,7 @@ class Get{entity}UseCase(GetUseCase[{entity}, {entity}Repository]):
     async def execute(self, request: Get{entity}Request) -> Get{entity}Response:
         \"\"\"Execute the get {snake} use case.\"\"\"
         entity = await self._get_by_id(request.{id_field})
-        return Get{entity}Response({snake}=entity)
+        return Get{entity}Response.of(entity)
 """
 
 
@@ -241,10 +464,19 @@ class List{plural_entity}Request(BaseModel):
 
 
 class List{plural_entity}Response(BaseModel):
-    \"\"\"Response for listing all {plural_entity}.\"\"\"
+    \"\"\"Response for listing all {plural_entity}.
 
-    {plural_snake}: list[{entity}]
-    total_count: int
+    The list and nothing else. Paging is a thing HTTP cares about, so
+    a router that needs a page and a count wraps this; a caller in the
+    same process does not.
+    \"\"\"
+
+    {plural_snake}: list[{entity}Message]
+
+    @classmethod
+    def of(cls, entities: list[{entity}]) -> "List{plural_entity}Response":
+        \"\"\"The response for the {plural_snake} that were found.\"\"\"
+        return cls({plural_snake}=[{entity}Message.of(entity) for entity in entities])
 """
 
 
@@ -264,9 +496,7 @@ class List{plural_entity}UseCase(ListUseCase[{entity}, {entity}Repository]):
     ) -> List{plural_entity}Response:
         \"\"\"Execute the list {plural_snake} use case.\"\"\"
         entities = await self._list_all()
-        return List{plural_entity}Response(
-            {plural_snake}=entities, total_count=len(entities)
-        )
+        return List{plural_entity}Response.of(entities)
 """
 
 
@@ -284,7 +514,12 @@ class Create{entity}Request(BaseModel):
 class Create{entity}Response(BaseModel):
     \"\"\"Response for creating a {entity}.\"\"\"
 
-    {snake}: {entity}
+    {snake}: {entity}Message
+
+    @classmethod
+    def of(cls, entity: {entity}) -> "Create{entity}Response":
+        \"\"\"The response for the {snake} that was created.\"\"\"
+        return cls({snake}={entity}Message.of(entity))
 """
 
 
@@ -489,7 +724,7 @@ class Create{entity}UseCase(CreateUseCase[{entity}, {entity}Repository]):
         entity = await self._create(
 {field_kwargs}
         )
-        return Create{entity}Response({snake}=entity)
+        return Create{entity}Response.of(entity)
 """
 
 
@@ -525,7 +760,12 @@ class Update{entity}Request(BaseModel):
 class Update{entity}Response(BaseModel):
     \"\"\"Response for updating a {entity}.\"\"\"
 
-    {snake}: {entity}
+    {snake}: {entity}Message
+
+    @classmethod
+    def of(cls, entity: {entity}) -> "Update{entity}Response":
+        \"\"\"The response for the {snake} as it now is.\"\"\"
+        return cls({snake}={entity}Message.of(entity))
 """
 
 
@@ -565,7 +805,7 @@ class Update{entity}UseCase(UpdateUseCase[{entity}, {entity}Repository]):
     async def execute(self, request: Update{entity}Request) -> Update{entity}Response:
         \"\"\"Execute the update {snake} use case.\"\"\"
 {body}
-        return Update{entity}Response({snake}=entity)
+        return Update{entity}Response.of(entity)
 """
 
 
@@ -674,6 +914,12 @@ def generate(
     # Capitalise each word of the plural snake to get plural entity name
     plural_entity = "".join(w.capitalize() for w in plural_snake.split("_"))
 
+    # The entity itself, because the message is built from its fields.
+    # Asked for first so an entity that cannot be reached stops the run
+    # before anything is written.
+    found = _the_entity(entity_module, entity)
+    declared, carried_imports, carried = _message_fields(found, id_field)
+
     # Collect all fields to determine typing imports
     all_fields = create_fields + update_fields
     typing_names = _needs_typing(all_fields, include_create)
@@ -706,10 +952,15 @@ def generate(
     message_imports.append(f"from {entity_module} import {entity}")
     for extra in _extra_entity_imports(all_fields, entity_module, entity):
         message_imports.append(extra)
+    # What the message's own fields are spelled with. A module may be
+    # named twice across these lines; ruff folds them in _tidy.
+    for module, spelled in sorted(carried_imports.items()):
+        message_imports.append(f"from {module} import {', '.join(sorted(spelled))}")
 
     messages = [
         f'"""Generated CRUD messages for {entity}.\n\nDo not edit — regenerate with generate-crud.sh.\n"""',
         "\n".join(message_imports),
+        _entity_message(entity, snake, declared, carried),
     ]
     if include_get:
         messages.append(_get_messages(entity, snake, id_field))
