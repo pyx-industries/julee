@@ -75,7 +75,7 @@ uv run python -m julee.core.usecases.generate_crud \
 The generator:
 1. Inspects the repository Protocol to derive filter parameter names and types
 2. Applies naming rules (`Story` → `Stories`, `SoftwareSystem` → `software_systems`)
-3. Writes a single `.py` file containing all 15 classes (5 operations × Request + Response + UseCase)
+3. Writes two files: the messages into `dtos/` and the use cases into `usecases/`, because the messages are pydantic and a use case imports none
 4. Pipes output through `ruff format` for consistent style
 
 The generated file is ordinary Python — fully visible to IDEs, debuggable with standard tools, and readable by developers who want to understand what the pattern produces.
@@ -91,6 +91,31 @@ Response classes automatically derive field names from entity types:
 # ListResponse[Story] serializes as:
 {"stories": [...]}
 ```
+
+### A Response Carries a Message, Not the Entity
+
+What sits under those names is a generated `{Entity}Message`, built from
+the entity by `of()`, and never the entity itself. A response carrying
+the entity — `story: Story` — is the entity's shape under another name:
+whoever reads the message depends on the domain, and the domain cannot
+change without breaking them. It did, twice in ceap, over HTTP and into
+Temporal's history, and nothing said so either time.
+
+The message is read off the entity's fields, so the generator has to be
+able to import the entity and refuses to run if it cannot. On the way
+across:
+
+- a checked string (`Slug`, `Name`, `NonEmptyText`) goes out as `str`.
+  The reader of a message is not the one doing the checking
+- a value object rides inside its entity as it is (ADR 018). A `Journey`
+  is the thing with identity; its steps are values of it, and a value's
+  shape on the wire is its shape
+- an enum stays what it was
+
+`List{Entities}Response` carries the list and nothing else. It carried
+`total_count` too, which is paging — a thing HTTP cares about — and an
+adapter that needs a page wraps the list in one. A caller in the same
+process does not.
 
 Naming helpers in the generator:
 - `_to_snake_case()` - converts `SoftwareSystem` to `software_system`

@@ -6,17 +6,21 @@ to be importable by a dotted path.
 
 There are two repositories because there are two ways an entity comes by its
 identity: one the repository mints, and one the caller already knows.
+
+Every entity is a frozen dataclass, because that is what an entity is in
+this framework and the generator now reads its fields to write a message.
+Two of these were pydantic models, the last anywhere in the estate, and
+the generator accepted them because it never looked.
 """
 
 from dataclasses import dataclass
-from typing import Any
-
-from pydantic import BaseModel, Field
+from typing import cast
 
 from julee.core.entities.text import Name, NonEmptyText, Slug
 
 
-class Widget(BaseModel):
+@dataclass(frozen=True)
+class Widget:
     """A thing with more than one field, so an update can leave one alone."""
 
     slug: str
@@ -67,12 +71,17 @@ class DeletableWidgetRepository(WidgetRepository):
         return self.storage.pop(entity_id, None) is not None
 
 
-def _name_it_after_its_name(data: dict[str, Any]) -> Slug:
-    """Derive a slug the way c4's Relationship derives one."""
-    return Slug(f"{data['name']}-derived")
+DERIVE_IT = cast("Slug", "")
+"""The slug default, meaning "name it after the widget".
+
+The same kludge the kits use, and for the same reason: a dataclass
+default cannot read the other fields, and Slug refuses an empty string,
+so the field holds a bare str until __post_init__ replaces it.
+"""
 
 
-class SelfNamingWidget(BaseModel):
+@dataclass(frozen=True)
+class SelfNamingWidget:
     """A widget that works out its own slug when nobody supplies one.
 
     Shaped like c4's Relationship and DynamicStep, which are the real
@@ -80,14 +89,18 @@ class SelfNamingWidget(BaseModel):
     its sequence and number, so there is nothing for a caller to
     choose and nothing for a repository to mint.
 
-    The Slug type is what makes this bite. A default_factory alone
-    would tolerate an empty string being passed — Slug refuses one,
-    so handing the field over empty fails before anything can derive
-    it. That is exactly what the kits hit.
+    The Slug type is what makes this bite. Slug refuses an empty
+    string, so handing the field over empty fails before anything can
+    derive it. That is exactly what the kits hit.
     """
 
     name: str
-    slug: Slug = Field(default_factory=_name_it_after_its_name)
+    slug: Slug = DERIVE_IT
+
+    def __post_init__(self) -> None:
+        """Name it after its name, unless it was named."""
+        if not self.slug:
+            object.__setattr__(self, "slug", Slug(f"{self.name}-derived"))
 
 
 class SelfNamingWidgetRepository:

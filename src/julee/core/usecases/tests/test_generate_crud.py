@@ -50,8 +50,10 @@ def _generate_widget_crud(
         id_field="slug",
         create_fields=create_fields,
         # colour carries a default the update side has to discard, since on an
-        # update the only useful default is "not mentioned".
-        update_fields=update_fields or [("name", "str"), ("colour", 'str = "beige"')],
+        # update the only useful default is "not mentioned". notes admits
+        # None, so it is the field an update can clear.
+        update_fields=update_fields
+        or [("name", "str"), ("colour", 'str = "beige"'), ("notes", "str | None")],
         include_delete=include_delete,
         out_dir=out_dir,
     )
@@ -205,16 +207,28 @@ async def test_update_leaves_out_fields_the_request_did_not_name(
 async def test_update_passing_none_explicitly_clears_the_field(
     crud: ModuleType,
 ) -> None:
-    """Unset means leave alone, so None has to be free to mean something."""
-    repo = MintingWidgetRepository()
-    repo.storage["hammer"] = Widget(slug="hammer", name="Hammer", colour="red")
+    """Unset means leave alone, so None has to be free to mean something.
 
-    response = await crud.UpdateWidgetUseCase(repo).execute(
-        crud.UpdateWidgetRequest(slug="hammer", colour=None)
+    Cleared on notes, which admits None, and not on colour, which is a
+    str. This test used to clear colour: replace() wrote None into a
+    str field, the entity stored it without looking, and the response
+    carried the entity so nothing else looked either. The message
+    checks, and refused it. That the generic update can still write
+    None into a field whose type forbids it is a separate defect, and
+    this test is not the one that hides it.
+    """
+    repo = MintingWidgetRepository()
+    repo.storage["hammer"] = Widget(
+        slug="hammer", name="Hammer", colour="red", notes="scratched"
     )
 
-    assert response.widget.colour is None
+    response = await crud.UpdateWidgetUseCase(repo).execute(
+        crud.UpdateWidgetRequest(slug="hammer", notes=None)
+    )
+
+    assert response.widget.notes is None
     assert response.widget.name == "Hammer"
+    assert response.widget.colour == "red"
 
 
 async def test_update_saves_what_it_returns(crud: ModuleType) -> None:
@@ -272,7 +286,7 @@ def test_a_caller_can_say_what_several_of_something_are_called(
     assert "ListWidgetsUseCase" not in use_cases
     # The plural names the response field too, and that now lives with
     # the messages rather than beside the use case that returns it.
-    assert "widgeten: list[Widget]" in messages
+    assert "widgeten: list[WidgetMessage]" in messages
 
 
 # =============================================================================
@@ -637,9 +651,13 @@ async def test_an_update_rebuilds_the_value_objects_too(tmp_path: Path) -> None:
         crud.CreateNamedWidgetRequest(slug="w-1", name="first", title="A title")
     )
 
-    response = await crud.UpdateNamedWidgetUseCase(repo).execute(
+    await crud.UpdateNamedWidgetUseCase(repo).execute(
         crud.UpdateNamedWidgetRequest(slug="w-1", name="second")
     )
 
-    assert isinstance(response.named_widget.name, Name)
-    assert response.named_widget.name.normalized == "second"
+    # Asked of what was stored, not of the response. The response is a
+    # message and carries the name as a plain str by design; the entity
+    # is where a str in a Name field would be quietly wrong.
+    stored = repo.storage["w-1"]
+    assert isinstance(stored.name, Name)
+    assert stored.name.normalized == "second"

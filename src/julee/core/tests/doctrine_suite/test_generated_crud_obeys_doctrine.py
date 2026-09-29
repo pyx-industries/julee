@@ -17,7 +17,7 @@ import pytest
 
 from julee.core.usecases.generate_crud import generate
 
-from .harness import a_julee_solution, assert_doctrine_ran, run_doctrine
+from .harness import a_julee_solution, assert_doctrine_ran, importable, run_doctrine
 
 pytestmark = pytest.mark.unit
 
@@ -84,17 +84,21 @@ def a_solution_with_generated_crud(root: Path) -> Path:
     (context / "domain" / "models" / "story.py").write_text(ENTITY)
     (context / "domain" / "repositories" / "story.py").write_text(REPOSITORY)
 
-    generate(
-        entity="Story",
-        entity_module="acme.stories.domain.models.story",
-        repo="StoryRepository",
-        repo_module="acme.stories.domain.repositories.story",
-        id_field="slug",
-        create_fields=[("slug", "str"), ("title", 'str=""')],
-        update_fields=[("title", "str")],
-        include_delete=True,
-        out_dir=context,
-    )
+    # The generator reads the entity's fields, so it has to be able to
+    # import it. Before, it could not, warned, and carried on: the
+    # introspection this test appeared to exercise was never running.
+    with importable(root):
+        generate(
+            entity="Story",
+            entity_module="acme.stories.domain.models.story",
+            repo="StoryRepository",
+            repo_module="acme.stories.domain.repositories.story",
+            id_field="slug",
+            create_fields=[("slug", "str"), ("title", 'str=""')],
+            update_fields=[("title", "str")],
+            include_delete=True,
+            out_dir=context,
+        )
     return root
 
 
