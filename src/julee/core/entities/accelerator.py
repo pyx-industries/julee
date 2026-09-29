@@ -11,12 +11,34 @@ the same definition: the public documentation kits, and the private
 supply-chain one. Neither can own it without the other depending on it.
 """
 
-from pydantic import Field, field_validator
-
-from julee.core.entities.entity import Entity
+from dataclasses import dataclass
 
 
-class AcceleratorValidationIssue(Entity):
+def _checked_slug(slug: str) -> str:
+    """The slug to keep, or a refusal.
+
+    This was a ``field_validator`` in ``mode="before"`` on two entities.
+    It both refused an empty slug and returned a stripped one, so it
+    decided what the field holds rather than only checking it, and the
+    stripping has to survive or an accelerator read from a padded
+    manifest stops matching its own references.
+
+    Args:
+        slug: What the caller supplied
+
+    Returns:
+        The slug with surrounding whitespace removed
+
+    Raises:
+        ValueError: If the slug is empty or only whitespace
+    """
+    if not slug or not slug.strip():
+        raise ValueError("slug cannot be empty")
+    return slug.strip()
+
+
+@dataclass(frozen=True)
+class AcceleratorValidationIssue:
     """Something wrong with one accelerator, found by comparing it to code.
 
     Validation reads what the documentation claims and what the code
@@ -24,33 +46,37 @@ class AcceleratorValidationIssue(Entity):
     code, code with no accelerator, or a mismatch between them.
     """
 
-    slug: str = Field(description="The accelerator the issue is about")
-    issue_type: str = Field(
-        description='One of "undocumented", "no_code" or "mismatch"'
-    )
-    message: str = Field(description="What is wrong, in a sentence")
+    slug: str
+    """The accelerator the issue is about."""
+
+    issue_type: str
+    """One of "undocumented", "no_code" or "mismatch"."""
+
+    message: str
+    """What is wrong, in a sentence."""
 
 
-class IntegrationReference(Entity):
+@dataclass(frozen=True)
+class IntegrationReference:
     """Reference to an integration with optional description.
 
     Used for sources_from and publishes_to relationships where
     an accelerator may specify what data it sources or publishes.
     """
 
-    slug: str = Field(description='Integration slug (e.g., "pilot-data-collection")')
-    description: str = Field(
-        default="",
-        description='What is sourced/published (e.g., "Scheme documentation")',
-    )
+    slug: str
+    """Integration slug (e.g., "pilot-data-collection")."""
 
-    @field_validator("slug", mode="before")
-    @classmethod
-    def validate_slug(cls, v: str) -> str:
-        """Validate slug is not empty."""
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
+    description: str = ""
+    """What is sourced/published (e.g., "Scheme documentation")."""
+
+    def __post_init__(self) -> None:
+        """Check the slug and trim it.
+
+        Raises:
+            ValueError: If the slug is empty or only whitespace
+        """
+        object.__setattr__(self, "slug", _checked_slug(self.slug))
 
     @classmethod
     def from_dict(cls, data: dict | str) -> "IntegrationReference":
@@ -67,7 +93,8 @@ class IntegrationReference(Entity):
         return cls(slug=data.get("slug", ""), description=data.get("description", ""))
 
 
-class Accelerator(Entity):
+@dataclass(frozen=True)
+class Accelerator:
     """Accelerator entity.
 
     An accelerator represents a bounded context that provides business
@@ -75,41 +102,43 @@ class Accelerator(Entity):
     exposed through one or more applications.
     """
 
-    slug: str = Field(description='URL-safe identifier (e.g., "vocabulary")')
-    status: str = Field(
-        default="",
-        description='Development status (e.g., "alpha", "production", "future")',
-    )
-    milestone: str | None = Field(
-        default=None, description='Target milestone (e.g., "2 (Nov 2025)")'
-    )
-    acceptance: str | None = Field(
-        default=None, description="Acceptance criteria description"
-    )
-    objective: str = Field(default="", description="Business objective/description")
-    sources_from: tuple[IntegrationReference, ...] = Field(
-        default_factory=tuple, description="Integrations this accelerator reads from"
-    )
-    feeds_into: tuple[str, ...] = Field(
-        default_factory=tuple, description="Other accelerators this one feeds data into"
-    )
-    publishes_to: tuple[IntegrationReference, ...] = Field(
-        default_factory=tuple, description="Integrations this accelerator writes to"
-    )
-    depends_on: tuple[str, ...] = Field(
-        default_factory=tuple, description="Other accelerators this one depends on"
-    )
-    docname: str = Field(
-        default="", description="RST document name (for incremental builds)"
-    )
+    slug: str
+    """URL-safe identifier (e.g., "vocabulary")."""
 
-    @field_validator("slug", mode="before")
-    @classmethod
-    def validate_slug(cls, v: str) -> str:
-        """Validate slug is not empty."""
-        if not v or not v.strip():
-            raise ValueError("slug cannot be empty")
-        return v.strip()
+    status: str = ""
+    """Development status (e.g., "alpha", "production", "future")."""
+
+    milestone: str | None = None
+    """Target milestone (e.g., "2 (Nov 2025)")."""
+
+    acceptance: str | None = None
+    """Acceptance criteria description."""
+
+    objective: str = ""
+    """Business objective/description."""
+
+    sources_from: tuple[IntegrationReference, ...] = ()
+    """Integrations this accelerator reads from."""
+
+    feeds_into: tuple[str, ...] = ()
+    """Other accelerators this one feeds data into."""
+
+    publishes_to: tuple[IntegrationReference, ...] = ()
+    """Integrations this accelerator writes to."""
+
+    depends_on: tuple[str, ...] = ()
+    """Other accelerators this one depends on."""
+
+    docname: str = ""
+    """RST document name (for incremental builds)."""
+
+    def __post_init__(self) -> None:
+        """Check the slug and trim it.
+
+        Raises:
+            ValueError: If the slug is empty or only whitespace
+        """
+        object.__setattr__(self, "slug", _checked_slug(self.slug))
 
     @property
     def display_title(self) -> str:
