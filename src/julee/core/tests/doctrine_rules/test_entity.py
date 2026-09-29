@@ -42,10 +42,12 @@ def a_context(
     entities: int = 3,
     use_cases: int = 4,
     repositories: int = 2,
+    values: int = 0,
 ) -> BoundedContextInfo:
     """A parsed context, described by how much of each thing doctrine read."""
     return BoundedContextInfo(
         slug=slug,
+        values=tuple(ClassInfo(name=f"Value{i}") for i in range(values)),
         entities=tuple(ClassInfo(name=f"Entity{i}") for i in range(entities)),
         use_cases=tuple(ClassInfo(name=f"Do{i}UseCase") for i in range(use_cases)),
         repository_protocols=tuple(
@@ -332,6 +334,33 @@ def test_the_objection_says_what_doctrine_did_read() -> None:
     assert "44 use cases" in objection
     assert "10 repository protocols" in objection
     assert "domain/models/" in objection
+    assert "domain/values/" in objection
+
+
+def test_a_context_that_keeps_nothing_is_not_blind() -> None:
+    """Values and no entities is a thing a context is allowed to be.
+
+    polling is one: it orchestrates a poll, keeps nothing, has no
+    repository, and every class it declares is a value (ADR 018). This
+    canary asks whether doctrine can see any of the domain, not whether
+    it found an aggregate — otherwise it would report a context for
+    being what it is.
+    """
+    contexts = [a_context(entities=0, values=5, repositories=0)]
+
+    assert contexts_whose_entities_doctrine_cannot_see(contexts) == []
+
+
+def test_a_context_with_neither_is_still_objected_to() -> None:
+    """The case the canary exists for, now that values are read too.
+
+    Widening it to values must not widen it into silence: a context with
+    use cases and no domain class of either kind is still doctrine
+    looking in the wrong place.
+    """
+    contexts = [a_context(entities=0, values=0, use_cases=4)]
+
+    assert len(contexts_whose_entities_doctrine_cannot_see(contexts)) == 1
 
 
 def test_repositories_alone_are_evidence_enough_of_a_domain() -> None:

@@ -83,6 +83,7 @@ only edit a new port needs.
 """
 
 _ENTITIES_DIR = "/".join(ENTITIES_PATH)
+_VALUES_DIR = "/".join(VALUES_PATH)
 
 
 def _is_enum(entity: ClassInfo) -> bool:
@@ -242,6 +243,13 @@ def contexts_whose_entities_doctrine_cannot_see(
     has a domain at all. One with neither may legitimately have no
     entities; one with either almost certainly has them somewhere.
 
+    A context with values and no entities is not blind, though — it is
+    visible and has no aggregates, which is a thing a context is allowed
+    to be. polling is one: it orchestrates a poll, keeps nothing, has no
+    repository at all, and every class it declares is a value (ADR 018).
+    So what this canary asks is whether doctrine can see *any* of the
+    context's domain, not whether it found an entity.
+
     Args:
         contexts: The bounded contexts doctrine parsed
 
@@ -250,7 +258,7 @@ def contexts_whose_entities_doctrine_cannot_see(
     """
     objections = []
     for info in contexts:
-        if info.entities:
+        if info.entities or info.values:
             continue
         evidence = []
         if info.use_cases:
@@ -261,8 +269,9 @@ def contexts_whose_entities_doctrine_cannot_see(
             continue
         objections.append(
             f"{info.slug}: doctrine read {' and '.join(evidence)} out of this "
-            f"context but no entity at all out of {_ENTITIES_DIR}/, so either "
-            f"it has none or they are somewhere doctrine is not looking"
+            f"context but no domain class at all out of {_ENTITIES_DIR}/ or "
+            f"{_VALUES_DIR}/, so either it has none or they are somewhere "
+            f"doctrine is not looking"
         )
     return objections
 
