@@ -160,10 +160,10 @@ class UpdateUseCase(Generic[E, R]):
     """Base for update use cases.
 
     Subclasses implement execute() calling _update_by_id() with the ID
-    field and a dict of field updates. The update is applied via
-    model_copy(update=...) which suits entities whose mutable state maps
-    directly to Pydantic fields. Entities with non-trivial update logic
-    (e.g. JSON-content models) should keep hand-rolled use cases.
+    field and a dict of field updates. The update rebuilds the entity
+    with dataclasses.replace, which suits an entity whose state is its
+    fields. Entities with non-trivial update logic should keep
+    hand-rolled use cases.
     """
 
     def __init__(self, repo: R) -> None:
@@ -173,11 +173,9 @@ class UpdateUseCase(Generic[E, R]):
     async def _update_by_id(self, entity_id: str, updates: dict[str, Any]) -> E:
         """Fetch the entity, apply the changes, save it and return it.
 
-        A frozen dataclass is rebuilt with ``dataclasses.replace``,
-        which runs ``__post_init__`` — so whatever the entity refuses
-        to be, it still refuses to be after an update. A pydantic
-        model uses ``model_copy``, which does not validate, and is
-        what the estate has until its entities finish moving.
+        The entity is rebuilt with ``dataclasses.replace``, which runs
+        ``__post_init__`` — so whatever the entity refuses to be, it
+        still refuses to be after an update.
 
         Args:
             entity_id: Which entity to change
@@ -195,14 +193,16 @@ class UpdateUseCase(Generic[E, R]):
         if entity is None:
             raise EntityNotFoundError(entity_id)
         _refuse_none_the_type_forbids(entity, updates)
-        updated: E
-        if dataclasses.is_dataclass(entity) and not isinstance(entity, type):
-            # replace() is typed as returning the DataclassInstance
-            # protocol rather than the entity's own type, which is a
-            # limit of the stub and not of the call.
-            updated = cast("E", dataclasses.replace(entity, **updates))
-        else:
-            updated = entity.model_copy(update=updates)
+        if not dataclasses.is_dataclass(entity) or isinstance(entity, type):
+            # There was a model_copy branch here for pydantic entities,
+            # "until the estate's entities finish moving". They have.
+            raise TypeError(
+                f"{type(entity).__name__} is not a dataclass, and an entity is one"
+            )
+        # replace() is typed as returning the DataclassInstance protocol
+        # rather than the entity's own type, which is a limit of the stub
+        # and not of the call.
+        updated = cast("E", dataclasses.replace(entity, **updates))
         await self.repo.save(updated)  # type: ignore[attr-defined]
         return updated
 

@@ -4,17 +4,18 @@ The point of the mixin is that the files are the record: what is written
 survives the repository, and what is on disk is what a reader sees.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel
 
 from julee.repositories.file import FileRepositoryMixin
 
 pytestmark = pytest.mark.unit
 
 
-class Story(BaseModel):
+@dataclass(frozen=True)
+class Story:
     slug: str
     title: str
 
@@ -124,7 +125,8 @@ async def test_clearing_empties_the_directory(
 async def test_an_id_field_that_is_not_a_string_is_refused(tmp_path: Path) -> None:
     """The id names a file, so it has to be a string; say so plainly."""
 
-    class Numbered(BaseModel):
+    @dataclass(frozen=True)
+    class Numbered:
         slug: int
         title: str
 

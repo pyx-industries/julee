@@ -10,15 +10,17 @@ Putting delete on BaseRepository would have forced those nine to
 implement something they should refuse.
 """
 
+from dataclasses import dataclass
+
 import pytest
-from pydantic import BaseModel
 
 from julee.core.repositories.base import BaseRepository, Deletable, RepositoryOf
 
 pytestmark = pytest.mark.unit
 
 
-class Widget(BaseModel):
+@dataclass(frozen=True)
+class Widget:
     """An entity keyed by a slug."""
 
     slug: str
