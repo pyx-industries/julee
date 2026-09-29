@@ -205,3 +205,91 @@ def test_driven_port_must_only_use_primitives_or_frozen_dataclasses(
         refused
     )
     assert not missed, "the doctrine suite did not object to: " + ", ".join(missed)
+
+
+GENERIC_BASE = '''"""A generic base protocol, and two ports built on it."""
+
+from typing import Protocol, TypeVar, runtime_checkable
+
+from acme.stories.domain.models.extras import AModel
+from acme.stories.domain.models.story import Story
+
+T = TypeVar("T")
+
+
+@runtime_checkable
+class Keeps(Protocol[T]):
+    """What every repository in this context can do.
+
+    Generic in its entity, so it is a base rather than a port: T is
+    decided by whoever inherits it.
+    """
+
+    async def get(self, entity_id: str) -> T | None: ...
+
+    async def save(self, entity: T) -> None: ...
+
+
+@runtime_checkable
+class StoryRepository(Keeps[Story], Protocol):
+    """A port. Keeps' T is a Story here."""
+
+
+@runtime_checkable
+class ModelRepository(Keeps[AModel], Protocol):
+    """A port that binds T to something it may not."""
+'''
+
+
+def a_solution_with_a_generic_base(root: Path) -> Path:
+    """Write a solution whose repositories share a generic base.
+
+    Args:
+        root: The solution root to write into
+
+    Returns:
+        The root, ready to pass as JULEE_TARGET
+    """
+    context = a_julee_solution(root)
+    (context / "domain" / "models").mkdir(parents=True)
+    (context / "domain" / "repositories").mkdir(parents=True)
+    (context / "usecases").mkdir(parents=True)
+    (context / "usecases" / "__init__.py").write_text("")
+    for package in (
+        context / "domain",
+        context / "domain" / "models",
+        context / "domain" / "repositories",
+    ):
+        (package / "__init__.py").write_text("")
+    (context / "domain" / "models" / "story.py").write_text(ENTITY)
+    (context / "domain" / "models" / "extras.py").write_text(EXTRAS)
+    (context / "domain" / "repositories" / "keeps.py").write_text(GENERIC_BASE)
+    return root
+
+
+def test_a_generic_base_is_judged_where_it_is_bound(tmp_path: Path) -> None:
+    """A protocol still generic in its entity is a base, not a port.
+
+    hcd declares HcdRepository[T] and builds seven repositories on it.
+    Read on its own it returns a bare T, which says nothing about what
+    crosses any port: T is whatever the subclass decided. Objecting
+    there reports the base class rather than the port in front of it,
+    and the only way to quiet it would be to bind T to pydantic — the
+    opposite of what the rule exists to require.
+
+    So the base is skipped and the bindings are judged. This asserts
+    both halves: skipping must not take the offending binding with it.
+    """
+    result = run_port_doctrine(a_solution_with_a_generic_base(tmp_path / "generic"))
+
+    assert_doctrine_ran(result, EXPECTED_PORT_TESTS, PORT_SELECTOR)
+    assert "unbounded type variable" not in result.stdout, (
+        "doctrine objected to a generic base protocol:\n" + result.stdout
+    )
+    assert "ModelRepository" in result.stdout, (
+        "doctrine stopped objecting to a port that binds its base to a "
+        "pydantic model:\n" + result.stdout
+    )
+    assert "StoryRepository" not in result.stdout, (
+        "doctrine objected to a port bound to a frozen dataclass:\n" + result.stdout
+    )
