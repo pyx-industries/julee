@@ -163,8 +163,10 @@ nitpick_ignore = [
     ('py:class', 'collections.abc.Mapping'),
     ('py:class', 'collections.abc.Sequence'),
     ('py:class', 'io.IOBase'),
+    ('py:class', 'logging.LogRecord'),
     ('py:class', 'pathlib.Path'),
     ('py:obj', 'enum.StrEnum'),
+    ('py:obj', 'logging.Filter'),
 
     # Third-party, likewise.
     ('py:class', 'pydantic.BaseModel'),
