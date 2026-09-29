@@ -30,7 +30,7 @@ __all__ = [
     "contexts_whose_entities_doctrine_cannot_see",
     "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
-    "entities_not_extending_Entity",
+    "entities_that_can_be_mutated",
     "entities_that_are_not_frozen_dataclasses",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
@@ -112,19 +112,24 @@ def _is_frozen_dataclass(entity: ClassInfo) -> bool:
     return entity.decorator_argument("dataclass", "frozen") == "True"
 
 
-def entities_not_extending_Entity(found: Found) -> list[str]:
-    """Entities that do not inherit immutability.
+def entities_that_can_be_mutated(found: Found) -> list[str]:
+    """Entities whose fields can be reassigned after construction.
 
-    Entity sets frozen=True, which stops field reassignment and says that
-    a change means a new instance rather than an edited one.
+    An entity is a snapshot: a change means a new instance rather than
+    an edited one, and a field that can be written makes that a
+    convention rather than a fact.
+
+    This was ``entities_not_extending_Entity``, and it named a base
+    class that no longer exists. ``Entity`` was a pydantic ``BaseModel``
+    with ``frozen=True``; every entity that inherited it is a frozen
+    dataclass now, so the rule is stated as what it always measured.
 
     Compliance is transitive: a class extending another entity in the
     same codebase is fine. A base this codebase cannot see is trusted,
     since whoever owns it runs their own doctrine over it.
 
-    A class with no bases complies if it is a ``@dataclass(frozen=True)``
-    — that is the same promise Entity makes, made another way. A
-    ``@dataclass`` without it is reported, which is the case this rule
+    A class with no bases complies if it is a ``@dataclass(frozen=True)``.
+    A ``@dataclass`` without it is reported, which is the case this rule
     used to miss entirely: a mutable entity, discovered and unexamined.
 
     Args:
@@ -140,8 +145,9 @@ def entities_not_extending_Entity(found: Found) -> list[str]:
     }
 
     def is_compliant(name: str, visiting: frozenset[str]) -> bool:
-        if name == "Entity":
-            return True
+        # "Entity" was trusted here by name, because julee's Entity was
+        # frozen. It is gone, and trusting the name would now pass any
+        # base a solution chose to call Entity, frozen or not.
         if name == "BaseModel":
             return False
         if name in visiting:
@@ -313,8 +319,8 @@ def copies_that_skip_a_validator(
     :func:`fields_using_mutable_collections` reads annotations to
     prevent, arrived at from the other direction (julee-kits#57).
 
-    :meth:`julee.core.entities.entity.Entity.evolve` writes the same
-    change and runs the validators, so the remedy is a rename.
+    ``dataclasses.replace`` writes the same change and runs
+    ``__post_init__``, so the remedy is to use it.
 
     Field names are matched across the codebase being checked rather
     than resolved to the model being copied, because the model a
@@ -390,9 +396,9 @@ def validators_that_transform(found: Found) -> list[str]:
       own annotation forbids. :func:`copies_that_skip_a_validator` is
       that problem from the other side, and it stops being needed as
       this one is obeyed.
-    - :meth:`julee.core.entities.entity.Entity.evolve` exists to re-run
-      transformers. With nothing
-      to re-run it converges with ``model_copy``.
+    - ``Entity.evolve`` existed to re-run transformers. It is gone with
+      the class, and ``dataclasses.replace`` always runs
+      ``__post_init__``, so there is no longer a pair to tell apart.
     - A frozen dataclass has no validators at all (#307). Work that
       lives in one has to move before entities can stop being pydantic
       models; work that lives in a type moves with it.

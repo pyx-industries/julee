@@ -25,8 +25,6 @@ from enum import IntEnum, StrEnum
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-
-from julee.core.entities.entity import Entity
 '''
 
 ALLOWED = {
@@ -52,10 +50,11 @@ FORBIDDEN = {
         'class Story(BaseModel):\n    """A unit of work."""\n\n    slug: str\n',
         "Story",
     ),
-    "julee's Entity": (
-        'class Story(Entity):\n    """A unit of work."""\n\n    slug: str\n',
-        "Story",
-    ),
+    # A case for extending julee's Entity stood here. There is no such
+    # class now: it was a pydantic BaseModel, every entity that
+    # inherited it is a frozen dataclass, and a base that cannot be
+    # written cannot be a case. "a local base that is a pydantic model"
+    # below is the shape that remains reachable.
     "a local base that is a pydantic model": (
         'class _Authored(BaseModel):\n    """A base of the solution\'s own."""\n\n\n'
         'class Story(_Authored):\n    """A unit of work."""\n\n    slug: str\n',

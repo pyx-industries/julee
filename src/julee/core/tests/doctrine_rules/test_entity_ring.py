@@ -8,8 +8,8 @@ import pytest
 
 from julee.core.doctrine.resolution import entity_verdicts
 from julee.core.doctrine.rules.entity import (
-    entities_not_extending_Entity,
     entities_that_are_not_frozen_dataclasses,
+    entities_that_can_be_mutated,
 )
 from julee.core.entities.code_info import ClassInfo
 
@@ -117,7 +117,7 @@ def test_a_pydantic_dataclass_says_which_decorator_to_change(tmp_path: Path) -> 
 def test_the_frozen_rule_passes_what_this_one_catches() -> None:
     """Why this rule exists, pinned so it cannot be quietly removed.
 
-    entities_not_extending_Entity reads the decorator, and both
+    entities_that_can_be_mutated reads the decorator, and both
     decorators are spelled @dataclass(frozen=True).
     """
     story = ClassInfo(
@@ -127,4 +127,4 @@ def test_the_frozen_rule_passes_what_this_one_catches() -> None:
         decorator_arguments={"dataclass": {"frozen": "True"}},
     )
 
-    assert entities_not_extending_Entity([("hcd", story)]) == []
+    assert entities_that_can_be_mutated([("hcd", story)]) == []
