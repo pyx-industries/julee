@@ -11,7 +11,9 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.entities import kernel_entity_names
+from julee.core.doctrine.resolution import VALUE_OBJECT_BASES
+from julee.core.doctrine.rules.entity import value_object_names
+from julee.core.entities import kernel_classes, kernel_entity_names
 from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.file.solution_config import (
     FileSolutionConfigRepository,
@@ -94,15 +96,22 @@ def kits():
     return adopted_kits(PROJECT_ROOT)
 
 
-def _is_enum(entity: object) -> bool:
-    """Whether a scanned class is an Enum rather than an entity.
+def _value_roots() -> frozenset[str]:
+    """Names that are values without having to be looked up.
 
-    An Enum in domain/models is a value a protocol may take or return
-    without being bound to a second entity. test_entity exempts them the
-    same way.
+    ``str`` and ``int``, and the kernel's own value objects — Slug, Name
+    and NonEmptyText are str subclasses, so a kit's value object built
+    on one of them resolves through here.
+
+    Asked of the imported classes rather than listed, so a value object
+    added to the kernel is one here too.
     """
-    bases = getattr(entity, "bases", None) or ()
-    return any(b in {"str", "int"} or b.endswith("Enum") for b in bases)
+    kernel = {
+        name
+        for name, obj in kernel_classes().items()
+        if isinstance(obj, type) and issubclass(obj, VALUE_OBJECT_BASES)
+    }
+    return frozenset({"str", "int"} | kernel)
 
 
 @pytest.fixture(scope="session")
@@ -118,13 +127,24 @@ def entity_names_by_context(
     such a repository score zero, which no rule could tell apart from a
     protocol holding nothing at all (#237).
 
+    Value objects are left out. A repository naming one is not a
+    repository doing the work of two: ``ContentMultihash`` extends
+    ``NonEmptyText`` extends ``str``, and ceap's DocumentRepository was
+    reported as bound to two aggregates for returning one.
+
     One fixture rather than one construction per rule, because the two
     that read arity disagreed about enums and would have disagreed about
     this too.
     """
     kernel = set(kernel_entity_names())
-    return {
-        ctx.slug: kernel | {e.name for e in info.entities if not _is_enum(e)}
-        for ctx in repo.discover_all()
-        if (info := parse_bounded_context(Path(ctx.path))) is not None
-    }
+    roots = _value_roots()
+    found = {}
+    for ctx in repo.discover_all():
+        info = parse_bounded_context(Path(ctx.path))
+        if info is None:
+            continue
+        values = value_object_names(info.entities, roots)
+        found[ctx.slug] = kernel | {
+            e.name for e in info.entities if e.name not in values
+        }
+    return found
