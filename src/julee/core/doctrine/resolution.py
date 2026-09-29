@@ -565,6 +565,31 @@ def _declared_methods(protocol: type) -> dict[str, object]:
     }
 
 
+def _is_still_generic(protocol: type) -> bool:
+    """Whether a protocol leaves its own entity type undecided.
+
+    ``HcdRepository(BaseRepository[T], Protocol[T])`` is a base seven
+    repositories are built on, not a port. Read on its own it returns a
+    bare ``T``, which says nothing about what crosses any port, because
+    ``T`` is whatever the subclass decided. Judging it reports the base
+    class rather than the port in front of it, and the only way to
+    quiet the objection would be to bind ``T`` to pydantic — the
+    opposite of what the rule exists to require.
+
+    So it is skipped, and every protocol that binds it is judged with
+    the argument substituted, which is where the question can be
+    answered. A generic base nothing ever binds goes unjudged; it is
+    also unreachable, since a port is what a use case is handed.
+
+    Args:
+        protocol: The protocol to read
+
+    Returns:
+        True if it still declares free type parameters
+    """
+    return bool(getattr(protocol, "__parameters__", ()))
+
+
 def port_verdicts(
     slug: str, context_path: Path, names_by_layer: dict[tuple[str, ...], list[str]]
 ) -> list[Verdict]:
@@ -593,6 +618,8 @@ def port_verdicts(
                 verdicts.append(
                     Verdict(slug, name, "doctrine could not resolve it to a class")
                 )
+                continue
+            if _is_still_generic(found):
                 continue
             arguments = _type_arguments(found)
             for method, function in _declared_methods(found).items():
