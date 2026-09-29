@@ -251,12 +251,16 @@ class MemoryRepositoryMixin(Generic[T]):
 
         if not updates:
             return entity
-        if dataclasses.is_dataclass(entity) and not isinstance(entity, type):
-            # replace() is typed as returning the DataclassInstance
-            # protocol rather than the entity's own type, which is a
-            # limit of the stub and not of the call.
-            return cast("T", dataclasses.replace(entity, **updates))
-        return cast("T", entity.model_copy(update=updates))  # type: ignore[attr-defined]
+        if not dataclasses.is_dataclass(entity) or isinstance(entity, type):
+            # There was a model_copy fallback here for pydantic entities.
+            # No entity in the estate is one.
+            raise TypeError(
+                f"{type(entity).__name__} is not a dataclass, and an entity is one"
+            )
+        # replace() is typed as returning the DataclassInstance protocol
+        # rather than the entity's own type, which is a limit of the stub
+        # and not of the call.
+        return cast("T", dataclasses.replace(entity, **updates))
 
     def _add_entity_specific_log_data(
         self, entity: T, log_data: dict[str, Any]

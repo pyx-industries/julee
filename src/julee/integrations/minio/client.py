@@ -474,12 +474,16 @@ class MinioRepositoryMixin:
 
         if not updates:
             return model
-        if dataclasses.is_dataclass(model) and not isinstance(model, type):
-            # replace() is typed as returning the DataclassInstance
-            # protocol rather than the entity's own type, which is a
-            # limit of the stub and not of the call.
-            return cast("T", dataclasses.replace(model, **updates))
-        return cast("T", model.model_copy(update=updates))  # type: ignore[attr-defined]
+        if not dataclasses.is_dataclass(model) or isinstance(model, type):
+            # There was a model_copy fallback here for pydantic entities.
+            # No entity in the estate is one.
+            raise TypeError(
+                f"{type(model).__name__} is not a dataclass, and an entity is one"
+            )
+        # replace() is typed as returning the DataclassInstance protocol
+        # rather than the entity's own type, which is a limit of the stub
+        # and not of the call.
+        return cast("T", dataclasses.replace(model, **updates))
 
     def generate_id_with_prefix(self, prefix: str) -> str:
         """Generate a unique ID with the given prefix and log the generation.

@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from pydantic import BaseModel
 
 from julee.core.usecases.generic_crud import (
     CreateUseCase,
@@ -26,8 +25,14 @@ pytestmark = pytest.mark.unit
 # =============================================================================
 
 
-class FakeEntity(BaseModel):
-    """Minimal entity for testing."""
+@dataclass(frozen=True)
+class FakeEntity:
+    """Minimal entity for testing.
+
+    A frozen dataclass, because that is what an entity is. It was a
+    pydantic model, and the base class kept a model_copy branch alive
+    for it after every real entity had moved.
+    """
 
     entity_id: str
     name: str = ""
@@ -202,7 +207,7 @@ class TestCreateUseCase:
 class TestUpdateUseCase:
     """Tests for update base class."""
 
-    async def test_applies_updates_via_model_copy(self):
+    async def test_applies_updates(self):
         repo = FakeRepo()
         await repo.save(FakeEntity(entity_id="abc", name="old", value=1))
 

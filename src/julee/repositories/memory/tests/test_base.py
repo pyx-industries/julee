@@ -1,16 +1,17 @@
 """Unit tests for MemoryRepositoryMixin."""
 
 import logging
+from dataclasses import dataclass
 
 import pytest
-from pydantic import BaseModel
 
 from julee.repositories.memory import MemoryRepositoryMixin
 
 pytestmark = pytest.mark.unit
 
 
-class Widget(BaseModel):
+@dataclass(frozen=True)
+class Widget:
     """An entity keyed by a slug its author chooses."""
 
     slug: str
