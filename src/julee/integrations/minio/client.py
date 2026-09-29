@@ -11,26 +11,29 @@ common patterns used across all Minio repository implementations to reduce
 code duplication and ensure consistent error handling and logging.
 """
 
+import dataclasses
 import io
-import json
 from datetime import UTC, datetime
 from typing import (
     Any,
     BinaryIO,
     Protocol,
     TypeVar,
+    cast,
     runtime_checkable,
 )
 
 from minio.api import ObjectWriteResult
 from minio.datatypes import Object
 from minio.error import S3Error
-from pydantic import BaseModel
+from pydantic import TypeAdapter
 from urllib3.response import BaseHTTPResponse
 
 from julee.core.entities.content_stream import ContentStream
 
-T = TypeVar("T", bound=BaseModel)
+# Unbounded: a domain entity is a frozen dataclass. Both directions go
+# through a TypeAdapter, which builds either from the same JSON.
+T = TypeVar("T")
 
 
 @runtime_checkable
@@ -173,6 +176,31 @@ class MinioClient(Protocol):
         ...
 
 
+def _rebuilt(model_class: type[T], data: bytes) -> T:
+    """One entity, built from the JSON it was stored as.
+
+    Through a ``TypeAdapter``, which builds a pydantic model and a
+    stdlib dataclass the same way. This was ``model_class(**json_dict)``,
+    which hands every field whatever JSON happened to hold. Pydantic
+    rebuilt the real types on the way in, so it read as correct; a
+    frozen dataclass stores the raw JSON instead — a str where a
+    datetime belongs, a list where a tuple does, and a value object's
+    checks never run.
+
+    Nothing raised when that happened, and the memory repositories were
+    already dataclass-aware, so a kit's tests would have stayed green
+    while every object read back from MinIO was wrong.
+
+    Args:
+        model_class: The entity type to build
+        data: The stored JSON
+
+    Returns:
+        The entity
+    """
+    return TypeAdapter(model_class).validate_json(data)
+
+
 class MinioRepositoryMixin:
     """
     Mixin that provides common repository patterns for Minio implementations.
@@ -284,11 +312,7 @@ class MinioRepositoryMixin:
                 response.close()
                 response.release_conn()
 
-                # Deserialize JSON to Pydantic model
-                json_str = data.decode("utf-8")
-                json_dict = json.loads(json_str)
-
-                entity = model_class(**json_dict)
+                entity = _rebuilt(model_class, data)
                 result[object_name] = entity
                 found_count += 1
 
@@ -443,11 +467,7 @@ class MinioRepositoryMixin:
             response.close()
             response.release_conn()
 
-            # Deserialize JSON to Pydantic model
-            json_str = data.decode("utf-8")
-            json_dict = json.loads(json_str)
-
-            return model_class(**json_dict)
+            return _rebuilt(model_class, data)
 
         except S3Error as e:
             if getattr(e, "code", None) == "NoSuchKey":
@@ -467,7 +487,7 @@ class MinioRepositoryMixin:
         self,
         bucket_name: str,
         object_name: str,
-        model: BaseModel,
+        model: object,
         success_log_message: str,
         error_log_message: str,
         extra_log_data: dict[str, Any] | None = None,
@@ -488,10 +508,7 @@ class MinioRepositoryMixin:
         extra_log_data = extra_log_data or {}
 
         try:
-            # Serialize using Pydantic's JSON serialization
-            json_data = model.model_dump_json()
-
-            json_bytes = json_data.encode("utf-8")
+            json_bytes = TypeAdapter(type(model)).dump_json(model)
             self.client.put_object(
                 bucket_name=bucket_name,
                 object_name=object_name,
@@ -512,18 +529,22 @@ class MinioRepositoryMixin:
             )
             raise
 
-    def update_timestamps(self, model: Any) -> Any:
-        """Return a copy of the model with timestamps updated.
+    def update_timestamps(self, model: T) -> T:
+        """Return a copy of the entity with timestamps updated.
 
         Sets created_at if currently None (new entity), and always sets
         updated_at to the current time.
 
+        Generic rather than ``Any``, so a caller gets back the type it
+        handed over and a repository that loses a field here is a type
+        error rather than a surprise later.
+
         Args:
-            model: Pydantic model with created_at and updated_at fields
+            model: Entity with created_at and updated_at fields
 
         Returns:
-            New model instance with updated timestamps (or original if no
-            timestamp fields are present)
+            New entity with updated timestamps (or the original if it
+            has no timestamp fields)
         """
         now = datetime.now(UTC)
 
@@ -535,9 +556,14 @@ class MinioRepositoryMixin:
         if hasattr(model, "updated_at"):
             updates["updated_at"] = now
 
-        if updates:
-            return model.model_copy(update=updates)
-        return model
+        if not updates:
+            return model
+        if dataclasses.is_dataclass(model) and not isinstance(model, type):
+            # replace() is typed as returning the DataclassInstance
+            # protocol rather than the entity's own type, which is a
+            # limit of the stub and not of the call.
+            return cast("T", dataclasses.replace(model, **updates))
+        return cast("T", model.model_copy(update=updates))  # type: ignore[attr-defined]
 
     def generate_id_with_prefix(self, prefix: str) -> str:
         """Generate a unique ID with the given prefix and log the generation.
