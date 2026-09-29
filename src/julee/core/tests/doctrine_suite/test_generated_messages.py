@@ -35,7 +35,7 @@ ENTITY = '''"""The Story entity, with one of every shape a field takes."""
 from dataclasses import dataclass
 from enum import StrEnum
 
-from julee.core.entities.text import Name, Slug
+from julee.core.values.text import Name, Slug
 
 from acme.stories.domain.values.step import Step
 
@@ -204,8 +204,8 @@ class TestWhatAResponseCarries:
         """
         dtos = importlib.import_module("acme.stories.dtos.crud_story")
         models = importlib.import_module("acme.stories.domain.models.story")
-        Slug = importlib.import_module("julee.core.entities.text").Slug
-        Name = importlib.import_module("julee.core.entities.text").Name
+        Slug = importlib.import_module("julee.core.values.text").Slug
+        Name = importlib.import_module("julee.core.values.text").Name
 
         message = dtos.StoryMessage.of(models.Story(slug=Slug("a"), name=Name("A")))
 
@@ -222,7 +222,7 @@ class TestWhatAResponseCarries:
         dtos = importlib.import_module("acme.stories.dtos.crud_story")
         models = importlib.import_module("acme.stories.domain.models.story")
         values = importlib.import_module("acme.stories.domain.values.step")
-        text = importlib.import_module("julee.core.entities.text")
+        text = importlib.import_module("julee.core.values.text")
 
         story = models.Story(
             slug=text.Slug("a"),
@@ -236,7 +236,7 @@ class TestWhatAResponseCarries:
         """It was never the domain's private vocabulary."""
         dtos = importlib.import_module("acme.stories.dtos.crud_story")
         models = importlib.import_module("acme.stories.domain.models.story")
-        text = importlib.import_module("julee.core.entities.text")
+        text = importlib.import_module("julee.core.values.text")
 
         message = dtos.StoryMessage.of(
             models.Story(

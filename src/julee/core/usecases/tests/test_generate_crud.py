@@ -13,7 +13,6 @@ from types import ModuleType
 
 import pytest
 
-from julee.core.entities.text import Name
 from julee.core.usecases.generate_crud import generate
 from julee.core.usecases.generic_crud import EntityNotFoundError
 from julee.core.usecases.tests.crud_fixtures import (
@@ -26,6 +25,7 @@ from julee.core.usecases.tests.crud_fixtures import (
     Widget,
     WidgetRepository,
 )
+from julee.core.values.text import Name
 
 pytestmark = pytest.mark.unit
 
@@ -475,7 +475,7 @@ def test_the_generated_create_names_the_ids_real_type(tmp_path: Path) -> None:
     source = out_file.read_text()
 
     assert "slug=Slug(entity_id)" in source
-    assert "from julee.core.entities.text import Slug" in source
+    assert "from julee.core.values.text import Slug" in source
 
 
 def test_a_plain_str_id_is_not_wrapped(tmp_path: Path) -> None:
@@ -644,7 +644,7 @@ def test_the_value_object_types_are_imported(tmp_path: Path) -> None:
     )
     source = out_file.read_text()
 
-    assert "from julee.core.entities.text import Name, NonEmptyText, Slug" in source
+    assert "from julee.core.values.text import Name, NonEmptyText, Slug" in source
 
 
 async def test_an_update_rebuilds_the_value_objects_too(tmp_path: Path) -> None:

@@ -90,7 +90,7 @@ ALLOWED = {
     "uuid": "from uuid import UUID",
     "decimal": "from decimal import Decimal",
     "future annotations": "from __future__ import annotations",
-    "julee's kernel entities": "from julee.core.entities.text import Slug",
+    "julee's kernel entities": "from julee.core.values.text import Slug",
     "julee's use case bases": "from julee.core.usecases import generic_crud",
 }
 """What a use case may reach for."""

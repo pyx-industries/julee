@@ -398,7 +398,7 @@ def validators_that_transform(found: Found) -> list[str]:
 
     The measurement that prompted this: 76 of 83 validators across the
     estate were transformers, 53 of them literally ``v.strip()``.
-    :mod:`julee.core.entities.text` is where those went.
+    :mod:`julee.core.values.text` is where those went.
 
     Three further consequences, each of which bit before the rule:
 
@@ -455,7 +455,7 @@ def validators_that_transform(found: Found) -> list[str]:
                 f"{', '.join(transforms)} rather than what it was given. A "
                 f"validator that changes a value is deciding what the field "
                 f"holds, which belongs in the field's type — see "
-                f"julee.core.entities.text"
+                f"julee.core.values.text"
             )
     return objections
 

@@ -15,7 +15,7 @@ import pytest
 from pydantic import TypeAdapter, ValidationError
 
 from julee.core.entities import kernel_entity_names
-from julee.core.entities.text import Name, NonEmptyText, Slug
+from julee.core.values.text import Name, NonEmptyText, Slug
 
 
 @dataclass(frozen=True)
