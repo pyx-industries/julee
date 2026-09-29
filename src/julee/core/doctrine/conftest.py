@@ -11,9 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.doctrine.resolution import VALUE_OBJECT_BASES
-from julee.core.doctrine.rules.entity import value_object_names
-from julee.core.entities import kernel_classes, kernel_entity_names
+from julee.core.entities import kernel_entity_names
 from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.file.solution_config import (
     FileSolutionConfigRepository,
@@ -96,22 +94,21 @@ def kits():
     return adopted_kits(PROJECT_ROOT)
 
 
-def _value_roots() -> frozenset[str]:
-    """Names that are values without having to be looked up.
+def _is_an_enum(entity: object) -> bool:
+    """Whether a scanned class is an enum.
 
-    ``str`` and ``int``, and the kernel's own value objects — Slug, Name
-    and NonEmptyText are str subclasses, so a kit's value object built
-    on one of them resolves through here.
+    An enum is a value, and one still filed under ``domain/models/`` is
+    a value in the wrong directory rather than an aggregate. Read from
+    the base name because this is source, not an import.
 
-    Asked of the imported classes rather than listed, so a value object
-    added to the kernel is one here too.
+    Args:
+        entity: A class read out of the codebase
+
+    Returns:
+        True if any base names an enum
     """
-    kernel = {
-        name
-        for name, obj in kernel_classes().items()
-        if isinstance(obj, type) and issubclass(obj, VALUE_OBJECT_BASES)
-    }
-    return frozenset({"str", "int"} | kernel)
+    bases = getattr(entity, "bases", None) or ()
+    return any(base.endswith("Enum") for base in bases)
 
 
 @pytest.fixture(scope="session")
@@ -127,24 +124,25 @@ def entity_names_by_context(
     such a repository score zero, which no rule could tell apart from a
     protocol holding nothing at all (#237).
 
-    Value objects are left out. A repository naming one is not a
-    repository doing the work of two: ``ContentMultihash`` extends
-    ``NonEmptyText`` extends ``str``, and ceap's DocumentRepository was
-    reported as bound to two aggregates for returning one.
+    What is in ``domain/values/`` is left out, because a value object
+    has no identity and so nothing is bound to one (ADR 018). That is
+    read off the directory rather than guessed from a base class: four
+    different guesses preceded this, and each was a different
+    approximation of the same idea.
+
+    An enum under ``domain/models/`` is left out too. It is a value that
+    has not been moved yet, and reporting it would be noise about
+    filing rather than about binding.
 
     One fixture rather than one construction per rule, because the two
     that read arity disagreed about enums and would have disagreed about
     this too.
     """
     kernel = set(kernel_entity_names())
-    roots = _value_roots()
     found = {}
     for ctx in repo.discover_all():
         info = parse_bounded_context(Path(ctx.path))
         if info is None:
             continue
-        values = value_object_names(info.entities, roots)
-        found[ctx.slug] = kernel | {
-            e.name for e in info.entities if e.name not in values
-        }
+        found[ctx.slug] = kernel | {e.name for e in info.entities if not _is_an_enum(e)}
     return found

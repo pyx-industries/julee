@@ -302,6 +302,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         REPOSITORIES_PATH,
         SERVICES_PATH,
         USE_CASES_PATH,
+        VALUES_PATH,
         WITNESSES_PATH,
     )
     from julee.core.entities.bounded_context_info import BoundedContextInfo
@@ -314,6 +315,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
     domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
+    domain_values_dir = _resolve_layer_path(context_dir, VALUES_PATH)
     domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
     domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
     domain_handlers_dir = _resolve_layer_path(context_dir, HANDLERS_PATH)
@@ -363,6 +365,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     return BoundedContextInfo(
         slug=context_dir.name,
         entities=tuple(parse_python_classes(domain_models_dir)),
+        values=tuple(parse_python_classes(domain_values_dir)),
         use_cases=tuple(use_cases),
         requests=tuple(requests),
         responses=tuple(responses),
