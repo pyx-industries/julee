@@ -1,7 +1,8 @@
 """Unit tests for the Kit manifest."""
 
+import dataclasses
+
 import pytest
-from pydantic import ValidationError
 
 from julee.core.entities.kit import Kit
 
@@ -20,7 +21,7 @@ def test_a_manifest_needs_only_slug_name_and_package() -> None:
 def test_a_manifest_is_immutable() -> None:
     kit = Kit(slug="ceap", name="CEAP", package="julee_ceap")
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         kit.slug = "other"  # type: ignore[misc]
 
 
@@ -33,7 +34,7 @@ def test_identifiers_must_not_be_empty(field: str) -> None:
     }
     fields[field] = "   "
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError, match="must not be empty"):
         Kit(slug=fields["slug"], name=fields["name"], package=fields["package"])
 
 

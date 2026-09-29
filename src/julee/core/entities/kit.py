@@ -22,13 +22,11 @@ See docs/ADRs/012-framework-and-kits.md.
 """
 
 from collections.abc import Mapping
-
-from pydantic import Field, field_validator
-
-from julee.core.entities.entity import Entity
+from dataclasses import dataclass, field
 
 
-class Kit(Entity):
+@dataclass(frozen=True)
+class Kit:
     """What a kit tells the framework about itself.
 
     The manifest carries no imported objects. Contributions are dotted
@@ -36,24 +34,22 @@ class Kit(Entity):
     manifest never imports FastAPI, Temporal or Sphinx.
     """
 
-    slug: str = Field(
-        description='Unique identifier, matching the entry point name (e.g. "ceap")'
-    )
-    name: str = Field(description="Human-readable name")
-    package: str = Field(
-        description="Import root of the kit, introspected to find its "
-        'bounded contexts (e.g. "julee_ceap")'
-    )
-    requires: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Slugs of other kits this kit builds on",
-    )
-    contributes: Mapping[str, str | tuple[str, ...]] = Field(
-        default_factory=dict,
-        description="Contribution point to dotted path, or several, for "
-        'example {"fastapi.routers": "julee_ceap.apps.api:router"} or '
-        '{"sphinx.extension": ("a.b", "a.c")}',
-    )
+    slug: str
+    """Unique identifier, matching the entry point name (e.g. "ceap")."""
+    name: str
+    """Human-readable name."""
+    package: str
+    """Import root of the kit, introspected to find its bounded contexts (e.g. "julee_ceap")."""
+    requires: tuple[str, ...] = ()
+    """Slugs of other kits this kit builds on."""
+    contributes: Mapping[str, str | tuple[str, ...]] = field(default_factory=dict)
+    """What this kit offers, by contribution point.
+
+    Each point maps to one dotted path or several::
+
+        {"fastapi.routers": "julee_ceap.apps.api:router"}
+        {"sphinx.extension": ("a.b", "a.c")}
+    """
 
     def contributed(self, point: str) -> tuple[str, ...]:
         """What this kit offers at one contribution point.
@@ -75,21 +71,22 @@ class Kit(Entity):
             return (offered,)
         return tuple(offered)
 
-    viewpoint: bool = Field(
-        default=False,
-        description="True if this kit's bounded contexts describe a solution "
-        "rather than implement a domain",
-    )
-    policies: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Slugs of policies this kit contributes, which a solution "
-        "may adopt",
-    )
+    viewpoint: bool = False
+    """True if this kit's bounded contexts describe a solution rather than implement a domain."""
+    policies: tuple[str, ...] = ()
+    """Slugs of policies this kit contributes, which a solution may adopt."""
 
-    @field_validator("slug", "name", "package", mode="before")
-    @classmethod
-    def validate_not_empty(cls, v: str) -> str:
-        """Reject empty identifiers."""
-        if not v or not v.strip():
-            raise ValueError("must not be empty")
-        return v.strip()
+    def __post_init__(self) -> None:
+        """Check the identifiers are named, and trim them.
+
+        This was a field_validator over three fields, which refused a
+        blank one and returned a stripped one.
+
+        Raises:
+            ValueError: If the slug, name or package is blank
+        """
+        for field_name in ("slug", "name", "package"):
+            value = getattr(self, field_name)
+            if not value or not value.strip():
+                raise ValueError("must not be empty")
+            object.__setattr__(self, field_name, value.strip())
