@@ -374,6 +374,7 @@ def temporal_workflow_proxy(
                     if (
                         raw_result is not None
                         and needs_result_type
+                        and inspect.isclass(inner_type)
                         and not isinstance(raw_result, inner_type)
                         and hasattr(inner_type, "model_validate")
                     ):
@@ -444,10 +445,16 @@ def _is_decodable_type(annotation: Any) -> bool:
     the type; given none it answers with a dict, which is what the
     proxy used to get and then repair by hand for pydantic only (#142).
 
+    A parametrised generic counts too: ``dict[str, Story | None]`` and
+    ``list[Story]`` are what ``get_many`` and ``list_all`` promise, and
+    the converter builds either from the payload given the alias. This
+    refused them, saying execute_activity would reject an alias. It
+    does not; what happened instead was that every container a port
+    promised came back as dicts, and ceap's assembling use case fetched
+    its queries one at a time under a comment blaming Temporal.
+
     Excluded are the cases where there is nothing to hand over: an
-    unannotated method, None, ``Any``, and anything that is not a class
-    — a generic alias like ``list[Story]``, for instance, which reaches
-    here unsubstituted and would be rejected by execute_activity.
+    unannotated method, None, and ``Any``.
 
     Args:
         annotation: The return annotation, TypeVars already substituted
@@ -459,7 +466,7 @@ def _is_decodable_type(annotation: Any) -> bool:
         return False
     if annotation is inspect.Signature.empty:
         return False
-    return inspect.isclass(annotation)
+    return inspect.isclass(annotation) or get_origin(annotation) is not None
 
 
 def _is_optional_type(annotation: Any) -> bool:

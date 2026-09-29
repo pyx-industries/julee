@@ -663,9 +663,16 @@ class TestDecodableTypeDetection:
         """Unsubstituted, there is no type to hand over."""
         assert not _is_decodable_type(T)
 
-    def test_a_generic_alias_is_not(self) -> None:
-        """list[Story] is not a class, and execute_activity rejects it."""
-        assert not _is_decodable_type(list[str])
+    def test_a_generic_alias_is(self) -> None:
+        """list[Story] and dict[str, Story | None] are what get_many and
+        list_all promise, and the converter builds either from the alias.
+
+        This asserted the opposite, on the claim that execute_activity
+        rejects an alias. It does not; what it did was hand the converter
+        no type, and every container a port promised came back as dicts.
+        """
+        assert _is_decodable_type(list[str])
+        assert _is_decodable_type(dict[str, int | None])
 
     def test_none_and_empty_and_Any_are_not(self) -> None:
         """An unannotated method has nothing to say about its result."""
