@@ -156,6 +156,7 @@ addopts = [
 markers = [
     "unit: Unit tests (fast, isolated)",
     "contract: Runs against a real service, to check a double against it",
+    "integration: Integration tests (a real Temporal test server, seconds not milliseconds)",
 ]
 
 [tool.coverage.run]
