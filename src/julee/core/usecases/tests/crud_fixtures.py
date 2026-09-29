@@ -16,7 +16,7 @@ the generator accepted them because it never looked.
 from dataclasses import dataclass
 from typing import cast
 
-from julee.core.entities.text import Name, NonEmptyText, Slug
+from julee.core.values.text import Name, NonEmptyText, Slug
 
 
 @dataclass(frozen=True)

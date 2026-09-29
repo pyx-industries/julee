@@ -313,7 +313,7 @@ class TestWhatAValidatorIsFor:
         is and every route reaches it — deserialisation included, which
         is where a constructor-side check does not always run.
 
-        julee.core.entities.text is where the estate's went: 76 of 83
+        julee.core.values.text is where the estate's went: 76 of 83
         validators were transformers, 53 of them literally v.strip().
 
         A validator with no return at all complies. Raising, or saying

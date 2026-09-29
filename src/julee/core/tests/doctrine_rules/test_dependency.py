@@ -45,7 +45,7 @@ ALLOWED = {
     "a language submodule": "datetime.timezone",
     "collections.abc": "collections.abc",
     "future annotations": "__future__",
-    "julee's entities": "julee.core.entities.text",
+    "julee's entities": "julee.core.values.text",
     "julee's use case bases": "julee.core.usecases.generic_crud",
     "julee's port protocols": "julee.core.repositories.bounded_context",
 }

@@ -5,9 +5,9 @@ solution: a story names its app by slug, a journey names its epics. The
 rules have to be the same everywhere or the references stop matching,
 which is why these live in the kernel rather than in each kit.
 
-:mod:`julee.core.entities.text` wraps these as value objects —
-:class:`~julee.core.entities.text.Slug` and
-:class:`~julee.core.entities.text.Name` — which is how a field declares
+:mod:`julee.core.values.text` wraps these as value objects —
+:class:`~julee.core.values.text.Slug` and
+:class:`~julee.core.values.text.Name` — which is how a field declares
 that it holds one rather than each entity remembering to call the
 function. Prefer those in an entity; these are for the places that
 compare or derive a value without holding it.

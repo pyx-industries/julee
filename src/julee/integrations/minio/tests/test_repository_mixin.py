@@ -19,7 +19,7 @@ from typing import TypeVar
 
 import pytest
 
-from julee.core.entities.text import NonEmptyText
+from julee.core.values.text import NonEmptyText
 from julee.integrations.minio.client import MinioClient, MinioRepositoryMixin
 from julee.integrations.minio.testing import FakeMinioClient
 
