@@ -10,7 +10,6 @@ from julee.core.doctrine.rules.entity import (
     entities_that_can_be_mutated,
     fields_named_workflow_id,
     fields_using_mutable_collections,
-    value_object_names,
 )
 from julee.core.entities.bounded_context_info import BoundedContextInfo
 from julee.core.entities.code_info import ClassInfo, FieldInfo
@@ -525,91 +524,3 @@ def test_every_offending_call_is_reported() -> None:
     )
 
     assert len(objections) == 2
-
-
-class TestWhichClassesAreValuesRatherThanEntities:
-    """value_object_names decides what a repository may name freely.
-
-    A value object is not an aggregate, so naming one is not a
-    repository doing the work of two. Getting this wrong in either
-    direction is costly: an entity treated as a value stops being
-    counted at all, and a value treated as an entity reports a
-    repository that is doing one job as doing two.
-    """
-
-    ROOTS = frozenset({"str", "int", "NonEmptyText"})
-
-    def test_an_entity_is_not_one(self) -> None:
-        """A class built on nothing is the thing being stored."""
-        found = value_object_names([ClassInfo(name="Document")], self.ROOTS)
-
-        assert found == set()
-
-    def test_a_class_built_on_str_is_one(self) -> None:
-        """The direct case."""
-        found = value_object_names([ClassInfo(name="Slug", bases=("str",))], self.ROOTS)
-
-        assert found == {"Slug"}
-
-    def test_a_class_built_on_a_kernel_value_object_is_one(self) -> None:
-        """The case that was missed.
-
-        ContentMultihash extends NonEmptyText extends str. Read one base
-        deep it looks like a class extending some entity, and ceap's
-        DocumentRepository was reported as bound to two aggregates for
-        returning one.
-        """
-        found = value_object_names(
-            [ClassInfo(name="ContentMultihash", bases=("NonEmptyText",))], self.ROOTS
-        )
-
-        assert found == {"ContentMultihash"}
-
-    def test_it_follows_a_chain_of_its_own_classes(self) -> None:
-        """Two steps inside the context, not just one."""
-        found = value_object_names(
-            [
-                ClassInfo(name="ContentMultihash", bases=("NonEmptyText",)),
-                ClassInfo(name="Deeper", bases=("ContentMultihash",)),
-            ],
-            self.ROOTS,
-        )
-
-        assert found == {"ContentMultihash", "Deeper"}
-
-    def test_an_enum_is_one(self) -> None:
-        """Matched on the name, as the rule beside it does."""
-        found = value_object_names(
-            [ClassInfo(name="Status", bases=("StrEnum",))], self.ROOTS
-        )
-
-        assert found == {"Status"}
-
-    def test_a_class_built_on_an_entity_is_not_one(self) -> None:
-        """Inheriting an entity does not make a value.
-
-        The test that matters for the other direction: if this were
-        wrong, a whole family of entities would stop being counted and
-        every repository over them would read as bound to nothing.
-        """
-        found = value_object_names(
-            [
-                ClassInfo(name="Document"),
-                ClassInfo(name="SignedDocument", bases=("Document",)),
-            ],
-            self.ROOTS,
-        )
-
-        assert found == set()
-
-    def test_a_cycle_does_not_hang(self) -> None:
-        """Two classes naming each other resolve to neither."""
-        found = value_object_names(
-            [
-                ClassInfo(name="A", bases=("B",)),
-                ClassInfo(name="B", bases=("A",)),
-            ],
-            self.ROOTS,
-        )
-
-        assert found == set()

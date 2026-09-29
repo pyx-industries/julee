@@ -34,6 +34,15 @@ class BoundedContextInfo:
 
     slug: str
     entities: tuple[ClassInfo, ...] = ()
+    """What this context keeps under an id."""
+
+    values: tuple[ClassInfo, ...] = ()
+    """What this context is made of but does not keep.
+
+    A value object has no identity, so no repository is bound to one and
+    no port can be bound to one either (ADR 018). Read from
+    domain/values/, which is the declaration.
+    """
     use_cases: tuple[ClassInfo, ...] = ()
     requests: tuple[ClassInfo, ...] = ()
     responses: tuple[ClassInfo, ...] = ()

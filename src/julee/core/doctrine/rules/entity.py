@@ -17,6 +17,7 @@ from julee.core.doctrine_constants import (
     ORACLES_PATH,
     REPOSITORIES_PATH,
     SERVICES_PATH,
+    VALUES_PATH,
     WITNESSES_PATH,
 )
 from julee.core.entities.bounded_context_info import BoundedContextInfo
@@ -31,7 +32,6 @@ __all__ = [
     "copies_that_skip_a_validator",
     "domain_packages_doctrine_does_not_read",
     "entities_that_can_be_mutated",
-    "value_object_names",
     "entities_that_are_not_frozen_dataclasses",
     "fields_named_workflow_id",
     "fields_using_mutable_collections",
@@ -57,6 +57,7 @@ READ_DOMAIN_PACKAGES = frozenset(
     path[-1]
     for path in (
         ENTITIES_PATH,
+        VALUES_PATH,
         REPOSITORIES_PATH,
         SERVICES_PATH,
         ORACLES_PATH,
@@ -167,48 +168,6 @@ def entities_that_can_be_mutated(found: Found) -> list[str]:
         for name, (slug, entity) in by_name.items()
         if not _is_enum(entity) and not is_compliant(name, frozenset())
     ]
-
-
-def value_object_names(
-    entities: Iterable[ClassInfo], roots: frozenset[str]
-) -> set[str]:
-    """Which of these classes are values rather than entities.
-
-    A value object is not an aggregate, so a repository naming one is
-    not a repository doing the work of two, and a port naming one is
-    not leaking a representation. An enum, and anything built on str or
-    int, directly or through another value object.
-
-    The indirect case is the one that matters. ``ContentMultihash``
-    extends ``NonEmptyText``, which extends ``str``: read one base deep
-    it looks like a class extending some entity, and ceap's
-    DocumentRepository was reported as bound to two aggregates for
-    returning one. The note in that method's docstring predicted it
-    exactly, and said str was returned instead for that reason.
-
-    Args:
-        entities: The classes a bounded context declares
-        roots: Names that are values without being looked up — "str",
-            "int", and the kernel's own value objects
-
-    Returns:
-        The names that are values
-    """
-    by_name = {entity.name: entity for entity in entities}
-    found: set[str] = set()
-
-    def is_a_value(name: str, visiting: frozenset[str]) -> bool:
-        if name in roots or name.endswith("Enum"):
-            return True
-        if name in visiting or name not in by_name:
-            return False
-        bases = by_name[name].bases
-        return any(is_a_value(base, visiting | {name}) for base in bases)
-
-    for name, entity in by_name.items():
-        if any(is_a_value(base, frozenset({name})) for base in entity.bases):
-            found.add(name)
-    return found
 
 
 def fields_using_mutable_collections(found: Found) -> list[str]:
