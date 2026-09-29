@@ -23,7 +23,7 @@ import re
 import subprocess
 import sys
 import types
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from enum import Enum
 from importlib import import_module
 from pathlib import Path
@@ -77,10 +77,27 @@ def _extra_entity_imports(
     all_fields: list[tuple[str, str]],
     entity_module: str,
     entity: str,
-) -> list[str]:
-    """Return 'from entity_module import X' lines for non-builtin types in fields.
+) -> dict[str, set[str]]:
+    """The non-builtin types the request fields name, by where each lives.
 
     Handles composite annotations like list[Foo], Foo|None, dict[str, Any].
+
+    A name is looked up in the entity's module and imported from the
+    module that defines it. This emitted ``from {entity_module} import
+    Foo`` for every Foo, on the guess that whatever a request names
+    lives beside the entity. It worked while the entity's module
+    happened to re-export the name, and collided the moment the
+    message's own fields imported the same name from where it is
+    defined: hcd's JourneyStep moved to domain/values/ (ADR 018), and
+    the generated module imported it twice.
+
+    Args:
+        all_fields: The request fields, as (name, annotation) pairs
+        entity_module: Dotted path of the entity's module
+        entity: The entity's class name, which needs no extra import
+
+    Returns:
+        Module path to the names to import from it
     """
     safe = {
         "str",
@@ -96,7 +113,7 @@ def _extra_entity_imports(
         "set",
         "frozenset",
     }
-    extra: set[str] = set()
+    named: set[str] = set()
     for _, type_str in all_fields:
         # A field may carry a default ('SystemType = SystemType.INTERNAL').
         # Only the annotation names a type; the default names a value, and
@@ -105,11 +122,39 @@ def _extra_entity_imports(
         for token in re.split(r"[\[\],| ]+", annotation):
             token = token.strip()
             if token and token not in safe and token != entity and token[0:1].isupper():
-                extra.add(token)
-    if not extra:
-        return []
-    names = ", ".join(sorted(extra))
-    return [f"from {entity_module} import {names}"]
+                named.add(token)
+    if not named:
+        return {}
+    namespace = import_module(entity_module)
+    found: dict[str, set[str]] = {}
+    for name in sorted(named):
+        # A name the entity's module does not know is left to it to
+        # provide, which is the old behaviour and fails the same way.
+        lives_in = getattr(getattr(namespace, name, None), "__module__", entity_module)
+        found.setdefault(lives_in, set()).add(name)
+    return found
+
+
+def _import_lines(*groups: Mapping[str, Iterable[str]]) -> list[str]:
+    """One ``from module import names`` line per module, across groups.
+
+    So a name two groups both want — the request's types and the
+    message's fields both naming JourneyStep — is imported once.
+
+    Args:
+        *groups: Module path to names, from each source of imports
+
+    Returns:
+        The import lines, sorted by module
+    """
+    merged: dict[str, set[str]] = {}
+    for group in groups:
+        for module, names in group.items():
+            merged.setdefault(module, set()).update(names)
+    return [
+        f"from {module} import {', '.join(sorted(names))}"
+        for module, names in sorted(merged.items())
+    ]
 
 
 def _field_lines(fields: list[tuple[str, str]], indent: str = "    ") -> str:
@@ -949,13 +994,16 @@ def generate(
         )
     message_imports.append("from pydantic import BaseModel")
     message_imports.append("")
-    message_imports.append(f"from {entity_module} import {entity}")
-    for extra in _extra_entity_imports(all_fields, entity_module, entity):
-        message_imports.append(extra)
-    # What the message's own fields are spelled with. A module may be
-    # named twice across these lines; ruff folds them in _tidy.
-    for module, spelled in sorted(carried_imports.items()):
-        message_imports.append(f"from {module} import {', '.join(sorted(spelled))}")
+    # The entity, what the request fields name, and what the message's
+    # own fields are spelled with: one line per module, so a name two of
+    # them want is imported once, from where it lives.
+    message_imports.extend(
+        _import_lines(
+            {entity_module: {entity}},
+            _extra_entity_imports(all_fields, entity_module, entity),
+            carried_imports,
+        )
+    )
 
     messages = [
         f'"""Generated CRUD messages for {entity}.\n\nDo not edit — regenerate with generate-crud.sh.\n"""',
@@ -1002,12 +1050,14 @@ def generate(
     if include_create:
         imports.append("from typing import Any")
         imports.append("")
-    imports.append(f"from {entity_module} import {entity}")
-    for extra in _extra_entity_imports(all_fields, entity_module, entity):
-        imports.append(extra)
+    imports.extend(
+        _import_lines(
+            {entity_module: {entity}},
+            _extra_entity_imports(all_fields, entity_module, entity),
+            _by_module(declared_id, created_as, updated_as),
+        )
+    )
     imports.append(f"from {repo_module} import {repo}")
-    for module, imported in _by_module(declared_id, created_as, updated_as).items():
-        imports.append(f"from {module} import {', '.join(imported)}")
     # Relative, because the messages sit beside the use cases in the
     # same bounded context and the generator has no business working
     # out what that context is called.

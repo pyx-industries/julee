@@ -130,6 +130,9 @@ def generated(tmp_path: Path) -> Iterator[Path]:
                 ("slug", "str"),
                 ("name", "str"),
                 ("tags", "tuple[str, ...]=()"),
+                # A request naming a value that lives in domain/values/,
+                # which the entity's module imports and does not define.
+                ("steps", "tuple[Step, ...]=()"),
             ],
             update_fields=[("name", "str"), ("tags", "tuple[str, ...]")],
             include_delete=True,
@@ -248,6 +251,59 @@ class TestWhatAResponseCarries:
         dtos = importlib.import_module("acme.stories.dtos.crud_story")
 
         assert tuple(dtos.ListStoriesResponse.model_fields) == ("stories",)
+
+
+class TestWhatTheMessagesImport:
+    """Each name once, from where it lives.
+
+    A request field naming ``tuple[Step, ...]`` used to get ``Step``
+    imported from the entity's module, on the guess that everything a
+    request names lives beside the entity. It worked while the entity's
+    module happened to re-export the name — and collided the moment the
+    message's own fields imported the same name from where it is
+    defined. hcd's JourneyStep did exactly that after ADR 018 moved it.
+    """
+
+    def imports_in(self, generated: Path) -> list[tuple[str, str]]:
+        """Every (module, name) the generated messages import.
+
+        Args:
+            generated: The solution root
+
+        Returns:
+            One pair per imported name, in file order
+        """
+        emitted = (
+            generated / "src" / "acme" / "stories" / "dtos" / "crud_story.py"
+        ).read_text()
+        return [
+            (node.module or "", alias.name)
+            for node in ast.parse(emitted).body
+            if isinstance(node, ast.ImportFrom)
+            for alias in node.names
+        ]
+
+    def test_a_request_field_s_type_is_not_imported_from_a_module_it_passes_through(
+        self, generated: Path
+    ) -> None:
+        """Step is defined in domain/values/step.py and imported by story.py."""
+        imported = self.imports_in(generated)
+
+        assert ("acme.stories.domain.values.step", "Step") in imported
+        assert ("acme.stories.domain.models.story", "Step") not in imported
+
+    def test_no_name_is_imported_twice(self, generated: Path) -> None:
+        """A second import of a name is a redefinition ruff refuses to fix.
+
+        _tidy only warns when ruff refuses, so the file was written and
+        imported fine — and failed the lint every kit runs. Generated
+        code a human has to finish is not generated.
+        """
+        names = [name for _, name in self.imports_in(generated)]
+
+        assert len(set(names)) == len(names), "imported more than once: " + ", ".join(
+            sorted({n for n in names if names.count(n) > 1})
+        )
 
 
 class TestWhatTheUseCasesAnswerWith:
