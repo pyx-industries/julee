@@ -84,7 +84,7 @@ class TestTheThreeAnswers:
 class TestItIsNotARecord:
     """An acknowledgement is not something a repository is bound to.
 
-    Same reasoning as ContentStream: binding is about records. Counting
+    Binding is about records, and this is not one. Counting
     it would raise the arity of every handler protocol that returns one,
     which is all of them.
     """

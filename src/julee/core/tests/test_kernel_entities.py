@@ -36,13 +36,13 @@ def test_the_base_class_is_not_itself_an_entity() -> None:
 
 
 def test_a_thing_that_is_not_a_record_is_not_offered() -> None:
-    """ContentStream is a stream a repository hands back.
+    """Binding is about records, and an acknowledgement is not one.
 
-    Binding is about records. Counting this one would object to every
-    ceap repository that returns document content alongside its own
-    entity.
+    ContentStream was the other, and it is gone: every port that took
+    one takes bytes (julee-kits#89), so there was nothing left for it
+    to be the type of.
     """
-    assert "ContentStream" not in kernel_entity_names()
+    assert "Acknowledgement" not in kernel_entity_names()
 
 
 def test_nothing_from_outside_the_entities_package_leaks_in() -> None:
@@ -74,15 +74,6 @@ class TestTheKernelIsADomainToo:
         """
         assert kernel_classes()
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "19 kernel entities are still pydantic models and ContentStream "
-            "is not a record at all. Strict, so that fixing them fails here "
-            "until this marker goes with them — a gap that stops being a gap "
-            "and leaves its marker behind is how the next one gets missed."
-        ),
-    )
     def test_every_kernel_entity_is_a_domain_class(self) -> None:
         """A kernel entity MUST be a frozen dataclass or a value object.
 

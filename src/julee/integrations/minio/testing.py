@@ -46,10 +46,9 @@ class _ConsumedOnRead(io.RawIOBase):
     """A response whose bytes are read once, as MinIO's is.
 
     Subclasses ``io.RawIOBase`` because urllib3's ``BaseHTTPResponse``
-    does, and :class:`~julee.core.entities.content_stream.ContentStream`
-    checks for it. The old Mock satisfied that check through its spec,
-    which is the kind of thing a Mock gets right by accident and a class
-    has to be told.
+    does, and the contract suite checks for it. The old Mock satisfied
+    that check through its spec, which is the kind of thing a Mock gets
+    right by accident and a class has to be told.
 
     Not a ``BytesIO`` either: that is seekable and a response is not, so
     a caller that rewinds would pass here and raise

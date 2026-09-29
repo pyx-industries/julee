@@ -26,7 +26,6 @@ import pytest
 from minio.datatypes import Object
 from minio.error import S3Error
 
-from julee.core.entities.content_stream import ContentStream
 from julee.integrations.minio.client import MinioClient
 
 from .conftest import CONTENT
@@ -121,25 +120,22 @@ class TestReadingAResponse:
 
 
 class TestBeingTheRightKindOfStream:
-    """Properties ContentStream and its callers rely on."""
+    """Properties the callers of get_object rely on."""
 
     def test_the_response_is_an_io_stream(
         self, client: MinioClient, bucket: str
     ) -> None:
-        """ContentStream refuses anything that is not, and urllib3's
-        BaseHTTPResponse is one. The old Mock passed this through its
-        spec — right by accident."""
+        """urllib3's BaseHTTPResponse is one, and the old Mock passed
+        this through its spec — right by accident.
+
+        A second test here wrapped the response in a ContentStream,
+        which was the thing every binary read in this integration did.
+        Nothing does: the repositories read the response and hand back
+        bytes (julee-kits#89), and ContentStream is gone.
+        """
         response = client.get_object(bucket_name=bucket, object_name="an-object")
 
         assert isinstance(response, io.IOBase)
-
-    def test_a_content_stream_can_wrap_it(
-        self, client: MinioClient, bucket: str
-    ) -> None:
-        """The thing every binary read in this integration does."""
-        response = client.get_object(bucket_name=bucket, object_name="an-object")
-
-        assert ContentStream(response).read() == CONTENT
 
     def test_the_response_is_not_seekable(
         self, client: MinioClient, bucket: str
