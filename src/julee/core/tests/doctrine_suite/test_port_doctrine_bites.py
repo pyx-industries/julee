@@ -71,6 +71,18 @@ class AMutableDataclass:
     """A dataclass that is not frozen."""
 
     slug: str
+
+
+class Ref(str):
+    """A value object built on str, the shape Slug and Name have."""
+
+    __slots__ = ()
+
+
+class Score(int):
+    """A value object built on int."""
+
+    __slots__ = ()
 '''
 """Kept out of the port directory, where every class is read as a port."""
 
@@ -83,6 +95,8 @@ from acme.stories.domain.models.extras import (
     AMutableDataclass,
     APydanticDataclass,
     NotADataclass,
+    Ref,
+    Score,
 )
 from acme.stories.domain.models.story import Story
 
@@ -94,6 +108,12 @@ ALLOWED = (
     "async def count(self, since: int) -> int: ...",
     "async def all(self) -> tuple[Story, ...]: ...",
     "async def touch(self) -> None: ...",
+    # A value object built on str or int. The domain ring sanctions
+    # these (VALUE_OBJECT_BASES) and a port naming one is stronger than
+    # a port naming str: it is the difference between a multihash and
+    # any old text (julee#44).
+    "async def named(self, ref: Ref) -> Ref: ...",
+    "async def scored(self) -> Score: ...",
 )
 """Signatures a driven port may have."""
 
