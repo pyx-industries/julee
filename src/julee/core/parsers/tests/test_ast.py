@@ -868,7 +868,7 @@ class TestDecorators:
 
         (plain,) = parse_python_classes(tmp_path)
 
-        assert plain.decorators == []
+        assert plain.decorators == ()
 
     def test_a_decorator_is_recorded_by_its_resolved_path(self, tmp_path):
         _write(
@@ -883,9 +883,9 @@ class TestDecorators:
 
         (repo,) = parse_python_classes(tmp_path)
 
-        assert repo.decorators == [
-            "julee.integrations.temporal.decorators.temporal_activity_registration"
-        ]
+        assert repo.decorators == (
+            "julee.integrations.temporal.decorators.temporal_activity_registration",
+        )
 
     def test_a_called_decorator_resolves_to_the_same_path(self, tmp_path):
         """`@deco("x")` and `@deco` are the same decorator."""
@@ -901,9 +901,9 @@ class TestDecorators:
 
         (repo,) = parse_python_classes(tmp_path)
 
-        assert repo.decorators == [
-            "julee.integrations.temporal.decorators.temporal_activity_registration"
-        ]
+        assert repo.decorators == (
+            "julee.integrations.temporal.decorators.temporal_activity_registration",
+        )
 
     def test_an_attribute_decorator_resolves_through_the_module(self, tmp_path):
         _write(
@@ -933,7 +933,7 @@ class TestDecorators:
 
         (both,) = parse_python_classes(tmp_path)
 
-        assert both.decorators == ["typing.final", "dataclasses.dataclass"]
+        assert both.decorators == ("typing.final", "dataclasses.dataclass")
 
     def test_decorated_with_ignores_a_name_that_merely_ends_the_same(self, tmp_path):
         _write(

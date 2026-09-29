@@ -262,7 +262,7 @@ ACTIVITY = "julee.integrations.temporal.decorators.temporal_activity_registratio
 
 def a_class(name: str, decorators: tuple[str, ...] = ()) -> ClassInfo:
     """A parsed class carrying the given decorators."""
-    return ClassInfo(name=name, file=f"{name.lower()}.py", decorators=list(decorators))
+    return ClassInfo(name=name, file=f"{name.lower()}.py", decorators=tuple(decorators))
 
 
 def test_an_undecorated_class_need_not_be_contributed() -> None:

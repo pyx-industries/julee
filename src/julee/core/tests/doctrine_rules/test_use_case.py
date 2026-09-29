@@ -47,7 +47,7 @@ def a_use_case(
         artifact=ClassInfo(
             name=name,
             docstring=docstring,
-            methods=[MethodInfo(name=m) for m in methods],
+            methods=tuple(MethodInfo(name=m) for m in methods),
         ),
     )
 
@@ -230,8 +230,8 @@ def a_use_case_with(
         artifact=ClassInfo(
             name=name,
             docstring="Get a story.",
-            bases=list(bases),
-            methods=[execute] if execute else [],
+            bases=tuple(bases),
+            methods=(execute,) if execute else (),
         ),
     )
 
@@ -242,10 +242,10 @@ def an_execute(
     """An execute that takes and returns the right things."""
     return MethodInfo(
         name="execute",
-        parameters=[
+        parameters=(
             ParameterInfo(name="self"),
             ParameterInfo(name="request", type_annotation=takes),
-        ],
+        ),
         return_type=returns,
     )
 
@@ -311,7 +311,7 @@ def test_an_execute_taking_somebody_else_s_request_is_reported() -> None:
 
 def test_an_execute_taking_nothing_is_reported() -> None:
     """A use case takes one named object; none is not one."""
-    execute = MethodInfo(name="execute", parameters=[ParameterInfo(name="self")])
+    execute = MethodInfo(name="execute", parameters=(ParameterInfo(name="self"),))
 
     objections = use_cases_whose_execute_takes_the_wrong_request(
         [a_use_case_with(execute=execute)]

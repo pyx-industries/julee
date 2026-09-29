@@ -117,12 +117,12 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
             MethodInfo(
                 name=member.name,
                 is_async="async" in member.labels,
-                parameters=params,
+                parameters=tuple(params),
                 return_type=str(member.returns) if member.returns else "",
                 docstring=method_doc,
                 source=member.source or "",
-                decorators=[d.callable_path for d in member.decorators],
-                returns=_return_expressions(member.source),
+                decorators=tuple(d.callable_path for d in member.decorators),
+                returns=tuple(_return_expressions(member.source)),
             )
         )
 
@@ -130,10 +130,10 @@ def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo"
         name=cls.name,
         docstring=docstring,
         file=file_name,
-        bases=[str(b) for b in cls.bases],
-        fields=fields,
-        methods=methods,
-        decorators=[d.callable_path for d in cls.decorators],
+        bases=tuple(str(b) for b in cls.bases),
+        fields=tuple(fields),
+        methods=tuple(methods),
+        decorators=tuple(d.callable_path for d in cls.decorators),
         decorator_arguments=_decorator_arguments(cls.decorators),
     )
 
@@ -362,19 +362,19 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     return BoundedContextInfo(
         slug=context_dir.name,
-        entities=parse_python_classes(domain_models_dir),
-        use_cases=use_cases,
-        requests=requests,
-        responses=responses,
-        repository_protocols=parse_python_classes(domain_repositories_dir),
-        service_protocols=service_protocols,
-        handler_protocols=handler_protocols,
+        entities=tuple(parse_python_classes(domain_models_dir)),
+        use_cases=tuple(use_cases),
+        requests=tuple(requests),
+        responses=tuple(responses),
+        repository_protocols=tuple(parse_python_classes(domain_repositories_dir)),
+        service_protocols=tuple(service_protocols),
+        handler_protocols=tuple(handler_protocols),
         # ADR 016's three newer ports, each found by its directory for the
         # same reason services now are: a name that does not match should
         # be read and objected to, never quietly dropped.
-        oracle_protocols=parse_python_classes(domain_oracles_dir),
-        calculator_protocols=parse_python_classes(domain_calculators_dir),
-        witness_protocols=parse_python_classes(domain_witnesses_dir),
+        oracle_protocols=tuple(parse_python_classes(domain_oracles_dir)),
+        calculator_protocols=tuple(parse_python_classes(domain_calculators_dir)),
+        witness_protocols=tuple(parse_python_classes(domain_witnesses_dir)),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,
@@ -584,15 +584,15 @@ def _parse_pipeline_class(
                 MethodInfo(
                     name=node.name,
                     is_async=isinstance(node, ast.AsyncFunctionDef),
-                    parameters=params,
+                    parameters=tuple(params),
                     return_type=ast.unparse(node.returns) if node.returns else "",
                     docstring=method_doc.split("\n")[0].strip() if method_doc else "",
-                    decorators=[ast.unparse(d) for d in node.decorator_list],
-                    returns=[
+                    decorators=tuple(ast.unparse(d) for d in node.decorator_list),
+                    returns=tuple(
                         ast.unparse(r.value)
                         for r in ast.walk(node)
                         if isinstance(r, ast.Return) and r.value is not None
-                    ],
+                    ),
                 )
             )
 
@@ -606,7 +606,7 @@ def _parse_pipeline_class(
         has_run_method=has_run_method,
         wrapped_use_case=wrapped_use_case,
         delegates_to_use_case=delegates_to_use_case,
-        methods=methods,
+        methods=tuple(methods),
         has_run_next_method=has_run_next_method,
         run_next_has_workflow_decorator=run_next_has_workflow_decorator,
         run_calls_run_next=run_calls_run_next,

@@ -2,7 +2,10 @@
 
 import pytest
 
-from julee.core.doctrine.resolution import domain_class_verdicts
+from julee.core.doctrine.resolution import (
+    domain_class_verdicts,
+    mutable_collection_verdicts,
+)
 from julee.core.doctrine.rules.entity import entities_that_are_not_frozen_dataclasses
 from julee.core.entities import kernel_classes, kernel_entity_names
 
@@ -93,4 +96,24 @@ class TestTheKernelIsADomainToo:
 
         assert not violations, (
             "Kernel classes that are not domain classes:\n" + "\n".join(violations)
+        )
+
+    def test_no_kernel_entity_holds_a_mutable_collection(self) -> None:
+        """A kernel entity MUST NOT be annotated with list, set or dict.
+
+        The kits are held to this already. julee has no bounded
+        contexts for that rule's source scan to find, so its own
+        entities were never asked — the same gap the frozen dataclass
+        rule had, and the reason a converted entity could carry a list
+        inside a frozen record and nothing would say so.
+
+        Asked of the live annotations rather than the source, so an
+        alias or a string annotation cannot hide one.
+        """
+        violations = entities_that_are_not_frozen_dataclasses(
+            mutable_collection_verdicts("julee", kernel_classes())
+        )
+
+        assert not violations, (
+            "Kernel entities holding a mutable collection:\n" + "\n".join(violations)
         )

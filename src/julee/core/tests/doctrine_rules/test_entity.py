@@ -28,11 +28,11 @@ def an_entity(
         slug,
         ClassInfo(
             name=name,
-            bases=list(bases),
-            fields=[
+            bases=tuple(bases),
+            fields=tuple(
                 FieldInfo(name=n, type_annotation=annotation)
                 for n, annotation in fields
-            ],
+            ),
         ),
     )
 
@@ -46,11 +46,11 @@ def a_context(
     """A parsed context, described by how much of each thing doctrine read."""
     return BoundedContextInfo(
         slug=slug,
-        entities=[ClassInfo(name=f"Entity{i}") for i in range(entities)],
-        use_cases=[ClassInfo(name=f"Do{i}UseCase") for i in range(use_cases)],
-        repository_protocols=[
+        entities=tuple(ClassInfo(name=f"Entity{i}") for i in range(entities)),
+        use_cases=tuple(ClassInfo(name=f"Do{i}UseCase") for i in range(use_cases)),
+        repository_protocols=tuple(
             ClassInfo(name=f"Thing{i}Repository") for i in range(repositories)
-        ],
+        ),
     )
 
 
@@ -134,15 +134,15 @@ def a_dataclass(
         slug,
         ClassInfo(
             name=name,
-            bases=[],
-            decorators=["dataclasses.dataclass"],
+            bases=(),
+            decorators=("dataclasses.dataclass",),
             decorator_arguments=(
                 {"dataclass": {"frozen": frozen}} if frozen is not None else {}
             ),
-            fields=[
+            fields=tuple(
                 FieldInfo(name=n, type_annotation=annotation)
                 for n, annotation in fields
-            ],
+            ),
         ),
     )
 
@@ -191,7 +191,7 @@ def test_a_plain_class_with_no_bases_is_still_left_alone() -> None:
     """The bases filter also meant "something I can reason about", and a
     class that is neither decorated nor derived is not an entity this
     rule has anything to say about."""
-    plain = ("hcd", ClassInfo(name="Helper", bases=[]))
+    plain = ("hcd", ClassInfo(name="Helper", bases=()))
 
     assert entities_not_extending_Entity([plain]) == []
     assert fields_using_mutable_collections([plain]) == []
