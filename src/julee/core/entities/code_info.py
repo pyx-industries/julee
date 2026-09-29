@@ -10,10 +10,13 @@ Used for:
 - Architecture validation
 """
 
-from pydantic import BaseModel, Field, field_validator
+import types
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 
-class FieldInfo(BaseModel):
+@dataclass(frozen=True)
+class FieldInfo:
     """Information about a class field/attribute."""
 
     name: str
@@ -21,23 +24,25 @@ class FieldInfo(BaseModel):
     default: str | None = None
 
 
-class ParameterInfo(BaseModel):
+@dataclass(frozen=True)
+class ParameterInfo:
     """Information about a method parameter."""
 
     name: str
     type_annotation: str = ""
 
 
-class MethodInfo(BaseModel):
+@dataclass(frozen=True)
+class MethodInfo:
     """Information about a class method."""
 
     name: str
     is_async: bool = False
-    parameters: list[ParameterInfo] = Field(default_factory=list)
+    parameters: tuple[ParameterInfo, ...] = ()
     return_type: str = ""
     docstring: str = ""
     source: str = ""
-    decorators: list[str] = Field(default_factory=list)
+    decorators: tuple[str, ...] = ()
     """Dotted paths of the method's decorators, imports followed.
 
     The same shape as :attr:`ClassInfo.decorators`, and for the same
@@ -47,7 +52,7 @@ class MethodInfo(BaseModel):
     an alias all resolve to ``pydantic.field_validator``.
     """
 
-    returns: list[str] = Field(default_factory=list)
+    returns: tuple[str, ...] = ()
     """The source text of each ``return`` expression in the body.
 
     Text rather than a value, because this is read from a file rather
@@ -97,7 +102,7 @@ class MethodInfo(BaseModel):
         import re
 
         types: set[str] = set()
-        all_annotations = self.parameter_types + [self.return_type]
+        all_annotations = [*self.parameter_types, self.return_type]
 
         for annotation in all_annotations:
             if not annotation:
@@ -110,7 +115,8 @@ class MethodInfo(BaseModel):
         return types
 
 
-class ClassInfo(BaseModel):
+@dataclass(frozen=True)
+class ClassInfo:
     """Information about a Python class extracted via AST.
 
     Represents any discoverable class in a bounded context's domain layer:
@@ -120,10 +126,10 @@ class ClassInfo(BaseModel):
     name: str
     docstring: str = ""
     file: str = ""
-    bases: list[str] = Field(default_factory=list)
-    fields: list[FieldInfo] = Field(default_factory=list)
-    methods: list[MethodInfo] = Field(default_factory=list)
-    decorators: list[str] = Field(default_factory=list)
+    bases: tuple[str, ...] = ()
+    fields: tuple[FieldInfo, ...] = ()
+    methods: tuple[MethodInfo, ...] = ()
+    decorators: tuple[str, ...] = ()
     """Dotted paths of the class's decorators, imports followed.
 
     ``@temporal_activity_registration("x")`` and an aliased
@@ -132,7 +138,7 @@ class ClassInfo(BaseModel):
     as far as the import can be followed, so a rule matches on the path
     rather than on how the decorator was spelled at the point of use.
     """
-    decorator_arguments: dict[str, dict[str, str]] = Field(default_factory=dict)
+    decorator_arguments: Mapping[str, Mapping[str, str]] = types.MappingProxyType({})
     """Keyword arguments each decorator was called with, as source text.
 
     Keyed by the decorator's last path segment, matching how
@@ -179,13 +185,19 @@ class ClassInfo(BaseModel):
         """
         return self.decorator_arguments.get(name, {}).get(keyword)
 
-    @field_validator("name", mode="before")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        """Validate name is not empty."""
-        if not v or not v.strip():
+    def __post_init__(self) -> None:
+        """Check the name and trim it.
+
+        This was a ``field_validator`` in ``mode="before"``. It refused
+        an empty name and returned a stripped one, so it decided what
+        the field holds rather than only checking it.
+
+        Raises:
+            ValueError: If the name is empty or only whitespace
+        """
+        if not self.name or not self.name.strip():
             raise ValueError("name cannot be empty")
-        return v.strip()
+        object.__setattr__(self, "name", self.name.strip())
 
     @property
     def referenced_types(self) -> set[str]:

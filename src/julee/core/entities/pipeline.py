@@ -45,12 +45,13 @@ implementations. But each method call becomes a Temporal activity with its own
 timeout, retry policy, state persistence, and audit trail.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from dataclasses import dataclass
 
 from julee.core.entities.code_info import MethodInfo
 
 
-class Pipeline(BaseModel):
+@dataclass(frozen=True)
+class Pipeline:
     """A durable execution wrapper that keeps business logic pure.
 
     Long-running processes need durability. They need to survive crashes,
@@ -83,7 +84,7 @@ class Pipeline(BaseModel):
     has_run_method: bool = False
     wrapped_use_case: str | None = None
     delegates_to_use_case: bool = False
-    methods: list[MethodInfo] = Field(default_factory=list)
+    methods: tuple[MethodInfo, ...] = ()
 
     # run_next() pattern attributes
     has_run_next_method: bool = False
@@ -91,13 +92,15 @@ class Pipeline(BaseModel):
     run_calls_run_next: bool = False
     sets_dispatches_on_response: bool = False
 
-    @field_validator("name", mode="before")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        """Validate name is not empty."""
-        if not v or not v.strip():
+    def __post_init__(self) -> None:
+        """Check the name and trim it.
+
+        Raises:
+            ValueError: If the name is empty or only whitespace
+        """
+        if not self.name or not self.name.strip():
             raise ValueError("name cannot be empty")
-        return v.strip()
+        object.__setattr__(self, "name", self.name.strip())
 
     @property
     def expected_use_case_name(self) -> str | None:

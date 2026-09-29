@@ -6,7 +6,8 @@ providing radio communication semantics (wilco/unable/roger) for handler
 service responses.
 """
 
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -24,7 +25,7 @@ class Acknowledgement:
     will_comply: bool | None = None
     """None = roger (no commitment), True = wilco, False = unable."""
 
-    info: list[str] = field(default_factory=list)
+    info: tuple[str, ...] = ()
     """What the handler had to say about the handoff.
 
     A list rather than a tuple, which is shallow for a frozen class.
@@ -35,7 +36,7 @@ class Acknowledgement:
     @classmethod
     def wilco(
         cls,
-        info: list[str] | None = None,
+        info: Sequence[str] | None = None,
     ) -> "Acknowledgement":
         """
         Will comply - handler accepts and will process.
@@ -48,13 +49,13 @@ class Acknowledgement:
         """
         return cls(
             will_comply=True,
-            info=info or [],
+            info=tuple(info or ()),
         )
 
     @classmethod
     def unable(
         cls,
-        info: list[str] | None = None,
+        info: Sequence[str] | None = None,
     ) -> "Acknowledgement":
         """
         Unable to comply - handler cannot process.
@@ -67,13 +68,13 @@ class Acknowledgement:
         """
         return cls(
             will_comply=False,
-            info=info or [],
+            info=tuple(info or ()),
         )
 
     @classmethod
     def roger(
         cls,
-        info: list[str] | None = None,
+        info: Sequence[str] | None = None,
     ) -> "Acknowledgement":
         """
         Received - acknowledged, no commitment about action.
@@ -90,7 +91,7 @@ class Acknowledgement:
         """
         return cls(
             will_comply=None,
-            info=info or [],
+            info=tuple(info or ()),
         )
 
     @property

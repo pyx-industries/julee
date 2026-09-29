@@ -40,10 +40,10 @@ def a_port(
             artifact=ClassInfo(
                 name=name,
                 file=f"{name.lower()}.py",
-                methods=[
+                methods=tuple(
                     MethodInfo(name=f"method_{i}", return_type=reference)
                     for i, reference in enumerate(references)
-                ],
+                ),
             ),
         ),
     )

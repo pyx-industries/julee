@@ -253,6 +253,73 @@ def _not_a_domain_class(obj: object) -> str | None:
     )
 
 
+MUTABLE_COLLECTIONS = (list, set, dict)
+"""Collection types an entity's field may not be annotated with.
+
+A frozen dataclass holding a list is immutable in name only: the field
+cannot be reassigned and its contents can be changed by anyone holding
+the entity.
+"""
+
+
+def _mutable_fields(obj: object) -> str | None:
+    """Which of a class's fields are annotated with a mutable collection.
+
+    Asked of the live annotations rather than of the source. The kits'
+    rule matches ``list[`` against the text of the annotation, which
+    cannot see through an alias or a string annotation; this resolves
+    the type and asks what it is.
+
+    Args:
+        obj: The class to read
+
+    Returns:
+        A clause naming the offending fields, or None
+
+    """
+    if not isinstance(obj, type) or not dataclasses.is_dataclass(obj):
+        return None
+    try:
+        annotations = typing.get_type_hints(obj)
+    except Exception:  # noqa: BLE001 - an unresolvable hint is not this rule's business
+        return None
+    guilty = sorted(
+        field.name
+        for field in dataclasses.fields(obj)
+        if (origin := typing.get_origin(annotations.get(field.name))) is not None
+        and isinstance(origin, type)
+        and issubclass(origin, MUTABLE_COLLECTIONS)
+    )
+    if not guilty:
+        return None
+    return (
+        f"{', '.join(guilty)} annotated with a mutable collection. Use "
+        f"tuple, Mapping or frozenset: a frozen dataclass holding a list "
+        f"is immutable in name only"
+    )
+
+
+def mutable_collection_verdicts(
+    slug: str, classes: Mapping[str, object]
+) -> list[Verdict]:
+    """Judge classes already in hand for mutable collection fields.
+
+    The kits are held to this by
+    :func:`~julee.core.doctrine.rules.entity.fields_using_mutable_collections`,
+    which reads their source. julee has no bounded contexts for that to
+    find, so its own entities were never asked — the same gap
+    ``domain_class_verdicts`` closed for the frozen dataclass rule.
+
+    Args:
+        slug: What to call the codebase in an objection
+        classes: The classes to judge, by name
+
+    Returns:
+        One verdict per class
+    """
+    return [Verdict(slug, name, _mutable_fields(obj)) for name, obj in classes.items()]
+
+
 def domain_class_verdicts(slug: str, classes: Mapping[str, object]) -> list[Verdict]:
     """Judge classes already in hand by the domain ring's rule.
 

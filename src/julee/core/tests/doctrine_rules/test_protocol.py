@@ -27,10 +27,10 @@ def a_handler(
         artifact=ClassInfo(
             name=name,
             file=file,
-            methods=[
+            methods=tuple(
                 MethodInfo(name=f"handle_{i}", return_type=r)
                 for i, r in enumerate(returns)
-            ],
+            ),
         ),
     )
 
@@ -44,8 +44,10 @@ def a_repository(
     """A repository protocol covering one entity."""
     artifact = ClassInfo(
         name=name,
-        bases=list(bases),
-        methods=[MethodInfo(name="get", return_type=f"{r} | None") for r in references],
+        bases=tuple(bases),
+        methods=tuple(
+            MethodInfo(name="get", return_type=f"{r} | None") for r in references
+        ),
     )
     return CodeArtifactWithContext(bounded_context=slug, artifact=artifact)
 

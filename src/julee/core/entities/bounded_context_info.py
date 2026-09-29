@@ -6,13 +6,14 @@ the pipelines in :mod:`julee.core.entities.pipeline`. It lives in its
 own module because ``Pipeline`` itself depends on ``code_info``.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from dataclasses import dataclass
 
 from julee.core.entities.code_info import ClassInfo
 from julee.core.entities.pipeline import Pipeline
 
 
-class BoundedContextInfo(BaseModel):
+@dataclass(frozen=True)
+class BoundedContextInfo:
     """Information about a bounded context's code structure.
 
     Represents the Clean Architecture layers present in a bounded context:
@@ -32,29 +33,31 @@ class BoundedContextInfo(BaseModel):
     """
 
     slug: str
-    entities: list[ClassInfo] = Field(default_factory=list)
-    use_cases: list[ClassInfo] = Field(default_factory=list)
-    requests: list[ClassInfo] = Field(default_factory=list)
-    responses: list[ClassInfo] = Field(default_factory=list)
-    repository_protocols: list[ClassInfo] = Field(default_factory=list)
-    service_protocols: list[ClassInfo] = Field(default_factory=list)
-    handler_protocols: list[ClassInfo] = Field(default_factory=list)
-    oracle_protocols: list[ClassInfo] = Field(default_factory=list)
-    calculator_protocols: list[ClassInfo] = Field(default_factory=list)
-    witness_protocols: list[ClassInfo] = Field(default_factory=list)
-    pipelines: list[Pipeline] = Field(default_factory=list)
+    entities: tuple[ClassInfo, ...] = ()
+    use_cases: tuple[ClassInfo, ...] = ()
+    requests: tuple[ClassInfo, ...] = ()
+    responses: tuple[ClassInfo, ...] = ()
+    repository_protocols: tuple[ClassInfo, ...] = ()
+    service_protocols: tuple[ClassInfo, ...] = ()
+    handler_protocols: tuple[ClassInfo, ...] = ()
+    oracle_protocols: tuple[ClassInfo, ...] = ()
+    calculator_protocols: tuple[ClassInfo, ...] = ()
+    witness_protocols: tuple[ClassInfo, ...] = ()
+    pipelines: tuple[Pipeline, ...] = ()
     has_infrastructure: bool = False
     code_dir: str = ""
     objective: str | None = None
     docstring: str | None = None
 
-    @field_validator("slug", mode="before")
-    @classmethod
-    def validate_slug(cls, v: str) -> str:
-        """Validate slug is not empty."""
-        if not v or not v.strip():
+    def __post_init__(self) -> None:
+        """Check the slug and trim it.
+
+        Raises:
+            ValueError: If the slug is empty or only whitespace
+        """
+        if not self.slug or not self.slug.strip():
             raise ValueError("slug cannot be empty")
-        return v.strip()
+        object.__setattr__(self, "slug", self.slug.strip())
 
     @property
     def entity_count(self) -> int:

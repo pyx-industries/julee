@@ -123,7 +123,7 @@ def test_the_frozen_rule_passes_what_this_one_catches() -> None:
     story = ClassInfo(
         name="Story",
         file="domain/models/story.py",
-        decorators=["pydantic.dataclasses.dataclass"],
+        decorators=("pydantic.dataclasses.dataclass",),
         decorator_arguments={"dataclass": {"frozen": "True"}},
     )
 
