@@ -481,6 +481,13 @@ def _foreign(annotation: object) -> list[str]:
     if isinstance(annotation, type):
         if issubclass(annotation, enum.Enum):
             return []
+        if issubclass(annotation, VALUE_OBJECT_BASES):
+            # The same value objects the domain ring sanctions. A port
+            # naming one is stronger than a port naming str: it is the
+            # difference between a multihash and any old text (#44).
+            # This branch was missing, so the two rules disagreed — a
+            # Slug was a domain class and could not cross a port.
+            return []
         if is_pydantic_dataclass(annotation):
             return [f"{annotation.__name__} (a pydantic dataclass)"]
         if issubclass(annotation, BaseModel):
