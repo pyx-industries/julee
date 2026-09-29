@@ -5,8 +5,9 @@ import os
 from minio import Minio
 from minio.error import S3Error
 
-from julee.core.entities.file_storage import FileMetadata, FileUploadArgs
+from julee.core.entities.file_storage import FileMetadata
 from julee.core.repositories.file_storage import FileStorageRepository
+from julee.core.values.file_storage import FileUploadArgs
 
 logger = logging.getLogger(__name__)
 

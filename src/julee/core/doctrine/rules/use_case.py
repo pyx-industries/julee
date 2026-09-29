@@ -21,8 +21,8 @@ from julee.core.doctrine_constants import (
     RESPONSE_SUFFIX,
     USE_CASE_SUFFIX,
 )
-from julee.core.entities.code_info import MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import MethodInfo
 
 __all__ = [
     "GENERIC_BASE_CLASSES",

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.entities.claim import Claim, ClaimKind
 from julee.core.entities.kit import Kit
 from julee.core.semantics import (
     accepted_claims,
@@ -16,6 +15,7 @@ from julee.core.semantics import (
     semantics_documents,
     solution_claims,
 )
+from julee.core.values.claim import Claim, ClaimKind
 
 pytestmark = pytest.mark.unit
 

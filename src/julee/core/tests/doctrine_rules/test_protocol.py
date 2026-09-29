@@ -9,8 +9,8 @@ from julee.core.doctrine.rules.protocol import (
     handlers_outside_infrastructure_handlers,
     repositories_referencing_several_entities,
 )
-from julee.core.entities.code_info import ClassInfo, MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import ClassInfo, MethodInfo
 
 pytestmark = pytest.mark.unit
 

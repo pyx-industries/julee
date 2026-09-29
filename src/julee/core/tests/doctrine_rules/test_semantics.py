@@ -25,7 +25,7 @@ from julee.core.doctrine.rules.semantics import (
     claims_that_do_not_resolve,
     claims_without_a_note,
 )
-from julee.core.entities.claim import Claim, ClaimKind
+from julee.core.values.claim import Claim, ClaimKind
 
 pytestmark = pytest.mark.unit
 

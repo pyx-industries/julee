@@ -1,15 +1,15 @@
 """Bounded context introspection model.
 
 Summarises the Clean Architecture layers found in one bounded context,
-in terms of the code models in :mod:`julee.core.entities.code_info` and
-the pipelines in :mod:`julee.core.entities.pipeline`. It lives in its
+in terms of the code models in :mod:`julee.core.values.code_info` and
+the pipelines in :mod:`julee.core.values.pipeline`. It lives in its
 own module because ``Pipeline`` itself depends on ``code_info``.
 """
 
 from dataclasses import dataclass
 
-from julee.core.entities.code_info import ClassInfo
-from julee.core.entities.pipeline import Pipeline
+from julee.core.values.code_info import ClassInfo
+from julee.core.values.pipeline import Pipeline
 
 
 @dataclass(frozen=True)

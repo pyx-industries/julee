@@ -47,7 +47,7 @@ timeout, retry policy, state persistence, and audit trail.
 
 from dataclasses import dataclass
 
-from julee.core.entities.code_info import MethodInfo
+from julee.core.values.code_info import MethodInfo
 
 
 @dataclass(frozen=True)

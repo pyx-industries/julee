@@ -16,8 +16,8 @@ from julee.core.doctrine.rules.port import (
     services_bound_to_too_few_entities,
 )
 from julee.core.doctrine_constants import REPOSITORIES_PATH
-from julee.core.entities.code_info import ClassInfo, MethodInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import ClassInfo, MethodInfo
 
 pytestmark = pytest.mark.unit
 

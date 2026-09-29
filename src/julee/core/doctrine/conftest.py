@@ -12,7 +12,6 @@ from pathlib import Path
 import pytest
 
 from julee.core.entities import kernel_entity_names
-from julee.core.entities.policy import SolutionPolicyConfig
 from julee.core.infrastructure.repositories.file.solution_config import (
     FileSolutionConfigRepository,
 )
@@ -21,6 +20,7 @@ from julee.core.infrastructure.repositories.introspection.bounded_context import
 )
 from julee.core.kits import adopted_kits, viewpoint_slugs
 from julee.core.parsers.ast import parse_bounded_context
+from julee.core.values.policy import SolutionPolicyConfig
 
 
 def _find_project_root() -> Path:

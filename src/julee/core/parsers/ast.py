@@ -21,8 +21,8 @@ import griffe
 
 if TYPE_CHECKING:
     from julee.core.entities.bounded_context_info import BoundedContextInfo
-    from julee.core.entities.code_info import ClassInfo
-    from julee.core.entities.pipeline import Pipeline
+    from julee.core.values.code_info import ClassInfo
+    from julee.core.values.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def _return_expressions(source: str | None) -> list[str]:
 
 
 def _griffe_class_to_classinfo(cls: griffe.Class, file_name: str) -> "ClassInfo":
-    from julee.core.entities.code_info import (
+    from julee.core.values.code_info import (
         ClassInfo,
         FieldInfo,
         MethodInfo,
@@ -333,7 +333,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     imported = _imported_class_names(use_cases_dir)
     for name in sorted(imported - defined_names):
         if not name.startswith("_") and name.endswith(("Request", "Response")):
-            from julee.core.entities.code_info import ClassInfo
+            from julee.core.values.code_info import ClassInfo
 
             all_classes.append(ClassInfo(name=name))
 
@@ -532,8 +532,8 @@ def _parse_pipeline_class(
     bounded_context: str = "",
 ):
     from julee.core.doctrine_constants import PIPELINE_SUFFIX
-    from julee.core.entities.code_info import MethodInfo, ParameterInfo
-    from julee.core.entities.pipeline import Pipeline
+    from julee.core.values.code_info import MethodInfo, ParameterInfo
+    from julee.core.values.pipeline import Pipeline
 
     is_pipeline_by_name = class_node.name.endswith(PIPELINE_SUFFIX)
     has_workflow_decorator = _has_decorator(class_node, "workflow.defn")

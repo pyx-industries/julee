@@ -8,8 +8,8 @@ import re
 from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 
-from julee.core.entities.code_info import ClassInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import ClassInfo
 
 __all__ = [
     "base_entity_type",

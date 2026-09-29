@@ -12,7 +12,7 @@ from julee.core.doctrine.rules.entity import (
     fields_using_mutable_collections,
 )
 from julee.core.entities.bounded_context_info import BoundedContextInfo
-from julee.core.entities.code_info import ClassInfo, FieldInfo
+from julee.core.values.code_info import ClassInfo, FieldInfo
 
 pytestmark = pytest.mark.unit
 

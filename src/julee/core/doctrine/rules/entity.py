@@ -21,7 +21,7 @@ from julee.core.doctrine_constants import (
     WITNESSES_PATH,
 )
 from julee.core.entities.bounded_context_info import BoundedContextInfo
-from julee.core.entities.code_info import ClassInfo
+from julee.core.values.code_info import ClassInfo
 
 __all__ = [
     "ENUM_INDICATORS",

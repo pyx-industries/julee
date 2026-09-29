@@ -11,8 +11,8 @@ from julee.core.doctrine.rules.kit import (
     unadopted_requirements,
     unimportable_packages,
 )
-from julee.core.entities.code_info import ClassInfo
 from julee.core.entities.kit import Kit
+from julee.core.values.code_info import ClassInfo
 
 pytestmark = pytest.mark.unit
 

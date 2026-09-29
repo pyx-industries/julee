@@ -8,8 +8,8 @@ watching.
 
 import pytest
 
-from julee.core.entities.accelerator import (
-    Accelerator,
+from julee.core.entities.accelerator import Accelerator
+from julee.core.values.accelerator import (
     AcceleratorValidationIssue,
     IntegrationReference,
 )

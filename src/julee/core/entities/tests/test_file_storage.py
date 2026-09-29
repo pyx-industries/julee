@@ -9,11 +9,11 @@ dataclass moved security code that no test was watching.
 import pytest
 from temporalio.contrib.pydantic import pydantic_data_converter
 
-from julee.core.entities.file_storage import (
+from julee.core.entities.file_storage import FileMetadata
+from julee.core.values.file_storage import (
     ALLOWED_CONTENT_TYPES,
     MAX_FILE_BYTES,
     MAX_FILENAME_LENGTH,
-    FileMetadata,
     FileUploadArgs,
 )
 

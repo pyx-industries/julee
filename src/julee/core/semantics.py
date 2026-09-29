@@ -23,8 +23,8 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from julee.core.entities.claim import Claim
 from julee.core.entities.kit import Kit
+from julee.core.values.claim import Claim
 
 __all__ = [
     "SEMANTICS_FILE",
