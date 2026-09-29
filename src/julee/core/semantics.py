@@ -21,6 +21,8 @@ from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
 
+from pydantic import TypeAdapter, ValidationError
+
 from julee.core.entities.claim import Claim
 from julee.core.entities.kit import Kit
 
@@ -190,7 +192,16 @@ def claims_from_toml(text: str, origin: str) -> tuple[Claim, ...]:
     except tomllib.TOMLDecodeError as exc:
         raise ValueError(f"{origin} is not readable TOML: {exc}") from exc
 
-    claims = tuple(Claim(**entry) for entry in data.get("claim", []))
+    # Through a TypeAdapter: every value in a TOML table is a str, and
+    # Claim declares its kind as a ClaimKind. Claim(**entry) would store
+    # the str, so a claim would carry a kind that is not one of the
+    # kinds and an unknown one would be accepted in silence.
+    try:
+        claims = tuple(
+            TypeAdapter(Claim).validate_python(entry) for entry in data.get("claim", [])
+        )
+    except ValidationError as exc:
+        raise ValueError(f"{origin} declares a claim it cannot make: {exc}") from exc
 
     seen: set[str] = set()
     for claim in claims:

@@ -9,6 +9,7 @@ Temporal or Sphinx at module scope.
 """
 
 import logging
+from dataclasses import replace
 from importlib.metadata import entry_points
 
 from julee.core.entities.kit import Kit
@@ -57,7 +58,7 @@ class EntryPointKitRepository:
                     entry_point.name,
                     manifest.slug,
                 )
-                manifest = manifest.evolve(slug=entry_point.name)
+                manifest = replace(manifest, slug=entry_point.name)
             kits.append(manifest)
         return sorted(kits, key=lambda kit: kit.slug)
 

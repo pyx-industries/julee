@@ -21,11 +21,8 @@ for it — and doctrine checks the names resolve rather than trusting them,
 which is the failure the decorators this replaces never caught.
 """
 
+from dataclasses import dataclass
 from enum import StrEnum
-
-from pydantic import Field, field_validator
-
-from julee.core.entities.entity import Entity
 
 
 class ClaimKind(StrEnum):
@@ -59,7 +56,8 @@ class ClaimKind(StrEnum):
     """The source points at the target without owning it."""
 
 
-class Claim(Entity):
+@dataclass(frozen=True)
+class Claim:
     """One kit's assertion about how a class of its own relates to another.
 
     Both ends are dotted paths to classes, for example
@@ -68,21 +66,30 @@ class Claim(Entity):
     about, so nothing here can create a dependency.
     """
 
-    id: str = Field(
-        description='Identifier within its file, e.g. "story-projects-usecase"'
-    )
-    source: str = Field(description="Dotted path to the class making the claim")
-    kind: ClaimKind = Field(description="How the source lines up with the target")
-    target: str = Field(description="Dotted path to the class being claimed about")
-    note: str = Field(
-        default="",
-        description="Why this is so, in a sentence or two, for the reader",
-    )
+    id: str
+    """Identifier within its file, e.g. "story-projects-usecase"."""
+    source: str
+    """Dotted path to the class making the claim."""
+    kind: ClaimKind
+    """How the source lines up with the target."""
+    target: str
+    """Dotted path to the class being claimed about."""
+    note: str = ""
+    """Why this is so, in a sentence or two, for the reader."""
 
-    @field_validator("id", "source", "target", mode="before")
-    @classmethod
-    def validate_not_empty(cls, v: str) -> str:
-        """A claim with a blank end says nothing and cannot be checked."""
-        if not v or not v.strip():
-            raise ValueError("a claim needs an id, a source and a target")
-        return v.strip()
+    def __post_init__(self) -> None:
+        """Check both ends are named, and trim them.
+
+        This was a field_validator over three fields. It refused a
+        blank one and returned a stripped one, so it decided what the
+        field holds rather than only checking it, and a claim read from
+        a padded data file has to match the dotted path it names.
+
+        Raises:
+            ValueError: If the id, source or target is blank
+        """
+        for name in ("id", "source", "target"):
+            value = getattr(self, name)
+            if not value or not value.strip():
+                raise ValueError("a claim needs an id, a source and a target")
+            object.__setattr__(self, name, value.strip())
