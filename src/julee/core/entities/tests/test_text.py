@@ -9,15 +9,17 @@ other end up with the same string, which is what the kits got wrong
 everywhere one end was stripped and the other slugified.
 """
 
+from dataclasses import dataclass, replace
+
 import pytest
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from julee.core.entities import kernel_entity_names
-from julee.core.entities.entity import Entity
 from julee.core.entities.text import Name, NonEmptyText, Slug
 
 
-class Referrer(Entity):
+@dataclass(frozen=True)
+class Referrer:
     """An entity naming another by slug, for the round-trip tests."""
 
     slug: Slug
@@ -116,8 +118,8 @@ class TestTheyAreStrings:
             note=NonEmptyText("n"),
         )
 
-        assert entity.model_dump_json() == (
-            '{"slug":"a","name":"A","target_slug":"b","note":"n"}'
+        assert TypeAdapter(Referrer).dump_json(entity) == (
+            b'{"slug":"a","name":"A","target_slug":"b","note":"n"}'
         )
 
     def test_reading_one_back_rebuilds_the_type(self) -> None:
@@ -129,18 +131,22 @@ class TestTheyAreStrings:
             note=NonEmptyText("n"),
         )
 
-        read_back = Referrer.model_validate_json(entity.model_dump_json())
+        adapter = TypeAdapter(Referrer)
+
+        read_back = adapter.validate_json(adapter.dump_json(entity))
 
         assert isinstance(read_back.slug, Slug)
         assert read_back.slug == "a-thing"
 
-    def test_evolve_normalises_and_model_copy_does_not(self) -> None:
-        """The distinction Entity.evolve exists for, in one assertion.
+    def test_replacing_a_field_still_builds_the_type(self) -> None:
+        """A test of evolve against model_copy stood here.
 
-        ``model_copy(update=...)`` does not validate, by design, so it
-        writes whatever it is handed — here a plain str where the
-        annotation says Slug. ``evolve`` goes through the schema, so the
-        value is constructed.
+        It asserted the one difference between them: evolve ran the
+        validators and model_copy did not, so the second wrote a plain
+        str where the annotation said Slug. Neither exists on a frozen
+        dataclass, and replace() always runs __post_init__, so there is
+        no longer a pair to tell apart — only the one way, which has to
+        keep building the value object.
         """
         entity = Referrer(
             slug=Slug("a"),
@@ -149,13 +155,12 @@ class TestTheyAreStrings:
             note=NonEmptyText("n"),
         )
 
-        assert isinstance(entity.evolve(slug="Another Thing").slug, Slug)
-        assert not isinstance(entity.model_copy(update={"slug": "Raw"}).slug, Slug)
+        assert replace(entity, slug=Slug("Another Thing")).slug == "another-thing"
 
     def test_an_entity_refuses_stored_data_the_type_would_refuse(self) -> None:
         """The rule holds on the way in from storage, not only in Python."""
         with pytest.raises(ValidationError):
-            Referrer.model_validate(
+            TypeAdapter(Referrer).validate_python(
                 {"slug": "", "name": "A", "target_slug": "b", "note": "n"}
             )
 

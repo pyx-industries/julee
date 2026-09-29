@@ -15,8 +15,8 @@ from julee.core.doctrine.rules.entity import (
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
-    entities_not_extending_Entity,
     entities_that_are_not_frozen_dataclasses,
+    entities_that_can_be_mutated,
     fields_named_workflow_id,
     fields_using_mutable_collections,
     validators_that_transform,
@@ -29,17 +29,18 @@ class TestEntityImmutability:
     """Doctrine about entity immutability."""
 
     @pytest.mark.asyncio
-    async def test_entity_classes_MUST_extend_Entity(self, repo):
-        """All entity classes MUST extend Entity.
+    async def test_entity_classes_MUST_be_immutable(self, repo):
+        """An entity's fields MUST NOT be reassignable.
 
-        Entities represent immutable domain records. Inheriting from Entity
-        (which sets frozen=True) prevents field reassignment and signals that
-        state changes require constructing new instances via model_copy().
+        An entity is a snapshot of business state: a change means a new
+        instance rather than an edited one, and a field that can be
+        written makes that a convention rather than a fact. A frozen
+        dataclass is how one says so.
 
         Enum subclasses are exempt — they are inherently immutable.
 
         Compliance is checked transitively: a class that extends another domain
-        model (which itself extends Entity) is compliant. Classes whose bases
+        model (which is itself immutable) is compliant. Classes whose bases
         are not found in the scanned codebase are trusted — e.g. julee models
         are verified by julee's own doctrine tests.
         """
@@ -50,7 +51,7 @@ class TestEntityImmutability:
             for entity in info.entities
         ]
 
-        violations = entities_not_extending_Entity(found)
+        violations = entities_that_can_be_mutated(found)
 
         assert not violations, "Entity classes not extending Entity:\n" + "\n".join(
             violations
@@ -274,7 +275,7 @@ class TestChangingAnEntity:
         says tuple: the thing the mutable-collections rule above reads
         annotations to prevent, reached from the other side.
 
-        Entity.evolve() makes the same change and runs the validators.
+        dataclasses.replace() makes the same change and runs __post_init__.
         """
         copies, validated = _read_source(await repo.list_all())
         if not copies:

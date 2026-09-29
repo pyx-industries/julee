@@ -7,7 +7,7 @@ from julee.core.doctrine.rules.entity import (
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
     domain_packages_doctrine_does_not_read,
-    entities_not_extending_Entity,
+    entities_that_can_be_mutated,
     fields_named_workflow_id,
     fields_using_mutable_collections,
 )
@@ -61,12 +61,12 @@ def a_context(
 
 def test_an_entity_extending_Entity_is_allowed() -> None:
     """The ordinary case."""
-    assert entities_not_extending_Entity([an_entity()]) == []
+    assert entities_that_can_be_mutated([an_entity()]) == []
 
 
 def test_an_entity_extending_BaseModel_is_reported() -> None:
     """Pydantic's base is mutable; a domain record should not be."""
-    assert entities_not_extending_Entity([an_entity(bases=("BaseModel",))]) != []
+    assert entities_that_can_be_mutated([an_entity(bases=("BaseModel",))]) != []
 
 
 def test_compliance_is_inherited_through_another_entity() -> None:
@@ -76,21 +76,21 @@ def test_compliance_is_inherited_through_another_entity() -> None:
         an_entity(name="DraftStory", bases=("Story",)),
     ]
 
-    assert entities_not_extending_Entity(found) == []
+    assert entities_that_can_be_mutated(found) == []
 
 
 def test_a_base_this_codebase_cannot_see_is_trusted() -> None:
     """Whoever owns it runs their own doctrine over it."""
     found = [an_entity(name="Persona", bases=("SomeKitEntity",))]
 
-    assert entities_not_extending_Entity(found) == []
+    assert entities_that_can_be_mutated(found) == []
 
 
 def test_an_enum_is_exempt_because_it_is_already_immutable() -> None:
     """Freezing an enum would be a category error."""
     found = [an_entity(name="AppType", bases=("str", "Enum"))]
 
-    assert entities_not_extending_Entity(found) == []
+    assert entities_that_can_be_mutated(found) == []
 
 
 def test_inheriting_from_a_mutable_entity_is_reported() -> None:
@@ -100,7 +100,7 @@ def test_inheriting_from_a_mutable_entity_is_reported() -> None:
         an_entity(name="Tighter", bases=("Loose",)),
     ]
 
-    assert len(entities_not_extending_Entity(found)) == 2
+    assert len(entities_that_can_be_mutated(found)) == 2
 
 
 def test_a_cycle_in_the_bases_does_not_hang() -> None:
@@ -110,7 +110,7 @@ def test_a_cycle_in_the_bases_does_not_hang() -> None:
         an_entity(name="B", bases=("A",)),
     ]
 
-    assert len(entities_not_extending_Entity(found)) == 2
+    assert len(entities_that_can_be_mutated(found)) == 2
 
 
 # =============================================================================
@@ -149,27 +149,25 @@ def a_dataclass(
 
 def test_a_frozen_dataclass_is_allowed() -> None:
     """It makes the same promise Entity does, by another route."""
-    assert entities_not_extending_Entity([a_dataclass()]) == []
+    assert entities_that_can_be_mutated([a_dataclass()]) == []
 
 
 def test_a_dataclass_that_is_not_frozen_is_reported() -> None:
     """The case this rule used to miss altogether: a mutable entity,
     discovered by the parser and examined by nothing, because filtering
     on entity.bases dropped every class that has none (#142)."""
-    assert entities_not_extending_Entity([a_dataclass(frozen=None)]) == ["hcd.Story"]
+    assert entities_that_can_be_mutated([a_dataclass(frozen=None)]) == ["hcd.Story"]
 
 
 def test_frozen_set_to_anything_but_True_is_reported() -> None:
     """A class is read, not imported, so a constant cannot be resolved.
     Whether an entity is immutable should be legible where it is
     defined, so not knowing is reported rather than assumed."""
-    assert entities_not_extending_Entity([a_dataclass(frozen="FROZEN")]) == [
-        "hcd.Story"
-    ]
+    assert entities_that_can_be_mutated([a_dataclass(frozen="FROZEN")]) == ["hcd.Story"]
 
 
 def test_frozen_False_is_reported() -> None:
-    assert entities_not_extending_Entity([a_dataclass(frozen="False")]) == ["hcd.Story"]
+    assert entities_that_can_be_mutated([a_dataclass(frozen="False")]) == ["hcd.Story"]
 
 
 def test_a_dataclass_field_may_not_be_a_mutable_collection() -> None:
@@ -193,7 +191,7 @@ def test_a_plain_class_with_no_bases_is_still_left_alone() -> None:
     rule has anything to say about."""
     plain = ("hcd", ClassInfo(name="Helper", bases=()))
 
-    assert entities_not_extending_Entity([plain]) == []
+    assert entities_that_can_be_mutated([plain]) == []
     assert fields_using_mutable_collections([plain]) == []
 
 
@@ -292,7 +290,7 @@ def test_a_field_merely_containing_workflow_id_is_allowed() -> None:
 @pytest.mark.parametrize(
     "rule",
     [
-        lambda: entities_not_extending_Entity([]),
+        lambda: entities_that_can_be_mutated([]),
         lambda: fields_using_mutable_collections([]),
         lambda: fields_named_workflow_id([]),
     ],
