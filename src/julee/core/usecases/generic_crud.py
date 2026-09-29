@@ -6,8 +6,18 @@ subclasses for a specific entity and repository.
 """
 
 import dataclasses
+import types
 from abc import abstractmethod
-from typing import Any, Generic, TypeVar, cast
+from typing import (
+    Any,
+    Generic,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from julee.core.repositories.base import Deletable
 
@@ -101,6 +111,51 @@ class CreateUseCase(Generic[E, R]):
         return entity
 
 
+def _admits_none(hint: object) -> bool:
+    """Whether a field's declared type allows None.
+
+    ``X | None``, ``Optional[X]``, ``Any``, ``object`` and ``None`` itself
+    do. Anything else does not, whatever a caller passes.
+    """
+    if hint is Any or hint is object or hint is type(None):
+        return True
+    if isinstance(hint, types.UnionType) or get_origin(hint) is Union:
+        return any(_admits_none(arg) for arg in get_args(hint))
+    return False
+
+
+def _refuse_none_the_type_forbids(entity: object, updates: dict[str, Any]) -> None:
+    """Refuse a None for a field whose type does not admit one.
+
+    An update request widens every field to ``T | None`` so that a field
+    left out and a field set to None can be told apart: unset is "leave
+    it alone" and None is "clear it". That leaves None free to reach a
+    field the entity declares as ``str``, and ``dataclasses.replace``
+    stores whatever it is handed. The entity was then quietly wrong —
+    a str field holding None — and the response used to carry the
+    entity, so nothing downstream looked either. The generated message
+    (julee#348) was the first thing to refuse it, one step too late.
+
+    This is the one check the request cannot make, because the request
+    is the thing that widened the type. Everything else about a value
+    the request has already validated.
+
+    Args:
+        entity: The entity as stored
+        updates: The changes about to be applied
+
+    Raises:
+        ValueError: Naming the field and the type that forbids None
+    """
+    hints = get_type_hints(type(entity))
+    for name, value in updates.items():
+        if value is None and name in hints and not _admits_none(hints[name]):
+            raise ValueError(
+                f"{name} may not be cleared: {type(entity).__name__}.{name} is "
+                f"{hints[name]!r}, which does not admit None"
+            )
+
+
 class UpdateUseCase(Generic[E, R]):
     """Base for update use cases.
 
@@ -133,10 +188,13 @@ class UpdateUseCase(Generic[E, R]):
 
         Raises:
             EntityNotFoundError: If nothing is stored under that id
+            ValueError: If a change clears a field whose type forbids it,
+                before anything is saved
         """
         entity = await self.repo.get(entity_id)  # type: ignore[attr-defined]
         if entity is None:
             raise EntityNotFoundError(entity_id)
+        _refuse_none_the_type_forbids(entity, updates)
         updated: E
         if dataclasses.is_dataclass(entity) and not isinstance(entity, type):
             # replace() is typed as returning the DataclassInstance

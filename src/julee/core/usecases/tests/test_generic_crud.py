@@ -4,6 +4,7 @@ These are the public API for downstream projects generating use cases
 via ADR 008. Tests use a fake entity and in-memory repo.
 """
 
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -31,6 +32,34 @@ class FakeEntity(BaseModel):
     entity_id: str
     name: str = ""
     value: int = 0
+
+
+@dataclass(frozen=True)
+class Note:
+    """An entity as the estate writes one: a frozen dataclass.
+
+    One field forbids None and one admits it, which is the difference
+    the update base class has to see.
+    """
+
+    note_id: str
+    title: str = ""
+    body: str | None = None
+
+
+class NoteRepo:
+    """In-memory notes, remembering every save so a test can count them."""
+
+    def __init__(self) -> None:
+        self.stored: dict[str, Note] = {}
+        self.saves = 0
+
+    async def get(self, entity_id: str) -> Note | None:
+        return self.stored.get(entity_id)
+
+    async def save(self, entity: Note) -> None:
+        self.saves += 1
+        self.stored[entity.note_id] = entity
 
 
 class FakeRepo:
@@ -202,3 +231,61 @@ class TestUpdateUseCase:
 
         with pytest.raises(EntityNotFoundError):
             await uc.execute("missing", name="x")
+
+
+class UpdateNoteUseCase(UpdateUseCase[Note, NoteRepo]):
+    """The shape the generator emits, over a frozen dataclass."""
+
+    async def execute(self, note_id: str, **changes: Any) -> Note:
+        return await self._update_by_id(note_id, changes)
+
+
+class TestUpdateRefusesWhatTheTypeForbids:
+    """None reaches a field only if the field's type admits it.
+
+    An update request widens every field to ``T | None`` so that "not
+    mentioned" and "clear it" can be told apart. That left None free to
+    reach a field declared ``str``: replace() stored it, the entity was
+    quietly wrong, and the response carried the entity so nothing
+    looked. This is the check the request cannot make, because the
+    request is what widened the type.
+    """
+
+    async def test_clearing_a_field_that_forbids_none_is_refused(self) -> None:
+        """A str field cannot hold None, whatever the request allowed."""
+        repo = NoteRepo()
+        await repo.save(Note(note_id="n-1", title="Kept"))
+
+        with pytest.raises(ValueError, match="title.*does not admit None"):
+            await UpdateNoteUseCase(repo).execute("n-1", title=None)
+
+    async def test_nothing_is_saved_when_it_is_refused(self) -> None:
+        """Refused before the save, not after: the store is untouched."""
+        repo = NoteRepo()
+        await repo.save(Note(note_id="n-1", title="Kept"))
+        saves_before = repo.saves
+
+        with pytest.raises(ValueError):
+            await UpdateNoteUseCase(repo).execute("n-1", title=None)
+
+        assert repo.saves == saves_before
+        assert repo.stored["n-1"].title == "Kept"
+
+    async def test_clearing_a_field_that_admits_none_is_stored(self) -> None:
+        """Which is what None on an update is for."""
+        repo = NoteRepo()
+        await repo.save(Note(note_id="n-1", title="Kept", body="scratched"))
+
+        updated = await UpdateNoteUseCase(repo).execute("n-1", body=None)
+
+        assert updated.body is None
+        assert updated.title == "Kept"
+
+    async def test_a_real_value_is_still_stored_as_before(self) -> None:
+        """The check is about None and nothing else."""
+        repo = NoteRepo()
+        await repo.save(Note(note_id="n-1", title="Old"))
+
+        updated = await UpdateNoteUseCase(repo).execute("n-1", title="New")
+
+        assert updated.title == "New"

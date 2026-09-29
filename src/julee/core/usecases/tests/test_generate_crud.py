@@ -213,9 +213,8 @@ async def test_update_passing_none_explicitly_clears_the_field(
     str. This test used to clear colour: replace() wrote None into a
     str field, the entity stored it without looking, and the response
     carried the entity so nothing else looked either. The message
-    checks, and refused it. That the generic update can still write
-    None into a field whose type forbids it is a separate defect, and
-    this test is not the one that hides it.
+    checks, and refused it. The update itself refuses it now, before
+    anything is saved — the test after this one says so.
     """
     repo = MintingWidgetRepository()
     repo.storage["hammer"] = Widget(
@@ -229,6 +228,27 @@ async def test_update_passing_none_explicitly_clears_the_field(
     assert response.widget.notes is None
     assert response.widget.name == "Hammer"
     assert response.widget.colour == "red"
+
+
+async def test_update_passing_none_to_a_field_that_forbids_it_is_refused(
+    crud: ModuleType,
+) -> None:
+    """End to end through what the generator wrote.
+
+    The request admits None for colour, because on an update None has
+    to be free to mean "clear it". The entity's colour is a str. The
+    generated use case hands the change to the base class, and the base
+    class refuses it there rather than storing a str field holding None.
+    """
+    repo = MintingWidgetRepository()
+    repo.storage["hammer"] = Widget(slug="hammer", name="Hammer", colour="red")
+
+    with pytest.raises(ValueError, match="colour"):
+        await crud.UpdateWidgetUseCase(repo).execute(
+            crud.UpdateWidgetRequest(slug="hammer", colour=None)
+        )
+
+    assert repo.storage["hammer"].colour == "red"
 
 
 async def test_update_saves_what_it_returns(crud: ModuleType) -> None:
