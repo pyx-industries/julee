@@ -13,31 +13,7 @@ and "scream" at the top level of the codebase.
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
-@dataclass(frozen=True)
-class StructuralMarkers:
-    """Structural markers indicating what a bounded context contains.
-
-    These markers reflect the Clean Architecture layers present in a
-    bounded context. Supports both flattened structure ({bc}/entities/)
-    and legacy structure ({bc}/domain/models/).
-    """
-
-    # Core Clean Architecture layers
-    has_domain_models: bool = False
-    has_domain_repositories: bool = False
-    has_domain_services: bool = False
-    has_domain_use_cases: bool = False
-
-    # Additional structural elements
-    has_tests: bool = False
-    has_parsers: bool = False
-    has_serializers: bool = False
-
-    @property
-    def has_clean_architecture_layers(self) -> bool:
-        """True if context has recognizable CA layer structure."""
-        return self.has_domain_models or self.has_domain_use_cases
+from julee.core.values.bounded_context import StructuralMarkers
 
 
 @dataclass(frozen=True)

@@ -12,7 +12,7 @@ Nothing here runs doctrine. :func:`pytest_arguments` says how, and
 
 from pathlib import Path
 
-from julee.core.entities.policy import SolutionPolicyConfig
+from julee.core.values.policy import SolutionPolicyConfig
 
 __all__ = [
     "enclosing_solution",

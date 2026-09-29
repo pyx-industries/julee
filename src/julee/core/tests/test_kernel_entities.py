@@ -22,12 +22,43 @@ def test_the_kernel_offers_entities() -> None:
     assert kernel_entity_names()
 
 
-@pytest.mark.parametrize(
-    "name", ["BoundedContextInfo", "ClassInfo", "Accelerator", "Kit"]
-)
+@pytest.mark.parametrize("name", ["BoundedContextInfo", "Accelerator", "Kit"])
 def test_an_entity_kits_build_on_is_offered(name: str) -> None:
-    """Each of these has a kit repository over it today (#237)."""
+    """Each of these has a kit repository bound to it today (#237).
+
+    ClassInfo was listed here and is not one. hcd's CodeInfoRepository
+    is RepositoryOf[BoundedContextInfo]; nothing is bound to a
+    ClassInfo, which is a description of a parsed class and has no
+    identity. It is a value now (ADR 018), and this list is what a
+    repository may be bound to rather than what a kit happens to
+    mention.
+    """
     assert name in kernel_entity_names()
+
+
+@pytest.mark.parametrize(
+    "name", ["ClassInfo", "Pipeline", "Claim", "StructuralMarkers", "FileUploadArgs"]
+)
+def test_a_value_is_not_offered_as_an_entity(name: str) -> None:
+    """A value object has no identity, so nothing can be bound to one.
+
+    Five of the fourteen that moved, chosen for the different reasons
+    they are values: a parsed description, a projection, an assertion, a
+    field of an entity, and arguments for a call. If any of them came
+    back into this set, a port naming it would read as bound to an
+    aggregate.
+    """
+    assert name not in kernel_entity_names()
+
+
+def test_a_value_is_still_held_to_what_a_domain_class_must_be() -> None:
+    """Moving out of core/entities/ must not stop a value being checked.
+
+    kernel_classes reads both packages for exactly this reason. Scanning
+    one would have left fourteen classes unexamined while every rule
+    went on passing.
+    """
+    assert {"ClassInfo", "Pipeline", "FileUploadArgs"} <= set(kernel_classes())
 
 
 def test_the_base_class_is_not_itself_an_entity() -> None:

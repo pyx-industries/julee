@@ -25,8 +25,8 @@ from julee.core.doctrine.rules.use_case import (
     use_cases_without_request,
     use_cases_without_response,
 )
-from julee.core.entities.code_info import ClassInfo, MethodInfo, ParameterInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import ClassInfo, MethodInfo, ParameterInfo
 
 pytestmark = pytest.mark.unit
 

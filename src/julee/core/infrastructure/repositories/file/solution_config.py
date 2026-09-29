@@ -6,7 +6,7 @@ Reads [tool.julee] configuration from pyproject.toml.
 import tomllib
 from pathlib import Path
 
-from julee.core.entities.policy import SolutionPolicyConfig
+from julee.core.values.policy import SolutionPolicyConfig
 
 
 class FileSolutionConfigRepository:

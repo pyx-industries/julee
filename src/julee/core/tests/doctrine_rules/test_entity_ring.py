@@ -11,7 +11,7 @@ from julee.core.doctrine.rules.entity import (
     entities_that_are_not_frozen_dataclasses,
     entities_that_can_be_mutated,
 )
-from julee.core.entities.code_info import ClassInfo
+from julee.core.values.code_info import ClassInfo
 
 pytestmark = pytest.mark.unit
 

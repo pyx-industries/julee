@@ -9,7 +9,7 @@ rather than arranging for classes to exist.
 
 from collections.abc import Callable, Iterable
 
-from julee.core.entities.claim import Claim
+from julee.core.values.claim import Claim
 
 __all__ = [
     "Resolver",

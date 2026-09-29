@@ -6,8 +6,8 @@ in the code_artifact module.
 
 from pydantic import BaseModel, Field
 
-from julee.core.entities.code_info import ClassInfo
-from julee.core.entities.pipeline import Pipeline
+from julee.core.values.code_info import ClassInfo
+from julee.core.values.pipeline import Pipeline
 
 
 class CodeArtifactWithContext(BaseModel):

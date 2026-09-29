@@ -7,8 +7,8 @@ that itself rather than arranging for packages to exist.
 
 from collections.abc import Callable, Iterable
 
-from julee.core.entities.code_info import ClassInfo
 from julee.core.entities.kit import Kit
+from julee.core.values.code_info import ClassInfo
 
 __all__ = [
     "CanImport",

@@ -8,7 +8,7 @@ ARE - their docstrings serve as definitions for doctrine documentation.
 
 Import directly from submodules:
     from julee.core.entities.bounded_context import BoundedContext
-    from julee.core.entities.pipeline import Pipeline
+    from julee.core.values.pipeline import Pipeline
 """
 
 import dataclasses
@@ -18,6 +18,18 @@ from importlib import import_module
 from pydantic import BaseModel
 
 __all__ = ["kernel_entity_names"]
+
+
+_KERNEL_DOMAIN_PACKAGES = (
+    "julee.core.entities",
+    "julee.core.values",
+)
+"""Where the kernel keeps what it deals in.
+
+Entities in one, values in the other (ADR 018). Both are read wherever a
+question is about what a domain class must be, and only the first where
+the question is what a port may be bound to.
+"""
 
 
 def kernel_classes() -> dict[str, type]:
@@ -30,23 +42,27 @@ def kernel_classes() -> dict[str, type]:
     one by one, and a rule reading it would go quiet rather than
     green.
 
-    ``Entity`` is left out. It is the base an entity inherits, not one
-    of them.
+    Both packages are read: ``core/entities/`` and ``core/values/``. A
+    value is still a domain class and still has to be a frozen
+    dataclass, so moving one out of here must not stop it being
+    checked — which scanning one package would have done, quietly.
 
     Returns:
         Each class by name, for a caller that judges them
     """
     found: dict[str, type] = {}
-    for module in pkgutil.iter_modules(__path__):
-        if module.name.startswith("_") or module.name == "tests":
-            continue
-        imported = import_module(f"{__name__}.{module.name}")
-        for name, obj in vars(imported).items():
-            if not isinstance(obj, type) or obj.__module__ != imported.__name__:
+    for package in _KERNEL_DOMAIN_PACKAGES:
+        imported_package = import_module(package)
+        for module in pkgutil.iter_modules(imported_package.__path__):
+            if module.name.startswith("_") or module.name == "tests":
                 continue
-            if name == "Entity" or name.startswith("_"):
-                continue
-            found[name] = obj
+            imported = import_module(f"{package}.{module.name}")
+            for name, obj in vars(imported).items():
+                if not isinstance(obj, type) or obj.__module__ != imported.__name__:
+                    continue
+                if name.startswith("_"):
+                    continue
+                found[name] = obj
     return found
 
 

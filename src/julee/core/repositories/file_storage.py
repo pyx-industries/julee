@@ -1,6 +1,7 @@
 from typing import Protocol, runtime_checkable
 
-from julee.core.entities.file_storage import FileMetadata, FileUploadArgs
+from julee.core.entities.file_storage import FileMetadata
+from julee.core.values.file_storage import FileUploadArgs
 
 
 @runtime_checkable

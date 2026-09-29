@@ -33,7 +33,6 @@ from julee.core.doctrine.rules.semantics import (
     claims_that_do_not_resolve,
     claims_without_a_note,
 )
-from julee.core.entities.claim import Claim
 from julee.core.semantics import (
     claim_packages,
     claims_from_toml,
@@ -41,6 +40,7 @@ from julee.core.semantics import (
     resolves_in,
     semantics_documents,
 )
+from julee.core.values.claim import Claim
 
 
 def _imports(dotted_path: str) -> bool:
@@ -50,7 +50,7 @@ def _imports(dotted_path: str) -> bool:
     checked — the kernel, or a kit the target depends on.
 
     Args:
-        dotted_path: For example "julee.core.entities.claim.Claim"
+        dotted_path: For example "julee.core.values.claim.Claim"
 
     Returns:
         True if the module imports and holds that name

@@ -23,8 +23,8 @@ from julee.core.doctrine_constants import (
     SERVICE_SUFFIX,
     WITNESS_SUFFIX,
 )
-from julee.core.entities.code_info import ClassInfo
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
+from julee.core.values.code_info import ClassInfo
 
 __all__ = [
     "ROLES_BY_DIRECTORY",

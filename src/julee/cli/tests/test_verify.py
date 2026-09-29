@@ -10,7 +10,7 @@ from julee.cli.verify import (
     resolve_target,
     target_objections,
 )
-from julee.core.entities.policy import SolutionPolicyConfig
+from julee.core.values.policy import SolutionPolicyConfig
 
 pytestmark = pytest.mark.unit
 
