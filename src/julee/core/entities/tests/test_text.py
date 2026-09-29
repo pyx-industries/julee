@@ -173,7 +173,7 @@ class TestTheyAreNotEntities:
     correctly, by its own rules. These do not have that problem for a
     reason worth pinning down rather than relying on: they are not
     ``BaseModel`` subclasses, so entity discovery does not collect them,
-    the same reason ``ContentStream`` is not collected.
+    the same reason an acknowledgement is not collected.
     """
 
     def test_the_kernel_does_not_offer_them_as_entities(self) -> None:

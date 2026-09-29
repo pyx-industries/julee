@@ -50,18 +50,20 @@ def kernel_classes() -> dict[str, type]:
     return found
 
 
-NOT_RECORDS = frozenset({"Entity", "ContentStream", "Acknowledgement"})
+NOT_RECORDS = frozenset({"Acknowledgement"})
 """Kernel classes that are not entities, so nothing binds to them.
 
-``Entity`` is the base an entity inherits, not one of them.
-``ContentStream`` is a stream a repository hands back, and
-``Acknowledgement`` is a handler's answer. Binding is about records,
-and none of these is one.
+``Acknowledgement`` is a handler's answer, not a record, and binding
+is about records.
 
-Named here rather than inferred. All three used to fall out of
+Named here rather than inferred. It used to fall out of
 :func:`kernel_entity_names` for not being a ``BaseModel``, which said
-nothing about what they are and stopped being true of
-``Acknowledgement`` the day it became a frozen dataclass.
+nothing about what it is and stopped being true the day it became a
+frozen dataclass.
+
+``Entity`` and ``ContentStream`` were here too. Both are gone: nothing
+inherited the one, and every port that took the other takes bytes
+(julee-kits#89).
 """
 
 

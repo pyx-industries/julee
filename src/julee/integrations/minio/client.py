@@ -29,8 +29,6 @@ from minio.error import S3Error
 from pydantic import TypeAdapter
 from urllib3.response import BaseHTTPResponse
 
-from julee.core.entities.content_stream import ContentStream
-
 # Unbounded: a domain entity is a frozen dataclass. Both directions go
 # through a TypeAdapter, which builds either from the same JSON.
 T = TypeVar("T")
@@ -336,88 +334,6 @@ class MinioRepositoryMixin:
 
         self.logger.info(
             f"Retrieved {found_count}/{len(object_names)} objects",
-            extra={
-                **extra_log_data,
-                "requested_count": len(object_names),
-                "found_count": found_count,
-                "missing_count": len(object_names) - found_count,
-                "bucket_name": bucket_name,
-            },
-        )
-
-        return result
-
-    def get_many_binary_objects(
-        self,
-        bucket_name: str,
-        object_names: list[str],
-        not_found_log_message: str,
-        error_log_message: str,
-        extra_log_data: dict[str, Any] | None = None,
-    ) -> dict[str, ContentStream | None]:
-        """Get multiple binary objects from Minio as ContentStreams.
-
-        Note: S3/MinIO does not have native batch retrieval operations.
-        This method makes individual GetObject calls for each object but
-        provides consolidated error handling, logging, and connection reuse.
-
-        Args:
-            bucket_name: Name of the bucket
-            object_names: List of object names to retrieve
-            not_found_log_message: Message to log when objects are not found
-            error_log_message: Message to log on other errors
-            extra_log_data: Additional data to include in log entries
-
-        Returns:
-            Dict mapping object_name to ContentStream (or None if not found)
-
-        Raises:
-            S3Error: For non-NoSuchKey errors
-        """
-        extra_log_data = extra_log_data or {}
-        result: dict[str, ContentStream | None] = {}
-        found_count = 0
-
-        self.logger.debug(
-            "Attempting to retrieve multiple binary objects",
-            extra={
-                **extra_log_data,
-                "object_count": len(object_names),
-                "bucket_name": bucket_name,
-            },
-        )
-
-        for object_name in object_names:
-            try:
-                response = self.client.get_object(
-                    bucket_name=bucket_name, object_name=object_name
-                )
-
-                # Create ContentStream directly from the response
-                content_stream = ContentStream(response)
-                result[object_name] = content_stream
-                found_count += 1
-
-            except S3Error as e:
-                if getattr(e, "code", None) == "NoSuchKey":
-                    self.logger.debug(
-                        not_found_log_message,
-                        extra={**extra_log_data, "object_name": object_name},
-                    )
-                    result[object_name] = None
-                else:
-                    self.logger.error(
-                        error_log_message,
-                        extra={
-                            **extra_log_data,
-                            "object_name": object_name,
-                            "error": str(e),
-                        },
-                    )
-                    raise
-
-        self.logger.info(
-            f"Retrieved {found_count}/{len(object_names)} binary objects",
             extra={
                 **extra_log_data,
                 "requested_count": len(object_names),

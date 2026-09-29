@@ -37,10 +37,10 @@ dataclasses.
 
 They are not entities and not driven ports. There is nothing to inject
 and no composition root involved: a value object is constructed inline,
-where text becomes domain. :func:`julee.core.entities.kernel_entity_names` does not collect
-them, because they are not ``BaseModel`` subclasses — the same reason
-:class:`~julee.core.entities.content_stream.ContentStream` is not
-collected.
+where text becomes domain.
+:func:`julee.core.entities.kernel_entity_names` does not collect them,
+because a record is what a repository is bound to and these are values
+a record is made of.
 """
 
 from typing import Any
