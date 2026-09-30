@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from julee.core.entities.kit import Kit
-from julee.integrations.fastapi import include_kit_routers, kit_routers
+from julee.integrations.fastapi.routers import include_kit_routers, kit_routers
 
 pytestmark = pytest.mark.unit
 
