@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from julee.repositories.memory import MemoryRepositoryMixin
+from julee.repositories.memory.base import MemoryRepositoryMixin
 
 pytestmark = pytest.mark.unit
 
