@@ -12,12 +12,8 @@ import importlib
 
 import pytest
 
-from julee.core.witnesses import (
-    ClockWitness,
-    DefaultExecutionWitness,
-    ExecutionWitness,
-    SystemClockWitness,
-)
+from julee.core.witnesses.clock import ClockWitness, SystemClockWitness
+from julee.core.witnesses.execution import DefaultExecutionWitness, ExecutionWitness
 
 pytestmark = pytest.mark.unit
 
