@@ -15,13 +15,3 @@ That package remains as a deprecation shim.
 
 See ADR 004: Execution-Agnostic Use Cases.
 """
-
-from julee.core.witnesses.clock import ClockWitness, SystemClockWitness
-from julee.core.witnesses.execution import DefaultExecutionWitness, ExecutionWitness
-
-__all__ = [
-    "ClockWitness",
-    "DefaultExecutionWitness",
-    "ExecutionWitness",
-    "SystemClockWitness",
-]
