@@ -176,6 +176,10 @@ Any shared utilities needed by multiple contrib modules belong in the framework 
 
 #### 5. Public API via `__init__.py`
 
+**Reversed by ADR 019.** An `__init__.py` imports nothing it does not
+use; a name is imported from the module that defines it. What follows is
+kept as the record of what was decided and why it stopped being true.
+
 Each module's `__init__.py` exports the public API:
 
 ```python
