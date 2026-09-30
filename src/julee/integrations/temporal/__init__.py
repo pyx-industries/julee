@@ -2,21 +2,3 @@
 
 Install with ``julee[temporal]``.
 """
-
-from .activities import (
-    collect_activities_from_instances,
-    discover_protocol_methods,
-)
-from .decorators import (
-    temporal_activity_registration,
-    temporal_workflow_proxy,
-)
-from .kits import kit_activities
-
-__all__ = [
-    "collect_activities_from_instances",
-    "discover_protocol_methods",
-    "kit_activities",
-    "temporal_activity_registration",
-    "temporal_workflow_proxy",
-]
