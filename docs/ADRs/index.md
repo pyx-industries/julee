@@ -28,6 +28,7 @@ An ADR is a document that captures an important architectural decision made alon
 016-driven-ports
 017-a-usecase-does-not-log
 018-a-value-object-has-no-identity
+019-an-init-imports-nothing-it-does-not-use
 ```
 
 ## ADR Index
@@ -52,3 +53,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [016](016-driven-ports.md) | Naming the Driven Ports | Draft | 2026-09-25 |
 | [017](017-a-usecase-does-not-log.md) | A Use Case Does Not Log | Draft | 2026-09-29 |
 | [018](018-a-value-object-has-no-identity.md) | A Value Object Has No Identity | Draft | 2026-09-29 |
+| [019](019-an-init-imports-nothing-it-does-not-use.md) | An `__init__.py` Imports Nothing It Does Not Use | Accepted | 2026-09-30 |
