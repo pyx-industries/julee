@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from julee.repositories.file import FileRepositoryMixin
+from julee.repositories.file.base import FileRepositoryMixin
 
 pytestmark = pytest.mark.unit
 
