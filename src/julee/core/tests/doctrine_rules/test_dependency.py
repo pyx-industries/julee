@@ -39,7 +39,6 @@ def objections(module: str, level: int = 0, kits: tuple[str, ...] = ()) -> list[
 ALLOWED = {
     "its own domain": "acme.stories.domain.models.story",
     "its own ports": "acme.stories.domain.repositories.story",
-    "a sibling use case": "acme.stories.usecases.other",
     "its own dtos": "acme.stories.dtos.get_story",
     "the language": "dataclasses",
     "a language submodule": "datetime.timezone",
@@ -51,6 +50,7 @@ ALLOWED = {
 }
 
 FORBIDDEN = {
+    "a sibling use case": "acme.stories.usecases.other",
     "pydantic": "pydantic",
     "a third-party package": "yaml",
     "serialisation": "json",
@@ -105,23 +105,27 @@ def test_a_relative_import_of_infrastructure_is_refused() -> None:
 
 
 def test_a_relative_import_of_a_sibling_is_allowed() -> None:
-    """The one it used to be indistinguishable from."""
-    assert objections("other", level=1) == []
+    """The one it used to be indistinguishable from.
+
+    Resolved to a sibling use case, and refused as one: the objection
+    says what to do instead.
+    """
+    [objection] = objections("other", level=1)
+    assert "hands a condition to a handler" in objection
 
 
 @pytest.mark.parametrize(
     "module",
     [
         "julee_hcd.domain.models.story",
-        "julee_hcd.usecases.get_story",
         "julee_hcd.dtos.get_story",
     ],
-    ids=["domain", "usecases", "dtos"],
+    ids=["domain", "dtos"],
 )
-def test_an_adopted_kit_offers_the_same_three_packages(module: str) -> None:
+def test_an_adopted_kit_offers_the_same_two_packages(module: str) -> None:
     """A solution's use case may build on a kit it adopted.
 
-    The same three it may reach for in its own context, because
+    The same two it may reach for in its own context, because
     USE_CASE_PACKAGES answers both questions. A kit's messages are
     part of what it offers: calling its use cases means naming them.
     """
@@ -170,3 +174,14 @@ def test_the_objection_names_the_file_the_line_and_the_module() -> None:
         "usecases/get_story.py:3 imports json, but it is in the standard "
         "library but not part of the language a use case speaks"
     ]
+
+
+def test_a_kits_use_case_is_refused_like_a_siblings() -> None:
+    """A kit's use case is a use case; the answer is the same handler.
+
+    usecases used to be among the packages a kit offers a solution's use
+    case, for the same reason it was among a context's own: a facade
+    re-exported them. Neither reason stands (ADR 019).
+    """
+    [objection] = objections("julee_hcd.usecases.get_story", kits=("julee_hcd",))
+    assert "hands a condition to a handler" in objection

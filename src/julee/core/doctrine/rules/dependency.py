@@ -22,7 +22,6 @@ __all__ = [
     "OUTWARD_JULEE_PACKAGES",
     "USE_CASE_PACKAGES",
     "absolute_module",
-    "usecases_importing_other_usecases",
     "usecases_importing_outward",
 ]
 
@@ -52,10 +51,15 @@ vocabulary for talking about sequences, the other is mutable
 containers.
 """
 
-USE_CASE_PACKAGES = ("domain", "dtos", "usecases")
+USE_CASE_PACKAGES = ("domain", "dtos")
 """The parts of its own bounded context a use case may reach for.
 
-Its ring, the ring inside it, and the messages at its edge.
+The ring inside it and the messages at its edge. Not its own ring: a
+use case that needs another one to happen hands a condition to a
+handler (ADR 003). ``usecases`` was in this tuple only so that a
+facade could re-export them, and the sibling rule had to be narrowed
+to modules that define a use case to leave that facade alone. ADR 019
+removed the facades, and with them the reason for both.
 ``infrastructure`` and ``apps`` are the two it may not, and they are
 the two a kit does not offer either (ADR 012 §3).
 
@@ -65,6 +69,15 @@ file under ``usecases/`` may import pydantic, so without somewhere
 else to put them the rules cannot all be satisfied at once. Keeping
 them in their own package says what they are: messages at the driving
 port, not use cases and not domain.
+"""
+
+HANDS_TO_A_HANDLER = (
+    "a use case hands a condition to a handler rather than calling another use case"
+)
+"""Why a use case may not import a use case, its own context's or a kit's.
+
+Not a question of direction: a sibling is in the same ring. This is
+coupling inside a ring, and the handler exists for exactly this (ADR 003).
 """
 
 OUTWARD_JULEE_PACKAGES = (
@@ -121,6 +134,8 @@ def _why_forbidden(module: str, context_package: str, kit_packages: frozenset[st
     """
     if _is_within(module, context_package):
         rest = module[len(context_package) :].lstrip(".")
+        if rest.split(".")[0] == "usecases":
+            return HANDS_TO_A_HANDLER
         if rest.split(".")[0] in USE_CASE_PACKAGES:
             return None
         where = rest.split(".")[0] or context_package
@@ -129,6 +144,8 @@ def _why_forbidden(module: str, context_package: str, kit_packages: frozenset[st
     for package in kit_packages:
         if _is_within(module, package):
             rest = module[len(package) :].lstrip(".")
+            if rest.split(".")[0] == "usecases":
+                return HANDS_TO_A_HANDLER
             if rest.split(".")[0] in USE_CASE_PACKAGES:
                 return None
             return f"it is {package}'s {rest.split('.')[0]}, not what the kit offers"
@@ -181,54 +198,4 @@ def usecases_importing_outward(
         reason = _why_forbidden(module, context_packages.get(slug, slug), kits)
         if reason is not None:
             objections.append(f"{info.file}:{info.line} imports {module}, but {reason}")
-    return objections
-
-
-def usecases_importing_other_usecases(
-    imports: Iterable[tuple[str, str, ImportInfo]],
-    context_packages: dict[str, str],
-    kit_packages: Iterable[str] = (),
-) -> list[str]:
-    """Use cases that reach for another use case.
-
-    Not a question of direction — a sibling is in the same ring, so
-    the inward rule has nothing to say about it. This is coupling
-    inside a ring. A use case that needs another one to happen
-    notifies a role and lets the composition root decide who fills it;
-    importing it directly couples the two and bypasses the handler
-    that exists for exactly this (ADR 003).
-
-    The caller passes only the imports made by modules that define a
-    use case, which is what leaves a facade alone: ``__init__.py``
-    re-exports and defines none, and every kit's public surface
-    currently depends on it.
-
-    That narrowing is a concession to re-exports rather than
-    something the rule wants. A package that does not re-export has
-    no facade to spare, and this becomes the simpler rule it should
-    have been: ``usecases`` comes out of
-    :data:`USE_CASE_PACKAGES` and the caller stops filtering.
-
-    ``julee.core.usecases`` is a ring in rather than a sibling, so the
-    generic CRUD bases and ``try_use_case_step`` stay reachable.
-
-    Args:
-        imports: Bounded context slug, the importing file's package,
-            and one import — from use-case-defining modules only
-        context_packages: Package path, by bounded context slug
-        kit_packages: Packages of the kits the solution adopts
-
-    Returns:
-        One sentence per use case reaching for another
-    """
-    objections = []
-    for slug, package, info in imports:
-        module = absolute_module(info, package)
-        owners = [context_packages.get(slug, slug), *kit_packages]
-        if any(_is_within(module, f"{owner}.usecases") for owner in owners):
-            objections.append(
-                f"{info.file}:{info.line} imports {module}, but a use case "
-                f"hands a condition to a handler rather than calling another "
-                f"use case"
-            )
     return objections

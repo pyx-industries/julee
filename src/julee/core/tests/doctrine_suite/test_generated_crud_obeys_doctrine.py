@@ -22,9 +22,9 @@ from .harness import a_julee_solution, assert_doctrine_ran, importable, run_doct
 pytestmark = pytest.mark.unit
 
 USE_CASE_TEST = "src/julee/core/doctrine/test_use_case.py"
-SELECTOR = "pydantic_DTO or import_only_inward or import_another_usecase"
-EXPECTED_TESTS = 4
-"""The rules that bear on generated code: both DTO tests, and both
+SELECTOR = "pydantic_DTO or import_only_inward"
+EXPECTED_TESTS = 3
+"""The rules that bear on generated code: both DTO tests, and the one
 about what a use case may import. The driven-port and domain rules
 judge what the kit wrote, not what the generator emitted."""
 
