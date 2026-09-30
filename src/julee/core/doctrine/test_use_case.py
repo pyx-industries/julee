@@ -14,7 +14,6 @@ from julee.core.doctrine.resolution import (
     package_of,
 )
 from julee.core.doctrine.rules.dependency import (
-    usecases_importing_other_usecases,
     usecases_importing_outward,
 )
 from julee.core.doctrine.rules.use_case import (
@@ -33,7 +32,6 @@ from julee.core.doctrine.rules.use_case import (
 from julee.core.doctrine_constants import (
     USE_CASE_SUFFIX,
 )
-from julee.core.parsers.ast import parse_python_classes
 from julee.core.parsers.imports import ImportInfo, extract_imports
 from julee.core.usecases.code_artifact.list_requests import ListRequestsUseCase
 from julee.core.usecases.code_artifact.list_responses import ListResponsesUseCase
@@ -376,55 +374,3 @@ class TestTheDependencyRule:
 
 class TestUseCasesDoNotCallUseCases:
     """Doctrine about coupling inside the use case ring."""
-
-    @pytest.mark.asyncio
-    async def test_a_usecase_MUST_NOT_import_another_usecase(self, repo, kits):
-        """A use case MUST NOT reach for another use case.
-
-        A sibling is in the same ring, so this is not about direction.
-        A use case that needs another one to happen hands a condition
-        to an injected handler and lets the composition root decide
-        who fills that role (ADR 003). Importing it directly couples
-        the two and takes the decision away from the composition root.
-
-        Only modules that define a use case are held to this. A
-        facade defines none — ``usecases/__init__.py`` re-exports, and
-        every kit's public surface depends on it.
-        """
-        contexts = await repo.list_all()
-        if not contexts:
-            pytest.skip("No bounded contexts in target codebase — nothing to check")
-
-        kit_packages = [kit.package for kit in kits if getattr(kit, "package", None)]
-
-        found: list[tuple[str, str, ImportInfo]] = []
-        packages: dict[str, str] = {}
-        for ctx in contexts:
-            context_path = Path(ctx.path)
-            usecases = context_path / "usecases"
-            packages[ctx.slug] = (
-                module_name_for(context_path / "__init__.py") or ctx.slug
-            )
-            defining = {
-                cls.file
-                for cls in parse_python_classes(usecases)
-                if cls.name.endswith("UseCase")
-            }
-            for py_file in sorted(usecases.rglob("*.py")):
-                if "tests" in py_file.parts:
-                    continue
-                if str(py_file.relative_to(usecases)) not in defining:
-                    continue
-                found.extend(
-                    (ctx.slug, package_of(py_file), info)
-                    for info in extract_imports(py_file)
-                )
-
-        if not found:
-            pytest.skip("No use case modules in target codebase — nothing to check")
-
-        violations = usecases_importing_other_usecases(found, packages, kit_packages)
-
-        assert not violations, "Use cases calling other use cases:\n" + "\n".join(
-            violations
-        )

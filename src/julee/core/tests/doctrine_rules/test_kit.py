@@ -306,7 +306,7 @@ def test_contributing_more_than_the_kit_has_is_not_this_rule_s_business() -> Non
 def test_the_decorator_is_matched_however_it_was_imported() -> None:
     """A re-export and the defining module resolve to two paths.
 
-    ``from julee.integrations.temporal import temporal_activity_registration``
+    ``from julee.integrations.temporal.decorators import temporal_activity_registration``
     and the same name from ``...temporal.decorators`` are one decorator,
     so the rule matches on the last segment.
     """

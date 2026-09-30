@@ -79,8 +79,6 @@ ALLOWED = {
     ),
     "its own dtos": "from acme.stories.dtos.get_story import GetStoryRequest",
     "its own dtos relatively": "from ..dtos.get_story import GetStoryResponse",
-    "a sibling use case by name": "from acme.stories.usecases.other import OtherUseCase",
-    "a sibling use case relatively": "from .other import OtherUseCase",
     "its own domain relatively": "from ..domain.models.story import Story",
     "dataclasses": "from dataclasses import replace",
     "datetime": "from datetime import datetime",
@@ -96,6 +94,14 @@ ALLOWED = {
 """What a use case may reach for."""
 
 FORBIDDEN = {
+    "a sibling use case by name": (
+        "from acme.stories.usecases.other import OtherUseCase",
+        "acme.stories.usecases.other",
+    ),
+    "a sibling use case relatively": (
+        "from .other import OtherUseCase",
+        "acme.stories.usecases.other",
+    ),
     "pydantic": ("from pydantic import BaseModel", "pydantic"),
     "a third-party package": ("import yaml", "yaml"),
     "json": ("import json", "json"),
@@ -178,12 +184,11 @@ def a_solution(root: Path, imports: tuple[str, ...]) -> Path:
         context / "usecases",
     ):
         (package / "__init__.py").write_text("")
-    # A package init doing a relative import: its own package is the
-    # package, not the one above, and getting that wrong made every
-    # relative import in an __init__ resolve one level too high.
-    (context / "usecases" / "__init__.py").write_text(
-        'from .other import OtherUseCase\n\n__all__ = ["OtherUseCase"]\n'
-    )
+    # An __init__ imports nothing it does not use (ADR 019). This one
+    # used to re-export OtherUseCase, to cover a relative import in an
+    # __init__ resolving one level too high; package_of's own tests
+    # cover that now, and a facade here would be objected to.
+    (context / "usecases" / "__init__.py").write_text('"""Use cases."""\n')
     (context / "domain" / "models" / "story.py").write_text(ENTITY)
     (context / "domain" / "repositories" / "story.py").write_text(PORT)
     (context / "dtos" / "get_story.py").write_text(DTOS)
@@ -235,7 +240,7 @@ def test_a_usecase_may_import_only_inward(tmp_path: Path) -> None:
 # A use case does not call another use case
 # =============================================================================
 
-SIBLING_SELECTOR = "import_another_usecase"
+SIBLING_SELECTOR = "import_only_inward"
 EXPECTED_SIBLING_TESTS = 1
 
 CALLS_A_SIBLING = {
@@ -271,8 +276,10 @@ estate imports them.
 def test_a_usecase_must_not_import_another_usecase(tmp_path: Path) -> None:
     """The doctrine objects when a use case reaches for a use case.
 
-    A facade is left alone: usecases/__init__.py re-exports and
-    defines no use case, and every kit's public surface depends on it.
+    The inward rule says it now: usecases is not among the packages a
+    use case may reach for, so this needs no rule of its own. A facade
+    used to be left alone here; ADR 019 removed the facades, and the
+    carve-out that spared them went with them.
     """
     good = run_doctrine(
         a_solution(tmp_path / "minds-own-business", MINDS_ITS_OWN_BUSINESS),
