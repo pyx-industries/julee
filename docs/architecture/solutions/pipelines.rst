@@ -7,7 +7,7 @@ to run as a Temporal workflow.
 
 A pipeline is the marriage of two things:
 
-1. A **Julee use case** - deterministic business logic following :doc:`Clean Architecture </architecture/clean_architecture/index>`
+1. A **Julee use case** - business orchestration following :doc:`Clean Architecture </architecture/clean_architecture/index>`
 2. **Temporal workflow technology** - durable, reliable execution with automatic retries
 
 All Julee pipelines are Temporal workflows, but not all Temporal workflows are Julee pipelines.
@@ -15,7 +15,7 @@ All Julee pipelines are Julee use cases, but not all Julee use cases are pipelin
 
 ::
 
-    # Use case: pure business logic (in domain layer)
+    # Use case: business orchestration (in the use case layer)
     class ExtractAssembleDataUseCase:
         async def assemble_data(self, document_id: str, spec_id: str) -> Assembly:
             # Business logic - no knowledge of Temporal
@@ -38,7 +38,14 @@ All Julee pipelines are Julee use cases, but not all Julee use cases are pipelin
 The use case is unaware it's running as a pipeline.
 The proxies route calls to the ports that do I/O through Temporal activities,
 providing automatic retries, state persistence, and audit trails.
-Ports that do no I/O are passed in as they are, and called inline.
+Inline dependencies must also be workflow-safe: calculators compute from their
+inputs, witnesses read workflow context, and handlers use replayable workflow
+operations. Passing an ordinary system clock or random-identity generator into
+the use case does not make it safe to replay.
+
+Retries can execute an activity's external effect more than once. The adapter
+or business operation needs an idempotency strategy where duplication matters;
+workflow durability does not make remote effects atomic or exactly once.
 
 See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation.
 
@@ -46,12 +53,8 @@ See ``ExtractAssembleWorkflow`` for the CEAP pipeline implementation.
 Why Pipelines?
 --------------
 
-Direct execution of use cases is simple but fragile:
-
-- If the process crashes, work is lost
-- If a service fails, the operation fails
-- No record of what happened or why
-- No way to retry or recover
+Direct execution does not supply workflow persistence or a retry policy.
+Its storage, logging and recovery depend on the application and adapters.
 
 Pipelines solve these problems:
 
@@ -62,10 +65,15 @@ Pipelines solve these problems:
     Workflow state is persisted. If the :doc:`worker </architecture/applications/worker>` crashes, another worker picks up where it left off.
 
 **Observability**
-    Julee uses Temporal's workflow history as an audit log. Every step is recorded: what happened, when, with what inputs and outputs.
+    Temporal records workflow and activity events, including their inputs and
+    outputs. Inline calculations are recomputed on replay; their intermediate
+    values are not automatically separate history events.
 
 **Supply Chain Provenance**
-    The audit log is used to construct a supply chain provenance graph for artefacts produced by the pipeline. Every step is recorded with its actor, inputs, outputs, and timing - creating a complete lineage for compliance.
+    Workflow history can supply execution evidence for artifact lineage.
+    Business actors, artifact relationships and compliance requirements need
+    explicit application records; workflow history alone is not a complete
+    provenance graph.
 
 Pipeline Proxies
 ----------------

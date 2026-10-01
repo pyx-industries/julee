@@ -63,11 +63,11 @@ Which port you actually want depends on what it deals in:
 Handlers Run Inline
 -------------------
 
-A :doc:`pipeline </architecture/solutions/pipelines>` calls a handler
-directly, without wrapping it in an activity.
-Dispatch is an operation Temporal provides itself—
-starting a child workflow, sending a signal—
-and the engine makes those replayable.
+A :doc:`pipeline </architecture/solutions/pipelines>` calls a workflow-safe
+handler directly. Its implementation uses replayable Temporal operations,
+such as starting a child workflow or sending a signal. The handler protocol
+does not enforce that implementation: a handler that performs external I/O
+needs to route that effect through an activity.
 
 The safety belongs to the engine rather than to the protocol,
 which is what separates a handler from a :doc:`calculator <calculators>`

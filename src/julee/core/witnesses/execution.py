@@ -23,9 +23,11 @@ class ExecutionWitness(Protocol):
 
     A witness rather than a calculator (ADR 016): the identifier does not
     follow from any argument, and a fresh one is minted where no runtime
-    supplies it. It is safe to call from workflow code because the runtime
-    records the identity and a replay is told the same thing, and it must
-    not be wrapped in an activity for the same reason.
+    supplies it. Workflow code must use a workflow-backed implementation such
+    as TemporalExecutionWitness, which reads the replay-stable workflow ID
+    inline. The protocol alone does not make random UUID allocation safe
+    during replay. The workflow-backed implementation must not be wrapped in
+    an activity: it reads identity the workflow runtime already holds.
     """
 
     def get_execution_id(self) -> str:

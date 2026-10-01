@@ -19,25 +19,27 @@ a witness asks the runtime it is running in.
 Witnesses Run Inline
 --------------------
 
-A witness is not deterministic. ``now()`` gives a different answer
-every call, and always will.
+A witness observes execution context rather than calculating from domain
+arguments. Its answer need not change on every call: an execution identifier
+is stable for the execution, and a test clock can return a fixed time.
 
-It is still safe to call from workflow code,
-because the runtime writes what it said into the execution history
-the first time, and a replay is told the same thing.
-Temporal calls this replay-stability, and it is a different promise
-from a :doc:`calculator <calculators>`'s determinism.
+A workflow-backed implementation can be called inline from workflow code.
+``TemporalClockWitness`` reads ``workflow.now()`` and
+``TemporalExecutionWitness`` reads ``workflow.info().workflow_id``;
+Temporal supplies replay-stable values. The protocol alone does not provide
+that guarantee. Replay-stability differs from a
+:doc:`calculator <calculators>`'s calculation from its inputs.
 
 **Never wrap a witness in an activity.**
-Doing so is a defect rather than merely wasteful:
-the value is already in the workflow history,
-so the activity adds a round trip to fetch something the workflow holds.
+The workflow-backed implementations read context the workflow runtime already
+holds. A system-clock implementation belongs outside workflow code; wrapping
+it in an activity changes what time is being observed rather than making it
+a workflow clock.
 
-Two Implementations, Always
----------------------------
+Choose The Execution Implementation
+-----------------------------------
 
-A witness always has at least two implementations,
-and that is intrinsic rather than incidental::
+Julee provides different clock implementations for different execution contexts::
 
     class SystemClockWitness:
         def now(self) -> datetime:
@@ -57,13 +59,15 @@ was written for.
 That makes a witness a framework-coupling seam
 in a way a :doc:`calculator <calculators>` is not.
 A calculator can be exercised with no harness at all.
-A witness cannot: outside a recording runtime
-it gives a different answer every time, correctly.
+A witness needs an execution implementation or a test double. Outside a
+workflow, ``SystemClockWitness`` reads wall-clock time and
+``DefaultExecutionWitness`` creates an identifier per instance, unless a fixed
+one is supplied. Neither supplies Temporal's replay guarantees.
 
 What The Framework Ships
 ------------------------
 
-Julee ships two, and every solution injects them:
+Julee ships two witness protocols; use cases inject them when needed:
 
 - a clock, answering what time it is
 - an execution identifier, answering which run this is
