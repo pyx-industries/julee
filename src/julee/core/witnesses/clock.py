@@ -19,14 +19,13 @@ class ClockWitness(Protocol):
     deterministic testing and framework-agnostic execution.
 
     A witness rather than a calculator (ADR 016): its answer does not
-    follow from its arguments, and is a different time on every call. It
-    is nonetheless safe to call from workflow code, because the runtime
-    writes what it said into the execution history and a replay is told
-    the same thing.
+    follow from domain arguments. It need not change on every call; a test
+    clock can return a fixed time. Workflow code must use a workflow-backed
+    implementation such as TemporalClockWitness, whose time is replay-stable.
+    Injecting this protocol alone does not make a system clock replay-safe.
 
-    For the same reason it must **not** be wrapped in an activity. The
-    value is already in the history, so an activity would add a round
-    trip to fetch what the workflow already holds.
+    The workflow-backed implementation must **not** be wrapped in an activity:
+    it reads time the workflow runtime already holds.
     """
 
     def now(self) -> datetime:

@@ -28,4 +28,15 @@ pure domain calculation; naming or relocating it cannot change its role.
 Execution
 ---------
 
-:doc:`Applications </architecture/applications/index>` invoke use cases—whether through :doc:`APIs </architecture/applications/api>`, :doc:`CLIs </architecture/applications/cli>`, or :doc:`workers </architecture/applications/worker>`—but the use case itself remains unaware of how it was called. When executed as :doc:`pipelines </architecture/solutions/pipelines>`, use cases gain durability, automatic retries, and audit trails without any changes to their code.
+:doc:`Applications </architecture/applications/index>` invoke use cases through
+:doc:`APIs </architecture/applications/api>`,
+:doc:`CLIs </architecture/applications/cli>` or
+:doc:`workers </architecture/applications/worker>`.
+The use case remains unaware of how it was called.
+
+A :doc:`pipeline </architecture/solutions/pipelines>` supplies durable workflow
+execution when its dependencies are wired for replay: I/O uses activities,
+time and identity use workflow-backed :doc:`witnesses`, and
+:doc:`handlers` use replayable workflow operations. Injecting a protocol
+alone does not establish those guarantees. Activity retries follow the
+configured policy; effects that may repeat need an idempotency strategy.

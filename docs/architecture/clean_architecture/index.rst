@@ -74,12 +74,18 @@ The memory implementations are volatile and unsuitable for production,
 but useful as testing doubles in unit tests
 that run fast and in parallel without external dependencies.
 
-So, each usecase defines a deterministic business process,
+So, each usecase defines a business process,
 but a lot of the heavy lifting is being done
 by the :doc:`entity <entities>` classes in the domain model.
 The repository protocols are strongly typed -
 they proscribe that inputs and outputs are either
 domain model classes or simple primitives.
+
+Replay safety depends on the injected implementations. A
+:doc:`pipeline </architecture/solutions/pipelines>` records activity results
+and uses workflow-backed time, identity and dispatch operations; ordinary
+system-clock or random-identity implementations do not acquire that behaviour
+merely by satisfying a protocol.
 
 Entities are more than dumb data containers.
 They are rich objects in their own right,
@@ -112,4 +118,3 @@ and henceforth the usecases just use them.
    witnesses
    handlers
    dependency_injection
-
