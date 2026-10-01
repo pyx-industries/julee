@@ -71,6 +71,28 @@ def rows(found: ContextCensus) -> list[tuple[str, int, str, str, str]]:
     ]
 
 
+@pytest.fixture(autouse=True)
+def no_enclosing_git(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run as though no git process had started the tests.
+
+    A git hook, and ``git rebase --exec``, export ``GIT_DIR`` to what
+    they run. Git then acts on that repository whatever directory it is
+    run in, so a test that runs ``git init`` in its own directory would
+    reinitialise the repository the tests were started from, and mark
+    it bare.
+    """
+    for name in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_NAMESPACE",
+        "GIT_PREFIX",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def solution(tmp_path: Path) -> Path:
     return a_solution(tmp_path / "acme")
