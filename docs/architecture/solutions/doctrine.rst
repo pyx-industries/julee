@@ -163,6 +163,23 @@ not find in the file named, because either way the report is not one to
 rely on. It exits 2 when the target is not a julee solution.
 
 
+Request and response names
+--------------------------
+
+``verify`` requires each request or response name in a parser family to
+identify one class declaration within its bounded context. Two declarations
+of the name fail verification, with both source locations in the diagnostic:
+the message rules match by name and cannot distinguish them. This includes
+messages declared in use case files as well as messages imported from DTO
+modules.
+
+Several imports or re-exports of one declaration are allowed, as is the same
+name in separate bounded contexts. External names are left to the existing
+message resolution rules. The check uses the census's source scope, including
+its test, hidden-directory and git-ignore exclusions. The census command still
+reports ambiguity without failing; verification makes the policy decision.
+
+
 One thing to know about semantic claims
 ---------------------------------------
 
