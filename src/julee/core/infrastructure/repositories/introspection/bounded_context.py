@@ -289,6 +289,38 @@ class FilesystemBoundedContextRepository:
 
         return sorted(all_contexts, key=lambda c: c.slug)
 
+    def why_passed_over(self, candidate: Path) -> str | None:
+        """Why discovery does not read a directory as a bounded context.
+
+        For a directory directly under the search root that discovery
+        went as far as considering: one that is hidden or git-ignored
+        is not considered at all. The checks are discovery's own, in
+        its order, so the answer is None exactly when the directory is
+        one of the contexts :meth:`discover_all` returns.
+
+        Args:
+            candidate: A directory directly under the search root
+
+        Returns:
+            The reason, or None if the directory is a bounded context
+        """
+        if not self._is_python_package(candidate):
+            return "not a Python package"
+
+        is_reserved = candidate.name in RESERVED_WORDS
+        if not is_reserved and self._is_bounded_context(
+            self._detect_markers(candidate)
+        ):
+            return None
+        if self._is_nested_solution(candidate):
+            return "holds bounded contexts and is not one itself"
+        if is_reserved:
+            return "a reserved name"
+        return (
+            f"neither {'/'.join(ENTITIES_PATH)} nor "
+            f"{'/'.join(USE_CASES_PATH)} holds Python"
+        )
+
     def describe(self, path: Path) -> BoundedContext | None:
         """Read one directory as a bounded context, if it is one.
 

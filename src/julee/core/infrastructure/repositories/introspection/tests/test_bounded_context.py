@@ -459,3 +459,67 @@ class TestCacheHusksAreNotBoundedContexts:
 
         assert found is not None
         assert found.slug == "real"
+
+
+class TestWhyADirectoryIsPassedOver:
+    """The reason discovery does not read a directory as a bounded context."""
+
+    def test_a_bounded_context_has_no_reason(self, tmp_path: Path) -> None:
+        repo = _make_repo(tmp_path)
+        context = _make_bc(tmp_path / "src/app", "billing")
+
+        assert repo.why_passed_over(context) is None
+
+    def test_a_directory_that_is_no_package(self, tmp_path: Path) -> None:
+        repo = _make_repo(tmp_path)
+        scripts = tmp_path / "src/app/scripts"
+        scripts.mkdir()
+
+        assert repo.why_passed_over(scripts) == "not a Python package"
+
+    def test_a_reserved_name(self, tmp_path: Path) -> None:
+        """Even laid out as a bounded context, it is not read as one."""
+        repo = _make_repo(tmp_path)
+        shared = _make_bc(tmp_path / "src/app", "shared")
+
+        assert repo.why_passed_over(shared) == "a reserved name"
+
+    def test_a_package_with_no_marker_directory(self, tmp_path: Path) -> None:
+        repo = _make_repo(tmp_path)
+        tools = _make_bc(tmp_path / "src/app", "tools", layers=())
+
+        assert (
+            repo.why_passed_over(tools)
+            == "neither domain/models nor usecases holds Python"
+        )
+
+    def test_a_package_that_holds_bounded_contexts(self, tmp_path: Path) -> None:
+        repo = _make_repo(tmp_path)
+        experimental = _make_bc(tmp_path / "src/app", "experimental", layers=())
+        _make_bc(experimental, "billing")
+
+        assert (
+            repo.why_passed_over(experimental)
+            == "holds bounded contexts and is not one itself"
+        )
+
+    def test_it_is_none_exactly_for_what_discovery_returns(
+        self, tmp_path: Path
+    ) -> None:
+        """The reasons are discovery's own checks, so the two cannot differ."""
+        repo = _make_repo(tmp_path)
+        source = tmp_path / "src/app"
+        _make_bc(source, "billing")
+        _make_bc(source, "shipping", layers=("usecases",))
+        _make_bc(source, "shared")
+        _make_bc(source, "tools", layers=())
+        (source / "scripts").mkdir()
+
+        discovered = {context.slug for context in repo.discover_all()}
+        without_reason = {
+            child.name
+            for child in source.iterdir()
+            if child.is_dir() and repo.why_passed_over(child) is None
+        }
+
+        assert without_reason == discovered == {"billing", "shipping"}
