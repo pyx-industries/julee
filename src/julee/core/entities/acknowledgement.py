@@ -28,9 +28,10 @@ class Acknowledgement:
     info: tuple[str, ...] = ()
     """What the handler had to say about the handoff.
 
-    A list rather than a tuple, which is shallow for a frozen class.
-    Tightening it is a change to every caller that builds one by
-    extending another's, and those live in the kits.
+    A tuple, so a frozen acknowledgement is frozen all the way down.
+    wilco, unable and roger take any sequence, so a caller that gathers
+    messages into a list, extending it from other acknowledgements,
+    passes the list and gets a tuple back.
     """
 
     @classmethod
