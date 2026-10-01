@@ -210,3 +210,22 @@ class ClassInfo:
         for method in self.methods:
             types.update(method.referenced_types)
         return types
+
+
+@dataclass(frozen=True)
+class UnreadableFile:
+    """A source file the parser was asked to read and could not.
+
+    The parser returns the classes of the files it can read and carries
+    on. That suits a documentation build and not doctrine, where a file
+    nobody read is a file nothing objected to. This is what the parser
+    leaves behind to say which files those were.
+    """
+
+    file: str
+    """Where the file is, relative to whatever the scan was told to
+    report against."""
+
+    problem: str
+    """The loader's own account of what went wrong, which for a syntax
+    error carries the line."""
