@@ -14,6 +14,7 @@ import ast
 import functools
 import logging
 import textwrap
+from collections.abc import Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -21,7 +22,7 @@ import griffe
 
 if TYPE_CHECKING:
     from julee.core.entities.bounded_context_info import BoundedContextInfo
-    from julee.core.values.code_info import ClassInfo
+    from julee.core.values.code_info import ClassInfo, UnreadableFile
     from julee.core.values.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,19 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-def _griffe_load_file(py_file: Path) -> griffe.Module | None:
-    """Load a single Python file with griffe (no imports)."""
+def _load_file(py_file: Path) -> tuple[griffe.Module | None, str | None]:
+    """Load a single Python file with griffe, or say why it would not load.
+
+    Reading a file's classes and reporting a file as unreadable both go
+    through here, so the two are decided in one place and cannot
+    disagree.
+
+    Args:
+        py_file: The Python file to load
+
+    Returns:
+        The module and None, or None and the problem
+    """
     try:
         loaded = griffe.load(
             py_file.stem,
@@ -41,9 +53,18 @@ def _griffe_load_file(py_file: Path) -> griffe.Module | None:
             allow_inspection=False,
         )
     except Exception as e:
-        logger.warning(f"Could not parse {py_file}: {e}")
-        return None
-    return loaded if isinstance(loaded, griffe.Module) else None
+        return None, str(e)
+    if not isinstance(loaded, griffe.Module):
+        return None, "griffe did not load it as a module"
+    return loaded, None
+
+
+def _griffe_load_file(py_file: Path) -> griffe.Module | None:
+    """Load a single Python file with griffe (no imports)."""
+    module, problem = _load_file(py_file)
+    if problem is not None:
+        logger.warning(f"Could not parse {py_file}: {problem}")
+    return module
 
 
 def _return_expressions(source: str | None) -> list[str]:
@@ -181,6 +202,34 @@ def _classes_from_file(py_file: Path, relative_to: Path) -> list["ClassInfo"]:
     return [_griffe_class_to_classinfo(cls, rel) for cls in module.classes.values()]
 
 
+def _files_to_read(
+    directory: Path,
+    recursive: bool,
+    exclude_tests: bool,
+    exclude_files: list[str] | None,
+) -> Iterator[Path]:
+    """The Python files a scan of a directory reads.
+
+    Not modules whose names begin with an underscore, not test files
+    unless asked for, and not the files the caller names.
+    """
+    if not directory.exists():
+        return
+
+    exclude_files = exclude_files or []
+    pattern = "**/*.py" if recursive else "*.py"
+    for py_file in directory.glob(pattern):
+        if py_file.name.startswith("_"):
+            continue
+        if exclude_tests and (
+            py_file.name.startswith("test_") or "/tests/" in str(py_file)
+        ):
+            continue
+        if py_file.name in exclude_files:
+            continue
+        yield py_file
+
+
 def parse_python_classes(
     directory: Path,
     recursive: bool = True,
@@ -198,27 +247,57 @@ def parse_python_classes(
     Returns:
         List of ClassInfo objects sorted by class name
     """
-    if not directory.exists():
-        return []
-
-    exclude_files = exclude_files or []
     classes = []
-    pattern = "**/*.py" if recursive else "*.py"
-    for py_file in directory.glob(pattern):
-        if py_file.name.startswith("_"):
-            continue
-        if exclude_tests and (
-            py_file.name.startswith("test_") or "/tests/" in str(py_file)
-        ):
-            continue
-        if py_file.name in exclude_files:
-            continue
+    for py_file in _files_to_read(directory, recursive, exclude_tests, exclude_files):
         for cls in _classes_from_file(py_file, directory):
             if exclude_tests and cls.name.startswith("Test"):
                 continue
             classes.append(cls)
 
     return sorted(classes, key=lambda c: c.name)
+
+
+def unreadable_python_files(
+    directory: Path,
+    recursive: bool = True,
+    exclude_tests: bool = True,
+    exclude_files: list[str] | None = None,
+    relative_to: Path | None = None,
+) -> list["UnreadableFile"]:
+    """The files :func:`parse_python_classes` reads there and cannot.
+
+    ``parse_python_classes`` returns the classes of the files it could
+    read, and a file it could not read contributes none. Its answer is
+    the same as for a directory without the file, so a caller that needs
+    to know the difference asks here. The walk and the loader are the
+    ones ``parse_python_classes`` uses: a file it skips is not reported,
+    and a file it tries is reported if the attempt fails.
+
+    Args:
+        directory: Directory to scan for .py files
+        recursive: If True, scan subdirectories recursively
+        exclude_tests: If True, leave test files out, as they are not read
+        exclude_files: List of file names that are not read either
+        relative_to: What to report each path against (default: directory)
+
+    Returns:
+        One entry per unreadable file, sorted by path
+    """
+    from julee.core.values.code_info import UnreadableFile
+
+    base = relative_to or directory
+    unreadable = []
+    for py_file in _files_to_read(directory, recursive, exclude_tests, exclude_files):
+        _, problem = _load_file(py_file)
+        if problem is None:
+            continue
+        try:
+            file = str(py_file.relative_to(base))
+        except ValueError:
+            file = str(py_file)
+        unreadable.append(UnreadableFile(file=file, problem=problem))
+
+    return sorted(unreadable, key=lambda found: found.file)
 
 
 def parse_python_classes_from_file(file_path: Path) -> list["ClassInfo"]:

@@ -13,6 +13,7 @@ from julee.core.parsers.ast import (
     parse_pipelines_from_file,
     parse_python_classes,
     parse_python_classes_from_file,
+    unreadable_python_files,
 )
 
 pytestmark = pytest.mark.unit
@@ -1049,3 +1050,111 @@ class TestDecoratorArguments:
 
         assert thing.decorator_argument("attrs", "frozen") is None
         assert thing.decorator_argument("dataclass", "slots") is None
+
+
+# =============================================================================
+# unreadable_python_files
+# =============================================================================
+
+
+class TestUnreadablePythonFiles:
+    """What parse_python_classes went to read and could not.
+
+    parse_python_classes answers the same for a directory with a broken
+    file as for one without it. This is the other half of that answer.
+    """
+
+    def test_a_directory_that_parses_has_none(self, tmp_path):
+        _write(tmp_path / "good.py", "class Good:\n    pass\n")
+
+        assert unreadable_python_files(tmp_path) == []
+
+    def test_a_nonexistent_directory_has_none(self, tmp_path):
+        assert unreadable_python_files(tmp_path / "does_not_exist") == []
+
+    def test_a_file_that_does_not_parse_is_reported(self, tmp_path):
+        _write(tmp_path / "good.py", "class Good:\n    pass\n")
+        _write(tmp_path / "broken.py", "class Broken(\n")
+
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert found.file == "broken.py"
+
+    def test_the_problem_names_the_line(self, tmp_path):
+        _write(tmp_path / "broken.py", "x = 1\n\ndef broken(:\n")
+
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert "line 3" in found.problem
+
+    def test_a_file_that_is_not_utf8_is_reported(self, tmp_path):
+        (tmp_path / "latin.py").write_bytes(b'x = "\xff\xfe"\n')
+
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert found.file == "latin.py"
+        assert "UnicodeDecodeError" in found.problem
+
+    def test_it_reports_exactly_what_parse_python_classes_lost(self, tmp_path):
+        """The classes of the other files are still returned."""
+        _write(tmp_path / "broken.py", "class Broken(\n")
+        _write(tmp_path / "good.py", "class Good:\n    pass\n")
+
+        assert [c.name for c in parse_python_classes(tmp_path)] == ["Good"]
+        assert [f.file for f in unreadable_python_files(tmp_path)] == ["broken.py"]
+
+    def test_a_broken_underscore_file_is_not_reported(self, tmp_path):
+        """parse_python_classes does not read it, so it was not skipped."""
+        _write(tmp_path / "_private.py", "class Broken(\n")
+
+        assert unreadable_python_files(tmp_path) == []
+
+    def test_a_broken_test_file_is_not_reported(self, tmp_path):
+        _write(tmp_path / "test_thing.py", "class Broken(\n")
+        (tmp_path / "tests").mkdir()
+        _write(tmp_path / "tests" / "helper.py", "class Broken(\n")
+
+        assert unreadable_python_files(tmp_path) == []
+
+    def test_a_broken_test_file_is_reported_when_tests_are_read(self, tmp_path):
+        _write(tmp_path / "test_thing.py", "class Broken(\n")
+
+        (found,) = unreadable_python_files(tmp_path, exclude_tests=False)
+
+        assert found.file == "test_thing.py"
+
+    def test_an_excluded_file_is_not_reported(self, tmp_path):
+        _write(tmp_path / "requests.py", "class Broken(\n")
+
+        assert unreadable_python_files(tmp_path, exclude_files=["requests.py"]) == []
+
+    def test_nonrecursive_does_not_report_subdirectories(self, tmp_path):
+        (tmp_path / "sub").mkdir()
+        _write(tmp_path / "sub" / "broken.py", "class Broken(\n")
+
+        assert unreadable_python_files(tmp_path, recursive=False) == []
+
+    def test_paths_are_relative_to_the_directory_by_default(self, tmp_path):
+        (tmp_path / "sub").mkdir()
+        _write(tmp_path / "sub" / "broken.py", "class Broken(\n")
+
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert found.file == "sub/broken.py"
+
+    def test_paths_can_be_reported_against_somewhere_else(self, tmp_path):
+        context = tmp_path / "src" / "acme"
+        context.mkdir(parents=True)
+        _write(context / "broken.py", "class Broken(\n")
+
+        (found,) = unreadable_python_files(context, relative_to=tmp_path)
+
+        assert found.file == "src/acme/broken.py"
+
+    def test_several_are_sorted_by_path(self, tmp_path):
+        _write(tmp_path / "zebra.py", "class Broken(\n")
+        _write(tmp_path / "alpha.py", "class Broken(\n")
+
+        found = unreadable_python_files(tmp_path)
+
+        assert [f.file for f in found] == ["alpha.py", "zebra.py"]
