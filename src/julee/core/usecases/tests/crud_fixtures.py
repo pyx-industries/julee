@@ -214,3 +214,41 @@ class NamedWidgetRepository:
     async def save(self, entity: NamedWidget) -> None:
         """Store the widget under its slug."""
         self.storage[entity.slug] = entity
+
+
+@dataclass(frozen=True)
+class NestedReference:
+    """A validated nested value with behaviour callers rely on."""
+
+    name: Name
+
+    @property
+    def label(self) -> str:
+        """Return the normalised display name."""
+        return self.name.normalized
+
+
+@dataclass(frozen=True)
+class CompositeWidget:
+    """Optional and repeated references cross the same CRUD boundary."""
+
+    slug: Slug
+    parent: Slug | None = None
+    references: tuple[Slug, ...] = ()
+    nested: tuple[NestedReference, ...] = ()
+
+
+class CompositeWidgetRepository:
+    """Retain domain values so tests can inspect what was persisted."""
+
+    def __init__(self) -> None:
+        """Start empty."""
+        self.storage: dict[str, CompositeWidget] = {}
+
+    async def get(self, entity_id: str) -> CompositeWidget | None:
+        """Look up a widget."""
+        return self.storage.get(entity_id)
+
+    async def save(self, entity: CompositeWidget) -> None:
+        """Store a widget."""
+        self.storage[entity.slug] = entity
