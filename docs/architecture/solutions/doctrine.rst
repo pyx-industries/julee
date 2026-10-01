@@ -100,6 +100,69 @@ and the :doc:`driven port
 codebases have never been asked to keep.
 
 
+Which declarations a family holds
+---------------------------------
+
+Most rules do not read your source directly. A parser first sorts
+classes into families — entities, use cases, repository protocols and
+the rest — by the directory a class sits in and, for use cases, by its
+name. A rule that takes a family sees its members and nothing else, and
+a class in no family is not shown to it. ``verify`` does not say which
+classes those are. This does:
+
+.. code-block:: bash
+
+    julee doctrine census
+
+It lists every class, function and call-valued assignment your source
+declares at module level, with its file and line, and says which family
+holds it or that none does. ``--target PATH`` works as it does for
+``verify``, and ``--format json`` carries every declaration rather than
+a summary. The JSON is provisional and will change.
+
+**It reports family membership, not rule coverage.** Unclaimed means in
+no family, not unchecked: the dependency rule reads a use case file's
+imports whatever the file declares, and other rules import a layer's
+modules and ask Python. Claimed means a member of a family, not
+compliant. Most unclaimed classes are adapters and drivers, which have
+no family and need none.
+
+A declaration is in one of four states:
+
+``claimed at its location``
+    A family member carries its file and name.
+
+``claimed by name``
+    A family member carries only its name, and it is the one declaration
+    of that name in the bounded context. A request or response a use
+    case file imports is known to the parser this way.
+
+``candidate``
+    A family member carries only its name, and the bounded context
+    declares that name more than once. None of the declarations is
+    claimed, because nothing says which was meant; the name is listed as
+    *ambiguous*. A name declared nowhere in the context is *external*.
+
+``unclaimed``
+    In no family. Those in a directory the parser fills a family from
+    are listed first: the parser looked there and passed over them. A
+    class in ``usecases/`` whose name does not end in ``UseCase`` is the
+    usual one.
+
+What it reads is every ``.py`` file under ``search_root`` except test
+files, anything under a directory whose name begins with a dot, and
+anything git ignores, and it names what it left out. Source in a
+directory that is not a bounded context is listed with the reason it is
+not one. Nothing is imported.
+
+It exits 0 when every file in scope was read, whatever it found:
+whether an unclaimed class or an ambiguous name is a fault is a rule's
+question, and the census is not a rule. It exits 1 when a file in scope
+could not be read, or when the parser reports a class the census could
+not find in the file named, because either way the report is not one to
+rely on. It exits 2 when the target is not a julee solution.
+
+
 One thing to know about semantic claims
 ---------------------------------------
 
