@@ -8,12 +8,17 @@ about the search, and it is the last of a family: #175 found services by
 a rule that could not see twenty of them, #231 missed seven repository
 protocols, #238 read no entity package at all, and #256 lost handlers
 that moved. Each looked green. This guards the level above all of those
-— a codebase where the search itself returns nothing.
+— a codebase where the search itself returns nothing — and the level
+below: a file the search reached and could not read.
 """
+
+from pathlib import Path
 
 from julee.core.doctrine.rules.discovery import (
     contexts_found_disagreeing_with_declaration,
+    files_that_could_not_be_read,
 )
+from julee.core.parsers.ast import unreadable_python_files
 
 
 class TestBoundedContextDiscovery:
@@ -47,5 +52,42 @@ class TestBoundedContextDiscovery:
             (context.slug for context in repo.discover_all()),
             solution_config.bounded_contexts,
         )
+
+        assert not violations, "\n".join(violations)
+
+
+class TestSourceReading:
+    """Doctrine about what doctrine could read."""
+
+    def test_every_file_doctrine_reads_MUST_be_readable(
+        self, project_root, repo
+    ) -> None:
+        """Every file doctrine reads in a bounded context MUST be readable.
+
+        Doctrine finds what to check by reading source. A file that will
+        not parse contributes no class, so no rule has it as a subject,
+        and the run passes with the totals it would have had without the
+        file. The parser says so in a log line and nowhere else.
+
+        Something else usually notices, because a module that does not
+        parse cannot be imported, and the rules that import say that.
+        A file nothing imports yet has no such witness. That is the file
+        a solution is in the middle of writing, which is when it matters
+        most that green means read.
+
+        The files are the ones the class parser reads under each bounded
+        context: not tests, and not modules whose names begin with an
+        underscore. Doctrine does not read those, so it does not ask
+        them to parse.
+        """
+        unreadable = [
+            found
+            for context in repo.discover_all()
+            for found in unreadable_python_files(
+                Path(context.path), relative_to=project_root
+            )
+        ]
+
+        violations = files_that_could_not_be_read(unreadable)
 
         assert not violations, "\n".join(violations)
