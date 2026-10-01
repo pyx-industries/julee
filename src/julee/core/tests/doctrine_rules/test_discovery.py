@@ -5,7 +5,9 @@ import pytest
 from julee.core.doctrine.rules.discovery import (
     NONE_DECLARED,
     contexts_found_disagreeing_with_declaration,
+    files_that_could_not_be_read,
 )
+from julee.core.values.code_info import UnreadableFile
 
 pytestmark = pytest.mark.unit
 
@@ -71,3 +73,35 @@ class TestAMeaninglessDeclaration:
         (objection,) = objections((), "0")
 
         assert '"0"' in objection
+
+
+class TestFilesThatCouldNotBeRead:
+    """A file the parser skipped is a file no rule looked at."""
+
+    DRAFT = UnreadableFile(
+        file="src/acme/stories/domain/values/draft.py",
+        problem="Syntax error: invalid syntax (draft.py, line 12)",
+    )
+
+    def test_reading_everything_is_fine(self) -> None:
+        assert files_that_could_not_be_read([]) == []
+
+    def test_an_unreadable_file_is_an_objection(self) -> None:
+        assert files_that_could_not_be_read([self.DRAFT])
+
+    def test_the_objection_names_the_file(self) -> None:
+        """So that the author knows where to look."""
+        (objection,) = files_that_could_not_be_read([self.DRAFT])
+
+        assert "src/acme/stories/domain/values/draft.py" in objection
+
+    def test_the_objection_says_what_went_wrong(self) -> None:
+        """The loader's own words, which carry the line."""
+        (objection,) = files_that_could_not_be_read([self.DRAFT])
+
+        assert "invalid syntax (draft.py, line 12)" in objection
+
+    def test_each_file_gets_its_own_objection(self) -> None:
+        other = UnreadableFile(file="src/acme/stories/usecases/plan.py", problem="x")
+
+        assert len(files_that_could_not_be_read([self.DRAFT, other])) == 2

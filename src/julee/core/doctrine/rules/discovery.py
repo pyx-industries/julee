@@ -1,17 +1,21 @@
-"""What the discovery rule objects to.
+"""What the discovery rules object to.
 
 Every other rule takes the bounded contexts as given and checks what is
-inside them. This one checks the search itself: that what doctrine found
-under ``search_root`` is what the codebase says is there.
+inside them. These check the search itself: that what doctrine found
+under ``search_root`` is what the codebase says is there, and that the
+files it went to read there could be read.
 
 Nothing here imports or reads a file.
 """
 
 from collections.abc import Iterable
 
+from julee.core.values.code_info import UnreadableFile
+
 __all__ = [
     "NONE_DECLARED",
     "contexts_found_disagreeing_with_declaration",
+    "files_that_could_not_be_read",
 ]
 
 NONE_DECLARED = "none"
@@ -82,3 +86,23 @@ def contexts_found_disagreeing_with_declaration(
         ]
 
     return []
+
+
+def files_that_could_not_be_read(unreadable: Iterable[UnreadableFile]) -> list[str]:
+    """Objections to source files doctrine went to read and could not.
+
+    The parser gives a rule the classes of the files it could read. A
+    file it could not read gives the rule nothing to look at, and a rule
+    with nothing to look at passes.
+
+    Args:
+        unreadable: The files the parser reported, each with its problem
+
+    Returns:
+        One sentence per file, naming it and what went wrong
+    """
+    return [
+        f"{found.file} could not be read: {found.problem}. Doctrine reads "
+        f"this file to find what to check, so nothing in it was checked."
+        for found in unreadable
+    ]
