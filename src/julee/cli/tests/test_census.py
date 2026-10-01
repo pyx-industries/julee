@@ -34,12 +34,12 @@ STORY = Declaration(
     "src/acme/stories/domain/models/story.py",
     14,
 )
-HELPERS = Declaration(
-    "acme.stories.usecases.plan",
-    "Helpers",
-    "class",
-    "src/acme/stories/usecases/plan.py",
-    15,
+NEW_ID = Declaration(
+    "acme.stories.domain.models.story",
+    "new_story_id",
+    "function",
+    "src/acme/stories/domain/models/story.py",
+    9,
 )
 MEMORY = Declaration(
     "acme.stories.infrastructure.memory",
@@ -71,7 +71,7 @@ STORIES = ContextCensus(
         Membership(ONE, CANDIDATE, ("requests",)),
         Membership(OTHER, CANDIDATE, ("requests",)),
         Membership(MEMORY, UNCLAIMED),
-        Membership(HELPERS, UNCLAIMED, (), True),
+        Membership(NEW_ID, UNCLAIMED, (), True),
     ),
     name_only=(
         NameOnlyMember("requests", "GetStoryRequest", AMBIGUOUS, (ONE, OTHER)),
@@ -182,7 +182,7 @@ class TestTheText:
 
     def test_it_counts_each_kind_by_state(self) -> None:
         assert (
-            "  class: 1 claimed at its location, 2 candidate, 2 unclaimed"
+            "  class: 1 claimed at its location, 2 candidate, 1 unclaimed"
             in as_text(a_census())
         )
 
@@ -204,7 +204,10 @@ class TestTheText:
         assert text.index("Unclaimed in a family directory:") < text.index(
             "Unclaimed elsewhere:"
         )
-        assert "    src/acme/stories/usecases/plan.py:15 class Helpers" in text
+        assert (
+            "    src/acme/stories/domain/models/story.py:9 function new_story_id"
+            in text
+        )
         assert (
             "    src/acme/stories/infrastructure/memory.py:4 class MemoryStories"
             in text

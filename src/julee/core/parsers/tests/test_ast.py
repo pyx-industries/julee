@@ -9,6 +9,7 @@ import pytest
 
 from julee.core.parsers.ast import (
     _imported_class_names,
+    parse_bounded_context,
     parse_module_docstring,
     parse_pipelines_from_file,
     parse_python_classes,
@@ -1158,3 +1159,99 @@ class TestUnreadablePythonFiles:
         found = unreadable_python_files(tmp_path)
 
         assert [f.file for f in found] == ["alpha.py", "zebra.py"]
+
+
+# =============================================================================
+# parse_bounded_context: the use case family
+# =============================================================================
+
+
+class TestTheUseCaseFamily:
+    """A class in usecases/ is a use case, whatever it is called (ADR 020)."""
+
+    @staticmethod
+    def _context(tmp_path, source):
+        context = tmp_path / "stories"
+        (context / "usecases").mkdir(parents=True)
+        _write(context / "usecases" / "plan.py", source)
+        return context
+
+    @staticmethod
+    def _use_cases(context):
+        info = parse_bounded_context(context)
+        assert info is not None
+        return [found.name for found in info.use_cases]
+
+    def test_a_class_named_UseCase_is_one(self, tmp_path):
+        context = self._context(tmp_path, "class PlanStoryUseCase:\n    pass\n")
+
+        assert self._use_cases(context) == ["PlanStoryUseCase"]
+
+    def test_a_class_named_anything_else_is_one_too(self, tmp_path):
+        """Found by the directory, so that its name can be objected to."""
+        context = self._context(
+            tmp_path,
+            "class PlanStory:\n    pass\n\n\nclass StoryHelpers:\n    pass\n",
+        )
+
+        assert self._use_cases(context) == ["PlanStory", "StoryHelpers"]
+
+    def test_a_class_without_execute_is_one_too(self, tmp_path):
+        """Whether it can be executed is a rule, not the definition."""
+        context = self._context(
+            tmp_path,
+            "class BaseUseCase:\n"
+            "    def __init__(self, repo):\n"
+            "        self.repo = repo\n",
+        )
+
+        assert self._use_cases(context) == ["BaseUseCase"]
+
+    def test_a_request_and_a_response_are_messages_not_use_cases(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            "class PlanStoryRequest:\n    pass\n\n\n"
+            "class PlanStoryResponse:\n    pass\n\n\n"
+            "class PlanStoryUseCase:\n    pass\n",
+        )
+        info = parse_bounded_context(context)
+        assert info is not None
+
+        assert [found.name for found in info.use_cases] == ["PlanStoryUseCase"]
+        assert [found.name for found in info.requests] == ["PlanStoryRequest"]
+        assert [found.name for found in info.responses] == ["PlanStoryResponse"]
+
+    def test_an_imported_class_is_not_one(self, tmp_path):
+        """A use case is declared in usecases/, not merely named there."""
+        context = self._context(
+            tmp_path,
+            "from acme.stories.domain.models.story import Story\n"
+            "from ..dtos.plan import PlanStoryRequest\n\n\n"
+            "class PlanStoryUseCase:\n    pass\n",
+        )
+
+        assert self._use_cases(context) == ["PlanStoryUseCase"]
+
+    def test_a_class_in_a_subdirectory_is_one(self, tmp_path):
+        context = self._context(tmp_path, "class PlanStoryUseCase:\n    pass\n")
+        (context / "usecases" / "ports").mkdir()
+        _write(context / "usecases" / "ports" / "clock.py", "class Clock:\n    pass\n")
+
+        assert self._use_cases(context) == ["Clock", "PlanStoryUseCase"]
+
+    def test_a_class_outside_usecases_is_not_one(self, tmp_path):
+        context = self._context(tmp_path, "class PlanStoryUseCase:\n    pass\n")
+        (context / "infrastructure").mkdir()
+        _write(context / "infrastructure" / "memory.py", "class Memory:\n    pass\n")
+
+        assert self._use_cases(context) == ["PlanStoryUseCase"]
+
+    def test_what_the_class_parser_skips_is_still_not_read(self, tmp_path):
+        """An underscore module and a Test-named class, as everywhere."""
+        context = self._context(
+            tmp_path,
+            "class TestDouble:\n    pass\n\n\nclass PlanStoryUseCase:\n    pass\n",
+        )
+        _write(context / "usecases" / "_private.py", "class Hidden:\n    pass\n")
+
+        assert self._use_cases(context) == ["PlanStoryUseCase"]

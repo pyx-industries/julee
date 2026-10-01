@@ -432,7 +432,14 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     requests = [c for c in all_classes if c.name.endswith("Request")]
     responses = [c for c in all_classes if c.name.endswith("Response")]
-    use_cases = [c for c in all_classes if c.name.endswith("UseCase")]
+
+    # Every other class in the directory is a use case, found by where it
+    # sits rather than by its name (ADR 020). Keeping only *UseCase made
+    # the name a filter: a class called anything else was never read, so
+    # the rule that a use case is named *UseCase had nothing it could
+    # object to, and neither had any other rule. Whether a class here is
+    # named like a use case, and whether it can be executed, are rules.
+    use_cases = [c for c in all_classes if not c.name.endswith(("Request", "Response"))]
 
     # Found by the directory they sit in, the way repositories are, rather
     # than by their name. Keeping only *Service dropped anything else without

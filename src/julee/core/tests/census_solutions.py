@@ -3,8 +3,9 @@
 Two bounded contexts under one search root. ``stories`` is laid out as
 julee prescribes and holds one of everything the census has a word for.
 ``engagements`` departs from the layout: its use cases share a module
-and carry no suffix, its entity sits under a domain path of its own,
-and its ports are nested or at the top level. It is here to show what
+and carry no suffix, which leaves them use cases the naming rule would
+object to; its entity sits under a domain path of its own, and its ports
+are nested or at the top level, which leaves those in no family. It is here to show what
 the census reports for such source, not to say julee supports it.
 
 The sources are short so that every line number in a test can be
@@ -110,7 +111,7 @@ class PlanStoryUseCase:
 
 
 class StoryHelpers:
-    """No suffix, so no family."""
+    """No suffix, and a use case to doctrine all the same."""
 
 
 class TestDouble:
