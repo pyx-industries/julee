@@ -202,14 +202,15 @@ class InSub:
         classes = parse_python_classes(tmp_path)
         assert classes[0].file == "sub/models.py"
 
-    def test_skips_underscore_prefixed_files(self, tmp_path):
+    def test_reads_underscore_prefixed_files(self, tmp_path):
+        """An underscore on a file name hides nothing (ADR 021)."""
         _write(
             tmp_path / "_internal.py",
             '''\
 """Internal."""
 
-class Hidden:
-    """Should not appear."""
+class Internal:
+    """Should appear."""
     pass
 ''',
         )
@@ -225,8 +226,16 @@ class Visible:
         )
         classes = parse_python_classes(tmp_path)
         names = [c.name for c in classes]
-        assert "Hidden" not in names
-        assert "Visible" in names
+        assert names == ["Internal", "Visible"]
+
+    def test_reads_no_class_out_of_a_package_init(self, tmp_path):
+        """The one module left out, and left out by its whole name."""
+        _write(tmp_path / "__init__.py", "class InThePackage:\n    pass\n")
+        _write(tmp_path / "__main__.py", "class Runner:\n    pass\n")
+
+        names = [c.name for c in parse_python_classes(tmp_path)]
+
+        assert names == ["Runner"]
 
     def test_skips_test_files_by_default(self, tmp_path):
         _write(
@@ -254,25 +263,30 @@ class RealModel:
         assert "TestFoo" not in names
         assert "RealModel" in names
 
-    def test_skips_test_prefixed_classes_even_in_non_test_file(self, tmp_path):
+    def test_reads_test_prefixed_classes_in_a_file_that_is_not_a_test(self, tmp_path):
+        """A test is left out by its file. A name beginning Test is a name,
+        and a domain can have a TestResult or a Testimonial (ADR 021)."""
         _write(
-            tmp_path / "helpers.py",
+            tmp_path / "results.py",
             '''\
-"""Helpers."""
+"""Results."""
 
-class TestHelper:
+class TestResult:
     """Has Test prefix."""
     pass
 
-class RealHelper:
+class Testimonial:
+    """Only begins the same way."""
+    pass
+
+class ExamResult:
     """No Test prefix."""
     pass
 ''',
         )
         classes = parse_python_classes(tmp_path)
         names = [c.name for c in classes]
-        assert "TestHelper" not in names
-        assert "RealHelper" in names
+        assert names == ["ExamResult", "TestResult", "Testimonial"]
 
     def test_includes_test_files_when_exclude_tests_false(self, tmp_path):
         _write(
@@ -585,11 +599,17 @@ from other import SomeUseCase
         names = _imported_class_names(tmp_path)
         assert "SomeName" in names
 
-    def test_skips_underscore_prefixed_files(self, tmp_path):
+    def test_reads_underscore_prefixed_files(self, tmp_path):
+        """A use case in such a file is read, so its imports are too."""
         _write(
             tmp_path / "_generated.py",
-            "from module import HiddenRequest\n",
+            "from module import GeneratedRequest\n",
         )
+        names = _imported_class_names(tmp_path)
+        assert "GeneratedRequest" in names
+
+    def test_skips_a_package_init(self, tmp_path):
+        _write(tmp_path / "__init__.py", "from module import HiddenRequest\n")
         names = _imported_class_names(tmp_path)
         assert "HiddenRequest" not in names
 
@@ -1104,9 +1124,17 @@ class TestUnreadablePythonFiles:
         assert [c.name for c in parse_python_classes(tmp_path)] == ["Good"]
         assert [f.file for f in unreadable_python_files(tmp_path)] == ["broken.py"]
 
-    def test_a_broken_underscore_file_is_not_reported(self, tmp_path):
-        """parse_python_classes does not read it, so it was not skipped."""
+    def test_a_broken_underscore_file_is_reported(self, tmp_path):
+        """parse_python_classes reads it, so it is asked to parse."""
         _write(tmp_path / "_private.py", "class Broken(\n")
+
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert found.file == "_private.py"
+
+    def test_a_broken_package_init_is_not_reported(self, tmp_path):
+        """parse_python_classes does not read it, so it was not skipped."""
+        _write(tmp_path / "__init__.py", "class Broken(\n")
 
         assert unreadable_python_files(tmp_path) == []
 
@@ -1246,12 +1274,14 @@ class TestTheUseCaseFamily:
 
         assert self._use_cases(context) == ["PlanStoryUseCase"]
 
-    def test_what_the_class_parser_skips_is_still_not_read(self, tmp_path):
-        """An underscore module and a Test-named class, as everywhere."""
+    def test_no_name_keeps_a_class_out(self, tmp_path):
+        """Not a name beginning Test, and not an underscore on the module
+        (ADR 021). Only a package's __init__.py is not read."""
         context = self._context(
             tmp_path,
             "class TestDouble:\n    pass\n\n\nclass PlanStoryUseCase:\n    pass\n",
         )
-        _write(context / "usecases" / "_private.py", "class Hidden:\n    pass\n")
+        _write(context / "usecases" / "_private.py", "class Private:\n    pass\n")
+        _write(context / "usecases" / "__init__.py", "class InInit:\n    pass\n")
 
-        assert self._use_cases(context) == ["PlanStoryUseCase"]
+        assert self._use_cases(context) == ["PlanStoryUseCase", "Private", "TestDouble"]

@@ -37,7 +37,7 @@ class Story:
 
     slug: str
 ''',
-    "domain/models/_draft.py": '''"""In a module the class parser skips."""
+    "domain/models/_draft.py": '''"""In a module whose name hides nothing."""
 
 
 class Draft:
@@ -115,7 +115,7 @@ class StoryHelpers:
 
 
 class TestDouble:
-    """Named like a test, so the class parser leaves it out."""
+    """Named like a test, in a file that is not one, so it is read."""
 ''',
     "infrastructure/memory.py": '''"""Stories kept in memory."""
 
