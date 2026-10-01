@@ -202,6 +202,22 @@ def _classes_from_file(py_file: Path, relative_to: Path) -> list["ClassInfo"]:
     return [_griffe_class_to_classinfo(cls, rel) for cls in module.classes.values()]
 
 
+def is_test_file(py_file: Path) -> bool:
+    """Whether a scan that leaves tests out leaves this file out.
+
+    A name beginning ``test_``, or a place under a ``tests`` directory.
+    Asked of the path as given, so that everything deciding what a test
+    file is decides it the same way.
+
+    Args:
+        py_file: The Python file
+
+    Returns:
+        True if the file is a test file
+    """
+    return py_file.name.startswith("test_") or "/tests/" in str(py_file)
+
+
 def _files_to_read(
     directory: Path,
     recursive: bool,
@@ -221,9 +237,7 @@ def _files_to_read(
     for py_file in directory.glob(pattern):
         if py_file.name.startswith("_"):
             continue
-        if exclude_tests and (
-            py_file.name.startswith("test_") or "/tests/" in str(py_file)
-        ):
+        if exclude_tests and is_test_file(py_file):
             continue
         if py_file.name in exclude_files:
             continue
