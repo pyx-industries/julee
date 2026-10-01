@@ -108,6 +108,13 @@ directory, which is the mechanism #175 abandoned. ADR 016 gave them
 `domain/handlers/`, so a `*Handler` found in `domain/services/` is now
 objected to for where it is rather than what it is called (#256).
 
+Use cases were found by name for longer than either. The parser kept the
+classes in `usecases/` whose names ended in `UseCase`, so the rule that a
+use case is named `*UseCase` ran over a list already filtered by that
+suffix and had nothing to object to. ADR 020 finds them by directory: every class
+in `usecases/` that is not a request or a response is a use case, and
+its name is a claim the naming rule can hold it to.
+
 The name claims an arity as well as a layer. ADR 016 separates a
 Repository from a Service by how many entities each is bound to, so
 `*Service` on a protocol bound to one entity says "repository" and

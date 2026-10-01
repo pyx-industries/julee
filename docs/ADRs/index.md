@@ -29,6 +29,7 @@ An ADR is a document that captures an important architectural decision made alon
 017-a-usecase-does-not-log
 018-a-value-object-has-no-identity
 019-an-init-imports-nothing-it-does-not-use
+020-a-class-in-usecases-is-a-use-case
 ```
 
 ## ADR Index
@@ -54,3 +55,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [017](017-a-usecase-does-not-log.md) | A Use Case Does Not Log | Draft | 2026-09-29 |
 | [018](018-a-value-object-has-no-identity.md) | A Value Object Has No Identity | Draft | 2026-09-29 |
 | [019](019-an-init-imports-nothing-it-does-not-use.md) | An `__init__.py` Imports Nothing It Does Not Use | Accepted | 2026-09-30 |
+| [020](020-a-class-in-usecases-is-a-use-case.md) | A Class in `usecases/` Is a Use Case | Draft | 2026-10-02 |
