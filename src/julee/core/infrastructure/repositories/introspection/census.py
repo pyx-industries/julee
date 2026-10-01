@@ -8,10 +8,10 @@ parsed; nothing of the solution is imported.
 Scope is every ``.py`` file under the search root except three kinds:
 test files, by the parser's own definition; anything under a directory
 whose name begins with a dot; and anything git ignores. Everything else
-is read, which includes a module whose name begins with an underscore,
-though the class parser skips those, and a file in a directory that is
-no bounded context. The census is complete when every file in scope
-was read.
+is read, which includes a package's ``__init__.py``, though the class
+parser reads no class out of one, and a file in a directory that is no
+bounded context. The census is complete when every file in scope was
+read.
 """
 
 import os

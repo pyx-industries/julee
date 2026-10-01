@@ -218,6 +218,10 @@ def is_test_file(py_file: Path) -> bool:
     return py_file.name.startswith("test_") or "/tests/" in str(py_file)
 
 
+PACKAGE_INIT = "__init__.py"
+"""The one module a scan reads no class out of (ADR 021)."""
+
+
 def _files_to_read(
     directory: Path,
     recursive: bool,
@@ -226,8 +230,11 @@ def _files_to_read(
 ) -> Iterator[Path]:
     """The Python files a scan of a directory reads.
 
-    Not modules whose names begin with an underscore, not test files
-    unless asked for, and not the files the caller names.
+    Not a package's ``__init__.py``, not test files unless asked for,
+    and not the files the caller names. Every other module is read
+    whatever it is called. A module whose name begins with an underscore
+    was skipped until ADR 021, which made the underscore a way to keep a
+    class from every rule.
     """
     if not directory.exists():
         return
@@ -235,7 +242,7 @@ def _files_to_read(
     exclude_files = exclude_files or []
     pattern = "**/*.py" if recursive else "*.py"
     for py_file in directory.glob(pattern):
-        if py_file.name.startswith("_"):
+        if py_file.name == PACKAGE_INIT:
             continue
         if exclude_tests and is_test_file(py_file):
             continue
@@ -252,10 +259,14 @@ def parse_python_classes(
 ) -> list["ClassInfo"]:
     """Extract class information from Python files in a directory.
 
+    A class is read whatever it is called (ADR 021). A test is left out
+    by the file it is in, never by a class name beginning ``Test``: that
+    filter hid a domain class called ``TestResult`` from every rule.
+
     Args:
         directory: Directory to scan for .py files
         recursive: If True, scan subdirectories recursively
-        exclude_tests: If True, exclude test files and test classes
+        exclude_tests: If True, exclude test files
         exclude_files: List of file names to exclude (e.g., ["requests.py"])
 
     Returns:
@@ -263,10 +274,7 @@ def parse_python_classes(
     """
     classes = []
     for py_file in _files_to_read(directory, recursive, exclude_tests, exclude_files):
-        for cls in _classes_from_file(py_file, directory):
-            if exclude_tests and cls.name.startswith("Test"):
-                continue
-            classes.append(cls)
+        classes.extend(_classes_from_file(py_file, directory))
 
     return sorted(classes, key=lambda c: c.name)
 
@@ -352,17 +360,19 @@ def parse_module_docstring(module_path: Path) -> tuple[str | None, str | None]:
 
 
 def _imported_class_names(directory: Path) -> set[str]:
-    """Return names imported into any non-private file in directory.
+    """Return names imported into any module in directory.
 
     Scans import statements (not class definitions) so that re-exported
     Request/Response classes satisfy doctrine checks even when they are
-    defined outside the use_cases directory (e.g. in _generated/).
+    defined outside the use_cases directory (e.g. in _generated/). The
+    modules are the ones a scan reads classes out of: every one but a
+    package's ``__init__.py``.
     """
     if not directory.exists():
         return set()
     names: set[str] = set()
     for py_file in directory.glob("**/*.py"):
-        if py_file.name.startswith("_"):
+        if py_file.name == PACKAGE_INIT:
             continue
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))

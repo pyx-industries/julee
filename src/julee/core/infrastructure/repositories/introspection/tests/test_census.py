@@ -101,7 +101,7 @@ def solution(tmp_path: Path) -> Path:
 class TestAContextLaidOutAsPrescribed:
     def test_every_declaration_is_located_with_its_state(self, solution: Path) -> None:
         assert rows(context(census_of(solution), "stories")) == [
-            ("domain/models/_draft.py", 4, "class", "Draft", UNCLAIMED),
+            ("domain/models/_draft.py", 4, "class", "Draft", CLAIMED_AT_ITS_LOCATION),
             ("domain/models/story.py", 6, "binding", "StoryId", UNCLAIMED),
             ("domain/models/story.py", 9, "function", "new_story_id", UNCLAIMED),
             ("domain/models/story.py", 14, "class", "Story", CLAIMED_AT_ITS_LOCATION),
@@ -139,7 +139,13 @@ class TestAContextLaidOutAsPrescribed:
                 "StoryHelpers",
                 CLAIMED_AT_ITS_LOCATION,
             ),
-            ("usecases/plan_story.py", 19, "class", "TestDouble", UNCLAIMED),
+            (
+                "usecases/plan_story.py",
+                19,
+                "class",
+                "TestDouble",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
         ]
 
     def test_a_declaration_carries_its_module_and_its_path_from_the_root(
@@ -160,6 +166,7 @@ class TestAContextLaidOutAsPrescribed:
         }
 
         assert families == {
+            "Draft": ("entities",),
             "Story": ("entities",),
             "StoryRepository": ("repository_protocols",),
             "Score": ("values",),
@@ -168,6 +175,7 @@ class TestAContextLaidOutAsPrescribed:
             "PlanStoryResponse": ("responses",),
             "PlanStoryUseCase": ("use_cases",),
             "StoryHelpers": ("use_cases",),
+            "TestDouble": ("use_cases",),
         }
 
     def test_the_names_a_use_case_file_imports_are_resolved_or_said_not_to_be(
@@ -206,16 +214,17 @@ class TestAContextLaidOutAsPrescribed:
     def test_what_the_parser_passed_over_in_a_family_directory_says_so(
         self, solution: Path
     ) -> None:
-        """A function, a binding, a name beginning Test, and a module the
-        parser skips. A class in usecases/ with no suffix is not among
-        them: it is a use case, and held to the rules (ADR 020)."""
+        """A function and a binding, which no family holds. No class is
+        among them: one named like a test or in an underscore module is
+        read like any other (ADR 021), and one in usecases/ is a use
+        case whatever it is called (ADR 020)."""
         stories = context(census_of(solution), "stories")
 
         assert {
             m.declaration.name
             for m in stories.memberships
             if m.state == UNCLAIMED and m.in_family_directory
-        } == {"Draft", "StoryId", "new_story_id", "TestDouble"}
+        } == {"StoryId", "new_story_id"}
 
     def test_the_readers_agree(self, solution: Path) -> None:
         census = census_of(solution)
