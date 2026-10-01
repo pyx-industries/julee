@@ -681,3 +681,70 @@ async def test_an_update_rebuilds_the_value_objects_too(tmp_path: Path) -> None:
     stored = repo.storage["w-1"]
     assert isinstance(stored.name, Name)
     assert stored.name.normalized == "second"
+
+
+async def test_composite_values_are_constructed_and_preserved(tmp_path: Path) -> None:
+    """Exercise emitted create/update code through JSON-shaped requests."""
+    from julee.core.usecases.tests.crud_fixtures import CompositeWidgetRepository
+    from julee.core.values.text import Slug
+
+    fields = [
+        ("parent", "str|None=None"),
+        ("references", "tuple[str,...]=()"),
+        ("nested", "tuple[NestedReference,...]=()"),
+    ]
+    out_dir = tmp_path / "composites"
+    out_file = generate(
+        entity="CompositeWidget",
+        entity_module=FIXTURES,
+        repo="CompositeWidgetRepository",
+        repo_module=FIXTURES,
+        id_field="slug",
+        create_fields=[("slug", "str"), *fields],
+        update_fields=fields,
+        out_dir=out_dir,
+    )
+    crud = _import_generated(out_dir, out_file, "composite_crud")
+    messages = importlib.import_module("composites.dtos.crud_composite_widget")
+    repo = CompositeWidgetRepository()
+    await crud.CreateCompositeWidgetUseCase(repo).execute(
+        messages.CreateCompositeWidgetRequest.model_validate(
+            {
+                "slug": "widget",
+                "parent": " Parent Widget ",
+                "references": [" Other Widget "],
+                "nested": [{"name": " First Value "}],
+            }
+        )
+    )
+    stored = repo.storage["widget"]
+    assert isinstance(stored.parent, Slug)
+    assert stored.parent == "parent-widget"
+    assert stored.references == ("other-widget",)
+    assert isinstance(stored.references[0], Slug)
+    update = crud.UpdateCompositeWidgetUseCase(repo)
+    await update.execute(
+        messages.UpdateCompositeWidgetRequest.model_validate(
+            {
+                "slug": "widget",
+                "parent": " New Parent ",
+                "references": [" New Target "],
+                "nested": [{"name": " New Value "}],
+            }
+        )
+    )
+    stored = repo.storage["widget"]
+    assert stored.parent == "new-parent"
+    assert stored.references == ("new-target",)
+    assert stored.nested[0].label == "new value"
+    with pytest.raises(ValueError):
+        await update.execute(
+            messages.UpdateCompositeWidgetRequest(slug="widget", references=("   ",))
+        )
+    assert repo.storage["widget"] is stored
+    await update.execute(
+        messages.UpdateCompositeWidgetRequest(slug="widget", parent=None, references=())
+    )
+    assert repo.storage["widget"].parent is None
+    assert repo.storage["widget"].references == ()
+    assert repo.storage["widget"].nested[0].label == "new value"

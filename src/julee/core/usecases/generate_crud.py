@@ -644,6 +644,43 @@ def _value_object_types(
     return found_types
 
 
+def _composite_conversions(
+    entity_module: str, entity: str, fields: Iterable[str]
+) -> tuple[dict[str, str], dict[str, set[str]]]:
+    """Construct checked strings inside optional fields and tuples.
+
+    Request annotations describe wire values; dataclass construction does
+    not rebuild them. Nested dataclass values already validated by the DTO
+    are retained by changes(), rather than dumped into dictionaries.
+    """
+    hints = get_type_hints(_the_entity(entity_module, entity))
+    imports: dict[str, set[str]] = {}
+
+    def expression(hint: object, value: str, depth: int = 0) -> str:
+        if _is_optional(hint):
+            inner = next(arg for arg in get_args(hint) if arg is not type(None))
+            built = expression(inner, value, depth)
+            return value if built == value else f"None if {value} is None else {built}"
+        if get_origin(hint) is tuple and get_args(hint)[-1:] == (Ellipsis,):
+            item = f"item{depth}"
+            built = expression(get_args(hint)[0], item, depth + 1)
+            return value if built == item else f"tuple({built} for {item} in {value})"
+        if _is_checked_str(hint):
+            assert isinstance(hint, type)
+            imports.setdefault(hint.__module__, set()).add(hint.__name__)
+            return f"{hint.__name__}({value})"
+        return value
+
+    conversions = {}
+    for name in fields:
+        hint = hints.get(name)
+        if _is_optional(hint) or get_origin(hint) is tuple:
+            built = expression(hint, "{value}")
+            if built != "{value}":
+                conversions[name] = built
+    return conversions, imports
+
+
 def _id_type(entity_module: str, entity: str, id_field: str) -> tuple[str, str] | None:
     """The type the entity declares for its id, if it is not a plain str.
 
@@ -679,7 +716,10 @@ def _names_itself(id_field: str, create_fields: list[tuple[str, str]]) -> bool:
 
 
 def _as_declared(
-    name: str, id_field: str, value_objects: dict[str, tuple[str, str]]
+    name: str,
+    id_field: str,
+    value_objects: dict[str, tuple[str, str]],
+    conversions: dict[str, str] | None = None,
 ) -> str:
     """How a create use case passes one request field on to _create.
 
@@ -698,6 +738,8 @@ def _as_declared(
     """
     if name == "entity_id":
         return f"request.{id_field}"
+    if conversions and name in conversions:
+        return conversions[name].format(value=f"request.{name}")
     declared = value_objects.get(name)
     return f"{declared[1]}(request.{name})" if declared else f"request.{name}"
 
@@ -710,6 +752,7 @@ def _create_usecase(
     id_type: str = "",
     derived: bool = False,
     value_objects: dict[str, tuple[str, str]] | None = None,
+    conversions: dict[str, str] | None = None,
 ) -> str:
     # An id among the create fields is a natural key the caller already knows,
     # so it is passed as the entity id rather than as another field; passing
@@ -720,7 +763,7 @@ def _create_usecase(
         kwarg_names.insert(0, "entity_id")
     built = value_objects or {}
     field_kwargs = "\n".join(
-        f"            {name}={_as_declared(name, id_field, built)},"
+        f"            {name}={_as_declared(name, id_field, built, conversions)},"
         for name in kwarg_names
     )
     # An entity that names itself must not be handed the field empty:
@@ -799,7 +842,11 @@ class Update{entity}Request(BaseModel):
         — so the message answers it. A use case asks for the changes
         and never learns how they were worked out.
         \"\"\"
-        return self.model_dump(exclude={{"{id_field}"}}, exclude_unset=True)
+        return {{
+            name: getattr(self, name)
+            for name in self.model_fields_set
+            if name != "{id_field}"
+        }}
 
 
 class Update{entity}Response(BaseModel):
@@ -819,17 +866,30 @@ def _update_usecase(
     snake: str,
     id_field: str,
     value_objects: dict[str, tuple[str, str]] | None = None,
+    conversions: dict[str, str] | None = None,
 ) -> str:
     built = value_objects or {}
-    if built:
+    conversions = conversions or {}
+    if built or conversions:
         # A change arrives in the request's types, and replace() does not
         # coerce, so a field the entity declares as a value object is
         # built as one here or it is stored as the str it arrived as.
         # None is left alone: it means the caller cleared the field.
         rebuild = "\n".join(
             f'        if changes.get("{name}") is not None:\n'
-            f'            changes["{name}"] = {declared[1]}(changes["{name}"])'
-            for name, declared in sorted(built.items())
+            f'            changes["{name}"] = {expression}'
+            for name, expression in sorted(
+                {
+                    **{
+                        name: f'{declared[1]}(changes["{name}"])'
+                        for name, declared in built.items()
+                    },
+                    **{
+                        name: conversion.format(value=f'changes["{name}"]')
+                        for name, conversion in conversions.items()
+                    },
+                }.items()
+            )
         )
         body = f"""        changes = request.changes()
 {rebuild}
@@ -1034,6 +1094,13 @@ def generate(
         entity_module, entity, [name for name, _ in update_fields]
     )
 
+    created_composites, create_imports = _composite_conversions(
+        entity_module, entity, [name for name, _ in create_fields if name != id_field]
+    )
+    updated_composites, update_imports = _composite_conversions(
+        entity_module, entity, [name for name, _ in update_fields]
+    )
+
     # The use cases: the domain, the ports, the messages by name.
     names = sorted(
         _message_names(
@@ -1055,6 +1122,8 @@ def generate(
             {entity_module: {entity}},
             _extra_entity_imports(all_fields, entity_module, entity),
             _by_module(declared_id, created_as, updated_as),
+            create_imports,
+            update_imports,
         )
     )
     imports.append(f"from {repo_module} import {repo}")
@@ -1091,10 +1160,13 @@ def generate(
                 id_type_name,
                 derives_id,
                 created_as,
+                created_composites,
             )
         )
     if include_update:
-        sections.append(_update_usecase(entity, snake, id_field, updated_as))
+        sections.append(
+            _update_usecase(entity, snake, id_field, updated_as, updated_composites)
+        )
     if include_delete:
         sections.append(_delete_usecase(entity, snake, id_field))
 
