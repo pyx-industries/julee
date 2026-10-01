@@ -6,7 +6,15 @@ Entities
 Entities represent core business concepts.
 They contain business validation rules, domain logic, and calculations.
 
-In Julee, entities are Pydantic models that live in the domain layer.
+In Julee, entities are frozen standard-library dataclasses in the domain layer.
+Dataclass annotations do not perform runtime validation;
+constructors and value types enforce the domain's business rules.
+Pydantic request and response DTOs validate and serialize boundary messages.
+
+Freezing prevents field assignment, but does not make nested lists,
+dictionaries or aliased values immutable. Use immutable representations or
+defensive ownership where the domain requires an immutable snapshot.
+
 :doc:`Repositories <repositories>` store them;
 :doc:`services` transform between them;
 :doc:`use cases <use_cases>` orchestrate the
