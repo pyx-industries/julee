@@ -1,8 +1,10 @@
 """What the dependency rule objects to.
 
 Clean architecture's one rule is that source dependencies point
-inward. A use case may reach for the ring inside it, its own ring, and
-the language. Everything further out — frameworks, adapters, drivers,
+inward. A use case may reach for domain code, boundary DTOs, permitted
+Julee abstractions, and the language. Imports from usecases packages,
+including helper modules, are rejected. Everything further out —
+frameworks, adapters, drivers,
 serialisation, the filesystem — is a detail it must not know.
 
 Each rule takes the imports a codebase makes and returns its
@@ -174,7 +176,7 @@ def usecases_importing_outward(
     """Use cases reaching for something further out than themselves.
 
     A use case may import its own context's ``domain/`` and
-    ``usecases/``, an adopted kit's same two, julee's entities, ports
+    ``dtos/``, an adopted kit's same two, julee's entities, ports
     and use case bases, and the handful of standard library modules in
     :data:`LANGUAGE_MODULES`. Anything else is a detail.
 
