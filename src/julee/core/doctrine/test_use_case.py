@@ -49,7 +49,17 @@ class TestUseCaseNaming:
 
     @pytest.mark.asyncio
     async def test_all_use_cases_MUST_end_with_UseCase(self, repo):
-        """All use case class names MUST end with 'UseCase'."""
+        """All use case class names MUST end with 'UseCase'.
+
+        A class in usecases/ is a use case (ADR 020): doctrine finds it
+        by where it sits, and this is where its name is checked. Only a
+        request or a response, by its own suffix, is something else.
+
+        So a helper, a shared base or a port written in usecases/ is
+        objected to here. It is a use case that is not named like one,
+        or it is not a use case and is in the wrong directory, and the
+        answer to either is not to leave it where it is.
+        """
         use_case = ListUseCasesUseCase(repo)
         response = await use_case.execute(ListCodeArtifactsRequest())
 
@@ -67,7 +77,9 @@ class TestUseCaseNaming:
         violations = use_cases_not_named_UseCase(response.artifacts)
 
         assert not violations, (
-            f"Use cases not ending with '{USE_CASE_SUFFIX}':\n" + "\n".join(violations)
+            f"Classes in usecases/ not ending with '{USE_CASE_SUFFIX}'. "
+            f"Each is a use case to rename, or something else to move "
+            f"out:\n" + "\n".join(violations)
         )
 
 

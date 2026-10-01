@@ -55,8 +55,10 @@ def use_cases_not_named_UseCase(
 ) -> list[str]:
     """Use cases whose name does not end in UseCase.
 
-    The suffix is how everything else finds them: doctrine, the CRUD
-    generator, and anyone reading the directory.
+    Doctrine finds a use case by the directory it sits in (ADR 020), so
+    this is the rule that meets a class in usecases/ called something
+    else. The suffix is how the rest find one: the CRUD generator, the
+    pipeline parser, and anyone reading the directory.
 
     Args:
         use_cases: The use case classes a codebase has

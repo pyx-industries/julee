@@ -18,7 +18,7 @@ class BoundedContextInfo:
 
     Represents the Clean Architecture layers present in a bounded context:
     - entities (domain/models/)
-    - use_cases (domain/usecases/)
+    - use_cases (usecases/)
     - repository_protocols (domain/repositories/)
     - service_protocols and handler_protocols (domain/services/)
     - oracle_protocols (domain/oracles/)
@@ -44,6 +44,12 @@ class BoundedContextInfo:
     domain/values/, which is the declaration.
     """
     use_cases: tuple[ClassInfo, ...] = ()
+    """Every class in usecases/ that is not a request or a response.
+
+    Found by the directory, not by a name ending in UseCase (ADR 020),
+    so a class there called something else is a member and is held to
+    the use case rules.
+    """
     requests: tuple[ClassInfo, ...] = ()
     responses: tuple[ClassInfo, ...] = ()
     repository_protocols: tuple[ClassInfo, ...] = ()

@@ -132,7 +132,13 @@ class TestAContextLaidOutAsPrescribed:
                 "PlanStoryUseCase",
                 CLAIMED_AT_ITS_LOCATION,
             ),
-            ("usecases/plan_story.py", 15, "class", "StoryHelpers", UNCLAIMED),
+            (
+                "usecases/plan_story.py",
+                15,
+                "class",
+                "StoryHelpers",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
             ("usecases/plan_story.py", 19, "class", "TestDouble", UNCLAIMED),
         ]
 
@@ -161,6 +167,7 @@ class TestAContextLaidOutAsPrescribed:
             "PlanStoryRequest": ("requests",),
             "PlanStoryResponse": ("responses",),
             "PlanStoryUseCase": ("use_cases",),
+            "StoryHelpers": ("use_cases",),
         }
 
     def test_the_names_a_use_case_file_imports_are_resolved_or_said_not_to_be(
@@ -199,14 +206,16 @@ class TestAContextLaidOutAsPrescribed:
     def test_what_the_parser_passed_over_in_a_family_directory_says_so(
         self, solution: Path
     ) -> None:
-        """No suffix, a name beginning Test, and a module the parser skips."""
+        """A function, a binding, a name beginning Test, and a module the
+        parser skips. A class in usecases/ with no suffix is not among
+        them: it is a use case, and held to the rules (ADR 020)."""
         stories = context(census_of(solution), "stories")
 
         assert {
             m.declaration.name
             for m in stories.memberships
             if m.state == UNCLAIMED and m.in_family_directory
-        } == {"Draft", "StoryId", "new_story_id", "StoryHelpers", "TestDouble"}
+        } == {"Draft", "StoryId", "new_story_id", "TestDouble"}
 
     def test_the_readers_agree(self, solution: Path) -> None:
         census = census_of(solution)
@@ -216,7 +225,7 @@ class TestAContextLaidOutAsPrescribed:
 
 
 class TestAContextThatDepartsFromTheLayout:
-    def test_everything_is_located_and_only_the_suffixed_base_is_claimed(
+    def test_everything_is_located_and_every_class_in_usecases_is_claimed(
         self, solution: Path
     ) -> None:
         assert rows(context(census_of(solution), "engagements")) == [
@@ -243,10 +252,34 @@ class TestAContextThatDepartsFromTheLayout:
                 "BaseEngagementUseCase",
                 CLAIMED_AT_ITS_LOCATION,
             ),
-            ("usecases/engagement.py", 11, "class", "RecordEngagement", UNCLAIMED),
-            ("usecases/engagement.py", 15, "class", "GetEngagement", UNCLAIMED),
-            ("usecases/engagement.py", 19, "class", "SearchEngagements", UNCLAIMED),
-            ("usecases/engagement.py", 23, "class", "ListEngagementFilters", UNCLAIMED),
+            (
+                "usecases/engagement.py",
+                11,
+                "class",
+                "RecordEngagement",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
+            (
+                "usecases/engagement.py",
+                15,
+                "class",
+                "GetEngagement",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
+            (
+                "usecases/engagement.py",
+                19,
+                "class",
+                "SearchEngagements",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
+            (
+                "usecases/engagement.py",
+                23,
+                "class",
+                "ListEngagementFilters",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
         ]
 
     def test_the_empty_families_sit_beside_what_they_did_not_claim(

@@ -146,8 +146,8 @@ A declaration is in one of four states:
 ``unclaimed``
     In no family. Those in a directory the parser fills a family from
     are listed first: the parser looked there and passed over them. A
-    class in ``usecases/`` whose name does not end in ``UseCase`` is the
-    usual one.
+    function beside an entity in ``domain/models/`` is the usual one,
+    since no family holds a function.
 
 What it reads is every ``.py`` file under ``search_root`` except test
 files, anything under a directory whose name begins with a dot, and
