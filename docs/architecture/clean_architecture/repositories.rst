@@ -78,3 +78,17 @@ Implementation mixins handle technology-specific boilerplate:
 
 The :doc:`DI container <dependency_injection>` wires protocols to implementations at runtime.
 
+Bounded Queries
+---------------
+
+The generic :py:class:`~julee.core.usecases.generic_crud.ListUseCase`
+calls ``list_all()`` and retrieves the entire collection. It suits small
+collections. Slicing that list, or paging it for an HTTP response, still
+fetches every entity and does not bound storage work or memory use.
+
+For larger collections, declare a query on the repository protocol that
+retrieves a bounded page. Define filters, stable ordering and page limits
+in the application contract and implement them in the storage adapter.
+If the query uses cursors, keep tokens opaque to application code; the
+adapter interprets them. Boundary code maps the page to the API response.
+Julee's generic list use case does not provide this paged-query contract.

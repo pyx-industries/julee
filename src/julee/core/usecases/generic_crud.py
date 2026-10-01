@@ -66,6 +66,11 @@ class ListUseCase(Generic[E, R]):
     """Base for list-all use cases.
 
     Subclasses implement execute() calling _list_all().
+
+    This fetches the entire collection and is suitable for small collections.
+    Paging or slicing the returned list does not bound storage work or memory
+    use. Larger collections need a repository query that retrieves a bounded
+    page, with filtering and ordering defined by the application contract.
     """
 
     def __init__(self, repo: R) -> None:
