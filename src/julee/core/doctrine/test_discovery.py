@@ -76,8 +76,8 @@ class TestSourceReading:
         most that green means read.
 
         The files are the ones the class parser reads under each bounded
-        context: not tests, and not a package's ``__init__.py``. Doctrine
-        does not read those, so it does not ask them to parse.
+        context, which is every module but a test. Doctrine does not read
+        a test, so it does not ask one to parse.
         """
         unreadable = [
             found

@@ -154,11 +154,12 @@ def test_a_frozen_entity_named_like_a_test_is_not_objected_to(
     )
 
 
-@pytest.mark.parametrize("module", ["helpers.py", "_helpers.py"])
+@pytest.mark.parametrize("module", ["helpers.py", "_helpers.py", "__init__.py"])
 def test_a_helper_in_usecases_is_objected_to_whatever_its_module_is_called(
     tmp_path: Path, module: str
 ) -> None:
-    """An underscore on the file was a way round ADR 020."""
+    """An underscore on the file was a way round ADR 020, and so was the
+    package's own __init__.py."""
     root = tmp_path / "helper"
     context = a_solution(root)
     (context / "usecases" / module).write_text(A_HELPER)
@@ -171,22 +172,4 @@ def test_a_helper_in_usecases_is_objected_to_whatever_its_module_is_called(
     )
     assert "stories.StoryHelpers" in result.stdout, (
         "doctrine objected, but did not say which class:\n" + result.stdout
-    )
-
-
-def test_a_class_in_a_package_init_is_still_not_read(tmp_path: Path) -> None:
-    """The one exception ADR 021 leaves standing, written down as one.
-
-    A class here is held to no rule. If that changes, this test is the
-    place it shows, and the ADR is the place to say so.
-    """
-    root = tmp_path / "init"
-    context = a_solution(root)
-    (context / "usecases" / "__init__.py").write_text(A_HELPER)
-
-    result = run_doctrine(root, USE_CASE_TEST, NAMING_SELECTOR)
-
-    assert_doctrine_ran(result, EXPECTED_TESTS, NAMING_SELECTOR)
-    assert result.returncode == 0, (
-        "doctrine read a class out of a package's __init__.py:\n" + result.stdout
     )

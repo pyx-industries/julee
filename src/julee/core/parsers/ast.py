@@ -248,10 +248,6 @@ def is_test_file(py_file: Path) -> bool:
     return py_file.name.startswith("test_") or "/tests/" in str(py_file)
 
 
-PACKAGE_INIT = "__init__.py"
-"""The one module a scan reads no class out of (ADR 021)."""
-
-
 def _files_to_read(
     directory: Path,
     recursive: bool,
@@ -260,11 +256,11 @@ def _files_to_read(
 ) -> Iterator[Path]:
     """The Python files a scan of a directory reads.
 
-    Not a package's ``__init__.py``, not test files unless asked for,
-    and not the files the caller names. Every other module is read
-    whatever it is called. A module whose name begins with an underscore
-    was skipped until ADR 021, which made the underscore a way to keep a
-    class from every rule.
+    Not test files unless asked for, and not the files the caller
+    names. Every other module is read whatever it is called (ADR 021),
+    a package's ``__init__.py`` among them. A module whose name begins
+    with an underscore used to be skipped, which made the underscore a
+    way to keep a class from every rule.
     """
     if not directory.exists():
         return
@@ -272,8 +268,6 @@ def _files_to_read(
     exclude_files = exclude_files or []
     pattern = "**/*.py" if recursive else "*.py"
     for py_file in directory.glob(pattern):
-        if py_file.name == PACKAGE_INIT:
-            continue
         if exclude_tests and is_test_file(py_file):
             continue
         if py_file.name in exclude_files:
@@ -394,16 +388,14 @@ def _imported_class_names(directory: Path) -> set[str]:
 
     Scans import statements (not class definitions) so that re-exported
     Request/Response classes satisfy doctrine checks even when they are
-    defined outside the use_cases directory (e.g. in _generated/). The
-    modules are the ones a scan reads classes out of: every one but a
-    package's ``__init__.py``.
+    defined outside the use_cases directory (e.g. in _generated/). Every
+    module is read, whatever it is called, as a scan for classes reads
+    them.
     """
     if not directory.exists():
         return set()
     names: set[str] = set()
     for py_file in directory.glob("**/*.py"):
-        if py_file.name == PACKAGE_INIT:
-            continue
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except Exception:
