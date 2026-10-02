@@ -78,6 +78,12 @@ rather than by what it is called::
 
 Most bounded contexts use three of the six.
 
+A context that divides its domain by area may keep these directories
+inside each area instead, as ``domain/billing/repositories/``.
+Doctrine reads a port directory there exactly as it reads one directly
+under ``domain/``
+(:doc:`/ADRs/023-a-directory-under-domain-is-an-area`).
+
 A protocol found in one of these directories
 whose name claims none of the roles that directory offers
 fails doctrine rather than being quietly ignored.

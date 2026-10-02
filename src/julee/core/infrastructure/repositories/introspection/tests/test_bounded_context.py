@@ -203,6 +203,49 @@ class TestStructuralMarkers:
         assert m.has_domain_use_cases is False
         assert m.has_domain_repositories is False
 
+    async def test_an_area_holding_python_is_the_entity_layer(self, tmp_path):
+        """A context that keeps its entities by area has entities (ADR 023)."""
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        _make_bc(search, "ledger", layers=("domain/billing",))
+        contexts = await repo.list_all()
+        assert [context.slug for context in contexts] == ["ledger"]
+        m = contexts[0].markers
+        assert m.has_domain_models is True
+        assert m.has_domain_repositories is False
+        assert m.has_domain_services is False
+
+    async def test_a_kind_directory_in_an_area_is_that_layer(self, tmp_path):
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        _make_bc(
+            search,
+            "ledger",
+            layers=(
+                "domain/billing",
+                "domain/billing/repositories",
+                "domain/billing/services",
+            ),
+        )
+        contexts = await repo.list_all()
+        m = contexts[0].markers
+        assert m.has_domain_repositories is True
+        assert m.has_domain_services is True
+
+    async def test_a_module_directly_under_domain_is_no_layer(self, tmp_path):
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        _make_bc(search, "tools", layers=("domain",))
+        assert await repo.list_all() == []
+
+    async def test_an_area_holding_no_python_is_no_layer(self, tmp_path):
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        tools = _make_bc(search, "tools", layers=())
+        (tools / "domain" / "billing").mkdir(parents=True)
+        (tools / "domain" / "billing" / "notes.txt").write_text("nothing to read")
+        assert await repo.list_all() == []
+
 
 # =============================================================================
 # Nested solutions: a package that holds bounded contexts without being one
@@ -490,7 +533,7 @@ class TestWhyADirectoryIsPassedOver:
 
         assert (
             repo.why_passed_over(tools)
-            == "neither domain/models nor usecases holds Python"
+            == "no Python in domain/models, in an area under domain, or in usecases"
         )
 
     def test_a_package_that_holds_bounded_contexts(self, tmp_path: Path) -> None:

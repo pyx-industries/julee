@@ -20,6 +20,7 @@ from julee.core.doctrine.rules.port import (
 )
 from julee.core.doctrine_constants import (
     CALCULATORS_PATH,
+    DOMAIN_PATH,
     HANDLERS_PATH,
     ORACLES_PATH,
     REPOSITORIES_PATH,
@@ -27,6 +28,7 @@ from julee.core.doctrine_constants import (
     WITNESSES_PATH,
 )
 from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
+from julee.core.parsers.layout import layer_directories, python_files_in
 
 
 def _ports(contexts):
@@ -37,10 +39,13 @@ def _ports(contexts):
         if info is None:
             continue
         # Handlers are read from wherever they sit, so pair each with the
-        # directory it was actually found in: one in domain/services/ is a
-        # placement objection, not a naming one.
-        handlers_dir = Path(ctx.path) / "domain" / "handlers"
-        in_own_directory = {cls.name for cls in parse_python_classes(handlers_dir)}
+        # directory it was actually found in: one in a services/ directory
+        # is a placement objection, not a naming one.
+        in_own_directory = {
+            cls.name
+            for directory in layer_directories(Path(ctx.path), HANDLERS_PATH)
+            for cls in parse_python_classes(directory.path)
+        }
         found = {
             "services": list(info.service_protocols)
             + [h for h in info.handler_protocols if h.name not in in_own_directory],
@@ -196,9 +201,15 @@ class TestDrivenPortVisibility:
             }
             handlers = found["handlers"]
             for directory in ROLES_BY_DIRECTORY:
-                package = Path(ctx.path) / "domain" / directory
+                # The directory under domain/, and the one of the same
+                # name in each area (ADR 023).
                 modules = [
-                    path for path in package.glob("*.py") if path.name != "__init__.py"
+                    path
+                    for package in layer_directories(
+                        Path(ctx.path), (*DOMAIN_PATH, directory)
+                    )
+                    for path in python_files_in(package)
+                    if path.name != "__init__.py"
                 ]
                 if not modules:
                     continue
@@ -207,7 +218,7 @@ class TestDrivenPortVisibility:
                     read += len(handlers)
                 if read == 0:
                     objections.append(
-                        f"{ctx.slug}: domain/{directory}/ holds "
+                        f"{ctx.slug}: {directory}/ under domain/ holds "
                         f"{len(modules)} modules and doctrine read no "
                         f"protocol out of any of them"
                     )

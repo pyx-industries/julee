@@ -86,6 +86,36 @@ class TestClaimedAtItsLocation:
         assert state_of(census, "NotifyHandler") == CLAIMED_AT_ITS_LOCATION
         assert census.disagreements == ()
 
+    def test_a_member_read_in_an_area_is_found_under_domain(self) -> None:
+        """Its file is counted from domain/, since the area's name comes
+        before any kind's (ADR 023)."""
+        invoice = a_class("domain/billing/invoice.py", "Invoice")
+        repository = a_class("domain/billing/repositories/invoice.py", "Invoices")
+
+        census = joined(
+            [invoice, repository],
+            entities=[ClassInfo(name="Invoice", file="billing/invoice.py")],
+            repository_protocols=[
+                ClassInfo(name="Invoices", file="billing/repositories/invoice.py")
+            ],
+        )
+
+        assert {
+            m.declaration.name: (m.state, m.families) for m in census.memberships
+        } == {
+            "Invoice": (CLAIMED_AT_ITS_LOCATION, ("entities",)),
+            "Invoices": (CLAIMED_AT_ITS_LOCATION, ("repository_protocols",)),
+        }
+        assert census.disagreements == ()
+
+    def test_a_member_whose_file_is_nowhere_names_its_own_directory(self) -> None:
+        """The disagreement points at the family's directory, as before."""
+        census = joined([], entities=[ClassInfo(name="Invoice", file="invoice.py")])
+
+        assert census.disagreements == (
+            Disagreement("entities", "Invoice", f"{CONTEXT}/domain/models/invoice.py"),
+        )
+
     def test_a_name_declared_twice_in_the_file_is_claimed_twice(self) -> None:
         """Two branches of an if: the member is whichever Python picks."""
         census = joined(
@@ -178,6 +208,23 @@ class TestUnclaimed:
 
     def test_one_elsewhere_says_so(self) -> None:
         census = joined([a_class("infrastructure/memory.py", "MemoryStories")])
+
+        (membership,) = census.memberships
+        assert not membership.in_family_directory
+
+    def test_one_in_an_area_says_so(self) -> None:
+        """An area is read, so what it holds and no family claims was
+        looked at and passed over."""
+        census = joined([a_class("domain/billing/invoice.py", "Invoice")])
+
+        (membership,) = census.memberships
+        assert membership.state == UNCLAIMED
+        assert membership.in_family_directory
+
+    def test_one_directly_under_domain_is_elsewhere(self) -> None:
+        """A module domain/ holds itself is in no kind's directory and in
+        no area."""
+        census = joined([a_class("domain/errors.py", "NotFound")])
 
         (membership,) = census.memberships
         assert not membership.in_family_directory

@@ -26,6 +26,7 @@ from julee.core.values.census import (
     Census,
     ContextCensus,
     Exclusion,
+    Membership,
 )
 
 pytestmark = pytest.mark.unit
@@ -250,10 +251,12 @@ class TestAContextLaidOutAsPrescribed:
         assert all(found.disagreements == () for found in census.contexts)
 
 
-class TestAContextThatDepartsFromTheLayout:
-    def test_everything_is_located_and_every_class_in_usecases_is_claimed(
+class TestAContextWithAnArea:
+    def test_everything_is_located_and_what_a_family_reads_is_claimed(
         self, solution: Path
     ) -> None:
+        """The area's entity and repository are claimed where they sit
+        (ADR 023). The port outside domain/ is in no family."""
         assert rows(context(census_of(solution), "engagements")) == [
             (
                 "domain/engagement/engagement.py",
@@ -262,13 +265,19 @@ class TestAContextThatDepartsFromTheLayout:
                 "EngagementId",
                 UNCLAIMED,
             ),
-            ("domain/engagement/engagement.py", 10, "class", "Engagement", UNCLAIMED),
+            (
+                "domain/engagement/engagement.py",
+                10,
+                "class",
+                "Engagement",
+                CLAIMED_AT_ITS_LOCATION,
+            ),
             (
                 "domain/engagement/repositories/engagement.py",
                 6,
                 "class",
                 "EngagementRepository",
-                UNCLAIMED,
+                CLAIMED_AT_ITS_LOCATION,
             ),
             ("ports/clock.py", 6, "class", "ClockService", UNCLAIMED),
             (
@@ -308,21 +317,52 @@ class TestAContextThatDepartsFromTheLayout:
             ),
         ]
 
-    def test_the_empty_families_sit_beside_what_they_did_not_claim(
-        self, solution: Path
-    ) -> None:
-        """No entity and no port is in a family, and each is still reported."""
+    def test_a_class_read_in_an_area_says_which_area(self, solution: Path) -> None:
+        """Its file is counted from domain/, where the area's name begins."""
         info = parse_bounded_context(solution / ENGAGEMENTS)
         assert info is not None
-        assert info.entities == ()
-        assert info.repository_protocols == ()
 
-        unclaimed = {
-            m.declaration.name
+        assert [(found.name, found.file) for found in info.entities] == [
+            ("Engagement", "engagement/engagement.py")
+        ]
+        assert [(found.name, found.file) for found in info.repository_protocols] == [
+            ("EngagementRepository", "engagement/repositories/engagement.py")
+        ]
+
+    def test_each_claim_names_its_family(self, solution: Path) -> None:
+        families = {
+            m.declaration.name: m.families
             for m in context(census_of(solution), "engagements").memberships
-            if m.state == UNCLAIMED
+            if m.state == CLAIMED_AT_ITS_LOCATION and "domain/" in m.declaration.file
         }
-        assert {"Engagement", "EngagementRepository", "ClockService"} <= unclaimed
+
+        assert families == {
+            "Engagement": ("entities",),
+            "EngagementRepository": ("repository_protocols",),
+        }
+
+    def test_what_an_area_holds_besides_classes_is_passed_over_and_says_so(
+        self, solution: Path
+    ) -> None:
+        engagements = context(census_of(solution), "engagements")
+
+        assert {
+            m.declaration.name
+            for m in engagements.memberships
+            if m.state == UNCLAIMED and m.in_family_directory
+        } == {"EngagementId"}
+
+    def test_a_port_outside_domain_is_in_no_family(self, solution: Path) -> None:
+        engagements = context(census_of(solution), "engagements")
+        (clock,) = [
+            m for m in engagements.memberships if m.declaration.name == "ClockService"
+        ]
+
+        assert clock.state == UNCLAIMED
+        assert not clock.in_family_directory
+
+    def test_the_readers_agree(self, solution: Path) -> None:
+        assert context(census_of(solution), "engagements").disagreements == ()
 
 
 class TestSourceInNoBoundedContext:
@@ -352,7 +392,7 @@ class TestSourceInNoBoundedContext:
             ),
             (
                 "src/acme/tools",
-                "neither domain/models nor usecases holds Python",
+                "no Python in domain/models, in an area under domain, or in usecases",
                 [("src/acme/tools/helper.py", 4, "class", "Helper")],
             ),
         ]
@@ -500,20 +540,46 @@ class TestNothingIsImported:
 
 
 class TestAMove:
-    def test_an_entity_moved_out_of_its_directory_is_unclaimed_where_it_went(
+    @staticmethod
+    def story_moved_to(solution: Path, *directory: str) -> Membership:
+        """Move the Story entity's module and find it in the census again."""
+        destination = (solution / STORIES).joinpath(*directory)
+        destination.mkdir(parents=True, exist_ok=True)
+        (solution / STORIES / "domain" / "models" / "story.py").rename(
+            destination / "story.py"
+        )
+        stories = context(census_of(solution), "stories")
+        (story,) = [m for m in stories.memberships if m.declaration.name == "Story"]
+        return story
+
+    def test_an_entity_moved_out_of_domain_is_unclaimed_where_it_went(
         self, solution: Path
     ) -> None:
         """Gone from its family, and still on the page."""
-        models = solution / STORIES / "domain" / "models"
-        (solution / STORIES / "domain" / "things").mkdir()
-        (models / "story.py").rename(
-            solution / STORIES / "domain" / "things" / "story.py"
-        )
+        story = self.story_moved_to(solution, "things")
 
-        stories = context(census_of(solution), "stories")
-        (story,) = [m for m in stories.memberships if m.declaration.name == "Story"]
+        assert story.declaration.file == "src/acme/stories/things/story.py"
+        assert story.state == UNCLAIMED
+        assert not story.in_family_directory
+
+    def test_an_entity_moved_into_an_area_is_still_an_entity(
+        self, solution: Path
+    ) -> None:
+        """A directory under domain/ that is no kind's is an area (ADR 023)."""
+        story = self.story_moved_to(solution, "domain", "things")
 
         assert story.declaration.file == "src/acme/stories/domain/things/story.py"
+        assert story.state == CLAIMED_AT_ITS_LOCATION
+        assert story.families == ("entities",)
+
+    def test_an_entity_moved_directly_under_domain_is_unclaimed(
+        self, solution: Path
+    ) -> None:
+        """A module domain/ holds itself is in no kind's directory and in
+        no area, and nothing reads it."""
+        story = self.story_moved_to(solution, "domain")
+
+        assert story.declaration.file == "src/acme/stories/domain/story.py"
         assert story.state == UNCLAIMED
         assert not story.in_family_directory
 

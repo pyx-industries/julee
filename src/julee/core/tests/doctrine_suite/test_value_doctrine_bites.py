@@ -144,22 +144,3 @@ def test_an_oracle_may_not_name_an_entity(tmp_path: Path) -> None:
     assert "Story" in result.stdout, (
         "doctrine objected, but did not say which class:\n" + result.stdout
     )
-
-
-def test_the_values_directory_is_not_objected_to(tmp_path: Path) -> None:
-    """domain/values/ is a package doctrine reads, not an intruder.
-
-    READ_DOMAIN_PACKAGES is derived from the layer paths, so this holds
-    by construction — and would stop holding the moment someone spelled
-    the package name twice instead of deriving it.
-    """
-    result = run_doctrine(
-        a_solution_with(tmp_path / "package-is-known", "Score"),
-        "src/julee/core/doctrine/test_entity.py",
-        "package_under_domain",
-    )
-
-    assert result.returncode == 0, (
-        "doctrine objected to domain/values/ as a package it does not "
-        "read:\n" + result.stdout
-    )

@@ -3,10 +3,8 @@
 import pytest
 
 from julee.core.doctrine.rules.entity import (
-    READ_DOMAIN_PACKAGES,
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
-    domain_packages_doctrine_does_not_read,
     entities_that_can_be_mutated,
     fields_named_workflow_id,
     fields_using_mutable_collections,
@@ -390,95 +388,9 @@ def test_one_blind_context_does_not_hide_behind_a_sighted_one() -> None:
     assert "billing" in objections[0]
 
 
-# =============================================================================
-# The canary for partial blindness
-# =============================================================================
-
-
-@pytest.mark.parametrize(
-    "package",
-    [
-        "models",
-        "repositories",
-        "services",
-        "oracles",
-        "calculators",
-        "witnesses",
-        "handlers",
-    ],
-)
-def test_a_package_doctrine_reads_is_fine(package: str) -> None:
-    """Every package under domain/ that doctrine actually reads.
-
-    The last four are ADR 016's, and were missing when this canary was
-    written. ceap's first oracle was told domain/oracles/ "holds modules
-    doctrine does not read" while the parser was reading it perfectly
-    well — a false objection, which is worse than a missing rule,
-    because it tells an author their correct work is wrong.
-    """
-    assert domain_packages_doctrine_does_not_read([("hcd", package)]) == []
-
-
-def test_the_read_packages_track_the_layer_paths() -> None:
-    """The guard against this drifting again.
-
-    READ_DOMAIN_PACKAGES is derived from the layer path constants rather
-    than spelled out, so a port added to doctrine_constants is read here
-    without a second edit. Three of the seven were once spelled in by
-    hand, and the four added later were not.
-
-    Only the layers under domain/ are asked about. usecases/ and dtos/
-    are read too, and sit beside domain/ rather than in it.
-    """
-    from julee.core import doctrine_constants
-
-    declared = {
-        getattr(doctrine_constants, name)[-1]
-        for name in dir(doctrine_constants)
-        if name.endswith("_PATH") and getattr(doctrine_constants, name)[0] == "domain"
-    }
-
-    assert declared
-    assert declared <= READ_DOMAIN_PACKAGES
-
-
-def test_a_package_doctrine_reads_nothing_out_of_is_objected_to() -> None:
-    """trust-graph-explorer's case, which the other canary cannot catch.
-
-    Three entities in domain/models/ and Facility in domain/entities/.
-    The context yields entities, so it passes the rule above while half
-    its domain goes unchecked.
-    """
-    objections = domain_packages_doctrine_does_not_read([("app", "entities")])
-
-    assert len(objections) == 1
-    assert "domain/entities/" in objections[0]
-
-
-def test_a_context_may_be_partially_blind_and_still_yield_entities() -> None:
-    """The two canaries answer different questions.
-
-    Passing the first is not evidence for the second, which is the whole
-    reason there are two.
-    """
-    assert contexts_whose_entities_doctrine_cannot_see([a_context()]) == []
-    assert domain_packages_doctrine_does_not_read([("hcd", "entities")]) != []
-
-
-def test_every_unread_package_is_named_rather_than_just_the_first() -> None:
-    packages = [
-        ("app", "entities"),
-        ("app", "models"),
-        ("app", "value_objects"),
-    ]
-
-    assert len(domain_packages_doctrine_does_not_read(packages)) == 2
-
-
-def test_neither_canary_objects_to_an_empty_codebase() -> None:
+def test_the_canary_does_not_object_to_an_empty_codebase() -> None:
     """A rule that fires on nothing is a rule nobody can adopt."""
     assert contexts_whose_entities_doctrine_cannot_see([]) == []
-    assert domain_packages_doctrine_does_not_read([]) == []
 
 
 # =============================================================================

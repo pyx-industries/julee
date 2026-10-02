@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from julee.core.doctrine_constants import (
+    DOMAIN_PATH,
     ENTITIES_PATH,
     REPOSITORIES_PATH,
     RESERVED_WORDS,
@@ -17,6 +18,7 @@ from julee.core.doctrine_constants import (
     USE_CASES_PATH,
 )
 from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
+from julee.core.parsers.layout import layer_directories
 
 __all__ = ["FilesystemBoundedContextRepository"]
 
@@ -146,12 +148,31 @@ class FilesystemBoundedContextRepository:
         directory = path.joinpath(*parts)
         return directory.is_dir() and any(directory.glob("*.py"))
 
+    def _has_layer(self, path: Path, layer: tuple[str, ...]) -> bool:
+        """Whether path holds that layer under domain/, with Python in it.
+
+        A layer under ``domain/`` is read from its own directory and from
+        each area the context divides its domain into (ADR 023), so any
+        of those holding Python is the layer being there.
+
+        Args:
+            path: The candidate bounded context
+            layer: Path segments of the layer, e.g. ("domain", "models")
+
+        Returns:
+            True if a directory the layer is read from holds a .py file
+        """
+        return any(
+            self._has_subdir(directory.path, ())
+            for directory in layer_directories(path, layer)
+        )
+
     def _detect_markers(self, path: Path) -> StructuralMarkers:
         """Detect structural markers in a directory."""
         return StructuralMarkers(
-            has_domain_models=self._has_subdir(path, ENTITIES_PATH),
-            has_domain_repositories=self._has_subdir(path, REPOSITORIES_PATH),
-            has_domain_services=self._has_subdir(path, SERVICES_PATH),
+            has_domain_models=self._has_layer(path, ENTITIES_PATH),
+            has_domain_repositories=self._has_layer(path, REPOSITORIES_PATH),
+            has_domain_services=self._has_layer(path, SERVICES_PATH),
             has_domain_use_cases=self._has_subdir(path, USE_CASES_PATH),
             has_tests=self._has_subdir(path, ("tests",)),
             has_parsers=self._has_subdir(path, ("parsers",)),
@@ -317,8 +338,8 @@ class FilesystemBoundedContextRepository:
         if is_reserved:
             return "a reserved name"
         return (
-            f"neither {'/'.join(ENTITIES_PATH)} nor "
-            f"{'/'.join(USE_CASES_PATH)} holds Python"
+            f"no Python in {'/'.join(ENTITIES_PATH)}, in an area under "
+            f"{'/'.join(DOMAIN_PATH)}, or in {'/'.join(USE_CASES_PATH)}"
         )
 
     def describe(self, path: Path) -> BoundedContext | None:
