@@ -83,6 +83,11 @@ what a bounded context contains.
 - Names a use case module imports are collected from underscore modules
   too, so a use case there finds its request and response.
 
+- Runtime resolution reads package modules too. An entity or message
+  discovered in `__init__.py` receives the same type checks as one
+  declared in another file; finding it must not then make a valid
+  declaration fail because the resolver skipped its module.
+
 - `julee doctrine census` reports such a class as claimed by its
   family. It lists no class as unclaimed in a family directory any
   more; the functions and bindings it lists there are unchanged.

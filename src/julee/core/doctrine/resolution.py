@@ -106,11 +106,7 @@ def _files_under(directory: Path) -> list[Path]:
     """Every module in a layer directory, tests excluded."""
     if not directory.is_dir():
         return []
-    return sorted(
-        path
-        for path in directory.rglob("*.py")
-        if "tests" not in path.parts and path.name != "__init__.py"
-    )
+    return sorted(path for path in directory.rglob("*.py") if "tests" not in path.parts)
 
 
 def _import_layer(
