@@ -46,6 +46,8 @@ class Story:
 EXTRAS = '''"""Types a port should not be speaking."""
 
 from dataclasses import dataclass
+from typing import Any, NewType
+from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydantic_dataclass
@@ -83,6 +85,19 @@ class Score(int):
     """A value object built on int."""
 
     __slots__ = ()
+
+
+StoryId = NewType("StoryId", UUID)
+"""An identifier: a UUID to Python, a type of its own to a type checker."""
+
+DraftId = NewType("DraftId", StoryId)
+"""A NewType over a NewType."""
+
+WrappedModel = NewType("WrappedModel", AModel)
+"""A NewType over something a port may not name."""
+
+WrappedAny = NewType("WrappedAny", Any)  # type: ignore[valid-newtype]
+"""A NewType over Any, which Python allows and a type checker does not."""
 '''
 """Kept out of the port directory, where every class is read as a port."""
 
@@ -94,9 +109,13 @@ from acme.stories.domain.models.extras import (
     AModel,
     AMutableDataclass,
     APydanticDataclass,
+    DraftId,
     NotADataclass,
     Ref,
     Score,
+    StoryId,
+    WrappedAny,
+    WrappedModel,
 )
 from acme.stories.domain.models.story import Story
 
@@ -114,6 +133,12 @@ ALLOWED = (
     # any old text (julee#44).
     "async def named(self, ref: Ref) -> Ref: ...",
     "async def scored(self) -> Score: ...",
+    # A NewType is judged by what it wraps. An identifier declared as
+    # NewType("StoryId", UUID) is a UUID, which a port may name, and
+    # says which UUID it is.
+    "async def by_id(self, story_id: StoryId) -> Story | None: ...",
+    "async def ids(self) -> tuple[StoryId, ...]: ...",
+    "async def draft(self, draft_id: DraftId) -> None: ...",
 )
 """Signatures a driven port may have."""
 
@@ -130,6 +155,10 @@ FORBIDDEN = {
         "async def a_mutable_dataclass(self) -> AMutableDataclass: ..."
     ),
     "a_plain_class": "async def a_plain_class(self) -> NotADataclass: ...",
+    "a_newtype_over_a_model": (
+        "async def a_newtype_over_a_model(self) -> WrappedModel: ..."
+    ),
+    "a_newtype_over_any": "async def a_newtype_over_any(self) -> WrappedAny: ...",
     "unannotated_parameter": "async def unannotated_parameter(self, value) -> None: ...",
     "undeclared_return": "async def undeclared_return(self, slug: str): ...",
 }

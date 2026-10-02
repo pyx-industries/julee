@@ -108,6 +108,22 @@ What They Deal In
 Repository, service and handler protocols are typed such that
 they only deal in :doc:`entities` and simple primitives.
 
+A primitive may go by a name of the domain's own,
+and a port that names it says more than one naming ``str`` or ``UUID``.
+There are two ways to give it one.
+A class built on ``str`` or ``int`` is a value object, and may carry its own checks.
+A ``NewType`` costs nothing when the program runs
+and is a type of its own to a type checker::
+
+    StoryId = NewType("StoryId", UUID)
+
+    class StoryRepository(Protocol):
+        async def get(self, story_id: StoryId) -> Story | None: ...
+
+Doctrine judges a ``NewType`` by the type it wraps.
+One over a primitive may cross a port;
+one over ``Any`` or a pydantic model may not.
+
 Oracles and witnesses are not, and this is the point of them.
 An oracle returns whatever the remote system says, in that system's currency;
 a witness returns what the runtime recorded.
