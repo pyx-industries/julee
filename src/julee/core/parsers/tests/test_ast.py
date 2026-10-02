@@ -1285,3 +1285,63 @@ class TestTheUseCaseFamily:
         _write(context / "usecases" / "__init__.py", "class InInit:\n    pass\n")
 
         assert self._use_cases(context) == ["PlanStoryUseCase", "Private", "TestDouble"]
+
+
+# =============================================================================
+# Loading a file once
+# =============================================================================
+
+
+class TestAFileIsLoadedOnce:
+    """Doctrine scans the same directories many times in one run."""
+
+    def test_an_unchanged_file_is_not_loaded_again(self, tmp_path, monkeypatch):
+        import griffe
+
+        _write(tmp_path / "story.py", "class Story:\n    pass\n")
+        loads = []
+        load = griffe.load
+
+        def counting(name, **keywords):
+            loads.append(name)
+            return load(name, **keywords)
+
+        monkeypatch.setattr(griffe, "load", counting)
+
+        first = parse_python_classes(tmp_path)
+        second = parse_python_classes(tmp_path)
+
+        assert [c.name for c in first] == [c.name for c in second] == ["Story"]
+        assert loads == ["story"]
+
+    def test_a_changed_file_is_loaded_again(self, tmp_path):
+        """Or a scan would go on reporting what the file used to hold."""
+        _write(tmp_path / "story.py", "class Story:\n    pass\n")
+        assert [c.name for c in parse_python_classes(tmp_path)] == ["Story"]
+
+        _write(
+            tmp_path / "story.py", "class Story:\n    pass\n\n\nclass Tale:\n    pass\n"
+        )
+
+        assert [c.name for c in parse_python_classes(tmp_path)] == ["Story", "Tale"]
+
+    def test_a_file_that_would_not_load_is_asked_again_once_it_changes(self, tmp_path):
+        _write(tmp_path / "story.py", "class Story(\n")
+        assert [f.file for f in unreadable_python_files(tmp_path)] == ["story.py"]
+
+        _write(tmp_path / "story.py", "class Story:\n    pass\n")
+
+        assert unreadable_python_files(tmp_path) == []
+        assert [c.name for c in parse_python_classes(tmp_path)] == ["Story"]
+
+    def test_a_package_init_is_read_without_the_rest_of_its_package(self, tmp_path):
+        """Griffe reads an __init__.py as the package and would load every
+        module under it. The docstring is the file's own, whatever state
+        the modules beside it are in."""
+        _write(tmp_path / "__init__.py", '"""A package."""\n')
+        _write(tmp_path / "broken.py", "class Broken(\n")
+
+        assert parse_module_docstring(tmp_path / "__init__.py") == (
+            "A package.",
+            "A package.",
+        )
