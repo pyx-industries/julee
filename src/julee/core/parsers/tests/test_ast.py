@@ -228,14 +228,33 @@ class Visible:
         names = [c.name for c in classes]
         assert names == ["Internal", "Visible"]
 
-    def test_reads_no_class_out_of_a_package_init(self, tmp_path):
-        """The one module left out, and left out by its whole name."""
+    def test_reads_a_class_out_of_a_package_init(self, tmp_path):
+        """No module is left out for what it is called (ADR 021)."""
         _write(tmp_path / "__init__.py", "class InThePackage:\n    pass\n")
         _write(tmp_path / "__main__.py", "class Runner:\n    pass\n")
 
         names = [c.name for c in parse_python_classes(tmp_path)]
 
-        assert names == ["Runner"]
+        assert names == ["InThePackage", "Runner"]
+
+    def test_a_class_a_package_init_imports_is_not_read_twice(self, tmp_path):
+        """A re-export is an import. The class is declared where it is
+        written, and read there once."""
+        _write(tmp_path / "story.py", "class Story:\n    pass\n")
+        _write(tmp_path / "__init__.py", "from .story import Story\n")
+
+        classes = parse_python_classes(tmp_path)
+
+        assert [(c.name, c.file) for c in classes] == [("Story", "story.py")]
+
+    def test_a_broken_module_is_not_reported_against_its_package_init(self, tmp_path):
+        """Each file is loaded alone, so each answers for itself."""
+        _write(tmp_path / "__init__.py", '"""A package."""\n')
+        _write(tmp_path / "broken.py", "class Broken(\n")
+
+        found = unreadable_python_files(tmp_path)
+
+        assert [f.file for f in found] == ["broken.py"]
 
     def test_skips_test_files_by_default(self, tmp_path):
         _write(
@@ -608,10 +627,10 @@ from other import SomeUseCase
         names = _imported_class_names(tmp_path)
         assert "GeneratedRequest" in names
 
-    def test_skips_a_package_init(self, tmp_path):
-        _write(tmp_path / "__init__.py", "from module import HiddenRequest\n")
+    def test_reads_a_package_init(self, tmp_path):
+        _write(tmp_path / "__init__.py", "from module import PackageRequest\n")
         names = _imported_class_names(tmp_path)
-        assert "HiddenRequest" not in names
+        assert "PackageRequest" in names
 
     def test_scans_multiple_files(self, tmp_path):
         """Ensures continue (not break) when iterating files."""
@@ -1132,11 +1151,12 @@ class TestUnreadablePythonFiles:
 
         assert found.file == "_private.py"
 
-    def test_a_broken_package_init_is_not_reported(self, tmp_path):
-        """parse_python_classes does not read it, so it was not skipped."""
+    def test_a_broken_package_init_is_reported(self, tmp_path):
         _write(tmp_path / "__init__.py", "class Broken(\n")
 
-        assert unreadable_python_files(tmp_path) == []
+        (found,) = unreadable_python_files(tmp_path)
+
+        assert found.file == "__init__.py"
 
     def test_a_broken_test_file_is_not_reported(self, tmp_path):
         _write(tmp_path / "test_thing.py", "class Broken(\n")
@@ -1275,8 +1295,8 @@ class TestTheUseCaseFamily:
         assert self._use_cases(context) == ["PlanStoryUseCase"]
 
     def test_no_name_keeps_a_class_out(self, tmp_path):
-        """Not a name beginning Test, and not an underscore on the module
-        (ADR 021). Only a package's __init__.py is not read."""
+        """Not a name beginning Test, not an underscore on the module, and
+        not a package's __init__.py (ADR 021)."""
         context = self._context(
             tmp_path,
             "class TestDouble:\n    pass\n\n\nclass PlanStoryUseCase:\n    pass\n",
@@ -1284,7 +1304,12 @@ class TestTheUseCaseFamily:
         _write(context / "usecases" / "_private.py", "class Private:\n    pass\n")
         _write(context / "usecases" / "__init__.py", "class InInit:\n    pass\n")
 
-        assert self._use_cases(context) == ["PlanStoryUseCase", "Private", "TestDouble"]
+        assert self._use_cases(context) == [
+            "InInit",
+            "PlanStoryUseCase",
+            "Private",
+            "TestDouble",
+        ]
 
 
 # =============================================================================

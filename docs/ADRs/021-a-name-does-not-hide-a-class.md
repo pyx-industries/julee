@@ -51,11 +51,17 @@ its name.
 
 - The class parser no longer drops a class whose name begins `Test`.
 - It no longer skips a module whose name begins with an underscore.
+- That includes a package's `__init__.py`.
 
-One module is still not read for classes: a package's `__init__.py`.
-It is left out by its whole name rather than by a prefix, and it is the
-exception this ADR leaves standing. ADR 019 has it importing nothing it
-does not use, and a class declared in one is not read.
+This ADR first left `__init__.py` unread, as an exception made by its
+whole name rather than by a prefix. It was still a name deciding what
+doctrine reads, and a helper class in `usecases/__init__.py` passed for
+the reason one in `usecases/_helpers.py` had. No `__init__.py` in julee
+or the kits declares a class, so the exception protected nothing, and
+it is removed.
+
+A class a package's `__init__.py` imports is not declared there, and is
+read once, where it is written.
 
 A private module is still private to whoever imports it. That is a
 convention between modules, and doctrine is not one of them: it reads
@@ -71,24 +77,21 @@ what a bounded context contains.
   is a use case; in `domain/models/` it is an entity.
 
 - The rule that every file doctrine reads must be readable follows the
-  parser, so it now asks an underscore module to parse and still does
-  not ask a package's `__init__.py`.
+  parser, so it now asks an underscore module to parse, and a package's
+  `__init__.py`.
 
 - Names a use case module imports are collected from underscore modules
   too, so a use case there finds its request and response.
 
 - `julee doctrine census` reports such a class as claimed by its
-  family. A class it lists as unclaimed in a family directory can now
-  only be one in a package's `__init__.py`; the functions and bindings
-  it lists there are unchanged.
+  family. It lists no class as unclaimed in a family directory any
+  more; the functions and bindings it lists there are unchanged.
 
 - A solution that kept classes in underscore modules, or named a domain
   class `Test*`, sees each one checked the first time it runs this, and
   an objection for each that does not comply.
 
 ### What this does not reach
-
-A class declared in a package's `__init__.py` is still not read.
 
 Pipeline discovery, which is a separate reader, still skips an
 underscore module directly under `apps/worker/` when it has no
@@ -99,5 +102,5 @@ underscore module directly under `apps/worker/` when it has no
 - **ADR 002** is applied: these were the last two names the class
   parser used to decide what to read.
 - **ADR 020** named both filters and left them for this decision.
-- **ADR 019** is why an `__init__.py` is expected to hold little, and is
-  not a reason it could not hold a class.
+- **ADR 019** has an `__init__.py` importing nothing it does not use.
+  This says that what one declares is read like anything else.
