@@ -40,6 +40,15 @@ def _load_file(py_file: Path) -> tuple[griffe.Module | None, str | None]:
     through here, so the two are decided in one place and cannot
     disagree.
 
+    One file is loaded and no other. Griffe reads a package's
+    ``__init__.py`` as the package, and would load every module under it
+    unless told not to: the whole tree again for each ``__init__.py``,
+    with every class it re-exports resolved and offered as its own.
+
+    A file is loaded once for as long as it is unchanged. Doctrine scans
+    the same directories many times in one run, and each scan would
+    otherwise parse every file again.
+
     Args:
         py_file: The Python file to load
 
@@ -47,10 +56,25 @@ def _load_file(py_file: Path) -> tuple[griffe.Module | None, str | None]:
         The module and None, or None and the problem
     """
     try:
+        stat = py_file.stat()
+    except OSError:
+        # Let the loader say what is wrong with it, in its own words.
+        return _load_file_as_it_is(str(py_file), 0, 0)
+    return _load_file_as_it_is(str(py_file), stat.st_mtime_ns, stat.st_size)
+
+
+@functools.lru_cache(maxsize=4096)
+def _load_file_as_it_is(
+    path: str, modified: int, size: int
+) -> tuple[griffe.Module | None, str | None]:
+    """Load a file, remembered for as long as it has this time and size."""
+    py_file = Path(path)
+    try:
         loaded = griffe.load(
             py_file.stem,
             search_paths=[str(py_file.parent)],
             allow_inspection=False,
+            submodules=False,
         )
     except Exception as e:
         return None, str(e)
@@ -199,7 +223,13 @@ def _classes_from_file(py_file: Path, relative_to: Path) -> list["ClassInfo"]:
     if module is None:
         return []
 
-    return [_griffe_class_to_classinfo(cls, rel) for cls in module.classes.values()]
+    # Only what the file declares. A name it imports is an alias to a
+    # class written somewhere else, and is read there.
+    return [
+        _griffe_class_to_classinfo(member, rel)
+        for member in module.members.values()
+        if isinstance(member, griffe.Class)
+    ]
 
 
 def is_test_file(py_file: Path) -> bool:
