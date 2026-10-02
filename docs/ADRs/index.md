@@ -31,6 +31,7 @@ An ADR is a document that captures an important architectural decision made alon
 019-an-init-imports-nothing-it-does-not-use
 020-a-class-in-usecases-is-a-use-case
 021-a-name-does-not-hide-a-class
+022-a-class-in-dtos-is-a-message
 ```
 
 ## ADR Index
@@ -58,3 +59,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [019](019-an-init-imports-nothing-it-does-not-use.md) | An `__init__.py` Imports Nothing It Does Not Use | Accepted | 2026-09-30 |
 | [020](020-a-class-in-usecases-is-a-use-case.md) | A Class in `usecases/` Is a Use Case | Draft | 2026-10-02 |
 | [021](021-a-name-does-not-hide-a-class.md) | A Name Does Not Hide a Class from Doctrine | Draft | 2026-10-02 |
+| [022](022-a-class-in-dtos-is-a-message.md) | A Class in `dtos/` Is a Message | Draft | 2026-10-02 |
