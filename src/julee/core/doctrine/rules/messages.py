@@ -1,9 +1,33 @@
-"""Objections to request and response names with several declarations."""
+"""Objections about messages: what dtos/ holds, and what a message is called."""
 
 from collections.abc import Iterable
 
+from julee.core.doctrine.resolution import Verdict
 from julee.core.parsers.declarations import CLASS
 from julee.core.values.census import ContextCensus
+
+
+def classes_in_dtos_that_are_not_messages(verdicts: Iterable[Verdict]) -> list[str]:
+    """Classes in dtos/ that are neither a pydantic model nor an enum.
+
+    dtos/ is the one place in a bounded context where pydantic lives
+    (ADR 001), and every class there is found by the directory (ADR 022).
+    The verdicts come from
+    :func:`julee.core.doctrine.resolution.message_verdicts`, which
+    imports each class rather than reading its bases.
+
+    Args:
+        verdicts: One per class declared in dtos/, from message_verdicts
+
+    Returns:
+        One sentence per class that does not belong there
+    """
+    return [
+        f"{verdict.bounded_context}.{verdict.name}: a class in dtos/ is a "
+        f"pydantic model, or an enum one of them uses, but {verdict.reason}"
+        for verdict in verdicts
+        if verdict.reason is not None
+    ]
 
 
 def ambiguous_message_names(contexts: Iterable[ContextCensus]) -> list[str]:

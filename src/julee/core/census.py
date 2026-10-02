@@ -40,6 +40,7 @@ FAMILY_DIRECTORIES: Mapping[str, tuple[tuple[str, ...], ...]] = {
     "use_cases": (paths.USE_CASES_PATH,),
     "requests": (paths.USE_CASES_PATH,),
     "responses": (paths.USE_CASES_PATH,),
+    "dtos": (paths.DTOS_PATH,),
     "repository_protocols": (paths.REPOSITORIES_PATH,),
     "service_protocols": (paths.SERVICES_PATH,),
     "handler_protocols": (paths.HANDLERS_PATH, paths.SERVICES_PATH),

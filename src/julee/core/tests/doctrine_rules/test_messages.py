@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from julee.core.doctrine.rules.messages import ambiguous_message_names
+from julee.core.doctrine.resolution import Verdict
+from julee.core.doctrine.rules.messages import (
+    ambiguous_message_names,
+    classes_in_dtos_that_are_not_messages,
+)
 from julee.core.infrastructure.repositories.introspection.bounded_context import (
     FilesystemBoundedContextRepository,
 )
@@ -126,3 +130,43 @@ def test_duplicates_not_in_message_families_are_outside_this_rule(
         },
     )
     assert objections(tmp_path) == []
+
+
+class TestClassesInDtosThatAreNotMessages:
+    """A class in dtos/ is a pydantic model, or an enum one of them uses."""
+
+    def test_a_class_with_nothing_against_it_is_allowed(self) -> None:
+        verdicts = [Verdict("stories", "StoryMessage", None)]
+
+        assert classes_in_dtos_that_are_not_messages(verdicts) == []
+
+    def test_a_class_with_a_reason_is_reported(self) -> None:
+        verdicts = [Verdict("stories", "StoryMessage", "it is not a BaseModel")]
+
+        assert classes_in_dtos_that_are_not_messages(verdicts)
+
+    def test_the_objection_names_the_context_the_class_and_the_reason(self) -> None:
+        (objection,) = classes_in_dtos_that_are_not_messages(
+            [Verdict("stories", "StoryMessage", "it is not a BaseModel")]
+        )
+
+        assert objection.startswith("stories.StoryMessage: ")
+        assert "it is not a BaseModel" in objection
+
+    def test_the_objection_says_what_dtos_is_for(self) -> None:
+        """So the author knows whether to change the class or move it."""
+        (objection,) = classes_in_dtos_that_are_not_messages(
+            [Verdict("stories", "StoryMessage", "it is not a BaseModel")]
+        )
+
+        assert "pydantic model" in objection
+        assert "enum" in objection
+
+    def test_only_the_offenders_are_reported(self) -> None:
+        verdicts = [
+            Verdict("stories", "PlanStoryRequest", None),
+            Verdict("stories", "StoryMessage", "it is not a BaseModel"),
+            Verdict("stories", "StoryState", None),
+        ]
+
+        assert len(classes_in_dtos_that_are_not_messages(verdicts)) == 1

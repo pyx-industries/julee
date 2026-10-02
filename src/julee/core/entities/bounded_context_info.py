@@ -19,6 +19,7 @@ class BoundedContextInfo:
     Represents the Clean Architecture layers present in a bounded context:
     - entities (domain/models/)
     - use_cases (usecases/)
+    - dtos (dtos/)
     - repository_protocols (domain/repositories/)
     - service_protocols and handler_protocols (domain/services/)
     - oracle_protocols (domain/oracles/)
@@ -52,6 +53,13 @@ class BoundedContextInfo:
     """
     requests: tuple[ClassInfo, ...] = ()
     responses: tuple[ClassInfo, ...] = ()
+    dtos: tuple[ClassInfo, ...] = ()
+    """Every class in dtos/.
+
+    Found by the directory (ADR 022). A request or a response a use case
+    imports from there is in this family as the class it is, and in
+    ``requests`` or ``responses`` as the name the use case knows it by.
+    """
     repository_protocols: tuple[ClassInfo, ...] = ()
     service_protocols: tuple[ClassInfo, ...] = ()
     handler_protocols: tuple[ClassInfo, ...] = ()

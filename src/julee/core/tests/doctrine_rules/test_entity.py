@@ -426,16 +426,20 @@ def test_the_read_packages_track_the_layer_paths() -> None:
     than spelled out, so a port added to doctrine_constants is read here
     without a second edit. Three of the seven were once spelled in by
     hand, and the four added later were not.
+
+    Only the layers under domain/ are asked about. usecases/ and dtos/
+    are read too, and sit beside domain/ rather than in it.
     """
     from julee.core import doctrine_constants
 
     declared = {
         getattr(doctrine_constants, name)[-1]
         for name in dir(doctrine_constants)
-        if name.endswith("_PATH") and name != "INFRASTRUCTURE_PATH"
+        if name.endswith("_PATH") and getattr(doctrine_constants, name)[0] == "domain"
     }
 
-    assert declared - {"usecases"} <= READ_DOMAIN_PACKAGES
+    assert declared
+    assert declared <= READ_DOMAIN_PACKAGES
 
 
 def test_a_package_doctrine_reads_nothing_out_of_is_objected_to() -> None:

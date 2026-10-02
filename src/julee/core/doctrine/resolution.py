@@ -27,7 +27,7 @@ from types import ModuleType
 from pydantic import BaseModel
 from pydantic.dataclasses import is_pydantic_dataclass
 
-from julee.core.doctrine_constants import ENTITIES_PATH, USE_CASES_PATH
+from julee.core.doctrine_constants import DTOS_PATH, ENTITIES_PATH, USE_CASES_PATH
 
 __all__ = [
     "PRIMITIVES",
@@ -37,6 +37,7 @@ __all__ = [
     "Verdict",
     "dto_verdicts",
     "entity_verdicts",
+    "message_verdicts",
     "module_name_for",
     "port_verdicts",
 ]
@@ -374,6 +375,69 @@ def _verdicts(
             )
         else:
             verdicts.append(Verdict(slug, name, judge(found)))
+
+    return verdicts
+
+
+def _not_a_message(obj: object) -> str | None:
+    """Why a class in dtos/ does not belong there, or None if it does.
+
+    dtos/ holds the messages at the driving port, which are pydantic
+    models, and the enums those models use for their fields. An enum is
+    a closed set of values with an obvious serialised form, and one that
+    exists only to type a field of a message has nowhere better to be.
+
+    Args:
+        obj: A class declared in a dtos/ module
+
+    Returns:
+        A clause for the objection, or None
+    """
+    if isinstance(obj, type) and issubclass(obj, enum.Enum):
+        return None
+    return _not_a_dto(obj)
+
+
+def message_verdicts(
+    slug: str, context_path: Path, declared: list[tuple[str, str]]
+) -> list[Verdict]:
+    """Judge every class a context declares in dtos/.
+
+    A class is looked for in the module the parser read it out of, not
+    in any module that happens to have the name, so two classes of one
+    name are each judged.
+
+    A file that would not import has a verdict of its own, and its
+    classes get no second one: there is nothing more to say about them.
+
+    Args:
+        slug: The bounded context slug
+        context_path: Path to the bounded context
+        declared: File, relative to dtos/, and name of each class the
+            parser found there
+
+    Returns:
+        One verdict per class, plus one per file that would not import
+    """
+    modules, verdicts = _import_layer(slug, context_path, DTOS_PATH)
+    by_file = {
+        Path(module.__file__).resolve(): module
+        for module in modules
+        if module.__file__ is not None
+    }
+    directory = context_path.joinpath(*DTOS_PATH)
+
+    for file, name in declared:
+        module = by_file.get((directory / file).resolve())
+        if module is None:
+            continue
+        found = getattr(module, name, None)
+        if found is None:
+            verdicts.append(
+                Verdict(slug, name, "doctrine could not resolve it to a class")
+            )
+        else:
+            verdicts.append(Verdict(slug, name, _not_a_message(found)))
 
     return verdicts
 
