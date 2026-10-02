@@ -420,6 +420,7 @@ def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
 def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo | None":
     from julee.core.doctrine_constants import (
         CALCULATORS_PATH,
+        DTOS_PATH,
         ENTITIES_PATH,
         HANDLER_SUFFIX,
         HANDLERS_PATH,
@@ -441,6 +442,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
     domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
     domain_values_dir = _resolve_layer_path(context_dir, VALUES_PATH)
+    dtos_dir = _resolve_layer_path(context_dir, DTOS_PATH)
     domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
     domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
     domain_handlers_dir = _resolve_layer_path(context_dir, HANDLERS_PATH)
@@ -498,6 +500,10 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         slug=context_dir.name,
         entities=tuple(parse_python_classes(domain_models_dir)),
         values=tuple(parse_python_classes(domain_values_dir)),
+        # Every class in dtos/, found by the directory (ADR 022). Until
+        # that, a class here was read only if a use case imported it by a
+        # name ending in Request or Response.
+        dtos=tuple(parse_python_classes(dtos_dir)),
         use_cases=tuple(use_cases),
         requests=tuple(requests),
         responses=tuple(responses),

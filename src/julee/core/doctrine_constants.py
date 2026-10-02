@@ -76,6 +76,7 @@ wrapped in an activity (ADR 016).
 ENTITIES_PATH: Final[tuple[str, ...]] = ("domain", "models")
 VALUES_PATH: Final[tuple[str, ...]] = ("domain", "values")
 USE_CASES_PATH: Final[tuple[str, ...]] = ("usecases",)
+DTOS_PATH: Final[tuple[str, ...]] = ("dtos",)
 REPOSITORIES_PATH: Final[tuple[str, ...]] = ("domain", "repositories")
 SERVICES_PATH: Final[tuple[str, ...]] = ("domain", "services")
 HANDLERS_PATH: Final[tuple[str, ...]] = ("domain", "handlers")

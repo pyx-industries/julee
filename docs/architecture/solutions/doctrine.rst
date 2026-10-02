@@ -135,7 +135,9 @@ A declaration is in one of four states:
 ``claimed by name``
     A family member carries only its name, and it is the one declaration
     of that name in the bounded context. A request or response a use
-    case file imports is known to the parser this way.
+    case file imports is known to the parser by name; one declared in
+    ``dtos/`` is claimed at its location there, so this state is left
+    for a message declared somewhere no family reads.
 
 ``candidate``
     A family member carries only its name, and the bounded context
