@@ -118,7 +118,8 @@ context: discovery, the dependency rules and every rule that speaks of
 
 A module directly under `domain/`, such as `domain/errors.py`. It is in
 no kind's directory and in no area, and no family reads it. The census
-lists what it declares as unclaimed.
+lists what it declares as unclaimed. ADR 024 has since read every such
+module, and made `errors` a kind.
 
 Which order a context should choose. An area above the kinds and an
 area below them are both read, and this ADR prefers neither.

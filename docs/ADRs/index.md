@@ -33,6 +33,7 @@ An ADR is a document that captures an important architectural decision made alon
 021-a-name-does-not-hide-a-class
 022-a-class-in-dtos-is-a-message
 023-a-directory-under-domain-is-an-area
+024-every-module-under-domain-is-read
 ```
 
 ## ADR Index
@@ -62,3 +63,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [021](021-a-name-does-not-hide-a-class.md) | A Name Does Not Hide a Class from Doctrine | Draft | 2026-10-02 |
 | [022](022-a-class-in-dtos-is-a-message.md) | A Class in `dtos/` Is a Message | Draft | 2026-10-02 |
 | [023](023-a-directory-under-domain-is-an-area.md) | A Directory Under `domain/` That Names No Kind Is an Area | Draft | 2026-10-02 |
+| [024](024-every-module-under-domain-is-read.md) | Every Module Under `domain/` Is Read | Draft | 2026-10-02 |
