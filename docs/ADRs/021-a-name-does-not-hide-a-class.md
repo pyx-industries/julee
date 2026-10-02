@@ -53,6 +53,11 @@ its name.
 - It no longer skips a module whose name begins with an underscore.
 - That includes a package's `__init__.py`.
 
+Imported-message discovery, runtime resolution and use-case file rules
+use the class parser's test-file definition too: a file named `test_*`
+or under a `tests/` directory. Test code must not introduce family
+members or doctrine objections after class discovery has excluded it.
+
 This ADR first left `__init__.py` unread, as an exception made by its
 whole name rather than by a prefix. It was still a name deciding what
 doctrine reads, and a helper class in `usecases/__init__.py` passed for

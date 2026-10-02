@@ -28,6 +28,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import is_pydantic_dataclass
 
 from julee.core.doctrine_constants import DTOS_PATH, ENTITIES_PATH, USE_CASES_PATH
+from julee.core.parsers.ast import is_test_file
 
 __all__ = [
     "PRIMITIVES",
@@ -107,7 +108,7 @@ def _files_under(directory: Path) -> list[Path]:
     """Every module in a layer directory, tests excluded."""
     if not directory.is_dir():
         return []
-    return sorted(path for path in directory.rglob("*.py") if "tests" not in path.parts)
+    return sorted(path for path in directory.rglob("*.py") if not is_test_file(path))
 
 
 def _import_layer(
