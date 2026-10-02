@@ -32,6 +32,7 @@ An ADR is a document that captures an important architectural decision made alon
 020-a-class-in-usecases-is-a-use-case
 021-a-name-does-not-hide-a-class
 022-a-class-in-dtos-is-a-message
+023-a-directory-under-domain-is-an-area
 ```
 
 ## ADR Index
@@ -60,3 +61,4 @@ An ADR is a document that captures an important architectural decision made alon
 | [020](020-a-class-in-usecases-is-a-use-case.md) | A Class in `usecases/` Is a Use Case | Draft | 2026-10-02 |
 | [021](021-a-name-does-not-hide-a-class.md) | A Name Does Not Hide a Class from Doctrine | Draft | 2026-10-02 |
 | [022](022-a-class-in-dtos-is-a-message.md) | A Class in `dtos/` Is a Message | Draft | 2026-10-02 |
+| [023](023-a-directory-under-domain-is-an-area.md) | A Directory Under `domain/` That Names No Kind Is an Area | Draft | 2026-10-02 |
