@@ -414,22 +414,17 @@ def _imported_class_names(directory: Path) -> set[str]:
 def _classes_of_layer(context_dir: Path, layer: tuple[str, ...]) -> list["ClassInfo"]:
     """Every class of one layer of a bounded context.
 
-    Read from the layer's own directory and, for a layer under
-    ``domain/``, from each area the context divides its domain into
-    (ADR 023). A class read in an area carries its path from
-    ``domain/``, which says which area that was.
+    Read from every module the layer has: those of its own directory
+    and, for a layer under ``domain/``, wherever else the kind's name
+    stands (ADR 023, ADR 024). A class read outside the layer's own
+    directory carries its path from ``domain/``, which says where that
+    was.
     """
-    from julee.core.parsers.layout import layer_directories
+    from julee.core.parsers.layout import layer_files
 
     classes = []
-    for found in layer_directories(context_dir, layer):
-        classes.extend(
-            parse_python_classes(
-                found.path,
-                recursive=found.with_subdirectories,
-                relative_to=found.files_relative_to,
-            )
-        )
+    for found in layer_files(context_dir, layer):
+        classes.extend(_classes_from_file(found.path, found.counted_from))
     return sorted(classes, key=lambda c: c.name)
 
 
@@ -439,6 +434,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         CALCULATORS_PATH,
         DTOS_PATH,
         ENTITIES_PATH,
+        ERRORS_PATH,
         HANDLER_SUFFIX,
         HANDLERS_PATH,
         ORACLES_PATH,
@@ -508,9 +504,9 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     return BoundedContextInfo(
         slug=context_dir.name,
-        # Under domain/ a layer is read from its own directory and from
-        # each area as well, and a module an area holds directly is read
-        # as entities (ADR 023).
+        # Under domain/ a layer is read wherever its kind's name stands,
+        # and a module named for no kind is read as entities (ADR 023,
+        # ADR 024).
         entities=tuple(_classes_of_layer(context_dir, ENTITIES_PATH)),
         values=tuple(_classes_of_layer(context_dir, VALUES_PATH)),
         # Every class in dtos/, found by the directory (ADR 022). Until
@@ -529,6 +525,9 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
         oracle_protocols=tuple(_classes_of_layer(context_dir, ORACLES_PATH)),
         calculator_protocols=tuple(_classes_of_layer(context_dir, CALCULATORS_PATH)),
         witness_protocols=tuple(_classes_of_layer(context_dir, WITNESSES_PATH)),
+        # The exceptions the domain declares, found by where they sit
+        # like everything else here (ADR 024).
+        errors=tuple(_classes_of_layer(context_dir, ERRORS_PATH)),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,

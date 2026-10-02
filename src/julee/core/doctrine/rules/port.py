@@ -23,7 +23,7 @@ from julee.core.doctrine_constants import (
     SERVICE_SUFFIX,
     WITNESS_SUFFIX,
 )
-from julee.core.parsers.layout import kind_directory_of
+from julee.core.parsers.layout import kind_of
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
 from julee.core.values.code_info import ClassInfo
 
@@ -227,7 +227,8 @@ def port_implementations_outside_infrastructure(
     once is enough.
 
     A port directory inside an area is a port directory (ADR 023), so
-    ``domain/billing/oracles/`` is as good a place as ``domain/oracles/``.
+    ``domain/billing/oracles/`` is as good a place as ``domain/oracles/``,
+    and so is a module of the name, ``domain/oracles.py`` (ADR 024).
 
     Args:
         found: Classes of a bounded context, paired with its slug, each
@@ -254,7 +255,7 @@ def port_implementations_outside_infrastructure(
             continue
         if parts[0] == "infrastructure":
             continue
-        if kind_directory_of(parts) in ROLES_BY_DIRECTORY:
+        if kind_of(parts) in ROLES_BY_DIRECTORY:
             continue
         objections.append(
             f"{slug}.{cls.name}: a {role} found in {cls.file}. The protocol "

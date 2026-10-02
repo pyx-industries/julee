@@ -51,14 +51,15 @@ FAMILY_DIRECTORIES: Mapping[str, tuple[tuple[str, ...], ...]] = {
     "oracle_protocols": (paths.ORACLES_PATH, paths.DOMAIN_PATH),
     "calculator_protocols": (paths.CALCULATORS_PATH, paths.DOMAIN_PATH),
     "witness_protocols": (paths.WITNESSES_PATH, paths.DOMAIN_PATH),
+    "errors": (paths.ERRORS_PATH, paths.DOMAIN_PATH),
 }
 """Each family and the directories a member's file is counted from.
 
 The first is the family's own directory. Handlers have two because one
 still sitting in ``domain/services/`` is read as a handler while it
 waits to be moved. A family under ``domain/`` has ``domain/`` itself
-last, because a member read in an area carries its path from there
-(ADR 023).
+last, because a member read outside the family's own directory carries
+its path from there (ADR 023, ADR 024).
 
 This restates what the parser does, and the join is what checks it: a
 directory missing here leaves that family's members unfound, and every
@@ -164,9 +165,8 @@ def census_of_context(
     domain = "/".join((path, *paths.DOMAIN_PATH)) + "/"
 
     def in_family_directory(file: str) -> bool:
-        # A directory under domain/ is a kind's or an area, and both are
-        # read. A module directly under domain/ is in neither.
-        if file.startswith(domain) and "/" in file[len(domain) :]:
+        # Every module under domain/ is read by some family (ADR 024).
+        if file.startswith(domain):
             return True
         return any(file.startswith(directory) for directory in family_directories)
 

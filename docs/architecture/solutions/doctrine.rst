@@ -109,11 +109,12 @@ the rest — by the directory a class sits in and, for use cases, by its
 name. A rule that takes a family sees its members and nothing else, and
 a class in no family is not shown to it.
 
-Under ``domain/`` the directory may be one of the eight julee names —
-``models``, ``values``, ``repositories`` and the five other ports — or
-the same directory inside an *area*, which is any directory under
-``domain/`` with another name. A module an area holds directly is read
-as entities. :doc:`/contributing` sets the layout out in full.
+Under ``domain/`` a name says the family. A directory or a module named
+``models``, ``values``, ``errors``, ``repositories`` or one of the five
+other ports holds that kind, directly under ``domain/`` or inside an
+*area*, which is any directory there with another name. A module with
+any other name is read as entities. :doc:`/contributing` sets the layout
+out in full.
 
 ``verify`` does not say which classes are in no family. This does:
 
@@ -156,10 +157,7 @@ A declaration is in one of four states:
     In no family. Those in a directory the parser fills a family from
     are listed first: the parser looked there and passed over them. A
     function beside an entity in ``domain/models/`` is the usual one,
-    since no family holds a function. A class in a module directly
-    under ``domain/`` is unclaimed too, and is not among those listed
-    first: such a module is in no kind's directory and in no area, so
-    the parser did not look.
+    since no family holds a function.
 
 What it reads is every ``.py`` file under ``search_root`` except test
 files, anything under a directory whose name begins with a dot, and

@@ -120,11 +120,11 @@ class TestEntityVisibility:
         """A context with use cases or repositories MUST yield entities.
 
         The canary. Entities are read out of domain/models/ and out of
-        the areas a context divides its domain into (ADR 023), so a
-        context keeping them anywhere else yields none — and then every
-        entity rule passes having nothing to check, and every repository
-        in it is measured against an empty set of entity names. Silence
-        all the way down.
+        every module under domain/ named for no kind (ADR 023, ADR 024),
+        so a context keeping them anywhere else yields none — and then
+        every entity rule passes having nothing to check, and every
+        repository in it is measured against an empty set of entity
+        names. Silence all the way down.
 
         Use cases and repository protocols are the evidence that there is
         a domain here at all. A context with neither may legitimately have

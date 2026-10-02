@@ -194,11 +194,12 @@ def contexts_whose_entities_doctrine_cannot_see(
     how twenty service protocols went unseen in #175 and seven repository
     protocols in #231. Both looked green.
 
-    Entities are read out of ``domain/models/`` and out of the areas a
-    context divides its domain into (ADR 023). A context keeping them
-    somewhere else yields none, so every entity rule passes having
-    nothing to check, and every repository in it is measured against an
-    empty set of entity names. Nothing fails and nothing is reported.
+    Entities are read out of ``domain/models/`` and out of every module
+    under ``domain/`` that is named for no kind (ADR 023, ADR 024). A
+    context keeping them somewhere else yields none, so every entity
+    rule passes having nothing to check, and every repository in it is
+    measured against an empty set of entity names. Nothing fails and
+    nothing is reported.
 
     Use cases and repository protocols are the evidence that the context
     has a domain at all. One with neither may legitimately have no
@@ -231,8 +232,8 @@ def contexts_whose_entities_doctrine_cannot_see(
         objections.append(
             f"{info.slug}: doctrine read {' and '.join(evidence)} out of this "
             f"context but no domain class at all out of {_ENTITIES_DIR}/, "
-            f"{_VALUES_DIR}/ or an area under domain/, so either it has none "
-            f"or they are somewhere doctrine is not looking"
+            f"{_VALUES_DIR}/ or any other module under domain/, so either it "
+            f"has none or they are somewhere doctrine is not looking"
         )
     return objections
 

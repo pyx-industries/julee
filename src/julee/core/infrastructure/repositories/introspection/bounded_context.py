@@ -18,7 +18,7 @@ from julee.core.doctrine_constants import (
     USE_CASES_PATH,
 )
 from julee.core.entities.bounded_context import BoundedContext, StructuralMarkers
-from julee.core.parsers.layout import layer_directories
+from julee.core.parsers.layout import layer_files
 
 __all__ = ["FilesystemBoundedContextRepository"]
 
@@ -151,21 +151,19 @@ class FilesystemBoundedContextRepository:
     def _has_layer(self, path: Path, layer: tuple[str, ...]) -> bool:
         """Whether path holds that layer under domain/, with Python in it.
 
-        A layer under ``domain/`` is read from its own directory and from
-        each area the context divides its domain into (ADR 023), so any
-        of those holding Python is the layer being there.
+        A layer under ``domain/`` is read wherever its kind's name
+        stands, and entities from every other module there (ADR 023,
+        ADR 024). A module the layer would be read from is the layer
+        being there.
 
         Args:
             path: The candidate bounded context
             layer: Path segments of the layer, e.g. ("domain", "models")
 
         Returns:
-            True if a directory the layer is read from holds a .py file
+            True if the layer has a module to be read from
         """
-        return any(
-            self._has_subdir(directory.path, ())
-            for directory in layer_directories(path, layer)
-        )
+        return bool(layer_files(path, layer))
 
     def _detect_markers(self, path: Path) -> StructuralMarkers:
         """Detect structural markers in a directory."""
@@ -338,8 +336,8 @@ class FilesystemBoundedContextRepository:
         if is_reserved:
             return "a reserved name"
         return (
-            f"no Python in {'/'.join(ENTITIES_PATH)}, in an area under "
-            f"{'/'.join(DOMAIN_PATH)}, or in {'/'.join(USE_CASES_PATH)}"
+            f"no module under {'/'.join(DOMAIN_PATH)} is read as entities, "
+            f"and {'/'.join(USE_CASES_PATH)} holds no Python"
         )
 
     def describe(self, path: Path) -> BoundedContext | None:

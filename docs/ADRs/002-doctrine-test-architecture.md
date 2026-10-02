@@ -78,7 +78,7 @@ With "tests as doctrine":
 
 Julee implements Clean Architecture (entities, use cases, interface adapters, frameworks/drivers) with these additional constraints:
 
-1. **Directory structure is prescribed**: `domain/models/`, `usecases/` (ADR 014), and a directory per driven port — `domain/repositories/`, `domain/services/`, `domain/handlers/`, `domain/oracles/`, `domain/calculators/`, `domain/witnesses/` (ADR 016). A context creates a port directory when it has something to put in it. A context may divide its domain by area, and the same directories inside an area are read as these are (ADR 023)
+1. **Directory structure is prescribed**: `domain/models/`, `usecases/` (ADR 014), and a directory per driven port — `domain/repositories/`, `domain/services/`, `domain/handlers/`, `domain/oracles/`, `domain/calculators/`, `domain/witnesses/` (ADR 016). A context creates a port directory when it has something to put in it. A context may divide its domain by area, and the same directories inside an area are read as these are (ADR 023). A module of one of these names is read as the directory would be, `domain/errors/` holds the exceptions a domain declares, and any other module under `domain/` is read as entities (ADR 024)
 2. **Naming conventions are prescribed**: Bounded context names must not use reserved words
 3. **Dependency direction is enforced**: Domain has no dependencies on infrastructure
 4. **Interface segregation is enforced**: Protocols in domain/, implementations outside
