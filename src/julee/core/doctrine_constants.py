@@ -83,6 +83,7 @@ HANDLERS_PATH: Final[tuple[str, ...]] = ("domain", "handlers")
 ORACLES_PATH: Final[tuple[str, ...]] = ("domain", "oracles")
 CALCULATORS_PATH: Final[tuple[str, ...]] = ("domain", "calculators")
 WITNESSES_PATH: Final[tuple[str, ...]] = ("domain", "witnesses")
+ERRORS_PATH: Final[tuple[str, ...]] = ("domain", "errors")
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 
 DOMAIN_PATH: Final[tuple[str, ...]] = ("domain",)
@@ -97,18 +98,20 @@ DOMAIN_KIND_PATHS: Final[tuple[tuple[str, ...], ...]] = (
     ORACLES_PATH,
     CALCULATORS_PATH,
     WITNESSES_PATH,
+    ERRORS_PATH,
 )
 """Every layer path under ``domain/``, one for each kind of domain class."""
 
 DOMAIN_KIND_DIRECTORIES: Final[frozenset[str]] = frozenset(
     path[-1] for path in DOMAIN_KIND_PATHS
 )
-"""The directory names under ``domain/`` that say what kind of class they hold.
+"""The names under ``domain/`` that say what kind of class they hold.
 
-Any other directory under ``domain/`` is an area: a part of the business
-the context has chosen to keep together (ADR 023). Derived from the
-layer paths, so a kind doctrine learns to read is a kind by its name
-from then on.
+A directory or a module of one of these names holds that kind (ADR
+024). Any other directory under ``domain/`` is an area: a part of the
+business the context has chosen to keep together (ADR 023). Any other
+module is read as entities. Derived from the layer paths, so a kind
+doctrine learns to read is a kind by its name from then on.
 """
 
 # =============================================================================

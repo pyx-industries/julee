@@ -14,7 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from .harness import a_julee_solution, assert_doctrine_ran, run_doctrine
+from .harness import a_solution_holding as a_solution
+from .harness import assert_doctrine_ran, run_doctrine
 
 pytestmark = pytest.mark.unit
 
@@ -91,31 +92,6 @@ class PlanStoryUseCase:
 
     async def execute(self, request: object) -> object: ...
 '''
-
-
-def a_solution(root: Path, files: dict[str, str]) -> Path:
-    """Write a julee solution whose one bounded context holds these files.
-
-    Every directory written into is made a package, and the context has
-    a usecases/ package whatever else it holds.
-
-    Args:
-        root: The solution root to write into
-        files: Source by path, relative to the bounded context
-
-    Returns:
-        The root, ready to pass as JULEE_TARGET
-    """
-    context = a_julee_solution(root)
-    for file, source in {"usecases/__init__.py": "", **files}.items():
-        path = context / file
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(source)
-        for package in path.relative_to(context).parents:
-            init = context / package / "__init__.py"
-            if not init.exists():
-                init.write_text("")
-    return root
 
 
 class TestAnEntityInAnArea:

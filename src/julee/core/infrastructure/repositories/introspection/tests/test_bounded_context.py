@@ -232,10 +232,33 @@ class TestStructuralMarkers:
         assert m.has_domain_repositories is True
         assert m.has_domain_services is True
 
-    async def test_a_module_directly_under_domain_is_no_layer(self, tmp_path):
+    async def test_a_module_directly_under_domain_is_the_entity_layer(self, tmp_path):
+        """It is read as entities, so a package holding one has a domain
+        (ADR 024)."""
         repo = _make_repo(tmp_path)
         search = tmp_path / "src" / "app"
-        _make_bc(search, "tools", layers=("domain",))
+        _make_bc(search, "ledger", layers=("domain",))
+        contexts = await repo.list_all()
+        assert [context.slug for context in contexts] == ["ledger"]
+        assert contexts[0].markers.has_domain_models is True
+
+    async def test_a_module_named_for_a_kind_is_that_layer(self, tmp_path):
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        ledger = _make_bc(search, "ledger", layers=("usecases",))
+        (ledger / "domain").mkdir()
+        (ledger / "domain" / "repositories.py").write_text("")
+        m = (await repo.list_all())[0].markers
+        assert m.has_domain_repositories is True
+        assert m.has_domain_models is False
+
+    async def test_only_a_test_file_is_no_layer(self, tmp_path):
+        """Doctrine reads no test file, so one is not a layer being there."""
+        repo = _make_repo(tmp_path)
+        search = tmp_path / "src" / "app"
+        tools = _make_bc(search, "tools", layers=())
+        (tools / "domain" / "models").mkdir(parents=True)
+        (tools / "domain" / "models" / "test_invoice.py").write_text("")
         assert await repo.list_all() == []
 
     async def test_an_area_holding_no_python_is_no_layer(self, tmp_path):
@@ -533,7 +556,7 @@ class TestWhyADirectoryIsPassedOver:
 
         assert (
             repo.why_passed_over(tools)
-            == "no Python in domain/models, in an area under domain, or in usecases"
+            == "no module under domain is read as entities, and usecases holds no Python"
         )
 
     def test_a_package_that_holds_bounded_contexts(self, tmp_path: Path) -> None:

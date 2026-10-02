@@ -392,7 +392,7 @@ class TestSourceInNoBoundedContext:
             ),
             (
                 "src/acme/tools",
-                "no Python in domain/models, in an area under domain, or in usecases",
+                "no module under domain is read as entities, and usecases holds no Python",
                 [("src/acme/tools/helper.py", 4, "class", "Helper")],
             ),
         ]
@@ -572,16 +572,15 @@ class TestAMove:
         assert story.state == CLAIMED_AT_ITS_LOCATION
         assert story.families == ("entities",)
 
-    def test_an_entity_moved_directly_under_domain_is_unclaimed(
+    def test_an_entity_moved_directly_under_domain_is_still_an_entity(
         self, solution: Path
     ) -> None:
-        """A module domain/ holds itself is in no kind's directory and in
-        no area, and nothing reads it."""
+        """A module domain/ holds itself is read as entities (ADR 024)."""
         story = self.story_moved_to(solution, "domain")
 
         assert story.declaration.file == "src/acme/stories/domain/story.py"
-        assert story.state == UNCLAIMED
-        assert not story.in_family_directory
+        assert story.state == CLAIMED_AT_ITS_LOCATION
+        assert story.families == ("entities",)
 
 
 class TestTheSameSourceGivesTheSameCensus:

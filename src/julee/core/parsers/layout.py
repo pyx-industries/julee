@@ -1,9 +1,11 @@
 """Where under a bounded context each layer is read from.
 
-A layer has one directory by default: ``usecases/``, ``dtos/``,
-``domain/models/``. Under ``domain/`` a context may also divide its
-classes by area, the part of the business they belong to, and then a
-layer has a directory in each area as well (ADR 023).
+A layer outside ``domain/`` has one directory: ``usecases/``, ``dtos/``.
+A layer under ``domain/`` is a kind of class, and is read from wherever
+that kind's name stands: a directory or a module called ``models``,
+``repositories``, ``errors`` and so on, directly under ``domain/`` or
+in an area of it (ADR 023, ADR 024). Every other module under
+``domain/`` is read as entities.
 
 Everything that reads a layer asks here, so that the class parser, the
 resolver that imports what the parser found, and discovery agree on
@@ -11,7 +13,7 @@ where a layer is.
 """
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from julee.core.doctrine_constants import (
@@ -22,55 +24,80 @@ from julee.core.doctrine_constants import (
 from julee.core.parsers.ast import is_test_file
 
 __all__ = [
-    "LayerDirectory",
+    "LayerFile",
     "areas_of",
-    "kind_directory_of",
-    "layer_directories",
-    "python_files_in",
+    "kind_of",
+    "layer_files",
 ]
 
 
 @dataclass(frozen=True)
-class LayerDirectory:
-    """One directory a layer is read from."""
+class LayerFile:
+    """One module a layer is read from."""
 
     path: Path
-    files_relative_to: Path
-    """What the path of a file read here is counted from.
+    counted_from: Path
+    """What the path recorded for a class in this module is counted from.
 
-    The directory itself for a layer's own directory, as it has always
-    been. ``domain/`` for a directory in an area, so that a class says
+    The layer's own directory for a module inside it, as it has always
+    been. ``domain/`` for a module anywhere else, so that a class says
     which area it was read in.
     """
-    with_subdirectories: bool = True
-    """Whether what lies beneath the directory belongs to the layer too.
 
-    False for an area read as entities: the directories inside an area
-    are read by their own names.
-    """
+
+@dataclass
+class _Domain:
+    """What a walk of ``domain/`` found, each list sorted by path."""
+
+    areas: list[Path] = field(default_factory=list)
+    kinds: list[Path] = field(default_factory=list)
+    """Directories and modules named for a kind."""
+    modules: list[Path] = field(default_factory=list)
+    """Modules named for no kind, held by ``domain/`` or by an area."""
 
 
 def _is_read(directory: Path) -> bool:
     """Whether a directory under domain/ is one a layer could be read from."""
     name = directory.name
-    return directory.is_dir() and not name.startswith((".", "__")) and name != "tests"
+    return not name.startswith((".", "__")) and name != "tests"
 
 
-def _areas_and_kinds(directory: Path) -> tuple[list[Path], list[Path]]:
-    """The areas beneath a directory, and the kind directories inside them."""
-    areas: list[Path] = []
-    kinds: list[Path] = []
+def _walk(directory: Path, found: _Domain) -> None:
+    """Sort what ``domain/`` or an area holds, and what its areas hold.
+
+    What lies beneath a directory named for a kind belongs to the kind,
+    and is not looked at here.
+    """
     for child in sorted(directory.iterdir()):
-        if not _is_read(child):
-            continue
-        if child.name in DOMAIN_KIND_DIRECTORIES:
-            kinds.append(child)
-            continue
-        areas.append(child)
-        nested_areas, nested_kinds = _areas_and_kinds(child)
-        areas.extend(nested_areas)
-        kinds.extend(nested_kinds)
-    return areas, kinds
+        if child.is_dir():
+            if not _is_read(child):
+                continue
+            if child.name in DOMAIN_KIND_DIRECTORIES:
+                found.kinds.append(child)
+                continue
+            found.areas.append(child)
+            _walk(child, found)
+        elif child.suffix == ".py":
+            if child.stem in DOMAIN_KIND_DIRECTORIES:
+                found.kinds.append(child)
+            else:
+                found.modules.append(child)
+
+
+def _domain_of(context_dir: Path) -> tuple[Path, _Domain]:
+    """A bounded context's ``domain/`` and what a walk of it finds."""
+    domain = context_dir.joinpath(*DOMAIN_PATH)
+    found = _Domain()
+    if domain.is_dir():
+        _walk(domain, found)
+    return domain, found
+
+
+def _modules_in(directory: Path) -> list[Path]:
+    """Every module in a directory and beneath it, tests left out."""
+    if not directory.is_dir():
+        return []
+    return sorted(path for path in directory.rglob("*.py") if not is_test_file(path))
 
 
 def areas_of(context_dir: Path) -> list[Path]:
@@ -86,92 +113,70 @@ def areas_of(context_dir: Path) -> list[Path]:
     Returns:
         Each area's directory, sorted by path
     """
-    domain = context_dir.joinpath(*DOMAIN_PATH)
-    if not domain.is_dir():
-        return []
-    areas, _ = _areas_and_kinds(domain)
-    return areas
+    _, found = _domain_of(context_dir)
+    return found.areas
 
 
-def layer_directories(
-    context_dir: Path, layer: tuple[str, ...]
-) -> list[LayerDirectory]:
-    """Every directory a bounded context's layer is read from.
+def layer_files(context_dir: Path, layer: tuple[str, ...]) -> list[LayerFile]:
+    """Every module a bounded context's layer is read from.
 
-    The layer's own directory comes first, whether or not it exists. For
-    a layer under ``domain/`` the directory of the same name in each
-    area follows it, and for entities each area itself: a module an area
-    holds directly is read as entities.
+    For a layer outside ``domain/``, the modules of its directory and
+    beneath. For a layer under ``domain/``, the modules of each
+    directory named for the kind, and each module named for it, whether
+    directly under ``domain/`` or in an area. Entities have more: a
+    module ``domain/`` or an area holds that is named for no kind is
+    read as entities.
+
+    Test files are left out, as they are everywhere doctrine reads.
 
     Args:
         context_dir: The bounded context
         layer: Path segments of the layer, e.g. ("domain", "repositories")
 
     Returns:
-        The directories, the layer's own first
+        The modules, those of the layer's own directory first
     """
     own = context_dir.joinpath(*layer)
-    found = [LayerDirectory(path=own, files_relative_to=own)]
+    if layer[: len(DOMAIN_PATH)] != DOMAIN_PATH:
+        return [LayerFile(path, counted_from=own) for path in _modules_in(own)]
 
-    domain = context_dir.joinpath(*DOMAIN_PATH)
-    if layer[: len(DOMAIN_PATH)] != DOMAIN_PATH or not domain.is_dir():
-        return found
-
-    areas, kinds = _areas_and_kinds(domain)
+    domain, found = _domain_of(context_dir)
+    files = [LayerFile(path, counted_from=own) for path in _modules_in(own)]
+    for kind in found.kinds:
+        if kind == own or kind.name.removesuffix(".py") != layer[-1]:
+            continue
+        modules = _modules_in(kind) if kind.is_dir() else [kind]
+        files.extend(LayerFile(path, counted_from=domain) for path in modules)
     if layer == ENTITIES_PATH:
-        found.extend(
-            LayerDirectory(
-                path=area, files_relative_to=domain, with_subdirectories=False
-            )
-            for area in areas
+        files.extend(
+            LayerFile(path, counted_from=domain)
+            for path in found.modules
+            if not is_test_file(path)
         )
-    found.extend(
-        LayerDirectory(path=kind, files_relative_to=domain)
-        for kind in kinds
-        if kind.name == layer[-1] and kind != own
-    )
-    return found
+    return files
 
 
-def python_files_in(directory: LayerDirectory) -> list[Path]:
-    """The modules one of a layer's directories holds, tests left out.
-
-    Args:
-        directory: A directory a layer is read from
-
-    Returns:
-        Its ``.py`` files, with those beneath it if they belong to the layer
-    """
-    if not directory.path.is_dir():
-        return []
-    pattern = "**/*.py" if directory.with_subdirectories else "*.py"
-    return sorted(
-        path for path in directory.path.glob(pattern) if not is_test_file(path)
-    )
-
-
-def kind_directory_of(file: Sequence[str]) -> str | None:
-    """The kind directory a file under ``domain/`` is read as part of.
+def kind_of(file: Sequence[str]) -> str | None:
+    """The kind a file under ``domain/`` is read as, if a name says so.
 
     The first directory on the way down from ``domain/`` whose name is a
-    kind's. Whatever is beneath that directory belongs to it, so a
-    kind's name further down decides nothing.
+    kind's, or failing that the module's own name. Whatever is beneath a
+    kind directory belongs to it, so a kind's name further down decides
+    nothing.
 
     Args:
         file: Path segments of the file from the bounded context, e.g.
             ("domain", "billing", "repositories", "invoice.py")
 
     Returns:
-        The kind directory's name, or None if the file is not under
-        ``domain/`` or is in no kind directory
+        The kind's name, or None if the file is not under ``domain/`` or
+        no name on its path is a kind's
     """
-    if tuple(file[: len(DOMAIN_PATH)]) != DOMAIN_PATH:
+    if tuple(file[: len(DOMAIN_PATH)]) != DOMAIN_PATH or len(file) <= len(DOMAIN_PATH):
         return None
-    return next(
-        (
-            segment
-            for segment in file[len(DOMAIN_PATH) : -1]
-            if segment in DOMAIN_KIND_DIRECTORIES
-        ),
-        None,
-    )
+    *directories, module = file[len(DOMAIN_PATH) :]
+    for segment in directories:
+        if segment in DOMAIN_KIND_DIRECTORIES:
+            return segment
+    stem = module.removesuffix(".py")
+    return stem if stem in DOMAIN_KIND_DIRECTORIES else None

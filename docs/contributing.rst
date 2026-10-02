@@ -281,7 +281,8 @@ This is the layout doctrine reads, in a kit or in a solution of your own::
     │   ├── handlers/      # Handler protocols, one per *_handler.py
     │   ├── oracles/       # Oracle protocols
     │   ├── calculators/   # Calculator protocols
-    │   └── witnesses/     # Witness protocols
+    │   ├── witnesses/     # Witness protocols
+    │   └── errors/        # Exceptions the domain declares
     ├── usecases/          # Application business rules
     ├── infrastructure/    # Implementations of the protocols above
     │   ├── handlers/
@@ -297,6 +298,10 @@ directory with any other name is an *area*, described below, so a
 misspelt one is read as an area rather than as what was meant: a
 protocol in ``domain/repositorys/`` is taken for an entity, and objected
 to for not being one.
+
+That tree is the layout at full stretch. A domain needs none of the
+packaging in it until there is enough to package, as
+`How much to package the domain`_ sets out.
 
 A context may hold other packages beside ``domain/`` — ``julee-hcd`` has
 ``parsers/``, ``serializers/`` and ``templates/``. Doctrine does not mind;
@@ -324,62 +329,75 @@ kits — and the truth is written down rather than left to be inferred:
 directions: to finding nothing where nothing says that is intended, and
 to a declaration overtaken by a context added since.
 
-Dividing the domain by area
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How much to package the domain
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A larger context usually wants its domain divided by the part of the
-business a class belongs to. You may put that division above the
-directories doctrine knows, and doctrine reads it
-(:doc:`/ADRs/023-a-directory-under-domain-is-an-area`)::
+As much as helps, and no more. If the domain is simple, do not package
+it. If it has a lot of classes and packages would help you find them,
+use packages. Doctrine reads all three of these, and a context may mix
+them (:doc:`/ADRs/023-a-directory-under-domain-is-an-area`,
+:doc:`/ADRs/024-every-module-under-domain-is-read`)::
 
-    <bounded_context>/
-    └── domain/
-        ├── billing/             # An area: any name doctrine does not know
-        │   ├── invoice.py       # Entities
-        │   ├── payment.py       # Entities
-        │   ├── repositories/    # Repository protocols
-        │   └── oracles/         # Oracle protocols
-        └── shipping/
-            ├── parcel.py
-            └── repositories/
+    domain/                  # No packaging
+    ├── invoice.py           #   Entities
+    ├── repositories.py      #   Repository protocols
+    └── errors.py            #   Exceptions
 
-The rule is one sentence: under ``domain/``, a directory named
-``models``, ``values``, ``repositories``, ``services``, ``handlers``,
-``oracles``, ``calculators`` or ``witnesses`` holds that kind of class,
-and a directory with any other name is an area.
+    domain/                  # By kind
+    ├── models/
+    ├── repositories/
+    └── errors/
 
-Inside an area:
+    domain/                  # By area, then by kind
+    ├── billing/             #   An area: any name doctrine does not know
+    │   ├── invoice.py       #   Entities
+    │   ├── repositories/    #   Repository protocols
+    │   └── errors.py        #   Exceptions
+    └── shipping/
+        ├── parcel.py
+        └── repositories.py
 
-- A module the area holds directly is read as entities, exactly as a
-  module in ``domain/models/`` is.
-- A directory with one of the eight names above is read as that kind,
-  exactly as it is directly under ``domain/``.
-- A directory with any other name is another area.
+Two rules decide what everything under ``domain/`` is read as.
 
-Nothing has to be declared, and every rule applies to a class in an area
-as it does anywhere else. A few things follow that are worth knowing
-before you choose:
+**A name says the kind.** A directory or a module named ``models``,
+``values``, ``repositories``, ``services``, ``handlers``, ``oracles``,
+``calculators``, ``witnesses`` or ``errors`` holds that kind of class.
+``repositories.py`` is read exactly as ``repositories/`` is. This holds
+directly under ``domain/`` and inside an area.
+
+**Everything else is entities, or an area.** A module with any other
+name is read as entities, exactly as a module in ``domain/models/`` is.
+A directory with any other name is an area, and what it holds is read by
+these same two rules.
+
+Nothing has to be declared, and every rule applies to a class wherever
+these rules find it. A few things follow that are worth knowing before
+you choose:
 
 - **An area is not a bounded context.** It is a way of filing classes
   inside one. Its use cases live in the context's ``usecases/``, and
   nothing stops one area importing another.
-- **A directory beneath a kind directory is not an area.**
+- **What lies beneath a kind directory belongs to that kind.**
   ``domain/models/billing/`` is more models, as it always was, so you may
-  also put the kind first and the area second. Both orders are read and
-  a context may use both.
-- **A module directly under** ``domain/`` **is not read.** A file such as
-  ``domain/errors.py`` is in no kind's directory and in no area, so no
-  family holds its classes and the entity and port rules do not see
-  them.
-- **Values in an area are read as entities** unless the area gives them
-  a ``values/`` directory. An enum is tolerated among entities; any other
-  value object kept beside them counts as an entity when a rule asks
-  what a port is bound to.
+  also put the kind first and the area second. Both orders are read, and
+  doctrine prefers neither.
+- **Exceptions go in** ``errors``. A class there must be an exception,
+  and an exception declared beside an entity is objected to and told to
+  move. They live under ``domain/`` because every layer may import the
+  domain: a use case raises one, an adapter raises one, an application
+  catches one.
+- **Values kept beside entities are read as entities** unless they are
+  given a ``values`` directory or module. An enum is tolerated among
+  entities; any other value object kept beside them counts as an entity
+  when a rule asks what a port is bound to.
+- **A handler protocol still wants its own file**, named
+  ``*_handler.py``. A module called ``handlers.py`` is read as handlers
+  and then objected to by that rule, so handlers are the one kind that
+  needs a directory.
 
 ``julee doctrine census`` shows what was made of your layout: it lists
-each class with the family that read it, and anything under ``domain/``
-that no family read. See :doc:`/architecture/solutions/doctrine`.
-
+each class with the family that read it. See
+:doc:`/architecture/solutions/doctrine`.
 
 
 

@@ -30,18 +30,16 @@ This is what makes your architecture "speak" your business language.
     your_business/      # Bounded contexts of your business
       billing/
         domain/
-          models/
-            invoice.py
-            payment.py
+          invoice.py
+          payment.py
         usecases/
           process_invoice.py
         infrastructure/
           invoice_repository.py
       compliance/
         domain/
-          models/
-            audit_record.py
-            policy.py
+          audit_record.py
+          policy.py
         usecases/
           validate_invoice.py
       apps/             # Application entry points

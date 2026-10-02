@@ -1451,16 +1451,77 @@ class TestAreasUnderDomain:
 
         assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
 
-    def test_a_module_directly_under_domain_is_read_by_no_family(self, tmp_path):
+    def test_a_module_directly_under_domain_is_read_as_entities(self, tmp_path):
+        """domain/ is the outermost area (ADR 024)."""
         context = self._context(
             tmp_path,
             {
-                "domain/errors.py": "class NotFound(Exception):\n    pass\n",
+                "domain/ledger.py": "class Ledger:\n    pass\n",
+                "domain/__init__.py": "class InInit:\n    pass\n",
                 "domain/billing/invoice.py": "class Invoice:\n    pass\n",
             },
         )
 
-        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+        assert self._family(context, "entities") == [
+            ("InInit", "__init__.py"),
+            ("Invoice", "billing/invoice.py"),
+            ("Ledger", "ledger.py"),
+        ]
+
+    def test_a_module_named_for_a_kind_holds_that_kind(self, tmp_path):
+        """As a directory of the name would (ADR 024)."""
+        context = self._context(
+            tmp_path,
+            {
+                "domain/models.py": "class Customer:\n    pass\n",
+                "domain/values.py": "class Money:\n    pass\n",
+                "domain/repositories.py": "class CustomerRepository:\n    pass\n",
+                "domain/billing/repositories.py": (
+                    "class InvoiceRepository:\n    pass\n"
+                ),
+                "domain/billing/oracles.py": "class RatesOracle:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [("Customer", "models.py")]
+        assert self._family(context, "values") == [("Money", "values.py")]
+        assert self._family(context, "repository_protocols") == [
+            ("CustomerRepository", "repositories.py"),
+            ("InvoiceRepository", "billing/repositories.py"),
+        ]
+        assert self._family(context, "oracle_protocols") == [
+            ("RatesOracle", "billing/oracles.py")
+        ]
+
+    def test_a_handler_in_a_services_module_is_read_as_a_handler(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/services.py": (
+                    "class BillingService:\n    pass\n\n\n"
+                    "class OverdueHandler:\n    pass\n"
+                ),
+            },
+        )
+
+        assert [name for name, _ in self._family(context, "service_protocols")] == [
+            "BillingService"
+        ]
+        assert [name for name, _ in self._family(context, "handler_protocols")] == [
+            "OverdueHandler"
+        ]
+
+    def test_a_module_under_a_kind_directory_named_for_another_is_not_one(
+        self, tmp_path
+    ):
+        """What lies beneath a kind directory belongs to that kind."""
+        context = self._context(
+            tmp_path,
+            {"domain/models/errors.py": "class Refusal:\n    pass\n"},
+        )
+
+        assert self._family(context, "entities") == [("Refusal", "errors.py")]
+        assert self._family(context, "errors") == []
 
     def test_a_test_in_an_area_is_not_read(self, tmp_path):
         context = self._context(
@@ -1473,6 +1534,77 @@ class TestAreasUnderDomain:
         )
 
         assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+
+class TestTheErrorsFamily:
+    """Every class in a domain's errors, a directory or a module (ADR 024)."""
+
+    _context = staticmethod(TestAreasUnderDomain._context)
+    _family = staticmethod(TestAreasUnderDomain._family)
+
+    def test_a_class_in_the_errors_directory_is_a_member(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {"domain/errors/billing.py": "class Overdue(Exception):\n    pass\n"},
+        )
+
+        assert self._family(context, "errors") == [("Overdue", "billing.py")]
+
+    def test_a_class_in_an_errors_module_is_a_member(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/errors.py": "class NotFound(LookupError):\n    pass\n",
+                "domain/billing/errors.py": "class Overdue(NotFound):\n    pass\n",
+                "domain/billing/refunds/errors/late.py": (
+                    "class TooLate(Exception):\n    pass\n"
+                ),
+            },
+        )
+
+        assert self._family(context, "errors") == [
+            ("NotFound", "errors.py"),
+            ("Overdue", "billing/errors.py"),
+            ("TooLate", "billing/refunds/errors/late.py"),
+        ]
+
+    def test_a_class_there_is_a_member_whatever_it_is(self, tmp_path):
+        """Found by where it sits, so that a rule can object to it."""
+        context = self._context(
+            tmp_path, {"domain/errors.py": "class Helper:\n    pass\n"}
+        )
+
+        assert self._family(context, "errors") == [("Helper", "errors.py")]
+
+    def test_an_error_is_not_among_the_entities(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/errors.py": "class NotFound(LookupError):\n    pass\n",
+                "domain/billing/errors.py": "class Overdue(Exception):\n    pass\n",
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+    def test_an_exception_elsewhere_is_read_where_it_sits(self, tmp_path):
+        """Among the entities, where the entity rules object to it."""
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/invoice.py": (
+                    "class Invoice:\n    pass\n\n\n"
+                    "class InvoiceNotFound(LookupError):\n    pass\n"
+                )
+            },
+        )
+
+        assert [name for name, _ in self._family(context, "entities")] == [
+            "Invoice",
+            "InvoiceNotFound",
+        ]
+        assert self._family(context, "errors") == []
 
 
 # =============================================================================

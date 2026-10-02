@@ -108,6 +108,39 @@ class TestClaimedAtItsLocation:
         }
         assert census.disagreements == ()
 
+    def test_a_member_read_in_a_kind_module_is_found_under_domain(self) -> None:
+        """A module named for a kind holds that kind (ADR 024), and its
+        classes carry their path from domain/."""
+        not_found = a_class("domain/errors.py", "NotFound")
+        overdue = a_class("domain/billing/errors.py", "Overdue")
+        repository = a_class("domain/repositories.py", "Invoices")
+
+        census = joined(
+            [not_found, overdue, repository],
+            errors=[
+                ClassInfo(name="NotFound", file="errors.py"),
+                ClassInfo(name="Overdue", file="billing/errors.py"),
+            ],
+            repository_protocols=[ClassInfo(name="Invoices", file="repositories.py")],
+        )
+
+        assert {
+            m.declaration.name: (m.state, m.families) for m in census.memberships
+        } == {
+            "NotFound": (CLAIMED_AT_ITS_LOCATION, ("errors",)),
+            "Overdue": (CLAIMED_AT_ITS_LOCATION, ("errors",)),
+            "Invoices": (CLAIMED_AT_ITS_LOCATION, ("repository_protocols",)),
+        }
+        assert census.disagreements == ()
+
+    def test_a_member_in_the_errors_directory_is_found_there(self) -> None:
+        census = joined(
+            [a_class("domain/errors/billing.py", "Overdue")],
+            errors=[ClassInfo(name="Overdue", file="billing.py")],
+        )
+
+        assert state_of(census, "Overdue") == CLAIMED_AT_ITS_LOCATION
+
     def test_a_member_whose_file_is_nowhere_names_its_own_directory(self) -> None:
         """The disagreement points at the family's directory, as before."""
         census = joined([], entities=[ClassInfo(name="Invoice", file="invoice.py")])
@@ -221,13 +254,13 @@ class TestUnclaimed:
         assert membership.state == UNCLAIMED
         assert membership.in_family_directory
 
-    def test_one_directly_under_domain_is_elsewhere(self) -> None:
-        """A module domain/ holds itself is in no kind's directory and in
-        no area."""
-        census = joined([a_class("domain/errors.py", "NotFound")])
+    def test_one_directly_under_domain_says_so(self) -> None:
+        """Every module under domain/ is read by some family (ADR 024)."""
+        census = joined([a_class("domain/ledger.py", "Ledger")])
 
         (membership,) = census.memberships
-        assert not membership.in_family_directory
+        assert membership.state == UNCLAIMED
+        assert membership.in_family_directory
 
     def test_a_directory_that_only_starts_like_a_family_one_is_elsewhere(self) -> None:
         census = joined([a_class("usecases_old/plan.py", "Plan")])

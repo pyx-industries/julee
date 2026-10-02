@@ -27,8 +27,13 @@ from types import ModuleType
 from pydantic import BaseModel
 from pydantic.dataclasses import is_pydantic_dataclass
 
-from julee.core.doctrine_constants import DTOS_PATH, ENTITIES_PATH, USE_CASES_PATH
-from julee.core.parsers.layout import layer_directories, python_files_in
+from julee.core.doctrine_constants import (
+    DTOS_PATH,
+    ENTITIES_PATH,
+    ERRORS_PATH,
+    USE_CASES_PATH,
+)
+from julee.core.parsers.layout import layer_files
 
 __all__ = [
     "PRIMITIVES",
@@ -38,6 +43,7 @@ __all__ = [
     "Verdict",
     "dto_verdicts",
     "entity_verdicts",
+    "error_verdicts",
     "message_verdicts",
     "module_name_for",
     "port_verdicts",
@@ -107,14 +113,11 @@ def package_of(path: Path) -> str:
 def _files_of_layer(context_path: Path, layer: tuple[str, ...]) -> list[Path]:
     """Every module of a layer, tests excluded.
 
-    From each directory the parser reads the layer from: its own, and
-    for a layer under ``domain/`` each area's as well (ADR 023).
+    The modules the parser reads the layer from, which for a layer
+    under ``domain/`` are wherever its kind's name stands (ADR 023,
+    ADR 024).
     """
-    return [
-        path
-        for directory in layer_directories(context_path, layer)
-        for path in python_files_in(directory)
-    ]
+    return [found.path for found in layer_files(context_path, layer)]
 
 
 def _import_layer(
@@ -245,6 +248,12 @@ def _not_a_domain_class(obj: object) -> str | None:
         if params is not None and params.frozen:
             return None
         return "it is a dataclass that is not frozen"
+
+    if issubclass(obj, BaseException):
+        return (
+            "it is an exception. An exception the domain declares belongs "
+            "in errors, a directory or a module beside this one"
+        )
 
     return (
         "it is neither an entity nor a value object. An entity is a "
@@ -457,6 +466,34 @@ def entity_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Ver
         One verdict per name, plus one per file that would not import
     """
     return _verdicts(slug, context_path, ENTITIES_PATH, names, _not_a_domain_class)
+
+
+def _not_an_error(obj: object) -> str | None:
+    """Why a class in errors does not belong there, or None if it does.
+
+    Args:
+        obj: Whatever the name resolved to
+
+    Returns:
+        A clause for the objection, or None
+    """
+    if isinstance(obj, type) and issubclass(obj, Exception):
+        return None
+    return "it is not an exception"
+
+
+def error_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:
+    """Resolve the names read out of a context's errors and judge each.
+
+    Args:
+        slug: The bounded context slug
+        context_path: Path to the bounded context
+        names: The class names the parser found in errors
+
+    Returns:
+        One verdict per name, plus one per file that would not import
+    """
+    return _verdicts(slug, context_path, ERRORS_PATH, names, _not_an_error)
 
 
 def dto_verdicts(slug: str, context_path: Path, names: list[str]) -> list[Verdict]:

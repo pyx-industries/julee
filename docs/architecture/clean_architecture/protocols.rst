@@ -84,6 +84,12 @@ Doctrine reads a port directory there exactly as it reads one directly
 under ``domain/``
 (:doc:`/ADRs/023-a-directory-under-domain-is-an-area`).
 
+A context with only a protocol or two of a kind may keep them in a module
+of the same name, ``domain/repositories.py``,
+which doctrine reads as it reads the directory
+(:doc:`/ADRs/024-every-module-under-domain-is-read`).
+Handlers are the exception: each wants its own ``*_handler.py``.
+
 A protocol found in one of these directories
 whose name claims none of the roles that directory offers
 fails doctrine rather than being quietly ignored.

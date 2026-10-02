@@ -27,8 +27,12 @@ from julee.core.doctrine_constants import (
     SERVICES_PATH,
     WITNESSES_PATH,
 )
-from julee.core.parsers.ast import parse_bounded_context, parse_python_classes
-from julee.core.parsers.layout import layer_directories, python_files_in
+from julee.core.parsers.ast import (
+    parse_bounded_context,
+    parse_python_classes,
+    parse_python_classes_from_file,
+)
+from julee.core.parsers.layout import layer_files
 
 
 def _ports(contexts):
@@ -43,8 +47,8 @@ def _ports(contexts):
         # is a placement objection, not a naming one.
         in_own_directory = {
             cls.name
-            for directory in layer_directories(Path(ctx.path), HANDLERS_PATH)
-            for cls in parse_python_classes(directory.path)
+            for found in layer_files(Path(ctx.path), HANDLERS_PATH)
+            for cls in parse_python_classes_from_file(found.path)
         }
         found = {
             "services": list(info.service_protocols)
@@ -201,15 +205,13 @@ class TestDrivenPortVisibility:
             }
             handlers = found["handlers"]
             for directory in ROLES_BY_DIRECTORY:
-                # The directory under domain/, and the one of the same
-                # name in each area (ADR 023).
+                # Wherever the port's name stands under domain/: a
+                # directory or a module, in an area or not (ADR 023,
+                # ADR 024).
                 modules = [
-                    path
-                    for package in layer_directories(
-                        Path(ctx.path), (*DOMAIN_PATH, directory)
-                    )
-                    for path in python_files_in(package)
-                    if path.name != "__init__.py"
+                    found.path
+                    for found in layer_files(Path(ctx.path), (*DOMAIN_PATH, directory))
+                    if found.path.name != "__init__.py"
                 ]
                 if not modules:
                     continue
