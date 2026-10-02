@@ -32,6 +32,7 @@ from julee.core.doctrine.rules.use_case import (
 from julee.core.doctrine_constants import (
     USE_CASE_SUFFIX,
 )
+from julee.core.parsers.ast import is_test_file
 from julee.core.parsers.imports import ImportInfo, extract_imports
 from julee.core.usecases.code_artifact.list_requests import ListRequestsUseCase
 from julee.core.usecases.code_artifact.list_responses import ListResponsesUseCase
@@ -238,7 +239,7 @@ class TestExecutionAgnosticism:
             (ctx.slug, str(py_file.relative_to(Path(ctx.path))), py_file.read_text())
             for ctx in await repo.list_all()
             for py_file in (Path(ctx.path) / "usecases").rglob("*.py")
-            if "tests" not in py_file.parts
+            if not is_test_file(py_file)
         ]
 
         violations = use_case_sources_mentioning(sources, "datetime.now")
@@ -259,7 +260,7 @@ class TestExecutionAgnosticism:
             (ctx.slug, str(py_file.relative_to(Path(ctx.path))), py_file.read_text())
             for ctx in await repo.list_all()
             for py_file in (Path(ctx.path) / "usecases").rglob("*.py")
-            if "tests" not in py_file.parts
+            if not is_test_file(py_file)
         ]
 
         violations = use_case_sources_mentioning(sources, "temporalio")
@@ -369,7 +370,7 @@ class TestTheDependencyRule:
                 module_name_for(context_path / "__init__.py") or ctx.slug
             )
             for py_file in sorted((context_path / "usecases").rglob("*.py")):
-                if "tests" in py_file.parts:
+                if is_test_file(py_file):
                     continue
                 package = package_of(py_file)
                 found.extend(

@@ -395,7 +395,7 @@ def _imported_class_names(directory: Path) -> set[str]:
     if not directory.exists():
         return set()
     names: set[str] = set()
-    for py_file in directory.glob("**/*.py"):
+    for py_file in _files_to_read(directory, True, True, None):
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except Exception:
