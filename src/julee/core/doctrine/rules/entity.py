@@ -10,27 +10,16 @@ parsing has already happened: nothing here reads a file.
 from collections.abc import Iterable
 
 from julee.core.doctrine.resolution import Verdict
-from julee.core.doctrine_constants import (
-    CALCULATORS_PATH,
-    ENTITIES_PATH,
-    HANDLERS_PATH,
-    ORACLES_PATH,
-    REPOSITORIES_PATH,
-    SERVICES_PATH,
-    VALUES_PATH,
-    WITNESSES_PATH,
-)
+from julee.core.doctrine_constants import ENTITIES_PATH, VALUES_PATH
 from julee.core.entities.bounded_context_info import BoundedContextInfo
 from julee.core.values.code_info import ClassInfo
 
 __all__ = [
     "ENUM_INDICATORS",
     "FORBIDDEN_COLLECTION_PREFIXES",
-    "READ_DOMAIN_PACKAGES",
     "VALIDATOR_DECORATORS",
     "contexts_whose_entities_doctrine_cannot_see",
     "copies_that_skip_a_validator",
-    "domain_packages_doctrine_does_not_read",
     "entities_that_can_be_mutated",
     "entities_that_are_not_frozen_dataclasses",
     "fields_named_workflow_id",
@@ -52,35 +41,6 @@ VALIDATOR_DECORATORS = frozenset({"field_validator", "model_validator"})
 
 _IMPLICIT_PARAMETERS = frozenset({"cls", "self"})
 """Parameters that are the class or the instance, not the value."""
-
-READ_DOMAIN_PACKAGES = frozenset(
-    path[-1]
-    for path in (
-        ENTITIES_PATH,
-        VALUES_PATH,
-        REPOSITORIES_PATH,
-        SERVICES_PATH,
-        ORACLES_PATH,
-        CALCULATORS_PATH,
-        WITNESSES_PATH,
-        HANDLERS_PATH,
-    )
-)
-"""The packages under domain/ that doctrine reads anything out of.
-
-Derived from the layer paths rather than spelled again, so a package
-doctrine learns to read stops being reported the moment it does.
-
-Three of the seven were spelled in by hand when this was written, and
-the four ADR 016 added arrived later, so the first kit to file a
-protocol under domain/oracles/ was told the directory held modules
-doctrine does not read — while the parser was reading them perfectly
-well. A false objection is worse than a missing rule: it tells an
-author their correct work is wrong.
-
-Comprehension rather than a set literal, so adding a layer path is the
-only edit a new port needs.
-"""
 
 _ENTITIES_DIR = "/".join(ENTITIES_PATH)
 _VALUES_DIR = "/".join(VALUES_PATH)
@@ -234,7 +194,8 @@ def contexts_whose_entities_doctrine_cannot_see(
     how twenty service protocols went unseen in #175 and seven repository
     protocols in #231. Both looked green.
 
-    Entities are read out of ``domain/models/``. A context keeping them
+    Entities are read out of ``domain/models/`` and out of the areas a
+    context divides its domain into (ADR 023). A context keeping them
     somewhere else yields none, so every entity rule passes having
     nothing to check, and every repository in it is measured against an
     empty set of entity names. Nothing fails and nothing is reported.
@@ -269,47 +230,11 @@ def contexts_whose_entities_doctrine_cannot_see(
             continue
         objections.append(
             f"{info.slug}: doctrine read {' and '.join(evidence)} out of this "
-            f"context but no domain class at all out of {_ENTITIES_DIR}/ or "
-            f"{_VALUES_DIR}/, so either it has none or they are somewhere "
-            f"doctrine is not looking"
+            f"context but no domain class at all out of {_ENTITIES_DIR}/, "
+            f"{_VALUES_DIR}/ or an area under domain/, so either it has none "
+            f"or they are somewhere doctrine is not looking"
         )
     return objections
-
-
-def domain_packages_doctrine_does_not_read(
-    packages: Iterable[tuple[str, str]],
-) -> list[str]:
-    """Packages under domain/ that doctrine walks past without a word.
-
-    The canary for partial blindness, which the other one cannot catch.
-    A context keeping some entities in ``domain/models/`` and others in
-    ``domain/entities/`` has entities doctrine reads, so it passes the
-    first rule while half its domain goes unchecked.
-
-    trust-graph-explorer is the case: three entities in ``domain/models/``
-    and ``Facility`` in ``domain/entities/``. ``FacilityRepository``
-    returns ``Facility`` from four of its six methods and reads, to the
-    one-entity rule, as bound to nothing at all.
-
-    Whether ``domain/entities/`` should also be an accepted spelling is a
-    separate question. This rule is about the silence, not the spelling:
-    a package under domain/ with modules in it that doctrine reads
-    nothing out of says so, rather than being skipped.
-
-    Args:
-        packages: Context slug paired with the name of a package under
-            its domain/ directory that holds at least one module
-
-    Returns:
-        One sentence per package doctrine reads nothing out of
-    """
-    return [
-        f"{slug}: domain/{name}/ holds modules doctrine does not read. "
-        f"Entities belong in {_ENTITIES_DIR}/, and anything doctrine reads "
-        f"nothing out of is unchecked rather than compliant"
-        for slug, name in packages
-        if name not in READ_DOMAIN_PACKAGES
-    ]
 
 
 def copies_that_skip_a_validator(

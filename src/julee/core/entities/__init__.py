@@ -102,10 +102,10 @@ def kernel_entity_names() -> frozenset[str]:
     """Every entity the kernel offers, by name.
 
     Discovered rather than listed. A hand-written set of the ones anybody
-    had thought of is how ``READ_DOMAIN_PACKAGES`` came to raise a false
-    objection on ``domain/oracles/`` (#260), and the cost of being wrong
-    here is the same shape: a rule that reads an arity gets the wrong
-    number and says nothing about it.
+    had thought of is how doctrine's list of the packages it read under
+    ``domain/`` came to raise a false objection on ``domain/oracles/``
+    (#260), and the cost of being wrong here is the same shape: a rule
+    that reads an arity gets the wrong number and says nothing about it.
 
     A kit builds on these legitimately — ``BoundedContextInfo``,
     ``ClassInfo`` and ``Accelerator`` all have kit repositories over them

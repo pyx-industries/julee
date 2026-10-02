@@ -29,6 +29,11 @@ class BoundedContextInfo:
     The last five are the driven ports of ADR 016, each found by the
     directory it sits in rather than by what it is called.
 
+    A context may divide its domain by area (ADR 023). A directory under
+    domain/ that is not one of those above is an area: a module it holds
+    is among the entities, and a directory in it named as above holds
+    what that name says. Such a class carries its path from domain/.
+
     This is a foundational model that viewpoint accelerators project onto.
     For example, HCD's Accelerator model is ontologically bound to this.
     """

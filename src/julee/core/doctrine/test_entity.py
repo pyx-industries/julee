@@ -14,14 +14,12 @@ from julee.core.doctrine.rules.entity import (
     VALIDATOR_DECORATORS,
     contexts_whose_entities_doctrine_cannot_see,
     copies_that_skip_a_validator,
-    domain_packages_doctrine_does_not_read,
     entities_that_are_not_frozen_dataclasses,
     entities_that_can_be_mutated,
     fields_named_workflow_id,
     fields_using_mutable_collections,
     validators_that_transform,
 )
-from julee.core.doctrine_constants import ENTITIES_PATH
 from julee.core.parsers.ast import parse_bounded_context
 
 
@@ -121,11 +119,12 @@ class TestEntityVisibility:
     async def test_a_context_with_domain_code_MUST_yield_entities(self, repo):
         """A context with use cases or repositories MUST yield entities.
 
-        The canary. Entities are read out of domain/models/, so a context
-        keeping them anywhere else yields none — and then every entity
-        rule passes having nothing to check, and every repository in it is
-        measured against an empty set of entity names. Silence all the way
-        down.
+        The canary. Entities are read out of domain/models/ and out of
+        the areas a context divides its domain into (ADR 023), so a
+        context keeping them anywhere else yields none — and then every
+        entity rule passes having nothing to check, and every repository
+        in it is measured against an empty set of entity names. Silence
+        all the way down.
 
         Use cases and repository protocols are the evidence that there is
         a domain here at all. A context with neither may legitimately have
@@ -147,47 +146,6 @@ class TestEntityVisibility:
         violations = contexts_whose_entities_doctrine_cannot_see(contexts)
 
         assert not violations, "Contexts whose entities doctrine cannot see:\n" + (
-            "\n".join(violations)
-        )
-
-    @pytest.mark.asyncio
-    async def test_every_package_under_domain_MUST_be_one_doctrine_reads(self, repo):
-        """Packages under domain/ MUST be ones doctrine reads.
-
-        The canary for partial blindness. A context keeping some entities
-        in domain/models/ and others in domain/entities/ passes the rule
-        above — it has entities doctrine reads — while half its domain
-        goes unchecked and nothing says so.
-
-        trust-graph-explorer is the case that prompted this: three
-        entities in domain/models/, Facility in domain/entities/, and a
-        FacilityRepository that returns Facility from four of its six
-        methods while reading, to the one-entity rule, as bound to
-        nothing.
-
-        Whether domain/entities/ should also be an accepted spelling is a
-        separate question. This is about the silence, not the spelling.
-        """
-        packages = []
-        for ctx in await repo.list_all():
-            domain_dir = Path(ctx.path) / ENTITIES_PATH[0]
-            if not domain_dir.is_dir():
-                continue
-            for package in sorted(domain_dir.iterdir()):
-                if not package.is_dir():
-                    continue
-                modules = [
-                    path for path in package.glob("*.py") if path.name != "__init__.py"
-                ]
-                if modules:
-                    packages.append((ctx.slug, package.name))
-
-        if not packages:
-            pytest.skip("No bounded context has a domain package — nothing to check")
-
-        violations = domain_packages_doctrine_does_not_read(packages)
-
-        assert not violations, "Packages under domain/ doctrine walks past:\n" + (
             "\n".join(violations)
         )
 

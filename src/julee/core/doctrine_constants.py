@@ -85,6 +85,32 @@ CALCULATORS_PATH: Final[tuple[str, ...]] = ("domain", "calculators")
 WITNESSES_PATH: Final[tuple[str, ...]] = ("domain", "witnesses")
 INFRASTRUCTURE_PATH: Final[tuple[str, ...]] = ("infrastructure",)
 
+DOMAIN_PATH: Final[tuple[str, ...]] = ("domain",)
+"""The directory a bounded context keeps its domain under."""
+
+DOMAIN_KIND_PATHS: Final[tuple[tuple[str, ...], ...]] = (
+    ENTITIES_PATH,
+    VALUES_PATH,
+    REPOSITORIES_PATH,
+    SERVICES_PATH,
+    HANDLERS_PATH,
+    ORACLES_PATH,
+    CALCULATORS_PATH,
+    WITNESSES_PATH,
+)
+"""Every layer path under ``domain/``, one for each kind of domain class."""
+
+DOMAIN_KIND_DIRECTORIES: Final[frozenset[str]] = frozenset(
+    path[-1] for path in DOMAIN_KIND_PATHS
+)
+"""The directory names under ``domain/`` that say what kind of class they hold.
+
+Any other directory under ``domain/`` is an area: a part of the business
+the context has chosen to keep together (ADR 023). Derived from the
+layer paths, so a kind doctrine learns to read is a kind by its name
+from then on.
+"""
+
 # =============================================================================
 # RESERVED DIRECTORY NAMES
 # =============================================================================

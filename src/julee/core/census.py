@@ -35,24 +35,30 @@ from julee.core.values.code_info import ClassInfo
 __all__ = ["FAMILY_DIRECTORIES", "census_of_context", "families_of"]
 
 FAMILY_DIRECTORIES: Mapping[str, tuple[tuple[str, ...], ...]] = {
-    "entities": (paths.ENTITIES_PATH,),
-    "values": (paths.VALUES_PATH,),
+    "entities": (paths.ENTITIES_PATH, paths.DOMAIN_PATH),
+    "values": (paths.VALUES_PATH, paths.DOMAIN_PATH),
     "use_cases": (paths.USE_CASES_PATH,),
     "requests": (paths.USE_CASES_PATH,),
     "responses": (paths.USE_CASES_PATH,),
     "dtos": (paths.DTOS_PATH,),
-    "repository_protocols": (paths.REPOSITORIES_PATH,),
-    "service_protocols": (paths.SERVICES_PATH,),
-    "handler_protocols": (paths.HANDLERS_PATH, paths.SERVICES_PATH),
-    "oracle_protocols": (paths.ORACLES_PATH,),
-    "calculator_protocols": (paths.CALCULATORS_PATH,),
-    "witness_protocols": (paths.WITNESSES_PATH,),
+    "repository_protocols": (paths.REPOSITORIES_PATH, paths.DOMAIN_PATH),
+    "service_protocols": (paths.SERVICES_PATH, paths.DOMAIN_PATH),
+    "handler_protocols": (
+        paths.HANDLERS_PATH,
+        paths.SERVICES_PATH,
+        paths.DOMAIN_PATH,
+    ),
+    "oracle_protocols": (paths.ORACLES_PATH, paths.DOMAIN_PATH),
+    "calculator_protocols": (paths.CALCULATORS_PATH, paths.DOMAIN_PATH),
+    "witness_protocols": (paths.WITNESSES_PATH, paths.DOMAIN_PATH),
 }
-"""Each family and the directories the parser fills it from.
+"""Each family and the directories a member's file is counted from.
 
-A member's file is recorded relative to one of these. Handlers have two
-because one still sitting in ``domain/services/`` is read as a handler
-while it waits to be moved.
+The first is the family's own directory. Handlers have two because one
+still sitting in ``domain/services/`` is read as a handler while it
+waits to be moved. A family under ``domain/`` has ``domain/`` itself
+last, because a member read in an area carries its path from there
+(ADR 023).
 
 This restates what the parser does, and the join is what checks it: a
 directory missing here leaves that family's members unfound, and every
@@ -153,7 +159,16 @@ def census_of_context(
         "/".join((path, *directory)) + "/"
         for directories in FAMILY_DIRECTORIES.values()
         for directory in directories
+        if directory != paths.DOMAIN_PATH
     }
+    domain = "/".join((path, *paths.DOMAIN_PATH)) + "/"
+
+    def in_family_directory(file: str) -> bool:
+        # A directory under domain/ is a kind's or an area, and both are
+        # read. A module directly under domain/ is in neither.
+        if file.startswith(domain) and "/" in file[len(domain) :]:
+            return True
+        return any(file.startswith(directory) for directory in family_directories)
 
     def membership(declaration: Declaration) -> Membership:
         if declaration in at_location:
@@ -168,10 +183,7 @@ def census_of_context(
             declaration=declaration,
             state=state,
             families=tuple(claiming),
-            in_family_directory=any(
-                declaration.file.startswith(directory)
-                for directory in family_directories
-            ),
+            in_family_directory=in_family_directory(declaration.file),
         )
 
     return ContextCensus(

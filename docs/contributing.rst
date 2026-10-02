@@ -275,6 +275,7 @@ This is the layout doctrine reads, in a kit or in a solution of your own::
     <bounded_context>/
     ├── domain/
     │   ├── models/        # Entities
+    │   ├── values/        # Value objects
     │   ├── repositories/  # Repository protocols
     │   ├── services/      # Service protocols
     │   ├── handlers/      # Handler protocols, one per *_handler.py
@@ -291,12 +292,13 @@ This is the layout doctrine reads, in a kit or in a solution of your own::
     ├── apps/              # Composition roots: api, worker, cli
     └── tests/
 
-Every one of these directories is found by name, so a context that spells
-one differently has code doctrine cannot see. That is not a passing grade:
-a package holding modules doctrine reads nothing out of fails a canary
-rule rather than going quiet.
+Every one of these directories is found by name. Under ``domain/`` a
+directory with any other name is an *area*, described below, so a
+misspelt one is read as an area rather than as what was meant: a
+protocol in ``domain/repositorys/`` is taken for an entity, and objected
+to for not being one.
 
-A context may hold other packages besides these — ``julee-hcd`` has
+A context may hold other packages beside ``domain/`` — ``julee-hcd`` has
 ``parsers/``, ``serializers/`` and ``templates/``. Doctrine does not mind;
 it checks the directories it knows about.
 
@@ -305,10 +307,10 @@ contexts need them: most have ``models/``, ``repositories/`` and
 ``usecases/`` and nothing else under ``domain/``. Create a directory when
 you have something to put in it.
 
-The same canary runs one level up, over the search itself. Most doctrine
-rules iterate the bounded contexts found under ``search_root``, so a
-codebase with none passes all of them, and its run reads exactly like a
-run over a codebase that complies. Having none is sometimes the truth —
+A canary runs over the search itself. Most doctrine rules iterate the
+bounded contexts found under ``search_root``, so a codebase with none
+passes all of them, and its run reads exactly like a run over a codebase
+that complies. Having none is sometimes the truth —
 julee is a framework and ``julee-viewpoints`` is a projection over other
 kits — and the truth is written down rather than left to be inferred:
 
@@ -321,6 +323,62 @@ kits — and the truth is written down rather than left to be inferred:
 ``"none"`` is the only value the key takes, and doctrine objects in both
 directions: to finding nothing where nothing says that is intended, and
 to a declaration overtaken by a context added since.
+
+Dividing the domain by area
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A larger context usually wants its domain divided by the part of the
+business a class belongs to. You may put that division above the
+directories doctrine knows, and doctrine reads it
+(:doc:`/ADRs/023-a-directory-under-domain-is-an-area`)::
+
+    <bounded_context>/
+    └── domain/
+        ├── billing/             # An area: any name doctrine does not know
+        │   ├── invoice.py       # Entities
+        │   ├── payment.py       # Entities
+        │   ├── repositories/    # Repository protocols
+        │   └── oracles/         # Oracle protocols
+        └── shipping/
+            ├── parcel.py
+            └── repositories/
+
+The rule is one sentence: under ``domain/``, a directory named
+``models``, ``values``, ``repositories``, ``services``, ``handlers``,
+``oracles``, ``calculators`` or ``witnesses`` holds that kind of class,
+and a directory with any other name is an area.
+
+Inside an area:
+
+- A module the area holds directly is read as entities, exactly as a
+  module in ``domain/models/`` is.
+- A directory with one of the eight names above is read as that kind,
+  exactly as it is directly under ``domain/``.
+- A directory with any other name is another area.
+
+Nothing has to be declared, and every rule applies to a class in an area
+as it does anywhere else. A few things follow that are worth knowing
+before you choose:
+
+- **An area is not a bounded context.** It is a way of filing classes
+  inside one. Its use cases live in the context's ``usecases/``, and
+  nothing stops one area importing another.
+- **A directory beneath a kind directory is not an area.**
+  ``domain/models/billing/`` is more models, as it always was, so you may
+  also put the kind first and the area second. Both orders are read and
+  a context may use both.
+- **A module directly under** ``domain/`` **is not read.** A file such as
+  ``domain/errors.py`` is in no kind's directory and in no area, so no
+  family holds its classes and the entity and port rules do not see
+  them.
+- **Values in an area are read as entities** unless the area gives them
+  a ``values/`` directory. An enum is tolerated among entities; any other
+  value object kept beside them counts as an entity when a rule asks
+  what a port is bound to.
+
+``julee doctrine census`` shows what was made of your layout: it lists
+each class with the family that read it, and anything under ``domain/``
+that no family read. See :doc:`/architecture/solutions/doctrine`.
 
 
 

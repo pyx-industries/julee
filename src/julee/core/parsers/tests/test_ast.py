@@ -1313,6 +1313,169 @@ class TestTheUseCaseFamily:
 
 
 # =============================================================================
+# parse_bounded_context: areas under domain/
+# =============================================================================
+
+
+class TestAreasUnderDomain:
+    """A directory under domain/ that is no kind's is an area (ADR 023)."""
+
+    @staticmethod
+    def _context(tmp_path, files):
+        context = tmp_path / "ledger"
+        for file, source in files.items():
+            (context / file).parent.mkdir(parents=True, exist_ok=True)
+            _write(context / file, source)
+        return context
+
+    @staticmethod
+    def _family(context, family):
+        info = parse_bounded_context(context)
+        assert info is not None
+        return [(found.name, found.file) for found in getattr(info, family)]
+
+    def test_a_module_an_area_holds_is_read_as_entities(self, tmp_path):
+        context = self._context(
+            tmp_path, {"domain/billing/invoice.py": "class Invoice:\n    pass\n"}
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+    def test_a_kind_directory_in_an_area_is_read_as_that_kind(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+                "domain/billing/repositories/invoice.py": (
+                    "class InvoiceRepository:\n    pass\n"
+                ),
+                "domain/billing/values/money.py": "class Money:\n    pass\n",
+                "domain/billing/oracles/rates.py": "class RatesOracle:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+        assert self._family(context, "repository_protocols") == [
+            ("InvoiceRepository", "billing/repositories/invoice.py")
+        ]
+        assert self._family(context, "values") == [("Money", "billing/values/money.py")]
+        assert self._family(context, "oracle_protocols") == [
+            ("RatesOracle", "billing/oracles/rates.py")
+        ]
+
+    def test_a_models_directory_in_an_area_holds_entities_too(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+                "domain/billing/models/refund.py": "class Refund:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [
+            ("Invoice", "billing/invoice.py"),
+            ("Refund", "billing/models/refund.py"),
+        ]
+
+    def test_areas_are_read_beside_the_layers_own_directories(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/models/customer.py": "class Customer:\n    pass\n",
+                "domain/repositories/customer.py": (
+                    "class CustomerRepository:\n    pass\n"
+                ),
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+                "domain/billing/repositories/invoice.py": (
+                    "class InvoiceRepository:\n    pass\n"
+                ),
+            },
+        )
+
+        assert self._family(context, "entities") == [
+            ("Customer", "customer.py"),
+            ("Invoice", "billing/invoice.py"),
+        ]
+        assert self._family(context, "repository_protocols") == [
+            ("CustomerRepository", "customer.py"),
+            ("InvoiceRepository", "billing/repositories/invoice.py"),
+        ]
+
+    def test_an_area_inside_an_area_is_read_the_same_way(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/refunds/refund.py": "class Refund:\n    pass\n",
+                "domain/billing/refunds/repositories/refund.py": (
+                    "class RefundRepository:\n    pass\n"
+                ),
+            },
+        )
+
+        assert self._family(context, "entities") == [
+            ("Refund", "billing/refunds/refund.py")
+        ]
+        assert self._family(context, "repository_protocols") == [
+            ("RefundRepository", "billing/refunds/repositories/refund.py")
+        ]
+
+    def test_a_handler_in_an_areas_services_is_read_as_a_handler(self, tmp_path):
+        """As one in domain/services/ is, while it waits to be moved."""
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/services/billing.py": (
+                    "class BillingService:\n    pass\n\n\n"
+                    "class OverdueHandler:\n    pass\n"
+                ),
+                "domain/billing/handlers/paid_handler.py": (
+                    "class PaidHandler:\n    pass\n"
+                ),
+            },
+        )
+
+        assert [name for name, _ in self._family(context, "service_protocols")] == [
+            "BillingService"
+        ]
+        assert [name for name, _ in self._family(context, "handler_protocols")] == [
+            "PaidHandler",
+            "OverdueHandler",
+        ]
+
+    def test_a_class_under_a_kind_directory_is_read_once(self, tmp_path):
+        """A subdirectory of domain/models/ is more models, not an area."""
+        context = self._context(
+            tmp_path,
+            {"domain/models/billing/invoice.py": "class Invoice:\n    pass\n"},
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+    def test_a_module_directly_under_domain_is_read_by_no_family(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/errors.py": "class NotFound(Exception):\n    pass\n",
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+    def test_a_test_in_an_area_is_not_read(self, tmp_path):
+        context = self._context(
+            tmp_path,
+            {
+                "domain/billing/invoice.py": "class Invoice:\n    pass\n",
+                "domain/billing/test_invoice.py": "class TestInvoice:\n    pass\n",
+                "domain/billing/tests/factories.py": "class Factory:\n    pass\n",
+            },
+        )
+
+        assert self._family(context, "entities") == [("Invoice", "billing/invoice.py")]
+
+
+# =============================================================================
 # Loading a file once
 # =============================================================================
 

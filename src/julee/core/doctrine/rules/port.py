@@ -23,6 +23,7 @@ from julee.core.doctrine_constants import (
     SERVICE_SUFFIX,
     WITNESS_SUFFIX,
 )
+from julee.core.parsers.layout import kind_directory_of
 from julee.core.usecases.code_artifact.uc_interfaces import CodeArtifactWithContext
 from julee.core.values.code_info import ClassInfo
 
@@ -225,6 +226,9 @@ def port_implementations_outside_infrastructure(
     :func:`ports_misnamed_for_their_directory` already objects to it, and
     once is enough.
 
+    A port directory inside an area is a port directory (ADR 023), so
+    ``domain/billing/oracles/`` is as good a place as ``domain/oracles/``.
+
     Args:
         found: Classes of a bounded context, paired with its slug, each
             carrying a path relative to the context root
@@ -232,8 +236,6 @@ def port_implementations_outside_infrastructure(
     Returns:
         One sentence per class claiming a role from the wrong layer
     """
-    port_directories = {f"domain/{directory}" for directory in ROLES_BY_DIRECTORY}
-
     objections = []
     for slug, cls in found:
         role = next(
@@ -252,7 +254,7 @@ def port_implementations_outside_infrastructure(
             continue
         if parts[0] == "infrastructure":
             continue
-        if "/".join(parts[:2]) in port_directories:
+        if kind_directory_of(parts) in ROLES_BY_DIRECTORY:
             continue
         objections.append(
             f"{slug}.{cls.name}: a {role} found in {cls.file}. The protocol "

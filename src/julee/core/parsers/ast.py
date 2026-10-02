@@ -280,6 +280,7 @@ def parse_python_classes(
     recursive: bool = True,
     exclude_tests: bool = True,
     exclude_files: list[str] | None = None,
+    relative_to: Path | None = None,
 ) -> list["ClassInfo"]:
     """Extract class information from Python files in a directory.
 
@@ -292,13 +293,14 @@ def parse_python_classes(
         recursive: If True, scan subdirectories recursively
         exclude_tests: If True, exclude test files
         exclude_files: List of file names to exclude (e.g., ["requests.py"])
+        relative_to: What each class's file is counted from (default: directory)
 
     Returns:
         List of ClassInfo objects sorted by class name
     """
     classes = []
     for py_file in _files_to_read(directory, recursive, exclude_tests, exclude_files):
-        classes.extend(_classes_from_file(py_file, directory))
+        classes.extend(_classes_from_file(py_file, relative_to or directory))
 
     return sorted(classes, key=lambda c: c.name)
 
@@ -409,11 +411,26 @@ def _imported_class_names(directory: Path) -> set[str]:
     return names
 
 
-def _resolve_layer_path(context_dir: Path, path_tuple: tuple[str, ...]) -> Path:
-    result = context_dir
-    for part in path_tuple:
-        result = result / part
-    return result
+def _classes_of_layer(context_dir: Path, layer: tuple[str, ...]) -> list["ClassInfo"]:
+    """Every class of one layer of a bounded context.
+
+    Read from the layer's own directory and, for a layer under
+    ``domain/``, from each area the context divides its domain into
+    (ADR 023). A class read in an area carries its path from
+    ``domain/``, which says which area that was.
+    """
+    from julee.core.parsers.layout import layer_directories
+
+    classes = []
+    for found in layer_directories(context_dir, layer):
+        classes.extend(
+            parse_python_classes(
+                found.path,
+                recursive=found.with_subdirectories,
+                relative_to=found.files_relative_to,
+            )
+        )
+    return sorted(classes, key=lambda c: c.name)
 
 
 @functools.lru_cache(maxsize=64)
@@ -439,16 +456,7 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
 
     objective, full_docstring = parse_module_docstring(context_dir / "__init__.py")
 
-    use_cases_dir = _resolve_layer_path(context_dir, USE_CASES_PATH)
-    domain_models_dir = _resolve_layer_path(context_dir, ENTITIES_PATH)
-    domain_values_dir = _resolve_layer_path(context_dir, VALUES_PATH)
-    dtos_dir = _resolve_layer_path(context_dir, DTOS_PATH)
-    domain_repositories_dir = _resolve_layer_path(context_dir, REPOSITORIES_PATH)
-    domain_services_dir = _resolve_layer_path(context_dir, SERVICES_PATH)
-    domain_handlers_dir = _resolve_layer_path(context_dir, HANDLERS_PATH)
-    domain_oracles_dir = _resolve_layer_path(context_dir, ORACLES_PATH)
-    domain_calculators_dir = _resolve_layer_path(context_dir, CALCULATORS_PATH)
-    domain_witnesses_dir = _resolve_layer_path(context_dir, WITNESSES_PATH)
+    use_cases_dir = context_dir.joinpath(*USE_CASES_PATH)
 
     all_classes = parse_python_classes(use_cases_dir)
     defined_names = {c.name for c in all_classes}
@@ -487,35 +495,40 @@ def _parse_bounded_context_cached(context_dir_str: str) -> "BoundedContextInfo |
     # checking it while it waits to be moved: a handler that stopped being
     # checked because it was in the old place is the failure this whole
     # arrangement exists to prevent. Where it sits is a rule of its own.
-    all_service_classes = parse_python_classes(domain_services_dir)
+    all_service_classes = _classes_of_layer(context_dir, SERVICES_PATH)
     misplaced_handlers = [
         c for c in all_service_classes if c.name.endswith(HANDLER_SUFFIX)
     ]
-    handler_protocols = parse_python_classes(domain_handlers_dir) + misplaced_handlers
+    handler_protocols = (
+        _classes_of_layer(context_dir, HANDLERS_PATH) + misplaced_handlers
+    )
     service_protocols = [
         c for c in all_service_classes if not c.name.endswith(HANDLER_SUFFIX)
     ]
 
     return BoundedContextInfo(
         slug=context_dir.name,
-        entities=tuple(parse_python_classes(domain_models_dir)),
-        values=tuple(parse_python_classes(domain_values_dir)),
+        # Under domain/ a layer is read from its own directory and from
+        # each area as well, and a module an area holds directly is read
+        # as entities (ADR 023).
+        entities=tuple(_classes_of_layer(context_dir, ENTITIES_PATH)),
+        values=tuple(_classes_of_layer(context_dir, VALUES_PATH)),
         # Every class in dtos/, found by the directory (ADR 022). Until
         # that, a class here was read only if a use case imported it by a
         # name ending in Request or Response.
-        dtos=tuple(parse_python_classes(dtos_dir)),
+        dtos=tuple(_classes_of_layer(context_dir, DTOS_PATH)),
         use_cases=tuple(use_cases),
         requests=tuple(requests),
         responses=tuple(responses),
-        repository_protocols=tuple(parse_python_classes(domain_repositories_dir)),
+        repository_protocols=tuple(_classes_of_layer(context_dir, REPOSITORIES_PATH)),
         service_protocols=tuple(service_protocols),
         handler_protocols=tuple(handler_protocols),
         # ADR 016's three newer ports, each found by its directory for the
         # same reason services now are: a name that does not match should
         # be read and objected to, never quietly dropped.
-        oracle_protocols=tuple(parse_python_classes(domain_oracles_dir)),
-        calculator_protocols=tuple(parse_python_classes(domain_calculators_dir)),
-        witness_protocols=tuple(parse_python_classes(domain_witnesses_dir)),
+        oracle_protocols=tuple(_classes_of_layer(context_dir, ORACLES_PATH)),
+        calculator_protocols=tuple(_classes_of_layer(context_dir, CALCULATORS_PATH)),
+        witness_protocols=tuple(_classes_of_layer(context_dir, WITNESSES_PATH)),
         has_infrastructure=(context_dir / "infrastructure").exists(),
         code_dir=context_dir.name,
         objective=objective,

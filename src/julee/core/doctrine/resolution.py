@@ -28,7 +28,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import is_pydantic_dataclass
 
 from julee.core.doctrine_constants import DTOS_PATH, ENTITIES_PATH, USE_CASES_PATH
-from julee.core.parsers.ast import is_test_file
+from julee.core.parsers.layout import layer_directories, python_files_in
 
 __all__ = [
     "PRIMITIVES",
@@ -104,17 +104,23 @@ def package_of(path: Path) -> str:
     return name.rsplit(".", 1)[0] if "." in name else ""
 
 
-def _files_under(directory: Path) -> list[Path]:
-    """Every module in a layer directory, tests excluded."""
-    if not directory.is_dir():
-        return []
-    return sorted(path for path in directory.rglob("*.py") if not is_test_file(path))
+def _files_of_layer(context_path: Path, layer: tuple[str, ...]) -> list[Path]:
+    """Every module of a layer, tests excluded.
+
+    From each directory the parser reads the layer from: its own, and
+    for a layer under ``domain/`` each area's as well (ADR 023).
+    """
+    return [
+        path
+        for directory in layer_directories(context_path, layer)
+        for path in python_files_in(directory)
+    ]
 
 
 def _import_layer(
     slug: str, context_path: Path, layer: tuple[str, ...]
 ) -> tuple[list[ModuleType], list[Verdict]]:
-    """Import what a context keeps in one layer directory.
+    """Import what a context keeps in one layer.
 
     A file that will not parse or will not import gets a verdict of
     its own. Nothing else reports one, because such a file contributes
@@ -123,19 +129,15 @@ def _import_layer(
     Args:
         slug: The bounded context slug
         context_path: Path to the bounded context
-        layer: Path segments of the directory, e.g. ("usecases",)
+        layer: Path segments of the layer, e.g. ("usecases",)
 
     Returns:
         The modules that imported, and a verdict per file that did not
     """
-    directory = context_path
-    for segment in layer:
-        directory = directory / segment
-
     modules: list[ModuleType] = []
     failures: list[Verdict] = []
 
-    for path in _files_under(directory):
+    for path in _files_of_layer(context_path, layer):
         relative = path.relative_to(context_path)
         try:
             ast.parse(path.read_text(encoding="utf-8"))
