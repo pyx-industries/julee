@@ -538,6 +538,14 @@ def _foreign(annotation: object) -> list[str]:
             for name in _foreign(constraint)
         ]
 
+    if isinstance(annotation, typing.NewType):
+        # At run time a NewType is the type it wraps, and to a type
+        # checker it is a type of its own. So it carries into the
+        # domain exactly what it wraps and nothing else, and a port
+        # naming a StoryId says more than one naming UUID. A NewType
+        # over something a port may not name is still objected to.
+        return _foreign(annotation.__supertype__)
+
     if annotation in PRIMITIVES:
         return []
 

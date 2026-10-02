@@ -331,6 +331,11 @@ class TestDrivenPortTypes:
         serialisation library into it, and dict[str, Any] carries no
         meaning at all.
 
+        A primitive may go by a name of the domain's own. A class built
+        on str or int is one way, and a ``NewType`` is the other: it is
+        judged by the type it wraps, so ``NewType("StoryId", UUID)`` may
+        cross a port and a ``NewType`` over a pydantic model may not.
+
         Annotations are resolved rather than read, so Any behind a type
         alias and an aliased import are both caught. Inherited methods
         count, since a repository that declares nothing still offers
